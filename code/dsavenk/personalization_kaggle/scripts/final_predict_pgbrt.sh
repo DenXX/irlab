@@ -1,0 +1,7 @@
+
+#./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_27_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_27
+#./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_26_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_26
+./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_25_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_25
+./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_24_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_24
+./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_23_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_23
+./run_pgbrt.sh ~/ir/data/yandex_personalized/splits_days2/feats_new_22_train.svmlight 1000000 ~/ir/data/yandex_personalized/splits_days2/feats_new_test.svmlight ~/ir/data/yandex_personalized/splits_days2/final/prediction_new_pgbrt_22
