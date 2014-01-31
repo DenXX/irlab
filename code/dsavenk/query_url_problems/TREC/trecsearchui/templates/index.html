@@ -1,0 +1,47 @@
+<html>
+<head>
+	<title>TREC search</title>
+	<style>
+		li {
+			font-size:12px;
+			font-family: Verdana;
+			padding-bottom: 10px;			
+		}
+		li.relev0 {
+			background-color: #fdd;
+		}
+		li.relev1 {
+			background-color: #dfd;
+		}		
+	</style>
+</head>
+<body>
+	<h1>Robust TREC 2004 search</h1>
+	<form action="index.html" method="GET" />
+	<input type="text" name="q" size="145" value="{% if query %}{{ query }}{% endif %}" />&nbsp;&nbsp;<input type="submit" value="Search" /><br />
+	topic: 
+	<select name="t">
+		{% for curtopic in topics %}
+		<option value="{{ curtopic.number }}" {% if curtopic.number == topic %} selected {% endif %}>{{ curtopic.number }} - {{ curtopic.title }}</option>
+		{% endfor %}
+	</select>
+	{% if results %}
+	<div style="font-size:11px; font-family: Courier; width:600px; border:2px solid; padding: 5px">
+	<font color="blue">{{ curtopicdetails.title }}</font><br />
+	{{ curtopicdetails.description }}<br />
+	</div>
+	<br />
+	MAP: {{ map }}
+	<br />
+	<div style="width:800px">
+	<ol>
+		{% for res in results %}
+			<li class="relev{{ res.3 }}"><em><a target="_blank" href="{% url 'show_doc' topic=topic doc_id=res.0 %}?q='{{ query }}'"><font color="green">{{ res.1 }}</font></a></em> - relevance:<font color="red">{{ res.3 }}</font><br />{{ res.2|safe }}</li>
+		{% endfor %}
+	</ol>
+	</div>
+	{% endif %}
+
+	</form>
+<body>
+</html>
