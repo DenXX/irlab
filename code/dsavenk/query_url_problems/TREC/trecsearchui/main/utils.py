@@ -3,6 +3,11 @@ import subprocess
 from django.template.loader import render_to_string
 from trecsearchui.settings import RETRIEVEAPPPATH, INDRIINDEXPATH, GETDOCAPPPATH
 
+from nltk import word_tokenize, sent_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+import string
+
 def read_topics(topics_file):
     topics = {}
     with open(topics_file, 'r') as input:
@@ -70,6 +75,22 @@ def read_qrels(qrels_filepath, topic = None):
 
     return res if not topic else res[topic]
 
+
+def highlight_text(text, query):
+    query = set(map(PorterStemmer().stem, query.lower().split(' ')))
+    print query
+    res_text = []
+    for line in text.split('\n'):
+        res_line = []
+        for token in line.split(' '):
+            token_to_stem = token.lower().strip(',.-][)(')
+            stem = PorterStemmer().stem(token_to_stem)
+            if stem in query:
+                res_line.append('<strong style="color:red">' + token + '</strong>')
+            else:
+                res_line.append(token)
+        res_text.append(' '.join(res_line))
+    return '\n'.join(res_text)
 
 def calculate_map(results, qrels):
     map_res = 0

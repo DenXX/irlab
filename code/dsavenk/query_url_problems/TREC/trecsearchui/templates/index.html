@@ -36,7 +36,7 @@
 	<div style="width:800px">
 	<ol>
 		{% for res in results %}
-			<li class="relev{{ res.3 }}"><em><a target="_blank" href="{% url 'show_doc' topic=topic doc_id=res.0 %}?q='{{ query }}'"><font color="green">{{ res.1 }}</font></a></em> - relevance:<font color="red">{{ res.3 }}</font><br />{{ res.2|safe }}</li>
+			<li class="relev{{ res.3 }}"><em><a target="_blank" href="{% url 'show_doc' topic=topic doc_id=res.0 %}?q={{ query }}"><font color="green">{{ res.1 }}</font></a></em> - relevance:<font color="red">{{ res.3 }}</font><br />{{ res.2|safe }}</li>
 		{% endfor %}
 	</ol>
 	</div>

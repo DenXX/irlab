@@ -40,7 +40,7 @@ int main( int argc, char** argv ) {
 
     cin >> count >> retrievePassages;
     getline(cin, myQuery);
-    myQuery = preprocessQuery(myQuery);
+    //myQuery = preprocessQuery(myQuery);
     
     if (retrievePassages) {
         QueryRequest qr;
