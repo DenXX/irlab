@@ -2,11 +2,6 @@
 <head>
 	<title>TREC search</title>
 	<style>
-		li {
-			font-size:12px;
-			font-family: Verdana;
-			padding-bottom: 10px;			
-		}
 		li.relev0 {
 			background-color: #fdd;
 		}
@@ -14,34 +9,56 @@
 			background-color: #dfd;
 		}		
 	</style>
+		<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 </head>
 <body>
 	<h1>Robust TREC 2004 search</h1>
-	<form action="index.html" method="GET" />
-	<input type="text" name="q" size="145" value="{% if query %}{{ query }}{% endif %}" />&nbsp;&nbsp;<input type="submit" value="Search" /><br />
-	topic: 
-	<select name="t">
-		{% for curtopic in topics %}
-		<option value="{{ curtopic.number }}" {% if curtopic.number == topic %} selected {% endif %}>{{ curtopic.number }} - {{ curtopic.title }}</option>
-		{% endfor %}
-	</select>
+	<div class="container">
+	<form action="index.html" method="POST" />
+	<div class="input-group">
+	<input type="text" name="q" class="form-control" value="{% if query %}{{ query }}{% endif %}" /><span class="input-group-btn"><input type="submit" value="Search" class="btn btn-success" /></span></div>
+	<hr />
+	<div class="form-group">
+		<label for="topic">topic:</label>
+		<select name="t" id="topic" class="form-control">
+			{% for curtopic in topics %}
+			<option value="{{ curtopic.number }}" {% if curtopic.number == topic %} selected {% endif %}>{{ curtopic.number }} - {{ curtopic.title }}</option>
+			{% endfor %}
+		</select>
+	</div>
 	{% if results %}
-	<div style="font-size:11px; font-family: Courier; width:600px; border:2px solid; padding: 5px">
-	<font color="blue">{{ curtopicdetails.title }}</font><br />
-	{{ curtopicdetails.description }}<br />
+	<div class="well well-sm">
+		{{ topic }}: <strong>{{ curtopicdetails.title }}</strong><br />{{ curtopicdetails.description }}
 	</div>
 	<br />
 	MAP: {{ map }}
 	<br />
-	<div style="width:800px">
-	<ol>
+	<div>
+	<ol style="list-style: decimal inside;" class="list-group">
 		{% for res in results %}
-			<li class="relev{{ res.3 }}"><em><a target="_blank" href="{% url 'show_doc' topic=topic doc_id=res.0 %}?q={{ query }}"><font color="green">{{ res.1 }}</font></a></em> - relevance:<font color="red">{{ res.3 }}</font><br />{{ res.2|safe }}</li>
+			<li class="relev{{ res.3 }} list-group-item">
+			<div class="row">
+				<div class="col-sm-7">
+					{{ forloop.counter }}. <em><a target="_blank" href="{% url 'show_doc' topic=topic doc_id=res.0 %}?q={{ query }}"><font color="green">{{ res.1 }}</font></a></em> - relevance:<font color="red">{{ res.3 }}</font><br />{{ res.2|safe }}
+				</div>
+				<div class="col-sm-5">
+					<textarea rows="3" name="problem" class="form-control"></textarea>
+				</div>
+			</div>
+			</li>
 		{% endfor %}
 	</ol>
 	</div>
 	{% endif %}
 
 	</form>
+	</div>
 <body>
 </html>
