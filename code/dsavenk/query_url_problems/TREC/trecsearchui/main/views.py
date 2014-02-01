@@ -17,8 +17,9 @@ def main(request):
         results = get_search_results(10, True, query)
         problems = request.POST.getlist('problem')
         for rank, problem in enumerate(problems):
-            Problem.objects.create(topic=topic, query=query, docid=int(results[rank][0]),
-                docno=results[rank][1], problem=problem, flag=0)
+            if len(problem.strip()) > 0:
+                Problem.objects.create(topic=topic, query=query, docid=int(results[rank][0]),
+                    docno=results[rank][1], problem=problem, flag=0)
 
         results1000 = get_search_results(1000, False, query)
         display_results = []
