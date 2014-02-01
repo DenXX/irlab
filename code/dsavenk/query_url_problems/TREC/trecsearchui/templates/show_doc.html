@@ -1,27 +1,23 @@
 <html>
 <head>
 	<title>TREC search</title>
-	<style>
-		li {
-			font-size:12px;
-			font-family: Verdana;
-			padding-bottom: 10px;			
-		}
-		li.relev0 {
-			background-color: #fdd;
-		}
-		li.relev1 {
-			background-color: #dfd;
-		}		
-	</style>
+		<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 </head>
 <body>
-	<div style="font-size:11px; font-family: Courier; width:600px; border:2px solid; padding: 5px">
-	<font color="blue">{{ curtopicdetails.title }}</font><br />
-		{{ curtopicdetails.description }}<br />
+	<div class="container">
+		<div class="well well-sm">
+			<font color="blue">{{ curtopicdetails.title }}</font><br />
+				{{ curtopicdetails.description }}
+		</div>
+		<h1>Query: {{ query }} <small>docid: {{ doc_id }}</small></h1>
+		<div style="width: 800px">{{ doc_text|safe }}</div>
 	</div>
-	<h1>Query: {{ query }}</h1>
-	<h2>docid: {{ doc_id }}</h2>
-	<div style="width: 800px">{{ doc_text|safe }}</div>
 <body>
 </html>

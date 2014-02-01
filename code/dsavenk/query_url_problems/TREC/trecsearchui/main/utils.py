@@ -77,13 +77,13 @@ def read_qrels(qrels_filepath, topic = None):
 
 
 def highlight_text(text, query):
-    query = set(map(PorterStemmer().stem, query.lower().split(' ')))
+    query = set(map(PorterStemmer().stem, filter(lambda x: len(x) > 0, query.lower().split(' '))))
     print query
     res_text = []
     for line in text.split('\n'):
         res_line = []
         for token in line.split(' '):
-            token_to_stem = token.lower().strip(',.-][)(')
+            token_to_stem = token.lower().strip(',.-][)(<>')
             stem = PorterStemmer().stem(token_to_stem)
             if stem in query:
                 res_line.append('<strong style="color:red">' + token + '</strong>')
