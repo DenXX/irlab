@@ -14,6 +14,15 @@ framework.
 
 """
 import os
+import sys
+
+# We defer to a DJANGO_SETTINGS_MODULE already in the environment. This breaks
+# if running multiple sites in the same mod_wsgi process. To fix this, use
+# mod_wsgi daemon mode with each site in its own daemon process, or use
+# os.environ["DJANGO_SETTINGS_MODULE"] = "ufindit.settings"
+_PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _PROJECT_DIR)
+sys.path.insert(0, os.path.dirname(_PROJECT_DIR))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "trecsearchui.settings")
 
