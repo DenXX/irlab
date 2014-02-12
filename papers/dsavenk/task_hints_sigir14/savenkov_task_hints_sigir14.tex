@@ -150,12 +150,37 @@ Experiment Design
 
 \section{Tips for Difficult Search Tasks}
 
+
 \subsection{Web Search Game}
 \todo{First part is about the uFindIt game with screenshot}
 To estimate the effect of search tips on user behavior and success we used the uFindIt game, proposed in \cite{Ageev:2011:FYG:2009916.2009965}. The goal of the game is to find the answers to given search tasks using the provided web search interface. 
 
+The interface of the game is presented on Figure \ref{figure:ufindit}.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.33]{img/ufindit}
+\caption{The interface of the UFindIt game}
+\label{figure:ufindit}
+\end{figure}
+
 \subsection{Search Tasks Description}
 \todo{Describe and give text of search tasks used in the study, mention that they came from agoogleaday}
+
+Table \ref{table:tasks} provides text for all 4 tasks presented to the user as well their solutions. As you can the tasks are quite difficult and usually involves more than one query to solve them.
+
+\begin{table*}
+\centering
+\caption{Search Tasks Given to the User}
+\label{table:tasks}
+\begin{tabular}{|p{8cm}|p{9cm}|} \hline
+Task Text & Solution\\ \hline
+I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Search [regenerative animal]. This will yield a number of possibilities including starfish, salamanders and several others. Search [senescence]. Find out that it means ``biological aging''. Search [animal biologically immortal], and learn that the hydra supposedly fulfill both of the above criteria. \\ \hline
+Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Search for [Archaic Triad] to find Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart.\\ \hline
+As George surveyed the "waterless place," he unearthed some very important eggs of what animal? & Search for [waterless place] to find out that it is the translation of the Mongolian word "Gobi" or "Gobi Desert." George Olsen unearthing the first whole dinosaur eggs in 1923. \\ \hline
+If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Search [somme river basin 1918]. Find out that's when the Second Battle of the Somme (a WWI battle) took place. Searching [second battle of somme code language] reveals the Cherokee served as code talkers in battle. They relayed messages in the Cherokee language that Germans couldn't decipher. \\ \hline
+\hline\end{tabular}
+\end{table*}
 
 \subsection{Experiment design}
 \todo{describe the setup, groups and search tips given}
@@ -163,8 +188,31 @@ To estimate the effect of search tips on user behavior and success we used the u
 \section{Results}
 \todo{Provide raw results of the experiments, e.g. how many participants, how many HITs accepted, rejected, problems. Show examples of search trails for successful and unsuccessful searches}.
 
+From 199 participants, who accepted the HIT on Amazon Mechanical Turk\footnote{http://mturk.com/}, only 169 moved further than the rules of the game and got to the first questions.
+The search tasks were difficult and some players decided to quit the game, thus only 90 players finished the game, from those there were 9 submissions which we filtered out from the future analysis.
+The only 2 reasons for that were: lack of effort, e.g. some players skipped several tasks after only a single query; some other submissions indicated usage of external resources such as outside of the game search engine, e.g. the only query asked was the correct answer to the task.
+From 81 submissions 10 players indicated in the survey that they didn't see the hints which were shown to them, so we further filtered those submissions and finally we had 71 completed games, which split into the groups of 29, 20, 22 for players who didn't have hints, who had task-specific hints and who had generic hints correspondingly.
+
+
 \subsection{Analysis}
 \todo{Give a table and a couple of pictures with main quantitative results}
+
+Figure \ref{figure:task_success} shows plots of the correct answers rate per task for groups of users who saw no hint, specific task-oriented hint or generic hint. As we can see, success rate is higher for users who saw specific hint than no hint at all. Somewhat surprising is the fact, that users who saw generic search hint were slightly less successful. The difference is more significant in more difficult tasks 1 and 4.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.45]{img/success_per_task}
+\caption{Success rate per task for each group of participants}
+\label{figure:task_success}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.45]{img/time_per_task}
+\caption{Task completion time for each group of players}
+\label{figure:task_time}
+\end{figure}
+
 
 The main findings can be summarized as follows:
 \begin{itemize}
