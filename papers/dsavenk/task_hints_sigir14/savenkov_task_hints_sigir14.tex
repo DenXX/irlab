@@ -1,0 +1,200 @@
+% This is "sig-alternate.tex" V2.0 May 2012
+% This file should be compiled with V2.5 of "sig-alternate.cls" May 2012
+%
+% This example file demonstrates the use of the 'sig-alternate.cls'
+% V2.5 LaTeX2e document class file. It is for those submitting
+% articles to ACM Conference Proceedings WHO DO NOT WISH TO
+% STRICTLY ADHERE TO THE SIGS (PUBS-BOARD-ENDORSED) STYLE.
+% The 'sig-alternate.cls' file will produce a similar-looking,
+% albeit, 'tighter' paper resulting in, invariably, fewer pages.
+%
+% ----------------------------------------------------------------------------------------------------------------
+% This .tex file (and associated .cls V2.5) produces:
+%       1) The Permission Statement
+%       2) The Conference (location) Info information
+%       3) The Copyright Line with ACM data
+%       4) NO page numbers
+%
+% as against the acm_proc_article-sp.cls file which
+% DOES NOT produce 1) thru' 3) above.
+%
+% Using 'sig-alternate.cls' you have control, however, from within
+% the source .tex file, over both the CopyrightYear
+% (defaulted to 200X) and the ACM Copyright Data
+% (defaulted to X-XXXXX-XX-X/XX/XX).
+% e.g.
+% \CopyrightYear{2007} will cause 2007 to appear in the copyright line.
+% \crdata{0-12345-67-8/90/12} will cause 0-12345-67-8/90/12 to appear in the copyright line.
+%
+% ---------------------------------------------------------------------------------------------------------------
+% This .tex source is an example which *does* use
+% the .bib file (from which the .bbl file % is produced).
+% REMEMBER HOWEVER: After having produced the .bbl file,
+% and prior to final submission, you *NEED* to 'insert'
+% your .bbl file into your source .tex file so as to provide
+% ONE 'self-contained' source file.
+%
+% ================= IF YOU HAVE QUESTIONS =======================
+% Questions regarding the SIGS styles, SIGS policies and
+% procedures, Conferences etc. should be sent to
+% Adrienne Griscti (griscti@acm.org)
+%
+% Technical questions _only_ to
+% Gerald Murray (murray@hq.acm.org)
+% ===============================================================
+%
+% For tracking purposes - this is V2.0 - May 2012
+
+\documentclass{sig-alternate}
+
+\usepackage{xcolor}
+\newcommand\todo[1]{\textcolor{red}{#1}}
+
+
+\begin{document}
+%
+% --- Author Metadata here ---
+\conferenceinfo{SIGIR}{'14 Gold Coast, Australia}
+%\CopyrightYear{2007} % Allows default copyright year (20XX) to be over-ridden - IF NEED BE.
+%\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
+% --- End of Author Metadata ---
+
+\title{On a Tip of Your Search: Evaluating Effect of Search Tips for Complex Informational Search Tasks}
+
+%
+% You need the command \numberofauthors to handle the 'placement
+% and alignment' of the authors beneath the title.
+%
+% For aesthetic reasons, we recommend 'three authors at a time'
+% i.e. three 'name/affiliation blocks' be placed beneath the title.
+%
+% NOTE: You are NOT restricted in how many 'rows' of
+% "name/affiliations" may appear. We just ask that you restrict
+% the number of 'columns' to three.
+%
+% Because of the available 'opening page real-estate'
+% we ask you to refrain from putting more than six authors
+% (two rows with three columns) beneath the article title.
+% More than six makes the first-page appear very cluttered indeed.
+%
+% Use the \alignauthor commands to handle the names
+% and affiliations for an 'aesthetic maximum' of six authors.
+% Add names, affiliations, addresses for
+% the seventh etc. author(s) as the argument for the
+% \additionalauthors command.
+% These 'additional authors' will be output/set for you
+% without further effort on your part as the last section in
+% the body of your article BEFORE References or any Appendices.
+
+\numberofauthors{2} 
+
+\author{
+% 1st. author
+\alignauthor
+Denis Savenkov\\
+       \affaddr{Emory University}\\
+       \email{dsavenk@emory.edu}
+% 2nd. author
+\alignauthor
+Eugene Agichtein\\
+       \affaddr{Emory University}\\
+       \email{eugene@mathcs.emory.edu}
+}
+\date{17 February 2014}
+% Just remember to make sure that the TOTAL number of authors
+% is the number that will appear on the first page PLUS the
+% number that will appear in the \additionalauthors section.
+
+\maketitle
+\begin{abstract}
+Search engine is a ubiquitous tool used by millions of people on a daily basis.
+However, as with every tool, certain skills are required in order to use it efficiently.
+Unfortunately users have different experience and not everybody is able to find answers to all questions she is interested in \todo{[find a paper to cite here]}.
+Helping users to develop their search skills was included as one of the key research directions by \cite{Allan:2012:FCO:2215676.2215678}. However, the assistance offered by the modern search engines are limited to query suggestion and spelling correction \todo{[something else?]}.
+A number of researches are available that study different ways of helping users be more successful with their searches \todo{[cite some reviews, or a couple of different papers]}. 
+In this work we study the effect of showing users search tips designed to help asking the better queries when solving a difficult informational search task.
+We show that ``the right'' tips can improve users' success rate.
+However generic hints might be misleading and detrimental to user search experience.
+\end{abstract}
+
+% A category with the (minimum) three required fields
+\category{H.3.3}{Information storage and retrieval}{Information Search and Retrieval}[query formulation, search process]
+%A category including the fourth, optional field follows...
+
+\terms{Measurement, Design, Experimentation, Human Factors}
+
+\keywords{User studies, search interface, experimental design, effectiveness measures, query reformulation, expertise, tactics, tips, suggestions, assistance, efficiency.}
+
+\section{Introduction}
+\todo{Motivation of search hints as alternative/addition to query suggestion, especially for tasks when search cannot be solved with a single query}
+
+Improving user search experience is usually considered as a problem of improving retrieval performance. 
+
+\todo{Query suggestion is similar to tips, but is not guaranteed to be good, usually rely on more behavior data available for the new query}
+
+\todo{Query terms selection}
+
+\todo{Other dialog systems?}
+
+\todo{Showing predicted retrieval performance}
+
+\todo{Search snippets}
+
+
+\section{Related Work}
+\todo{Based on related work review from Daniel Russel \cite{Moraveji:2011:MIU:2009916.2009966}}.
+
+\todo{Summarize works on task level query suggestion}
+Experiment Design
+\todo{State main difference from Dan Russel paper: we focus on informational tasks which are solved with web search and hints are less likely to be 100\% helpful}
+
+\section{Tips for Difficult Search Tasks}
+
+\subsection{Web Search Game}
+\todo{First part is about the uFindIt game with screenshot}
+To estimate the effect of search tips on user behavior and success we used the uFindIt game, proposed in \cite{Ageev:2011:FYG:2009916.2009965}. The goal of the game is to find the answers to given search tasks using the provided web search interface. 
+
+\subsection{Search Tasks Description}
+\todo{Describe and give text of search tasks used in the study, mention that they came from agoogleaday}
+
+\subsection{Experiment design}
+\todo{describe the setup, groups and search tips given}
+
+\section{Results}
+\todo{Provide raw results of the experiments, e.g. how many participants, how many HITs accepted, rejected, problems. Show examples of search trails for successful and unsuccessful searches}.
+
+\subsection{Analysis}
+\todo{Give a table and a couple of pictures with main quantitative results}
+
+The main findings can be summarized as follows:
+\begin{itemize}
+\item ``Correct'' search tips allows users to find correct answer more often and do this faster than without search tips
+\item ``General'' search hints can have detrimental effect on search success, reducing the success rate and increasing the time spent on task
+\end{itemize}
+
+\section{Discussions and Future Work}
+\todo{Make a conclusion by summarizing the findings one more time}
+
+\todo{Speculate on the negative effect of general search hints - distracting? hard to follow?, less satisfaction when tips were shown - self satisfaction?}. 
+
+%ACKNOWLEDGMENTS are optional
+\section{Acknowledgments}
+Thanks to Dan Russel for sharing questions.
+
+%
+% The following two commands are all you need in the
+% initial runs of your .tex file to
+% produce the bibliography for the citations in your paper.
+\bibliographystyle{abbrv}
+\bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
+% You must have a proper ".bib" file
+%  and remember to run:
+% latex bibtex latex latex
+% to resolve all references
+%
+% ACM needs 'a single self-contained file'!
+%
+%APPENDICES are optional
+%\balancecolumns
+
+\end{document}
