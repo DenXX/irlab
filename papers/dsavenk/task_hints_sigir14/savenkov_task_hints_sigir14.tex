@@ -149,41 +149,94 @@ Experiment Design
 \todo{State main difference from Dan Russel paper: we focus on informational tasks which are solved with web search and hints are less likely to be 100\% helpful}
 
 \section{Tips for Difficult Search Tasks}
-
+To estimate the effect of search tips on user behavior and success we conducted a user study using Amazon Mechanical Turk platform\footnote{http://www.mturk.com/}. 
+The motivation to find the correct answer is very important for the study, thus we decided to pose it as a web search game, similar to ``a Google a Day''\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. 
 
 \subsection{Web Search Game}
-\todo{First part is about the uFindIt game with screenshot}
-To estimate the effect of search tips on user behavior and success we used the uFindIt game, proposed in \cite{Ageev:2011:FYG:2009916.2009965}. The goal of the game is to find the answers to given search tasks using the provided web search interface. 
+The web search game used for the study offers users to find answers to several questions using the provided web search interface. Figure \ref{figure:ufindit} shows the interface of the game.
+% Rules
+At the beginning of the game users were instructed to use only the search interface provided.
+Answers should actually be found when using web search.
+In a rare occurrence that user might know the answer to a question she is instructed to ignore the prior knowledge and find the answer anyway.
+Since tasks might be difficult a chance to skip a question was provided, although users were instructed that effort put into solving a question will be evaluated.
 
-The interface of the game is presented on Figure \ref{figure:ufindit}.
+In the previous experiments we've noticed that with difficult search tasks Mechanical Turk workers tend to skip the answer validation phase and submit the first hypothesis they found, although even shallow analysis reveals that it is incorrect.
+To motivate deeper analysis of the candidates the final version of the game featured automatic answer verification. Each answer submitted by a user was checked for the presence of the required keyword.
+If the answer was incorrect a dialog popped up and a player could continue search.
+
+% Technology
+The game search interface was based on API of one of the major web search engines. All search results were cached so that users asking the same query get the same results. Moreover, all links to web pages were rewritten to use our caching HTTP proxy.
+
+% Finally
+At the end of the game a questionnaire was presented asking for feedback on user satisfaction with the game, prior experience and other comments.
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.33]{img/ufindit}
+\includegraphics[scale=0.29]{img/ufindit}
 \caption{The interface of the UFindIt game}
 \label{figure:ufindit}
 \end{figure}
 
 \subsection{Search Tasks Description}
-\todo{Describe and give text of search tasks used in the study, mention that they came from agoogleaday}
 
-Table \ref{table:tasks} provides text for all 4 tasks presented to the user as well their solutions. As you can the tasks are quite difficult and usually involves more than one query to solve them.
+The tasks for the study were borrowed from the a Google a Day questions archive. Unfortunately, a lot of web pages exists that discuss solutions to these questions. Thus we had to filter search results excluding all pages that mentions the major part of the search questions or phrase ``a google a day''.
+To keep users focused throughout the whole game we decided to limit the number of questions to 4.
+Table \ref{table:tasks} describes all 4 tasks with the possible solutions. These tasks are quite difficult and usually involved more than one query to solve them with the game search interface.
 
 \begin{table*}
 \centering
-\caption{Search Tasks Given to the User}
+\caption{Search tasks used for the study}
 \label{table:tasks}
-\begin{tabular}{|p{8cm}|p{9cm}|} \hline
-Task Text & Solution\\ \hline
-I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Search [regenerative animal]. This will yield a number of possibilities including starfish, salamanders and several others. Search [senescence]. Find out that it means ``biological aging''. Search [animal biologically immortal], and learn that the hydra supposedly fulfill both of the above criteria. \\ \hline
-Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Search for [Archaic Triad] to find Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart.\\ \hline
-As George surveyed the "waterless place," he unearthed some very important eggs of what animal? & Search for [waterless place] to find out that it is the translation of the Mongolian word "Gobi" or "Gobi Desert." George Olsen unearthing the first whole dinosaur eggs in 1923. \\ \hline
-If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Search [somme river basin 1918]. Find out that's when the Second Battle of the Somme (a WWI battle) took place. Searching [second battle of somme code language] reveals the Cherokee served as code talkers in battle. They relayed messages in the Cherokee language that Germans couldn't decipher. \\ \hline
-\hline\end{tabular}
+\begin{tabular}{|l|p{6cm}|p{8cm}|} \hline
+Task ID & Task Text & Possible \\ \hline
+Task 1 (``hydra'') & I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Search [regenerative animal]. This will yield a number of possibilities including starfish, salamanders and several others. Search [senescence]. Find out that it means ``biological aging''. Search [animal biologically immortal], and learn that the hydra supposedly fulfill both of the above criteria. \\ \hline
+Task 2 (``quirinus'') & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Search for [Archaic Triad] to find Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart.\\ \hline
+Task 3 (``dinosaur'') & As George surveyed the ``waterless place'', he unearthed some very important eggs of what animal? & Search for [waterless place] to find out that it is the translation of the Mongolian word "Gobi" or ``Gobi Desert''. George Olsen unearthing the first whole dinosaur eggs in 1923. \\ \hline
+Task 4 (``cherokee'') & If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Search [somme river basin 1918]. Find out that's when the Second Battle of the Somme (a WWI battle) took place. Searching [second battle of somme code language] reveals the Cherokee served as code talkers in battle. They relayed messages in the Cherokee language that Germans couldn't decipher. \\ \hline
+\end{tabular}
 \end{table*}
 
-\subsection{Experiment design}
-\todo{describe the setup, groups and search tips given}
+\subsection{Search Tips}
+The tasks used for the game are examples of complex informational search problems and usually require several searches. Questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
+
+We studies 2 types of search tips: task specific and generic. Task specific hints were constructed from one of the possible solutions to the question and described one way to search and find the answer. Generic hint described the general strategy that can be applied to many difficult informational search task.
+The actual tips shown to the players are described below.
+
+Generic hint was the same for all tasks and looked the following way:
+\begin{enumerate}
+\item Split question into 2 or more logical parts
+\item Find answers to the parts of the question
+\item Use answers to the parts of the question to find answer to the full question
+\end{enumerate}
+For example:\\
+Question: The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?
+\begin{enumerate}
+\item Search [second wife King Henry VIII] to find Anne Boleyn.
+\item Search [Anne Boleyn under arm] to find that her ghost is in the London Tower where she is said to carry her head tucked underneath her arm.
+\end{enumerate}
+
+Specific hints were designed for each question separately and presented a way to solve the problem by searching for a specific parts of the question.
+Specific tip for Task 1:
+\begin{enumerate}
+\item Find what is senescence
+\item Find who do not undergo senescence
+\item Find animals who can regenerate body and choose the one that satisfy both conditions
+\end{enumerate}
+
+Tip for Task 2:
+\begin{enumerate}
+\item Find the names of the gods from the Archaic triad
+\item For each of the gods find a Greek counterpart
+\end{enumerate}
+
+Tip for Task 3:
+\begin{enumerate}
+\item Find what is the ``waterless place'' mentioned in the question?
+\item Search for important eggs discovery in this ``waterless place''
+\end{enumerate}
+
+To estimate the effect of search tips on users behavior and success we split users into 3 groups: users who were shown no hints; users who were shown task specific hints and users who were shown generic hint for all tasks.
+To avoid the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} we assign a user to a single group only.
 
 \section{Results}
 \todo{Provide raw results of the experiments, e.g. how many participants, how many HITs accepted, rejected, problems. Show examples of search trails for successful and unsuccessful searches}.
@@ -191,7 +244,7 @@ If you were in the basin of the Somme River at summers end in 1918, what languag
 From 199 participants, who accepted the HIT on Amazon Mechanical Turk\footnote{http://mturk.com/}, only 169 moved further than the rules of the game and got to the first questions.
 The search tasks were difficult and some players decided to quit the game, thus only 90 players finished the game, from those there were 9 submissions which we filtered out from the future analysis.
 The only 2 reasons for that were: lack of effort, e.g. some players skipped several tasks after only a single query; some other submissions indicated usage of external resources such as outside of the game search engine, e.g. the only query asked was the correct answer to the task.
-From 81 submissions 10 players indicated in the survey that they didn't see the hints which were shown to them, so we further filtered those submissions and finally we had 71 completed games, which split into the groups of 29, 20, 22 for players who didn't have hints, who had task-specific hints and who had generic hints correspondingly.
+From 81 submissions 10 players indicated in the survey that they didn't see the tips which were shown to them, so we further filtered those submissions and finally we had 71 completed games, which split into the groups of 29, 20, 22 for players who didn't have tips, who had task-specific hints and who had generic tips correspondingly.
 
 
 \subsection{Analysis}
