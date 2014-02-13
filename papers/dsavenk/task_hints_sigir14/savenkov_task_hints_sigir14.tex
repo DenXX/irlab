@@ -111,10 +111,12 @@ Search engine is a ubiquitous tool used by millions of people on a daily basis.
 However, as with every tool, certain skills are required in order to use it efficiently.
 Unfortunately users have different experience and not everybody is able to find answers to all questions she is interested in \todo{[find a paper to cite here]}.
 Helping users to develop their search skills was included as one of the key research directions by \cite{Allan:2012:FCO:2215676.2215678}. However, the assistance offered by the modern search engines are limited to query suggestion and spelling correction \todo{[something else?]}.
-A number of researches are available that study different ways of helping users be more successful with their searches \todo{[cite some reviews, or a couple of different papers]}. 
-In this work we study the effect of showing users search tips designed to help asking the better queries when solving a difficult informational search task.
-We show that ``the right'' tips can improve users' success rate.
-However generic hints might be misleading and detrimental to user search experience.
+A number of researches are available that study different ways of helping users be more successful with their searches \todo{[cite some reviews, or a couple of different papers]}.
+One of such ways is search tips, designed to improve user experience and search success \cite{Moraveji:2011:MIU:2009916.2009966}.
+However, previous research focused on tips suggesting different functionality on search engines that better suit a particular problem.
+In this work we study the effect of displaying strategic search tips, which suggest a way of solving a difficult search problem by splitting it into pieces and searching for parts of the question.
+We focus on 2 types of tips: specific hints, tailored to a problem user is currently solving and generic hints, describing the general strategy of splitting problem into pieces. 
+The results show that optimally designed specific tips can be implemented effieciently by the users and improve search success rate, however generic tips might be distracting and detrimental to user experience.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -126,27 +128,31 @@ However generic hints might be misleading and detrimental to user search experie
 \keywords{User studies, search interface, experimental design, effectiveness measures, query reformulation, expertise, tactics, tips, suggestions, assistance, efficiency.}
 
 \section{Introduction}
-\todo{Motivation of search hints as alternative/addition to query suggestion, especially for tasks when search cannot be solved with a single query}
+Solving a search problem involves 2 parties: a system that answers queries and a user who interacts with the system. Asking the right questions and interacting with the system in a right way is as important (or even more important) than the quality of system answers \todo{[can we support this with some citation]}. The importance of user interactions is even more important for difficult queries which are still not answered correctly by the modern search engines \todo{[cite robustness paper]}. 
 
-Improving user search experience is usually considered as a problem of improving retrieval performance. 
+The importance of helping users to interact with the system is well understood and various researches studies different ways of user assistance \todo{[a list of citations goes here]}. But unfortunately, modern search engines are still limited in providing user feedback and suggestions. It is a standard to offer query syntax correction to help fixing typos and misspellings, query suggestions to guide users to ``better'' queries, rich search results representations to help users choose which results to click on or to give an answer \todo{Is there something else?}.
 
-\todo{Query suggestion is similar to tips, but is not guaranteed to be good, usually rely on more behavior data available for the new query}
+However, these tools are limited in assisting users to solve difficult informational search task. The ability to formulate good search queries and use search tools as efficiently as possible becomes the crucial factor towards the overall success. People have different skills and abilities and the effect of these variables to successful search is sometimes more important than retrieval performance \todo{[need to support this with something]}. 
+
+\todo{[Need some transition to why we study these particular type of tips for these particular type of search problems. Possibly link to agoogleaday as example of difficult search problems]}. 
+
+In this paper we study the effect of strategic search hints, designed to guide user in splitting the original problem into pieces and combining results for subproblems together. More specifically we manually designed 2 type of tips: task-specific, which present a way of correctly solving the questions and generic, which explains ``divide and conquer'' strategy, i.e. splitting the original question into pieces and combining answers to these pieces together. The user study was conducted in a form of a search game and it reveiled that users were able to follow carefully designed task-specific hints and this lead to increase in success rate. However, generic tips were probably distracting to the user and the success rate dropped as compared to not seeing any search tips.
+This suggests that \todo{[what?]}.
+
+\section{Related Work}
+\todo{Based on related work review from Daniel Russel \cite{Moraveji:2011:MIU:2009916.2009966}}.
+
+Search skills can be trained \cite{Moraveji:2011:MIU:2009916.2009966}. For example, Google offers courses\footnote{http://www.powersearchingwithgoogle.com} designed to improve ones efficiency in solving difficult search tasks and interacting with a modern search engine.
+
+\todo{Summarize works on task level query suggestion}
+Experiment Design
+\todo{State main difference from Dan Russel paper: we focus on informational tasks which are solved with web search and hints are less likely to be 100\% helpful}
 
 \todo{Query terms selection}
 
 \todo{Other dialog systems?}
 
 \todo{Showing predicted retrieval performance}
-
-\todo{Search snippets}
-
-
-\section{Related Work}
-\todo{Based on related work review from Daniel Russel \cite{Moraveji:2011:MIU:2009916.2009966}}.
-
-\todo{Summarize works on task level query suggestion}
-Experiment Design
-\todo{State main difference from Dan Russel paper: we focus on informational tasks which are solved with web search and hints are less likely to be 100\% helpful}
 
 \section{Tips for Difficult Search Tasks}
 To estimate the effect of search tips on user behavior and success we conducted a user study using Amazon Mechanical Turk platform\footnote{http://www.mturk.com/}. 
@@ -173,7 +179,7 @@ At the end of the game a questionnaire was presented asking for feedback on user
 \begin{figure}
 \centering
 \includegraphics[scale=0.29]{img/ufindit}
-\caption{The interface of the UFindIt game}
+\caption{The interface of the search game used in the study}
 \label{figure:ufindit}
 \end{figure}
 
