@@ -47,7 +47,7 @@
 
 \documentclass{sig-alternate}
 
-\usepackage{caption}
+\usepackage[style=base]{caption}
 \usepackage{subcaption}
 \usepackage{graphicx}
 \usepackage{xcolor}
@@ -110,16 +110,12 @@ Eugene Agichtein\\
 
 \maketitle
 \begin{abstract}
-According to \cite{xie2009understanding} the majority of cases when users require assistance comes from the query formulation and refinement stages.
-Query suggestion is an efficient technique that helps users find a popular query that is similar to theirs and potentially better. 
-However, currently it works better for relatively popular topics and there are still many difficult tasks that search engines do not handle perfectly and users do not get any assistance and become frustrated \cite{Feild:2010:PSF:1835449.1835458}.
-Displaying search tips is another alternative for automatic user assistance and can have better coverage than query suggestion.
-(\cite{Moraveji:2011:MIU:2009916.2009966}) studied the effect of strategic tips that suggest users some features of search engines that might be optimal for a particular task.
-However, the tasks used in the study were specifically designed to benefit from some search features available and such tactical features tips might not help with solving difficult information questions.
-In this work we study the effect of displaying strategic search tips, which suggest a way of solving a difficult search problem by splitting it into pieces, searching for parts of the question and combining these answers together.
-We focus on 2 types of tips: task-specific tips, tailored to a particular search problem and generic tips, describing the general strategy of solving a search task. 
-In the user study conducted using a web search game users were able to follow optimally designed task-specific tips and achieve higher success rate than users who didn't get such assistance.
-However, generic tips were shown to be rather distracting and detrimental.
+Research has found that the majority of cases when search engine users require assistance comes from the query formulation and refinement stages.
+Providing users with tactical search feature tips was previously shown to increase search success rate and to have some educational effect.
+In this paper we extend the study of the effect of search tips and focus on strategic tips, suggesting users a divide-and-conquer algorithm for solving difficult informational search tasks.
+We prepared two sets of tips: task-specific, tailored to a particular search question and generic, describing a search strategy in general. 
+The results of the conducted user study demonstrate the effectiveness of good search tips on search success rate.
+However, tips that are too general and hard to follow can also be detrimental.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -131,50 +127,45 @@ However, generic tips were shown to be rather distracting and detrimental.
 \keywords{User studies, search interface, experimental design, query reformulation, tactics, tips, suggestions, assistance, efficiency.}
 
 \section{Introduction}
-Search engines are ubiquitous tools used by millions of people on a daily basis.
-But certain skills are required in order to use it efficiently.
-Solving a search problem involves 2 parties: a system that answers queries and a user who interacts with the system.
-Asking the right questions and interacting with the system in a right way is as important (or even more important) than the quality of system answers \todo{[can we support this with some citation]}.
+Search engines are ubiquitous and millions of people of varying experience use them on a daily basis.
+But not all searches are successful.
+Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
+And \cite{xie2009understanding} explored different situations when users seek for help when performing a search task.
+The study demonstrated that most of the time users have problems with formulating and refining their queries.
+Which suggests that tuning search engine algorithms cannot solve all the problems users have.
+Besides good retrieval performance a successful search requires users to possess certain skills.
+Search skills can be trained. For example, Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
+Although useful, such courses have very limited coverage as not all users are willing to spend their time watching videos on how to use web search more efficiently. 
+Displaying search tips could be another technique that has some learning effect and offers immediate assistance to the user in solving her current search task.
+The user study from \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that tactical search feature tips, suggesting to use a certain functionality of a search engine, help people find answers more quickly and the effect is retained after a week with tips removed.
 
-The study of \cite{xie2009understanding} revealed that most of the times users have problems formulating and refining queries.
-Modern search engines provide users with some automatic assistance during their searches and arguably one of the most successful technique is query suggestion.
-Although it is very effective for relatively popular topics, there are still many tasks that search engines do not handle perfectly and users do not get any assistance and become frustrated \cite{Feild:2010:PSF:1835449.1835458}.
-
-% A number of researches has been made to study different ways of user assistance (\cite{Kelly:2009:CQT:1571941.1572006}, \cite{Moraveji:2011:MIU:2009916.2009966}, \cite{marchionini2006toward}).
-
-Search skills can be trained. For example, Google offers a course\footnote{http://www.powersearchingwithgoogle.com} focused on improving search efficiency.
-Although useful such courses have very limited coverage of users willing to spend their time learning how to use web search efficiently. 
-Displaying tips on a search screen could be another technique that has some learning effect and offers immediate assistance to the user in solving her current search task.
-The user study from \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that tactical search, suggesting to use a certain feature of a search engine, helps users find answers more quickly and the effect is retained after a week with tips removed.
-
-Besides the awareness about search tools available, general search strategies are extremely important when dealing with difficult search task.
+Besides the awareness about search tools available, adopting general search strategies is extremely important when dealing with a difficult search task.
 In this paper we focus on strategic search tips, that are designed to guide a user in solving her search problem.
-More specifically we conducted a user study to evaluate the effect of tips proposing a divide-and-conquer strategy for search.
-Search tasks used in the study can be solved by splitting the original problem into pieces, finding answers to subproblems and combining these answers together to solve the original question.
-We manually designed 2 sets of tips: task-specific, which present a way of correctly solving the questions and generic, which states the strategy and leaves the details to the user.
-\todo{Should I say this here? Or how to finish this section?}. The results of the work demonstrate that users are able to follow carefully designed task-specific tips and this increases the task success rate.
-However, generic tips were probably too hard to follow and caused the success rate to drop.
-
+To evaluate the effect of search tips on users behavior and success we conducted a user study in a form of a web search game.
+Two sets of strategic tips were manually designed: one set featured task-specific tips describing a strategy to solve this particular search question, the other set described divide-and-conquer search strategy in general.
+The results of the user study, described in this paper, demonstrate that well-designed task-specific strategic tips can improve search success rate.
+However, generic tip, which was too general and harder to follow, had negative effect on user performance and satisfaction.
+\todo{Should I state contribution(what are they?) more clearly?}
 
 \section{Related Work}
 
-% Helping users to develop their search skills was included as one of the key research directions by \cite{Allan:2012:FCO:2215676.2215678}.
-
-
-There has been considerable amount of work on search assistance and improving user experience with feedback, suggestions and hints. Interactive information retrieval and human-computer information retrieval \cite{marchionini2006toward} focuses on interactions between users and search systems. Graphical techniques can be used to visually represent large-scale collections of information and help searchers in their tasks \cite{card1999readings}.
+There has been considerable amount of work on search assistance and improving user experience with feedback, suggestions and hints.
+Interactive and human-computer information retrieval \cite{marchionini2006toward} focuses on interactions between users and search systems.
+Graphical techniques can be used to visually represent large-scale collections of information and help searchers in their tasks \cite{card1999readings}.
 
 Results of the study in \cite{xie2009understanding}, which focused on identification of different categories of help-seeking situations, demonstrates that in 41.5\% of the cases users were seeking for help to refine their searches followed by inability to construct search statements in 18\% of the cases, which confirms findings of \cite{Holscher2000337}.
-Individual terms (\cite{ruthven2003survey}) and queries suggestion (\cite{Jones:2006:GQS:1135777.1135835},\cite{Bhatia:2011:QSA:2009916.2010023},\cite{Cao:2008:CQS:1401890.1401995}) are among the most popular techniques for helping users to augment their queries.
+Individual term (\cite{ruthven2003survey}) and query suggestion (\cite{Jones:2006:GQS:1135777.1135835},\cite{Bhatia:2011:QSA:2009916.2010023},\cite{Cao:2008:CQS:1401890.1401995}) are among the most popular techniques for helping users to augment their queries.
 The study from \cite{Kelly:2009:CQT:1571941.1572006} demonstrated that users prefer query suggestions over term relevance feedback and that good manually designed suggestions improve retrieval performance.
-Query suggestion methods usually provide previous queries that are similar to the query of interest and work better for popular information needs \cite{Bhatia:2011:QSA:2009916.2010023}.
+Query suggestion methods usually use search logs to suggest a queries that are similar to the query of interest and work better for popular information needs \cite{Bhatia:2011:QSA:2009916.2010023}.
 
-When query or term suggestions are not efficient, it is still possible to help users by providing potentially useful search hints. An adaptive tool providing tactical search suggestions was presented in \cite{Kriewel2007} and users reported overall satisfaction with its automatic non-intrusive advices. Modern search engines have many features that are not typically used by a average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness of tactical search feature tips and their teaching effect.
-
-The major differences of this work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search tips used.
-Rather than suggesting users the available search features to use, this work focuses on strategic search tips, designed to help users solve difficult informational questions.
-Many informational questions cannot be answered by a single web query and require splitting the task into pieces and combining partial answers into new searches. From our studies we noticed that users do not actively use this tactic and usually keep trying to reformulate their query expecting to find the query that will give them the correct result.
-However, in these tasks it is hard to come up with a good hint which will help all the users.
-In this study we are evaluating the effect that task-specific manually designed strategic tips as well as generic task-independent tips might have on user experience and success rate.
+When query or term suggestions are not efficient, it is still possible to help users by providing potentially useful search tips.
+An adaptive tool providing tactical search suggestions was presented in \cite{Kriewel2007} and users reported overall satisfaction with its automatic non-intrusive advices.
+Modern search engines have many features that are not typically used by a average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness of tactical search feature tips and their teaching effect.
+The major difference of this work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search tips used.
+Rather than suggesting users the available search functionality, this work focuses on strategic search tips, designed to solve difficult informational questions.
+Many informational questions cannot be answered by a single web query and require splitting the task into pieces and combining partial answers into new searches. From our studies we noticed that users do not actively use this tactic and usually keep trying to reformulate their queries expecting to find the one that will give them the correct result.
+% However, in these tasks it is hard to come up with a good hint which will help all the users.
+% In this study we are evaluating the effect that task-specific manually designed strategic tips as well as generic task-independent tips might have on user experience and success rate.
 
 % Not relevant
 % The effect of different factors on users' perception of search task difficulty was studied in \cite{liu2011understanding}. The results demonstrated that users' prior expectations of task difficulty is likely to be inaccurate and perceived difficulty change before and after users worked on the task is affected by task types.
