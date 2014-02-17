@@ -50,9 +50,10 @@
 \usepackage[style=base]{caption}
 \usepackage{subcaption}
 \usepackage{graphicx}
+\usepackage{multirow}
 \usepackage{xcolor}
 \newcommand\todo[1]{\textcolor{red}{#1}}
-
+\renewcommand{\arraystretch}{1.5}
 
 \begin{document}
 %
@@ -145,7 +146,6 @@ To evaluate the effect of search tips on users behavior and success we conducted
 Two sets of strategic tips were manually designed: one set featured task-specific tips describing a strategy to solve this particular search question, the other set described divide-and-conquer search strategy in general.
 The results of the user study, described in this paper, demonstrate that well-designed task-specific strategic tips can improve search success rate.
 However, generic tip, which was too general and harder to follow, had negative effect on user performance and satisfaction.
-\todo{Should I state contribution(what are they?) more clearly?}
 
 \section{Related Work}
 
@@ -170,10 +170,9 @@ Many informational questions cannot be answered by a single web query and requir
 % Not relevant
 % The effect of different factors on users' perception of search task difficulty was studied in \cite{liu2011understanding}. The results demonstrated that users' prior expectations of task difficulty is likely to be inaccurate and perceived difficulty change before and after users worked on the task is affected by task types.
 
-
 \section{User Study Description}
-To estimate the effect of search tips on user behavior and success we conducted a user study using Amazon Mechanical Turk platform\footnote{http://www.mturk.com/}. 
-The motivation to find the correct answer is very important for the study, thus we decided to pose the task as a web search game similar to a Google a Day\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. 
+
+To estimate the effect of strategic search tips on users' behavior we conducted a study in a form of a web search game similar to a Google a Day\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. Participants were hired using Amazon Machanical Turk\footnote{http://www.mturk.com/}. 
 
 \subsection{Web Search Game}
 
@@ -184,101 +183,105 @@ The motivation to find the correct answer is very important for the study, thus 
 \label{figure:ufindit}
 \end{figure}
 
+The goal of a web search game used in the user study is to find answers to several questions using web search.
+The interface for the web search is provided on the same page.
+Figure \ref{figure:ufindit} shows the interface of the game.
 
-The web search game used for the study asks users to find answers to several questions using the provided web search interface. Figure \ref{figure:ufindit} shows the interface of the game. 
 % Rules
-At the beginning of the game users are instructed to use only the search interface provided.
-Answers should actually be found using web search.
+At the beginning of a game users are instructed about the rules of the game.
+The rules asks players to use the provided search interface only.
+Answers to game questions are supposed to be found on a web page/pages, that was actually visited during search session.
 In a rare occurrence that a user might know the answer to a question she is instructed to ignore the prior knowledge and use the search anyway.
-Since tasks might be too difficult a chance to skip a question was provided, although users were instructed that effort put into solving a question will be evaluated.
-
-In the previous experiments we've noticed that with difficult search tasks Mechanical Turk workers tend to skip the validation phase \cite{Ageev:2011:FYG:2009916.2009965} and submit the first possible answer found when even shallow analysis reveals that it is incorrect.
-To overcome this problem the submitted answers were automatically checked for correctness (a presence of the required keyword).
-If the answer was incorrect a dialog popped up and a player could continue search.
+Since tasks might be too difficult a chance to skip a question was provided, although users were instructed that effort put into solving a question is evaluated.
+When the answer is found, a player provides it and a link to the answer web page.
+The answer is automatically verified and a popup box notifies a player if the answer is incorrect (since the answer can be relatively long, presence of a keyword was checked).
+A player can then continue searching or skip the question when she gives up.
+Players are motivated to find the right answers with a bonus payment for answering all questions.
 
 % Technology
-The game search interface was based on API of one of the major web search engines. All search results were cached so that users asking the same query get the same results. Moreover, all links to web pages were rewritten to use our caching HTTP proxy.
+We used API of one of the major search engines as a back-end of the game search interface.
+All search results were cached so that users asking the same query get the same results.
+Moreover, all links to web pages were rewritten to use our caching HTTP proxy.
 
 % Finally
 At the end of the game a questionnaire was presented asking for feedback on user satisfaction with the game, prior experience and other comments.
 
 \subsection{Search Tasks Description}
 
-The tasks for the study were borrowed from the a Google a Day questions archive. Unfortunately, a lot of web pages discussing solutions to these questions exist. So we had to filter search results and exclude all pages that mention a major part of the search question or ``a google a day'' phrase.
-To keep users focused throughout the whole game we decided to limit the number of questions to 4.
-Table \ref{table:tasks} describes all 4 tasks.
+The tasks for the study were borrowed from the ``a Google a Day'' questions archive.
+Unfortunately, a lot of web pages discussing solutions to these questions exist.
+So we had to filter search results and exclude all pages that mention a major part of the search question or ``a google a day'' phrase.
+Since the questions are rather difficult, to keep users focused throughout the whole game we decided to limit the number of questions to 4.
+The tasks are described in Table \ref{table:tasks}.
+The order of the tasks was fixed to account for potential tiredness.
 
 \begin{table*}
 \centering
 \caption{Search tasks used for the study}
 \label{table:tasks}
-\begin{tabular}{|l|p{6cm}|p{8cm}|} \hline
-Task ID & Task Text & Answer \\ \hline
-Task 1 (``hydra'') & I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. \\ \hline
-Task 2 (``quirinus'') & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart.\\ \hline
-Task 3 (``dinosaur'') & As George surveyed the ``waterless place'', he unearthed some very important eggs of what animal? & Waterless place is the translation of the Mongolian word "Gobi" or ``Gobi Desert''. George Olsen found the first whole dinosaur eggs in 1923. \\ \hline
-Task 4 (``cherokee'') & If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Cherokee served as code talkers in the Second Battle of the Somme. \\ \hline
+\begin{tabular}{|p{1.55cm}|p{4.5cm}|p{4.5cm}|p{5cm}|} \hline
+Task ID & Task Text & Answer & Specific tips \\ \hline
+\parbox[t]{1cm}{Task 1\\(``hydra'')} & I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{5cm}{
+1. Find what is senescence\\
+2. Find who do not undergo senescence\\
+3. Find animals who can regenerate body and choose the one that satisfy both conditions} \\ \hline
+\parbox[t]{1cm}{Task 2\\(``quirinus'')} & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart. &
+\parbox[t]{5cm}{
+1. Find the names of the gods from the Archaic triad\\
+2. For each of the gods find a Greek counterpart
+}\\ \hline
+\parbox[t]{1cm}{Task 3\\(``dinosaur'')} & As George surveyed the ``waterless place'', he unearthed some very important eggs of what animal? & Waterless place is the translation of the Mongolian word "Gobi" or ``Gobi Desert''. George Olsen found the first whole dinosaur eggs in 1923. & \parbox[t]{5cm}{
+1. Find what is the ``waterless place'' mentioned in the question?\\
+2. Search for important eggs discovery in this ``waterless place''}\\ \hline
+\parbox[t]{1cm}{Task 4\\(``cherokee'')} & If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Cherokee served as code talkers in the Second Battle of the Somme. & \parbox[t]{5cm}{
+1. Find the name of the battle mentioned in the questions\\
+2. Search for which coded communications language was used in this battle\\
+} \\ \hline
 \end{tabular}
 \end{table*}
 
 \subsection{Search Tips}
-The tasks used for the game are examples of complex informational search problems and usually require several searches. Questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
+The questions used for the game are examples of difficult informational search tasks, which are hard to answer with the single search.
+The questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
+In one of the previous studies we noticed, that most of the users didn't adopt the divide-and-conquer strategy and kept reformulating trying the find the ``right'' query.
+We decided to estimate the effect of strategic search tips, suggesting users to adopt the new strategy.
 
-We studies 2 types of search tips: task specific and generic. Task specific hints were constructed from one of the possible solutions to the question and described one way to search and find the answer. Generic hint described the general strategy that can be applied to many difficult informational search task.
-The actual tips shown to the players are described below.
-
-Generic hint was the same for all tasks and looked the following way:
+We built 2 sets of strategic tips: task specific and generic.
+Task specific tips were constructed from one of the possible solutions to the questions and described one way to search and find the answer.
+Specific tips for all questions are provided in Table \ref{table:tasks}.
+Second set contained a single tip, which just described the strategy. The actual text displayed to the users is:
 \vspace{-1mm}
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
 \item Split question into 2 or more logical parts
 \item Find answers to the parts of the question
 \item Use answers to the parts of the question to find answer to the full question
 \end{enumerate}
-\vspace{-1mm}
-For example:\\
-Question: The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?
-\vspace{-1mm}
+\vspace{-2mm}
+For example, question: ``The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?''
+\vspace{-2mm}
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
 \item Search [second wife King Henry VIII] to find Anne Boleyn.
 \item Search [Anne Boleyn under arm] to find that her ghost is in the London Tower where she is said to carry her head tucked underneath her arm.
 \end{enumerate}
-
-Specific hints were designed for each question separately and presented a way to solve the problem by searching for a specific parts of the question.
-Specific tip for Task 1:
-\vspace{-1mm}
-\begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
-\item Find what is senescence
-\item Find who do not undergo senescence
-\item Find animals who can regenerate body and choose the one that satisfy both conditions
-\end{enumerate}
-\vspace{-1mm}
-Tip for Task 2:
-\vspace{-1mm}
-\begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
-\item Find the names of the gods from the Archaic triad
-\item For each of the gods find a Greek counterpart
-\end{enumerate}
-\vspace{-1mm}
-Tip for Task 3:
-\vspace{-1mm}
-\begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
-\item Find what is the ``waterless place'' mentioned in the question?
-\item Search for important eggs discovery in this ``waterless place''
-\end{enumerate}
-
-To avoid the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} we split users into 3 groups: users who were shown no tips; users who were shown task-specific tips and users who were shown generic tip for all tasks. This tips for were displayed all the time in the panel to the right of search results as shown on Figure \ref{figure:ufindit}.
-
+\vspace{-2mm}
+To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} each user was assigned to one of the three groups: a group who didn't get any tips, those who got task-specific tips and those who got the generic tip.
+During the game the tips were displayed for each question all the time in the right panel of the search interface as demonstrated on Figure \ref{figure:ufindit}.
 
 \section{Results}
-From 199 participants, who accepted the HIT on Amazon Mechanical Turk\footnote{http://mturk.com/}, only 169 moved further than the rules of the game and got to the first questions.
-The search tasks were difficult and some players decided to quit the game, thus only 90 players finished the game, from those there were 9 submissions which we filtered out from the future analysis.
-The only 2 reasons for that were: lack of effort, e.g. some players skipped several tasks after only a single query; some other submissions indicated usage of external resources such as outside of the game search engine, e.g. the only query asked was the correct answer to the task.
-From 81 submissions 10 players indicated in the survey that they didn't see the tips which were shown to them, so we further filtered those submissions and finally we had 71 completed games, which split into the groups of 29, 20, 22 for players who didn't have tips, who had task-specific hints and who had generic tips correspondingly.
-\todo{What is missing?}
+From 199 participants, who clicked on the HIT on Amazon Mechanical Turk, only 169 accepted the rules of the game and got to the first question.
+Furthermore, a fraction of users decided to give up.
+Thus only 90 players finished the game, from those there were 9 submissions which we filtered out from the future analysis, because
+of the lack of effort (e.g. some players skipped several tasks after only a single query) or usage of external resources (e.g. external search engine).
+From 81 submissions 10 players indicated in the survey that they didn't see the tips which were shown to them, so we further filtered those submissions and finally we had 71 completed games (29 for no tips, 20 for task-specific tips and 22 for generic tip groups).
+
 
 \subsection{Analysis}
 
-The main characteristic of interest was the search success rate, measured in the number of questions answered correctly by users in different groups. Figure \ref{figure:task_success} plots the fraction of correct answers for players from different groups. As we can see, success rate tend to be higher for users who saw task-specific hint compared to users who didn't see any hint. Somewhat surprising is the fact, that users who saw generic tip were slightly less successful. The difference is more significant in more difficult tasks 1 and 4. This can probably be explained by the fact that generic tip was more difficult to implement and unsuccessful attempts lead to frustration \todo{Sound reasonable?}.
+The main characteristic of interest was the search success rate measured by the number of questions answered correctly by users in different groups\footnote{Since users were allowed to skip the question we are counting the number of questions that were eventually solved correctly even if a player made some incorrect attempts}.
+Figure \ref{figure:task_success} plots the fraction of correct answers for each group.
+As you can see, success rate is higher for users who saw task-specific tips compared to users who didn't get such assistance.
+Surprisingly, having the generic tip decreased the success rate, although users could easily ignore the tip they didn't like.
+A possible explanation is: generic tip was harder to follow and users who tried and failed became frustrated and didn't restart their searches.
 
 \begin{figure}[ht]
 \centering
@@ -287,7 +290,10 @@ The main characteristic of interest was the search success rate, measured in the
 \label{figure:task_success}
 \end{figure}
 
-Similar to \cite{Moraveji:2011:MIU:2009916.2009966} we looked at the average time to answer the question (we removed games where a user didn't find the answer and skipped the task), the plot is provided on Figure \ref{figure:task_time}. Here we don't see a clear pattern, for task 1 participants who saw task-specific tip were able to find the answer faster, however this is not the case for task 4. A possible explanation is that the provided tips were not the optimal ones and the problem allowed a faster solution, which was found by users who didn't see the tips \todo{Can I find an example of a search trail?]}. It is worth noting, that users from the generic search tip group had slightly higher variance in success time, which is probably explained by the fact that some users were successful in finding the right way to follow the tip and some other users struggled with it more \todo{Reasonable?}.
+Similar to \cite{Moraveji:2011:MIU:2009916.2009966} we looked at the average time to answer a question (for this analysis we removed games where a user didn't find the answer and skipped the task).
+The plot on Figure \ref{figure:task_time} doesn't show an improvement for the task-specific tips group, except for the question 1.
+The task-specific tips we gave represent a possible way to solve the problem and there is no guarantee, that it is the optimal one.
+It is worth noting, that users from the generic search tip group had slightly higher variance in success time, which can probably be explained by the fact that some users were successful in finding the right way to follow the tip and some other users struggled with it much longer.
 
 \begin{figure}[ht]
 \centering
@@ -296,9 +302,13 @@ Similar to \cite{Moraveji:2011:MIU:2009916.2009966} we looked at the average tim
 \label{figure:task_time}
 \end{figure}
 
-Another interesting insight comes from the number of incorrect attempts users made. Figure \ref{figure:incorrect} demonstrates the average number of incorrect submissions for all groups of users. Although the variance is high, but there is a tendency, that users who saw task-specific tips made less submission attempts and users who saw generic tip were incorrect slightly more often than users who didn't get any tips during the game. 
-This is not in direct correspondence with time spent on the game. The effect can probably be explained by the difference in frustration in each of the user groups. Users who saw a clear strategy to solve the question were less likely to notice plausible, but incorrect solution.
-Moreover, by analyzing texts of incorrect answers we can conclude that users sometimes tried to guess the correct answer by typing everything that came in mind.
+Another interesting insight comes from the number of incorrect attempts users made.
+Figure \ref{figure:incorrect} demonstrates the average number of incorrect submissions for all groups of users.
+Although the variance is high, but there is a tendency, that users who saw task-specific tips made less submission attempts and users who saw generic tip were incorrect slightly more often than users who didn't get any tips during the game. 
+This is not in direct correspondence with time spent on the game.
+Thus users who saw a clear strategy to solve the question were less likely to notice plausible, but incorrect solution.
+Moreover, we analyzed texts of incorrect answers and can conclude that a big part of incorrect submission are due to users trying all possible options they found on the way even if these options are clearly wrong.
+We should note, that unfortunately we didn't limit the number of attempts per problem, thus strategy to verify an answer by submitting it made sense.
 
 \begin{figure}[ht]
 \centering
@@ -307,10 +317,15 @@ Moreover, by analyzing texts of incorrect answers we can conclude that users som
 \label{figure:incorrect}
 \end{figure}
 
-Finally, we looked at the surveys left by each group of users.
+We looked at some other search behavior characteristics: number of queries submitted, number of clicks made, average length of the queries. The variance in these characteristics was too high to make any speculations regarding their meaning.
+
+Finally, we looked at the surveys filled by each group of users.
 Figure \ref{figure:survey} presents proportions of different answers to three of the questions: ``How did you like the game?'', ``How difficult was the game?'' and ``Were search tips useful to you?''.
 Surprisingly, results for the first question were lower for users who saw tips during the game and users who didn't saw tips liked the game more.
-It could be explained by the self-achievement effect, that is lower when users get help even if it wasn't helpful. The answers to the question about game difficulty are in agreement with the success rate: users who saw task-specific tips rates game as being easier than participants who struggled more to get the correct answers. The Figure \ref{figure:survey:useful} shows that users actually found our hints useful for their searches and indicated this in the final survey.
+It seems that solving questions with the tips was less enjoyable than without assistance.
+The answers to the question about game difficulty are in agreement with the success rate: users who saw task-specific tips rate game easier than participants who struggled to find the correct answers.
+The game was rather very difficult on average, however, some participants from the group who received task-specific tips surprisingly rated it as very easy, which suggests that our tips do help users.
+This is supported by the answers to the last question on whether tips were helpful (Figure \ref{figure:survey:useful}).
 
 \begin{figure*}[ht]
 \centering
@@ -334,11 +349,14 @@ It could be explained by the self-achievement effect, that is lower when users g
 \end{figure*}
 
 \section{Conclusion}
-The results of the user study described in this work demonstrated the potential of good strategic search tips and their effect on search success. However, search tips that are too general and hard to implement could be detrimental. Users in our study were less successful when they saw generic strategic search tip. 
+In this paper we studied the effect of strategic search tips on user behavior.
+The conducted user study in a form of a web search game demonstrated the potential of good tips in improving search success rate.
+However, to be useful, they should be designed carefully.
+Search tips that are difficult to follow or have variety of options can be detrimental to search success.
 
-% Do I need this in conclusion?
-% Surprisingly we noticed that users from groups that were provided with tips during the game liked it slightly less than users who were working by themselves. 
-
+As a future work it would be interesting to verify the learning effect of strategic tips similar to what \cite{Moraveji:2011:MIU:2009916.2009966} proved for tactical search feature tips.
+But the main question of future work is how to generate useful search tips automatically.
+It should be possible to learn strategies applied by the experienced search users and suggest them to the rest.
 
 %ACKNOWLEDGMENTS are optional
 \section{Acknowledgments}
