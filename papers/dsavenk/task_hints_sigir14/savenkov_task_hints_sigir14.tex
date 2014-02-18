@@ -54,6 +54,10 @@
 \usepackage{xcolor}
 \newcommand\todo[1]{\textcolor{red}{#1}}
 \renewcommand{\arraystretch}{1.2}
+\setlength{\textfloatsep}{8pt}
+\setlength{\intextsep}{8pt}
+\setlength{\abovecaptionskip}{5pt}
+\setlength{\belowcaptionskip}{5pt}
 
 \begin{document}
 %
@@ -63,7 +67,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{On a Tip of Your Search: Effect of Strategic Tips in Complex Informational Search Tasks}
+\title{To Tip or not to Tip: Exploring the Effectiveness of Search Hints for Complex Informational Tasks}
 
 %
 % You need the command \numberofauthors to handle the 'placement
@@ -110,14 +114,14 @@
 % number that will appear in the \additionalauthors section.
 
 \maketitle
+
 \begin{abstract}
-Research has found that search engine users often require assistance on the query formulation and refinement stages.
-Providing users with tactical search tips was previously shown to increase success rate and to have some educational effects.
-In this paper we extend the study and focus on strategic tips, suggesting users a divide-and-conquer algorithm for solving difficult informational search tasks.
-We prepared two sets of tips: task-specific, tailored to a particular search question; generic, describing the search strategy in general.
-The user study demonstrated the effectiveness of task-specific search tips on success rate.
-However, generic tips turned out to be too general and hard to follow and were detrimental.
-% The results suggest that designers of search user interfaces should be careful about user assistance.
+Extensive previous research has shown that searchers often require assistance with query formulation and refinement. %, especially for complex search tasks, where a more active dialogue between a user and the search engine would be helpful.
+Yet, it is not clear what kind of assistance is most useful, and how effective it is both objectively (e.g., task success) and subjectively (e.g., the searcher perception of the search difficulty).
+We set out to answer these questions in a controlled, yet naturalistic randomized user study, involving 90 participants, where we compare the effects of a search engine providing specific vs. generic search tips on search success, performance, and satisfaction.
+Our results indicate that specific search tips tend to effectively improve searcher success rates and reduce perceived effort, while generic ones can be detrimental in both search effectiveness and user satisfaction.
+We also find that even searchers who are more effective using specific search tips feel subjectively less satisfied and engaged than the control group, indicating that search assistance has to be specific and timely if it is to improve the searcher experience.
+The results of this study are an important step towards the design of future search systems that could effectively assist and guide the user in accomplishing complex search tasks.
 
 \end{abstract}
 
@@ -142,21 +146,22 @@ However, generic tips turned out to be too general and hard to follow and were d
 \centering
 \caption{Search tasks used for the study and specific search tips shown to one of the user groups}
 \label{table:tasks}
-\begin{tabular}{|p{1.55cm}|p{4.5cm}|p{4.2cm}|p{6.0cm}|} \hline
-Task ID & Question & Correct Answer & Specific tips \\ \hline
-\parbox[t]{1cm}{Task 1\\(``hydra'')} & I can grow my body back in about two days if cut in half. Many scientists believe I do not undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{6cm}{
+\vspace{-2mm}
+\begin{tabular}{|p{1cm}|p{4.5cm}|p{4.2cm}|p{6.0cm}|} \hline
+ & Question & Correct Answer & Specific tips \\ \hline
+Task 1 & I can grow body back in about two days if cut in half. Many scientists think I don't undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{6cm}{
 1. Find what is senescence\\
 2. Find who do not undergo senescence\\
-3. Find animals who can regenerate body and choose the one that satisfy both conditions} \\ \hline
-\parbox[t]{1cm}{Task 2\\(``quirinus'')} & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart. &
+3. Find who can also regenerate body and choose the one that satisfy both conditions} \\ \hline
+Task 2 & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart. &
 \parbox[t]{6cm}{
 1. Find the names of the gods from the Archaic triad\\
 2. For each of the gods find a Greek counterpart
 }\\ \hline
-\parbox[t]{1cm}{Task 3\\(``dinosaur'')} & As George surveyed the ``waterless place'', he unearthed some very important eggs of what animal? & Waterless place is the translation of the Mongolian word "Gobi" or ``Gobi Desert''. George Olsen found the first whole dinosaur eggs in 1923. & \parbox[t]{6cm}{
+Task 3 & As George surveyed the ``waterless place'', he unearthed some very important eggs of what animal? & "Gobi" in Mongolian means ``Waterless place''. The first whole dinosaur eggs were discovered there in 1923. & \parbox[t]{6cm}{
 1. Find what is the ``waterless place'' mentioned in the question?\\
 2. Search for important eggs discovery in this ``waterless place''}\\ \hline
-\parbox[t]{1cm}{Task 4\\(``cherokee'')} & If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Cherokee served as code talkers in the Second Battle of the Somme. & \parbox[t]{6cm}{
+Task 4 & If you were in the basin of the Somme River at summers end in 1918, what language would you have had to speak to understand coded British communications? & Cherokee served as code talkers in the Second Battle of the Somme. & \parbox[t]{6cm}{
 1. Find the name of the battle mentioned in the questions\\
 2. Search for which coded communications language was used in this battle\\
 } \\ \hline
@@ -164,22 +169,22 @@ Task ID & Question & Correct Answer & Specific tips \\ \hline
 \end{table*}
 
 Search engines are ubiquitous and millions of people of varying experience use them on a daily basis.
-But not all searches are successful.
-Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
-And \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining their queries.
+But not all searches are successful, Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
+And Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining their queries.
 Besides good retrieval performance, a successful search requires users to possess certain skills.
 Search skills can be trained. For example, Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
 Although very useful, such courses are time consuming and detached from real search problems of these particular users. 
 Displaying search tips could be another technique that has some learning effect and offers immediate assistance to the user in solving her current search task.
 Moraveji et al. \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that tips, suggesting certain functionality of a search engine, help people find answers more quickly and the effect is retained after a week with tips removed.
 
-Besides the awareness about search tools available, adopting general search strategies is extremely important when dealing with a difficult search task.
+% Besides the awareness about search tools available, adopting general search strategies is extremely important when dealing with a difficult search task.
 In this paper we focus on strategic search tips, that are designed to guide a user in solving her search problem.
-More specifically, we focused on a divide-and-conquer strategy, which consists in splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
+More specifically, we chose the divide-and-conquer strategy, which consists in splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
 Two sets of strategic tips were manually designed: one set featured task-specific tips describing a strategy to solve this particular search question, the other set described the divide-and-conquer strategy in general.
-To evaluate the effect of the tips on behavior and search success we conducted a user study in a form of a web search game.
+To evaluate the effect of the tips on behavior and search success we conducted a user study with 90 participants.
 The results of the user study, described in this paper, demonstrate that well-designed task-specific tips can improve search success rate.
-However, generic tip, which was too general and harder to follow, had negative effect on user performance and satisfaction.
+In contrast, generic search tips, which were too general and harder to follow, had negative effect on user performance and satisfaction.
+% Our performance-based results were complemented with post-study surveys, which indicated that while search tips could make the search easier and more successful, they do not necessarily make it more enjoyable, suggesting that further exploration is needed into both what kind of assistance a search engine could provide, and when it would be most welcome.
 
 \section{Related Work}
 
@@ -196,9 +201,9 @@ Modern searc\setlength{\floatsep}{3pt plus 1.0pt minus 1.0pt}h engines have many
 The major difference of our work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search tips used.
 Rather than suggesting users the available search functionality, this work focuses on strategic search tips, designed to solve difficult informational questions.
 
-\section{User Study Description}
+\section{User Study}
 
-To estimate the effect of strategic search tips on users' behavior we conducted a study in a form of a web search game similar to ``a Google a Day''\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. Participants were hired using Amazon Machanical Turk\footnote{http://www.mturk.com/}. 
+To estimate the effect of strategic search tips on users' behavior we conducted a study in a form of a web search game similar to ``A Google a Day''\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. Participants were hired using Amazon Machanical Turk\footnote{http://www.mturk.com/}. 
 
 % \subsection{Web Search Game}
 The goal of a web search game used in the user study is to find answers to several questions using web search.
@@ -215,15 +220,15 @@ All search results and clicked documents were cached so users asking the same qu
 At the end of the game a questionnaire was presented asking for feedback on user satisfaction with the game, prior experience and other comments.
 
 % \subsection{Search Tasks Description}
-The tasks for the study were borrowed from the ``a Google a Day'' questions archive.
+The tasks for the study were borrowed from the ``A Google a Day'' questions archive.
 Unfortunately, a lot of web pages discussing solutions to these questions exist.
 So we had to filter search results and exclude all pages that mention a major part of the search question or ``a google a day'' phrase.
 Since the questions are rather difficult, to keep users focused throughout the whole game we decided to limit the number of questions to 4.
 The tasks are described in Table \ref{table:tasks}.
-The order of the tasks was fixed to account for potential tiredness.
+the order of the tasks was the same for all participants and cohorts, to ensure comparable learning effects for all participants
 
 %\subsection{Search Tips}
-The questions used for the game are examples of difficult informational search tasks, which are hard to answer with the single search.
+The questions used for the game are examples of difficult informational search tasks, which are hard to answer with a single search.
 The questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
 In one of the previous studies we noticed, that most of the users didn't adopt the divide-and-conquer strategy and kept reformulating trying the find the ``right'' query.
 We decided to estimate the effect of strategic search tips, suggesting users to adopt the new strategy.
@@ -231,11 +236,7 @@ We decided to estimate the effect of strategic search tips, suggesting users to 
 We built 2 sets of strategic tips: task specific and generic.
 Task specific tips were constructed from one of the possible solutions to the questions and described one way to search and find the answer.
 Specific tips for all questions are provided in Table \ref{table:tasks}.
-Second set contained a single tip, which just described the strategy (Table \ref{table:generic_tip}).
-\begin{table}[thb]
-\centering
-\caption{The text of the generic tip shown to a group of users}
-\label{table:generic_tip}
+Second set contained a single tip, which just described the strategy:\\
 \begin{tabular}{|p{8cm}|}
 \hline
 \vspace{-5mm}
@@ -246,51 +247,66 @@ Second set contained a single tip, which just described the strategy (Table \ref
 \end{enumerate}
 \vspace{-2mm}
 For example, question: ``The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?''
-\vspace{-2mm}
+\vspace{-5mm}
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
 \item Search [second wife King Henry VIII] to find Anne Boleyn.
 \item Search [Anne Boleyn under arm] to find that her ghost is in the London Tower where she is said to carry her head tucked underneath her arm.
 \end{enumerate}\\
 \hline
 \end{tabular}
-\end{table}
 
+\vspace{+2mm}
 To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} each user was assigned to one of the three groups: a group who didn't get any tips, those who got task-specific tips and those who got the generic tip.
 During the game the tips were displayed for each question all the time in the right panel of the search interface as demonstrated on Figure \ref{figure:ufindit}.
 
 \section{Results}
+
+% First we describe the general task completion statistics for participants overall, then dive into performance for different cohorts, comparing task success, time to completion, number of attempted answers.
+% We complement this performance-based analysis with subjective survey-based impressions of the searchers.
+\vspace{-1mm}
+\subsection{Game Completion Statistics}
+
 From 199 participants, who clicked on the HIT on Amazon Mechanical Turk only 90 players finished the game.
 We further filtered out 9 submissions for two main reasons: lack of effort (e.g. some players skipped several tasks after only a single query) or usage of external resources (e.g. external search engine).
 10 players from the group which received tips indicated in the survey that they didn't see them, so we further filtered out those submissions and finally we had 71 completed games (29 for no tips, 20 for task-specific tips and 22 for generic tip groups).
 
-%\subsection{Analysis}
+\vspace{-1mm}
+\subsection{Effects of Search Tips on Performance}
 
 In order to measure search success rate we looked at the number of questions answered correctly by different groups of users\footnote{Since users were allowed to skip a question we are counting the number of questions that were eventually solved correctly even if a player made some incorrect attempts}. Figure \ref{figure:task_success} shows that success rate is higher for users who saw task-specific tips compared to users who didn't get such assistance.
 Surprisingly, having the generic tip decreased the success rate, although users could easily ignore the tip they didn't like.
 A possible explanation is: generic tip was harder to follow and users who tried and failed became frustrated and didn't restart their searches.
 
 % Similar to \cite{Moraveji:2011:MIU:2009916.2009966} we looked at the average time to answer a question (for this analysis we removed games where a user didn't find the answer and skipped the task).
+
 The plot of average time to answer a question on Figure \ref{figure:task_time} doesn't show an improvement for the task-specific tips group, except for the question 1.
 Our task-specific tips represent a possible way to solve the problem and there is no guarantee, that it is the optimal one.
 It is worth noting, that users from the generic search tip group had slightly higher variance in success time, which can probably be explained by the fact that some users were successful in finding the right way to follow the tip and some other users struggled with it much longer.
+Another insight comes from the number of incorrect attempts users made.
+Figure \ref{figure:incorrect} demonstrates the average number of incorrect answer attempts for all groups of users.
+Although the variance is high, there is a tendency for users who saw task-specific tips to make less attempts than both other groups.
+This is not in direct correspondence with time spent on the game.
+It seems that the users who saw a clear strategy to solve the question were less likely to notice plausible, but incorrect solution.
+Moreover, we analyzed texts of incorrect answers and can conclude that a big part of incorrect submission are due to users trying all possible options they found on the way even if these options are clearly wrong.
+% We should note, that unfortunately we didn't limit the number of attempts per problem, thus strategy to verify an answer by submitting it made sense.
 
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.35]{img/success_per_task}
+\includegraphics[scale=0.33]{img/success_per_task}
 \caption{Success rate per task for each group of participants}
 \label{figure:task_success}
 \end{figure}
-\vspace{-4mm}
+\vspace{-5mm}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.35]{img/time_per_task}
 \caption{Task completion time for each group of players}
 \label{figure:task_time}
 \end{figure}
-\vspace{-4mm}
+\vspace{-5mm}
 \begin{figure}[H]
 \centering
-\includegraphics[scale=0.35]{img/incorrect}
+\includegraphics[scale=0.33]{img/incorrect}
 \caption{The number of incorrect submission attempts per question for all groups of users}
 \label{figure:incorrect}
 \end{figure}
@@ -315,15 +331,10 @@ It is worth noting, that users from the generic search tip group had slightly hi
 \label{figure:survey}
 \end{figure*}
 
-Another insight comes from the number of incorrect attempts users made.
-Figure \ref{figure:incorrect} demonstrates the average number of incorrect answer attempts for all groups of users.
-Although the variance is high, there is a tendency for users who saw task-specific tips to make less attempts than both other groups.
-This is not in direct correspondence with time spent on the game.
-It seems that the users who saw a clear strategy to solve the question were less likely to notice plausible, but incorrect solution.
-Moreover, we analyzed texts of incorrect answers and can conclude that a big part of incorrect submission are due to users trying all possible options they found on the way even if these options are clearly wrong.
-We should note, that unfortunately we didn't limit the number of attempts per problem, thus strategy to verify an answer by submitting it made sense.
-
+\vspace{-3mm}
 We looked at some other search behavior characteristics: number of queries submitted, number of clicks made, average length of the queries. The variance in these characteristics was too high to make any speculations regarding their meaning.
+
+\subsection{Effects of Search Tips on User Experience}
 
 Finally, we looked at the surveys filled by each group of users.
 Figure \ref{figure:survey} presents proportions of different answers to three of the questions: ``How did you like the game?'', ``How difficult was the game?'' and ``Were search tips useful to you?''.
@@ -333,16 +344,21 @@ The answers to the question about game difficulty are in agreement with the succ
 The game was rather very difficult on average, however, some participants from the group who received task-specific tips surprisingly rated it as very easy, which suggests that our tips do help users.
 This is supported by the answers to the last question on whether tips were helpful (Figure \ref{figure:survey:useful}).
 
+To summarize, the results of the conducted user study suggests that specific search tips can be helpful, which is indicated by higher success rate, lower number of incorrect attempts and positive feedback in the end of study survey.
+In contrast, generic tips can have negative effect on user experience, which is indicated by lower success rate, increased number of incorrect attempts and higher perceived tasks complexity according to the survey.
 
 \section{Conclusion}
-In this paper we studied the effect of strategic search tips on user behavior.
+In this paper we studied the effect of strategic search tips on user behavior. 
 The conducted user study in a form of a web search game demonstrated the potential of good tips in improving search success rate.
 However, to be useful, they should be designed carefully.
 Search tips that are difficult to follow or have variety of options can be detrimental to search success.
+The results of the study have important implications for designing an effective search engine assistance/dialogue.
 
-As a future work it would be interesting to verify the learning effect of strategic tips similar to what \cite{Moraveji:2011:MIU:2009916.2009966} proved for tactical search feature tips.
-But the main question of future work is how to generate useful search tips automatically.
+We should note, that specific search tips used in this work were manually generated.
+And an interesting question of future work is how to generate such useful tips automatically.
 It should be possible to learn strategies applied by the experienced search users and suggest them to the rest.
+
+% Our performance-based results were complemented with post-study surveys, which indicated that while search tips could make the search easier and more successful, they do not necessarily make it more enjoyable, suggesting that further exploration is needed into both what kind of assistance a search engine could provide, and when it would be most welcome.
 
 %ACKNOWLEDGMENTS are optional
 % \section{Acknowledgments}
