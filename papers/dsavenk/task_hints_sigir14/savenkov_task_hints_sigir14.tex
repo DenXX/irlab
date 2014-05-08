@@ -94,21 +94,21 @@
 % without further effort on your part as the last section in
 % the body of your article BEFORE References or any Appendices.
 
-%\numberofauthors{2} 
+\numberofauthors{2} 
 
-%\author{
+\author{
 % 1st. author
-%\alignauthor
-%Denis Savenkov\\
-%       \affaddr{Emory University}\\
-%       \email{dsavenk@emory.edu}
+\alignauthor
+Denis Savenkov\\
+       \affaddr{Emory University}\\
+       \email{dsavenk@emory.edu}
 % 2nd. author
-%\alignauthor
-%Eugene Agichtein\\
-%       \affaddr{Emory University}\\
-%       \email{eugene@mathcs.emory.edu}
-%}
-\date{17 February 2014}
+\alignauthor
+Eugene Agichtein\\
+       \affaddr{Emory University}\\
+       \email{eugene@mathcs.emory.edu}
+}
+\date{6 May 2014}
 % Just remember to make sure that the TOTAL number of authors
 % is the number that will appear on the first page PLUS the
 % number that will appear in the \additionalauthors section.
@@ -126,10 +126,10 @@ The results of this study are an important step towards the design of future sea
 \end{abstract}
 
 % A category with the (minimum) three required fields
-% \category{H.3.3}{Information storage and retrieval}{Information Search and Retrieval}[query formulation, search process]
+\category{H.3.3}{Information storage and retrieval}{Information Search and Retrieval}[query formulation, search process]
 %A category including the fourth, optional field follows...
 
-% \terms{Measurement, Design, Experimentation, Human Factors}
+\terms{Measurement, Design, Experimentation, Human Factors}
 
 \keywords{User studies, search interface, experimental design, query reformulation, tactics, tips, suggestions, assistance, efficiency.}
 
@@ -169,8 +169,8 @@ Task 4 & If you were in the basin of the Somme River at summers end in 1918, wha
 \end{table*}
 
 Search engines are ubiquitous and millions of people of varying experience use them on a daily basis.
-But not all searches are successful, Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
-And Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining their queries.
+Unfortunately, not all searches are successful, Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
+Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining their queries.
 Besides good retrieval performance, a successful search requires users to possess certain skills.
 Search skills can be trained. For example, Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
 Although very useful, such courses are time consuming and detached from real search problems of these particular users. 
@@ -188,7 +188,7 @@ In contrast, generic search tips, which were too general and harder to follow, h
 
 \section{Related Work}
 
-There has been considerable amount of work on search assistance and improving user experience with feedback, suggestions and hints.
+There has been a considerable amount of work on search assistance and improving user experience with feedback, suggestions and hints.
 Results of the study in \cite{xie2009understanding} demonstrate that in 59.5\% of the cases users are seeking for help to refine their searches or to construct search statements.
 % That confirms findings of \cite{Holscher2000337}.
 Individual term (\cite{ruthven2003survey}) or query suggestion (\cite{Bhatia:2011:QSA:2009916.2010023, Cao:2008:CQS:1401890.1401995,Jones:2006:GQS:1135777.1135835}) are among the most popular techniques for helping users to augment their queries.
@@ -197,7 +197,7 @@ Query suggestion methods usually use search logs to extract queries that are sim
 
 When query or term suggestions are not efficient, it is still possible to help users by providing potentially useful search tips.
 An adaptive tool providing tactical suggestions was presented in \cite{Kriewel2010} and users reported overall satisfaction with its automatic non-intrusive advices.
-Modern searc\setlength{\floatsep}{3pt plus 1.0pt minus 1.0pt}h engines have many features that are not typically used by a average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness of tips and their teaching effect.
+Modern searc\setlength{\floatsep}{3pt plus 1.0pt minus 1.0pt}h engines have many features that are not typically used by an average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness of tips and their teaching effect.
 The major difference of our work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search tips used.
 Rather than suggesting users the available search functionality, this work focuses on strategic search tips, designed to solve difficult informational questions.
 
@@ -215,12 +215,14 @@ When the answer is found, a player provides it and the link to the answer web pa
 The answer is automatically verified and a popup box notifies a player if the answer is incorrect (since the answer can be formulated differently, presence of a keyword was checked).
 A player can then continue searching or skip the question when she gives up.
 A bonus payment was made to players who answer all questions correctly.
-We used API of one of the major search engines as a back-end of the game search interface.
+We used Bing Search API\footnote{http://www.bing.com/toolbox/bingsearchapi} as a back-end of the game search interface.
 All search results and clicked documents were cached so users asking the same query or clicking the same page got the same results.
 At the end of the game a questionnaire was presented asking for feedback on user satisfaction with the game, prior experience and other comments.
 
 % \subsection{Search Tasks Description}
 The tasks for the study were borrowed from the ``A Google a Day'' questions archive.
+Such questions are factual and not ambiguous.
+Also it is usually hard to find the answer with a single query and this makes such tasks interesting for user assistance research.
 Unfortunately, a lot of web pages discussing solutions to these questions exist.
 So we had to filter search results and exclude all pages that mention a major part of the search question or ``a google a day'' phrase.
 Since the questions are rather difficult, to keep users focused throughout the whole game we decided to limit the number of questions to 4.
@@ -228,18 +230,19 @@ The tasks are described in Table \ref{table:tasks}.
 the order of the tasks was the same for all participants and cohorts, to ensure comparable learning effects for all participants
 
 %\subsection{Search Tips}
-The questions used for the game are examples of difficult informational search tasks, which are hard to answer with a single search.
+% The questions used for the game are examples of difficult informational search tasks, which are hard to answer with a single search.
 The questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
-In one of the previous studies we noticed, that most of the users didn't adopt the divide-and-conquer strategy and kept reformulating trying the find the ``right'' query.
+In one of the previous studies we noticed, that most of the users didn't adopt the divide-and-conquer strategy and kept trying to find the ``right'' query.
 We decided to estimate the effect of strategic search tips, suggesting users to adopt the new strategy.
 
 We built 2 sets of strategic tips: task specific and generic.
 Task specific tips were constructed from one of the possible solutions to the questions and described one way to search and find the answer.
 Specific tips for all questions are provided in Table \ref{table:tasks}.
-Second set contained a single tip, which just described the strategy:\\
-\begin{tabular}{|p{8cm}|}
-\hline
-\vspace{-5mm}
+Second set contained a single tip, which was shown for all tasks. Generic tip simply described the divide-and-conquer strategy:\\
+% \begin{tabular}{|p{8cm}|}
+\vspace{-2mm}
+\hrule
+\vspace{-2mm}
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
 \item Split question into 2 or more logical parts
 \item Find answers to the parts of the question
@@ -247,14 +250,13 @@ Second set contained a single tip, which just described the strategy:\\
 \end{enumerate}
 \vspace{-2mm}
 For example, question: ``The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?''
-\vspace{-5mm}
 \begin{enumerate} \itemsep0pt \parskip0pt \parsep0pt
 \item Search [second wife King Henry VIII] to find Anne Boleyn.
 \item Search [Anne Boleyn under arm] to find that her ghost is in the London Tower where she is said to carry her head tucked underneath her arm.
-\end{enumerate}\\
-\hline
-\end{tabular}
-
+\end{enumerate}
+\vspace{-1mm}
+\hrule
+% \end{tabular}
 \vspace{+2mm}
 To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} each user was assigned to one of the three groups: a group who didn't get any tips, those who got task-specific tips and those who got the generic tip.
 During the game the tips were displayed for each question all the time in the right panel of the search interface as demonstrated on Figure \ref{figure:ufindit}.
@@ -266,8 +268,8 @@ During the game the tips were displayed for each question all the time in the ri
 \vspace{-1mm}
 \subsection{Game Completion Statistics}
 
-From 199 participants, who clicked on the HIT on Amazon Mechanical Turk only 90 players finished the game.
-We further filtered out 9 submissions for two main reasons: lack of effort (e.g. some players skipped several tasks after only a single query) or usage of external resources (e.g. external search engine).
+From 199 unique participants, who clicked the HIT on Amazon Mechanical Turk only 90 players finished the game.
+We further examined all games manually and filtered out 9 submissions for the following reasons: lack of effort (e.g. some players skipped several tasks after only a single query) or usage of external resources (e.g. the answer was obtained without submitting any queries or results explored didn't contain the answer), 
 10 players from the group which received tips indicated in the survey that they didn't see them, so we further filtered out those submissions and finally we had 71 completed games (29 for no tips, 20 for task-specific tips and 22 for generic tip groups).
 
 \vspace{-1mm}
@@ -354,15 +356,14 @@ However, to be useful, they should be designed carefully.
 Search tips that are difficult to follow or have variety of options can be detrimental to search success.
 The results of the study have important implications for designing an effective search engine assistance/dialogue.
 
-We should note, that specific search tips used in this work were manually generated.
-And an interesting question of future work is how to generate such useful tips automatically.
+We should note, that specific search tips used in this work were manually generated and an interesting question of future work is how to generate such useful tips automatically.
 It should be possible to learn strategies applied by the experienced search users and suggest them to the rest.
 
 % Our performance-based results were complemented with post-study surveys, which indicated that while search tips could make the search easier and more successful, they do not necessarily make it more enjoyable, suggesting that further exploration is needed into both what kind of assistance a search engine could provide, and when it would be most welcome.
 
-%ACKNOWLEDGMENTS are optional
-% \section{Acknowledgments}
-% The authors would like to thank Daniel Russel for providing an archive of questions from ``a Google a Day'' search game.
+% ACKNOWLEDGMENTS are optional
+\section{Acknowledgments}
+The authors would like to thank Daniel Russel for providing an archive of questions from ``a Google a Day'' search game.
 
 %
 % The following two commands are all you need in the
