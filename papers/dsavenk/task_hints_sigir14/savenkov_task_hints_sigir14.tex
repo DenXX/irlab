@@ -118,9 +118,10 @@ Eugene Agichtein\\
 \begin{abstract}
 Extensive previous research has shown that searchers often require assistance with query formulation and refinement. %, especially for complex search tasks, where a more active dialogue between a user and the search engine would be helpful.
 Yet, it is not clear what kind of assistance is most useful, and how effective it is both objectively (e.g., task success) and subjectively (e.g., the searcher perception of the search difficulty).
-We set out to answer these questions in a controlled, yet naturalistic randomized user study, involving 90 participants, where we compare the effects of a search engine providing specific vs. generic search tips on search success, performance, and satisfaction.
+%We set out to answer these questions in 
+This work describes the results of a controlled user study, where we compare the effects of providing specific vs. generic search tips on web search success and satisfaction.
 Our results indicate that specific search tips tend to effectively improve searcher success rates and reduce perceived effort, while generic ones can be detrimental in both search effectiveness and user satisfaction.
-We also find that even searchers who are more effective using specific search tips feel subjectively less satisfied and engaged than the control group, indicating that search assistance has to be specific and timely if it is to improve the searcher experience.
+% We also find that even searchers who are more effective using specific search tips feel subjectively less satisfied and engaged than the control group, indicating that search assistance has to be specific and timely if it is to improve the searcher experience.
 The results of this study are an important step towards the design of future search systems that could effectively assist and guide the user in accomplishing complex search tasks.
 
 \end{abstract}
@@ -166,24 +167,25 @@ Task 4 & If you were in the basin of the Somme River at summers end in 1918, wha
 2. Search for which coded communications language was used in this battle\\
 } \\ \hline
 \end{tabular}
+\vspace{-2mm}
 \end{table*}
 
 Search engines are ubiquitous and millions of people of varying experience use them on a daily basis.
-Unfortunately, not all searches are successful, Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their users study were frustrated during their searches.
-Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining their queries.
+Unfortunately, not all searches are successful, Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their user study felt frustration when searching.
+Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining search queries.
 Besides good retrieval performance, a successful search requires users to possess certain skills.
-Search skills can be trained. For example, Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
-Although very useful, such courses are time consuming and detached from real search problems of these particular users. 
+Search skills can be trained, e.g. Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
+Although very useful, such courses are time consuming and detached from real search problems of these particular users.
 Displaying search tips could be another technique that has some learning effect and offers immediate assistance to the user in solving her current search task.
-Moraveji et al. \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that tips, suggesting certain functionality of a search engine, help people find answers more quickly and the effect is retained after a week with tips removed.
+Moraveji et al. \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that tips, suggesting certain search engine functionality, help people find answers more quickly and the effect is retained after a week without tips.
 
 % Besides the awareness about search tools available, adopting general search strategies is extremely important when dealing with a difficult search task.
 In this paper we focus on strategic search tips, that are designed to guide a user in solving her search problem.
-More specifically, we chose the divide-and-conquer strategy, which consists in splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
-Two sets of strategic tips were manually designed: one set featured task-specific tips describing a strategy to solve this particular search question, the other set described the divide-and-conquer strategy in general.
+More specifically, we chose the divide-and-conquer strategy, i.e. splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
+Two sets of strategic tips were manually designed: {\em generic} tip describing the divide-and-conquer strategy in general and {\em task-specific} tips providing a concrete strategy to solve the current search task.
 To evaluate the effect of the tips on behavior and search success we conducted a user study with 90 participants.
 The results of the user study, described in this paper, demonstrate that well-designed task-specific tips can improve search success rate.
-In contrast, generic search tips, which were too general and harder to follow, had negative effect on user performance and satisfaction.
+In contrast, generic search tip, which was too general and harder to follow, had negative effect on user performance and satisfaction.
 % Our performance-based results were complemented with post-study surveys, which indicated that while search tips could make the search easier and more successful, they do not necessarily make it more enjoyable, suggesting that further exploration is needed into both what kind of assistance a search engine could provide, and when it would be most welcome.
 
 \section{Related Work}
@@ -197,21 +199,20 @@ Query suggestion methods usually use search logs to extract queries that are sim
 
 When query or term suggestions are not efficient, it is still possible to help users by providing potentially useful search tips.
 An adaptive tool providing tactical suggestions was presented in \cite{Kriewel2010} and users reported overall satisfaction with its automatic non-intrusive advices.
-Modern searc\setlength{\floatsep}{3pt plus 1.0pt minus 1.0pt}h engines have many features that are not typically used by an average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness of tips and their teaching effect.
+Modern search engines have many features that are not typically used by an average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness and teaching effect of tips.
 The major difference of our work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search tips used.
 Rather than suggesting users the available search functionality, this work focuses on strategic search tips, designed to solve difficult informational questions.
 
 \section{User Study}
 
-To estimate the effect of strategic search tips on users' behavior we conducted a study in a form of a web search game similar to ``A Google a Day''\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. Participants were hired using Amazon Machanical Turk\footnote{http://www.mturk.com/}. 
+To estimate the effect of strategic search tips on user behavior we conducted a study in a form of a web search game similar to ``a Google a Day''\footnote{http://www.agoogleaday.com/} and uFindIt \cite{Ageev:2011:FYG:2009916.2009965}. Participants were hired using Amazon Mechanical Turk\footnote{http://www.mturk.com/}. 
 
 % \subsection{Web Search Game}
-The goal of a web search game used in the user study is to find answers to several questions using web search.
-The web search interface to use is provided and players are instructed not to use any external tools.
-Figure \ref{figure:ufindit} shows the interface of the game.
-The questions are given one by one.
-Since tasks might be too difficult a chance to skip a question was provided, although users were instructed that effort put into solving a question is evaluated.
-When the answer is found, a player provides it and the link to the answer web page.
+The goal of the web search game used in the user study is to find answers to several questions with the provided web search interface (Figure \ref{figure:ufindit}). 
+Players are instructed not to use any external tools.
+% Figure \ref{figure:ufindit} shows the interface of the game.
+The questions are given one by one and since tasks might be too difficult a chance to skip a question was provided, although users were instructed that effort put into solving a question will be evaluated.
+To answer a question each player needs to provide a link to a page containing the answer as well as its text.
 The answer is automatically verified and a popup box notifies a player if the answer is incorrect (since the answer can be formulated differently, presence of a keyword was checked).
 A player can then continue searching or skip the question when she gives up.
 A bonus payment was made to players who answer all questions correctly.
@@ -221,13 +222,12 @@ At the end of the game a questionnaire was presented asking for feedback on user
 
 % \subsection{Search Tasks Description}
 The tasks for the study were borrowed from the ``A Google a Day'' questions archive.
-Such questions are factual and not ambiguous.
-Also it is usually hard to find the answer with a single query and this makes such tasks interesting for user assistance research.
-Unfortunately, a lot of web pages discussing solutions to these questions exist.
-So we had to filter search results and exclude all pages that mention a major part of the search question or ``a google a day'' phrase.
-Since the questions are rather difficult, to keep users focused throughout the whole game we decided to limit the number of questions to 4.
-The tasks are described in Table \ref{table:tasks}.
-the order of the tasks was the same for all participants and cohorts, to ensure comparable learning effects for all participants
+Such questions are factual, not ambiguous and usually hard to find the answer with a single query, which makes them interesting for user assistance research.
+% Unfortunately, a lot of web pages discussing solutions to these questions exist.
+We filtered search results to exclude all pages that discuss solutions to ``A Google a Day'' puzzles.
+To do this we removed pages that mention a major part of the search question or ``a google a day'' phrase.
+To keep users focused throughout the whole game we limited the number of questions to 4.
+The tasks are described in Table \ref{table:tasks} and were presented to all participants in the same order to ensure comparable learning effects.
 
 %\subsection{Search Tips}
 % The questions used for the game are examples of difficult informational search tasks, which are hard to answer with a single search.
@@ -236,9 +236,8 @@ In one of the previous studies we noticed, that most of the users didn't adopt t
 We decided to estimate the effect of strategic search tips, suggesting users to adopt the new strategy.
 
 We built 2 sets of strategic tips: task specific and generic.
-Task specific tips were constructed from one of the possible solutions to the questions and described one way to search and find the answer.
-Specific tips for all questions are provided in Table \ref{table:tasks}.
-Second set contained a single tip, which was shown for all tasks. Generic tip simply described the divide-and-conquer strategy:\\
+Task-specific tips described steps of one of the possible solutions to each question (Table \ref{table:tasks}).
+Second set contained a single tip, which was shown for all tasks. Generic tip described the divide-and-conquer strategy:\\
 % \begin{tabular}{|p{8cm}|}
 \vspace{-2mm}
 \hrule
@@ -259,7 +258,7 @@ For example, question: ``The second wife of King Henry VIII is said to haunt the
 % \end{tabular}
 \vspace{+2mm}
 To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966} each user was assigned to one of the three groups: a group who didn't get any tips, those who got task-specific tips and those who got the generic tip.
-During the game the tips were displayed for each question all the time in the right panel of the search interface as demonstrated on Figure \ref{figure:ufindit}.
+During the game tips were displayed in the right panel of the search interface (Figure \ref{figure:ufindit}).
 
 \section{Results}
 
@@ -269,20 +268,21 @@ During the game the tips were displayed for each question all the time in the ri
 \subsection{Game Completion Statistics}
 
 From 199 unique participants, who clicked the HIT on Amazon Mechanical Turk only 90 players finished the game.
-We further examined all games manually and filtered out 9 submissions for the following reasons: lack of effort (e.g. some players skipped several tasks after only a single query) or usage of external resources (e.g. the answer was obtained without submitting any queries or results explored didn't contain the answer), 
+We further examined all games manually and filtered out 9 submissions for one of the following reasons: lack of effort (e.g. skipped several tasks after none or a single query) or usage of external resources (e.g. the answer was obtained without submitting any queries or results explored didn't contain the answer), 
 10 players from the group which received tips indicated in the survey that they didn't see them, so we further filtered out those submissions and finally we had 71 completed games (29 for no tips, 20 for task-specific tips and 22 for generic tip groups).
 
 \vspace{-1mm}
 \subsection{Effects of Search Tips on Performance}
 
-In order to measure search success rate we looked at the number of questions answered correctly by different groups of users\footnote{Since users were allowed to skip a question we are counting the number of questions that were eventually solved correctly even if a player made some incorrect attempts}. Figure \ref{figure:task_success} shows that success rate is higher for users who saw task-specific tips compared to users who didn't get such assistance.
-Surprisingly, having the generic tip decreased the success rate, although users could easily ignore the tip they didn't like.
+In order to measure search success rate we looked at the number of questions answered correctly by different groups of users\footnote{Since users were allowed to skip a question we are counting the number of questions that were eventually solved correctly even if a player made some incorrect attempts}.
+Figure \ref{figure:task_success} shows that success rate is higher for users who saw task-specific tips compared to users who didn't get such assistance.
+Surprisingly, having the generic tip decreased the success rate, although users could easily ignore a tip they didn't like.
 A possible explanation is: generic tip was harder to follow and users who tried and failed became frustrated and didn't restart their searches.
 
 % Similar to \cite{Moraveji:2011:MIU:2009916.2009966} we looked at the average time to answer a question (for this analysis we removed games where a user didn't find the answer and skipped the task).
 
 The plot of average time to answer a question on Figure \ref{figure:task_time} doesn't show an improvement for the task-specific tips group, except for the question 1.
-Our task-specific tips represent a possible way to solve the problem and there is no guarantee, that it is the optimal one.
+Our task-specific tips represent a possible way to solve a problem and there is no guarantee, that it is the fastest one.
 It is worth noting, that users from the generic search tip group had slightly higher variance in success time, which can probably be explained by the fact that some users were successful in finding the right way to follow the tip and some other users struggled with it much longer.
 Another insight comes from the number of incorrect attempts users made.
 Figure \ref{figure:incorrect} demonstrates the average number of incorrect answer attempts for all groups of users.
@@ -298,14 +298,14 @@ Moreover, we analyzed texts of incorrect answers and can conclude that a big par
 \caption{Success rate per task for each group of participants}
 \label{figure:task_success}
 \end{figure}
-\vspace{-5mm}
+\vspace{-6mm}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.35]{img/time_per_task}
 \caption{Task completion time for each group of players}
 \label{figure:task_time}
 \end{figure}
-\vspace{-5mm}
+\vspace{-6mm}
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.33]{img/incorrect}
@@ -329,8 +329,10 @@ Moreover, we analyzed texts of incorrect answers and can conclude that a big par
 	\caption{Were search tips useful to you?}
     \label{figure:survey:useful}
 \end{subfigure}
+\vspace{-2mm}
 \caption{Proportions of replies to some of the survey question for each group of users}
 \label{figure:survey}
+\vspace{-3mm}
 \end{figure*}
 
 \vspace{-3mm}
@@ -340,13 +342,12 @@ We looked at some other search behavior characteristics: number of queries submi
 
 Finally, we looked at the surveys filled by each group of users.
 Figure \ref{figure:survey} presents proportions of different answers to three of the questions: ``How did you like the game?'', ``How difficult was the game?'' and ``Were search tips useful to you?''.
-Surprisingly, results for the first question were lower for users who saw tips during the game and users who didn't saw tips liked the game more.
-It seems that solving questions with the tips was less enjoyable than without assistance.
-The answers to the question about game difficulty are in agreement with the success rate: users who saw task-specific tips rate game easier than participants who struggled to find the correct answers.
+Surprisingly, user satisfaction with the game was lower for users who saw tips during the game and users who didn't get any assistance enjoyed it more.
+The replies to the question about game difficulty are in agreement with the success rate: users who saw task-specific tips rated difficulty lower than participants who struggled to find the correct answers.
 The game was rather very difficult on average, however, some participants from the group who received task-specific tips surprisingly rated it as very easy, which suggests that our tips do help users.
 This is supported by the answers to the last question on whether tips were helpful (Figure \ref{figure:survey:useful}).
 
-To summarize, the results of the conducted user study suggests that specific search tips can be helpful, which is indicated by higher success rate, lower number of incorrect attempts and positive feedback in the end of study survey.
+To summarize, the results of the conducted user study suggest that specific search tips can be helpful, which is indicated by higher success rate, lower number of incorrect attempts and positive feedback in the end of study survey.
 In contrast, generic tips can have negative effect on user experience, which is indicated by lower success rate, increased number of incorrect attempts and higher perceived tasks complexity according to the survey.
 
 \section{Conclusion}
@@ -354,7 +355,8 @@ In this paper we studied the effect of strategic search tips on user behavior.
 The conducted user study in a form of a web search game demonstrated the potential of good tips in improving search success rate.
 However, to be useful, they should be designed carefully.
 Search tips that are difficult to follow or have variety of options can be detrimental to search success.
-The results of the study have important implications for designing an effective search engine assistance/dialogue.
+We also find that even searchers who are more effective using specific search tips feel subjectively less satisfied and engaged than the control group, indicating that search assistance has to be specific and timely if it is to improve the searcher experience.
+% The results of the study have important implications for designing an effective search engine assistance/dialogue.
 
 We should note, that specific search tips used in this work were manually generated and an interesting question of future work is how to generate such useful tips automatically.
 It should be possible to learn strategies applied by the experienced search users and suggest them to the rest.
