@@ -4,6 +4,7 @@ import edu.umd.cloud9.collection.wikipedia.WikipediaPage;
 import edu.umd.cloud9.collection.wikipedia.WikipediaPageInputFormat;
 import edu.umd.cloud9.io.pair.PairOfStringLong;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -14,6 +15,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,7 +27,8 @@ import java.util.Map;
  * how many times each phrase is used to refer to each page and return a link
  * phrase with the most frequent link page.
  */
-public class WikipediaLinkPhrasesExtractor {
+public class WikipediaLinkPhrasesExtractor extends Configured
+        implements Tool {
 
     /**
      * Mapper class to extract link phrase along with the page it links to.
@@ -144,8 +148,9 @@ public class WikipediaLinkPhrasesExtractor {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        Job job = new Job(new Configuration());
+    @Override
+    public final int run(final String[] args) throws Exception {
+        Job job = new Job(getConf());
 
         job.setJobName("ExtractWikipediaLinkPhrases");
 
@@ -159,13 +164,21 @@ public class WikipediaLinkPhrasesExtractor {
         FileInputFormat.setInputPaths(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         // Delete the output directory if it exists already.
-        FileSystem.get(new Configuration()).delete(new Path(args[1]), true);
+        FileSystem.get(getConf()).delete(new Path(args[1]), true);
 
         job.setInputFormatClass(WikipediaPageInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
 
         job.setJarByClass(WikipediaLinkPhrasesExtractor.class);
         job.waitForCompletion(true);
+        return 0;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        int res = ToolRunner.run(conf,
+                new WikipediaLinkPhrasesExtractor(), args);
+        System.exit(res);
     }
 
 }
