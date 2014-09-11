@@ -1,7 +1,9 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = 1.7
 version = '1.0'
+mainClassName = 'edu.emory.mathcs.clir.relextract.tools.WikipediaLinkPhrasesExtractorStandalone'
 
 repositories {
     mavenCentral()
@@ -9,6 +11,7 @@ repositories {
 
 dependencies {
     compile group: 'edu.umd', name: 'cloud9', version: '1.4.17'
+    compile group: 'info.bliki.wiki', name: 'bliki-core', version: '3.0.19'
     compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.5.0'
     compile group: 'org.apache.hadoop', name: 'hadoop-auth', version: '2.5.0'
     compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.5.0'
@@ -19,4 +22,9 @@ dependencies {
     // Added because of java.lang.NoClassDefFoundError: org/w3c/dom/ElementTraversal
     // compile group: 'org.apache.xmlgraphics', name: 'batik-ext', version: '1.7'
     testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+run {
+    /* Need to split the space-delimited value in the exec.args */
+    args System.getProperty("exec.args").split()
 }
