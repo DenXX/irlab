@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.tools;
 
+import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.graph.Triple;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -96,28 +97,32 @@ public class FreebaseNameIndexBuilder {
                     "/" + triple.getPredicate().getLocalName()
                             .replace(".", "/");
             String object = null;
-            if (triple.getObject().isLiteral()) {
-                object = triple.getObject().getLiteralValue().toString();
-            } else if (triple.getObject().isVariable()) {
-                object = "/" +
-                        triple.getObject().getLocalName().replace(".", "/");
-            } else {
-                object = triple.getObject().toString();
-            }
-            if (!entityTriplesCount.containsKey(subject)) {
-                entityTriplesCount.put(subject, 1L);
-            } else {
-                entityTriplesCount.put(subject,
-                        entityTriplesCount.get(subject) + 1L);
-            }
-
-            if (subject.startsWith("/m/") &&
-                    (predicate.equals("/type/object/name") ||
-                            predicate.equals("/common/topic/alias"))) {
-                if (!nameEntityIndex.containsKey(object)) {
-                    nameEntityIndex.put(object, new HashSet<String>());
+            try {
+                if (triple.getObject().isLiteral()) {
+                    object = triple.getObject().getLiteralValue().toString();
+                } else if (triple.getObject().isVariable()) {
+                    object = "/" +
+                            triple.getObject().getLocalName().replace(".", "/");
+                } else {
+                    object = triple.getObject().toString();
                 }
-                nameEntityIndex.get(object).add(subject);
+                if (!entityTriplesCount.containsKey(subject)) {
+                    entityTriplesCount.put(subject, 1L);
+                } else {
+                    entityTriplesCount.put(subject,
+                            entityTriplesCount.get(subject) + 1L);
+                }
+
+                if (subject.startsWith("/m/") &&
+                        (predicate.equals("/type/object/name") ||
+                                predicate.equals("/common/topic/alias"))) {
+                    if (!nameEntityIndex.containsKey(object)) {
+                        nameEntityIndex.put(object, new HashSet<String>());
+                    }
+                    nameEntityIndex.get(object).add(subject);
+                }
+            } catch (DatatypeFormatException e) {
+                System.err.println("Error: " + e.getMessage());
             }
         }
 
