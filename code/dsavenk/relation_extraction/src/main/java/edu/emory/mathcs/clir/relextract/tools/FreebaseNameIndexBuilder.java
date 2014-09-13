@@ -12,6 +12,7 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Reads Freebase RDF data dump and extracts all entity names, then for each
@@ -44,7 +45,7 @@ public class FreebaseNameIndexBuilder {
                 .replace(">", "").replace(".", "/");
     }
 
-    private static void processFreebaseDump(final String freebase_dump_file,
+    private static void processFreebaseDump(final String freebaseDumpFile,
                                             String outputFile) {
         HashMap<String, Long> entityTriplesCount = new HashMap<String, Long>();
         HashMap<String, Set<String>> nameEntityIndex =
@@ -52,18 +53,14 @@ public class FreebaseNameIndexBuilder {
 
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(
-                    new CompressorStreamFactory().createCompressorInputStream(
-                            CompressorStreamFactory.GZIP,
-                            new BufferedInputStream(
-                                    new FileInputStream(
-                                            freebase_dump_file)))));
-        } catch (CompressorException e) {
-            System.err.println("Cannot decompress file: " +
-                    e.getMessage());
-            System.exit(-1);
+            reader = new BufferedReader(
+                    new InputStreamReader(new GZIPInputStream(
+                            new FileInputStream(freebaseDumpFile))));
         } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + freebase_dump_file);
+            System.err.println("File not found: " + freebaseDumpFile);
+            System.exit(-1);
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
             System.exit(-1);
         }
 
