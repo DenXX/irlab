@@ -4,6 +4,7 @@ apply plugin: 'application'
 sourceCompatibility = 1.7
 version = '1.0'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
+applicationDefaultJvmArgs = ["-Xmx150g"]
 
 repositories {
     mavenCentral()
@@ -16,8 +17,8 @@ dependencies {
     compile group: 'org.apache.hadoop', name: 'hadoop-auth', version: '2.5.0'
     compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.5.0'
     compile group: 'org.apache.hadoop', name: 'hadoop-core', version: '1.2.1'
-    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.4'
-    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.4', classifier: 'models'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.4.1'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.4.1', classifier: 'models'
     compile group: 'org.apache.jena', name: 'apache-jena-libs', version: '2.12.0'
     // Added because of java.lang.NoClassDefFoundError: org/w3c/dom/ElementTraversal
     compile group: 'org.apache.xmlgraphics', name: 'batik-ext', version: '1.7'
