@@ -11,6 +11,7 @@ import edu.stanford.nlp.util.ErasureUtils;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -44,9 +45,9 @@ public class EntityResolutionAnnotator implements Annotator {
         String line = null;
         while ((line = reader.readLine()) != null) {
             String[] fields = line.split("\t");
-            String name = fields[0].substring(1, fields[0].indexOf('@') - 1);
-            String lang = fields[0].substring(fields[0].indexOf('@') + 1);
-
+            int langPos = fields[0].indexOf("\"@", 1);
+            String name = fields[0].substring(1, langPos);
+            String lang = fields[0].substring(langPos + 2);
             // Currently we only use English names and aliases.
             if (lang.equals("en")) {
                 long bestCount = 0;
@@ -73,6 +74,7 @@ public class EntityResolutionAnnotator implements Annotator {
         for (CoreMap span : spans) {
             String name = NlpUtils.normalizeStringForMatch(
                     span.get(CoreAnnotations.TextAnnotation.class));
+            // TODO(denxx): Should I check type compatibility?
             if (namesIndex.containsKey(name)) {
                 span.set(EntityResolutionAnnotation.class,
                         namesIndex.get(name));
