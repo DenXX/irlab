@@ -2,39 +2,52 @@ package edu.emory.mathcs.clir.relextract;
 
 import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
 import edu.emory.mathcs.clir.relextract.data.QuestionAnswerAnnotation;
-import edu.emory.mathcs.clir.relextract.data.YahooWebscopeYAnswersDataset;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
+import edu.emory.mathcs.clir.relextract.processor.*;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.*;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
-import java.util.Iterator;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by dsavenk on 9/12/14.
  */
 public class RelationExtractionApp {
 
-    private static final String INPUT_ARG = "input";
-    private static final String OUTPUT_ARG = "output";
+    /**
+     * The name of the input filename command line argument.
+     */
+    public static final String INPUT_ARG = "input";
 
+    /**
+     * The name of the output filename command line argument.
+     */
+    public static final String OUTPUT_ARG = "output";
+
+    // TODO(denxx): There should be a much better way to add options.
     private static Options getOptions() {
         Options options = new Options();
-        options.addOption(OptionBuilder.hasArg().withArgName("input_path")
+        options.addOption(OptionBuilder.isRequired(true).hasArg()
+                .withArgName("input_path")
                 .withDescription("input file").create(INPUT_ARG));
-        options.addOption(OptionBuilder.hasArg().withArgName("output_path")
-                .withDescription("output file").create(OUTPUT_ARG));
+        options.addOption(OptionBuilder.isRequired(true).hasArg().
+                withArgName("output_path").withDescription("output file")
+                .create(OUTPUT_ARG));
         options.addOption(OptionBuilder.hasArg()
                 .withArgName(EntityResolutionAnnotator.LEXICON_PROPERTY)
                 .withDescription("entity names lexicon file").create(
                         EntityResolutionAnnotator.LEXICON_PROPERTY));
+        options.addOption(OptionBuilder.hasArg()
+                .withArgName(ConcurrentProcessingRunner.NUM_THREADS_PROPERTY)
+                .withDescription("Number of threads to use").create(
+                        ConcurrentProcessingRunner.NUM_THREADS_PROPERTY));
+        options.addOption(OptionBuilder.hasArg()
+                .withArgName(KnowledgeBase.KB_PROPERTY)
+                .withDescription("Apache Jena KB model location").create(
+                        KnowledgeBase.KB_PROPERTY));
         return options;
     }
 
@@ -46,13 +59,8 @@ public class RelationExtractionApp {
 
     private static Properties getProperties(CommandLine cmdline) {
         Properties props = new Properties();
-        // Add the new annotator.
-        props.setProperty("customAnnotatorClass.entityres",
-                "edu.emory.mathcs.clir.relextract.annotators." +
-                        "EntityResolutionAnnotator");
-        props.setProperty("customAnnotatorClass.span",
-                "edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator");
-
+        props.setProperty(INPUT_ARG, cmdline.getOptionValue(INPUT_ARG));
+        props.setProperty(OUTPUT_ARG, cmdline.getOptionValue(OUTPUT_ARG));
         for (Option option : cmdline.getOptions()) {
             props.put(option.getArgName(), option.getValue());
         }
@@ -62,99 +70,50 @@ public class RelationExtractionApp {
 
     private static void readSerializedDocuments(String inputPath) {
         try {
-            ObjectInputStream input =
+            final ObjectInputStream input =
                     new ObjectInputStream(
                             new BufferedInputStream(
                                     new GZIPInputStream(
                                             new FileInputStream(inputPath))));
-            QuestionAnswerAnnotation doc = null;
-            while ((doc = (QuestionAnswerAnnotation)input.readObject())
-                    != null) {
-                System.out.println(doc.toString());
+            QuestionAnswerAnnotation document = null;
+            int count = 0;
+            while ((document =
+                    (QuestionAnswerAnnotation) input.readObject()) != null) {
+                ++count;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Total number of documents read is " + count);
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void processInput(String inputPath, String outputPath,
-                                     Properties props) {
-        props.put("annotators", "tokenize, cleanxml, ssplit, pos, lemma, " +
-                "ner, parse, dcoref, span, entityres");
-        props.setProperty("clean.allowflawedxml", "true");
-        final StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-
-        // Use all available physical processes.
-        final int numThreads =
-                Runtime.getRuntime().availableProcessors();
-        final ExecutorService e = Executors.newFixedThreadPool(numThreads);
+    private static void run(Properties props) throws IOException {
+        WorkflowProcessor workflow = new WorkflowProcessor(props);
+        workflow.addProcessor(new EntityAnnotationProcessor(props));
+        workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
+        // workflow.addProcessor(new EntityRelationsProcessor(props));
+        workflow.addProcessor(new ParsingProcessor(props));
+        workflow.addProcessor(new SerializerProcessor(props));
+        workflow.freeze();
 
         try {
-            YahooWebscopeYAnswersDataset dataset =
-                    new YahooWebscopeYAnswersDataset(
-                            new BufferedInputStream(
-                                    new FileInputStream(inputPath)));
-            // Create output stream for annotated documents serialization.
-            final ObjectOutputStream out =
-                    new ObjectOutputStream(
-                            new BufferedOutputStream(
-                                    new GZIPOutputStream(
-                                            new FileOutputStream(outputPath))));
-
-            // Counter for number of Q&A pairs processed.
-            final AtomicInteger count = new AtomicInteger(0);
-
-            final long startTime = System.currentTimeMillis();
-            for (final QuestionAnswerAnnotation document : dataset) {
-                if (document == null) continue;
-                e.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            pipeline.annotate(document);
-                            synchronized (out) {
-                                out.writeObject(document);
-                            }
-                            int curCnt = count.incrementAndGet();
-                            if (curCnt % 1000 == 0) {
-                                final long curTime = System.currentTimeMillis();
-                                System.out.println("Processed " + curCnt +
-                                        " at " + (1000.0 * curCnt) /
-                                        (curTime - startTime) + " docs/sec");
-                            }
-                        } catch (Exception exc) {
-                            // Sometimes annotators fail with an exception,
-                            // let's skip such Q&A pairs. Example is
-                            // cleanxml annotator, which for some reason
-                            // checks correctness of XML tags and throws an
-                            // exception if something goes wrong.
-                            System.err.println(exc);
-                        }
-                    }
-                });
-            }
-            e.shutdown();
-            // Wait for all threads to finish.
-            e.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-            // Write null so we can read it and determine the end of the input.
-            out.writeObject(null);
-            out.close();
-        } catch (FileNotFoundException exc) {
-            e.shutdown();
-            System.err.println("File not found: " + inputPath);
-            System.exit(-1);
-        } catch (IOException exc) {
-            e.shutdown();
-            System.err.println("Error reading the file: " + inputPath);
-            System.exit(-1);
-        } catch (XMLStreamException exc) {
-            e.shutdown();
-            System.err.println("Error parsing XML file: " + inputPath);
-            System.exit(-1);
-        } catch (InterruptedException exc) {
-            exc.printStackTrace();
+            YahooAnswersWebscopeXmlInputProvider inputProvider =
+                    new YahooAnswersWebscopeXmlInputProvider(props);
+            //ConcurrentProcessingRunner runner =
+            //        new ConcurrentProcessingRunner(workflow, props);
+            SequentialProcessingRunner runner =
+                    new SequentialProcessingRunner(workflow, props);
+            runner.run(inputProvider);
+        } catch (FileNotFoundException e) {
+            System.err.println("Cannot find input file.");
+        } catch (XMLStreamException e) {
+            System.err.println("Error parsing input XML file.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -170,16 +129,6 @@ public class RelationExtractionApp {
             System.exit(-1);
         }
 
-        if (!cmdline.hasOption(INPUT_ARG)) {
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp(RelationExtractionApp.class.getCanonicalName(),
-                    options);
-            System.exit(-1);
-        }
-
-        //readSerializedDocuments(cmdline.getOptionValue(INPUT_ARG));
-
-        processInput(cmdline.getOptionValue(INPUT_ARG),
-                cmdline.getOptionValue(OUTPUT_ARG), getProperties(cmdline));
+        RelationExtractionApp.run(getProperties(cmdline));
     }
 }

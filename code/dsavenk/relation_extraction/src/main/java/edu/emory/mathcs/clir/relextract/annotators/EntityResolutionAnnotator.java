@@ -7,11 +7,16 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.Annotator;
 import edu.stanford.nlp.util.ArraySet;
 import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.util.ErasureUtils;
+import org.apache.commons.collections4.trie.PatriciaTrie;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -20,21 +25,26 @@ import java.util.zip.GZIPInputStream;
  */
 public class EntityResolutionAnnotator implements Annotator {
     public static final String ANNOTATOR_CLASS = "entityres";
-    public static final String LEXICON_PROPERTY = "entityres_lexicon";
-
     public static final Requirement ENTITYRES_REQUIREMENT =
             new Requirement(ANNOTATOR_CLASS);
+    public static final String LEXICON_PROPERTY =
+            "EntityResolutionAnnotator_lexicon_file";
+    // A trie, that maps a name to the entity with the best score from the
+    // list of available entities. Currently the score is the number of triples
+    // available for the entity, so we prefer more "popular" entities.
+    private final PatriciaTrie<String> namesIndex_ = new PatriciaTrie<>();
 
     /**
-     * Annotation class for entity resolution annotations. It is a string, which
-     * contains ID of the entity in a KB.
+     * Creates a new instance of the EntityResolutionAnnotator. Names dictionary
+     * is read from a file, provided through the
+     * EntityResolutionAnnotator.lexicon_file property value.
+     *
+     * @param annotatorClass Classname of the annotator.
+     * @param props          A set of properties. This annotator needs
+     *                       EntityResolutionAnnotator.lexicon_file property to store
+     *                       the name of the .gz file containing entity names dictionary.
+     * @throws IOException
      */
-    public class EntityResolutionAnnotation implements CoreAnnotation<String> {
-        public Class<String> getType() {
-            return String.class;
-        }
-    }
-
     public EntityResolutionAnnotator(String annotatorClass, Properties props)
             throws IOException {
         String lexicon_filename = props.getProperty(LEXICON_PROPERTY);
@@ -61,10 +71,11 @@ public class EntityResolutionAnnotator implements Annotator {
                 }
                 // We should have at least one entity and count shouldn't be 0.
                 assert bestEntity != null;
-                namesIndex.put(NlpUtils.normalizeStringForMatch(name),
+                namesIndex_.put(NlpUtils.normalizeStringForMatch(name),
                         bestEntity);
             }
         }
+        System.err.println("Done loading entity names.");
     }
 
     @Override
@@ -74,10 +85,14 @@ public class EntityResolutionAnnotator implements Annotator {
         for (CoreMap span : spans) {
             String name = NlpUtils.normalizeStringForMatch(
                     span.get(CoreAnnotations.TextAnnotation.class));
-            // TODO(denxx): Should I check type compatibility?
-            if (namesIndex.containsKey(name)) {
-                span.set(EntityResolutionAnnotation.class,
-                        namesIndex.get(name));
+            String nerTag =
+                    span.get(CoreAnnotations.NamedEntityTagAnnotation.class);
+            if (nerTag.equals("PERSON") || nerTag.equals("ORGANIZATION") ||
+                    nerTag.equals("LOCATION") || nerTag.equals("MISC")) {
+                if (namesIndex_.containsKey(name)) {
+                    span.set(EntityResolutionAnnotation.class,
+                            namesIndex_.get(name));
+                }
             }
         }
     }
@@ -89,12 +104,17 @@ public class EntityResolutionAnnotator implements Annotator {
 
     @Override
     public Set<Requirement> requires() {
-        return new ArraySet<Requirement>(DETERMINISTIC_COREF_REQUIREMENT,
-                SpanAnnotator.SPAN_REQUIREMENT);
+        return new ArraySet<>(SpanAnnotator.SPAN_REQUIREMENT);
     }
 
-    // A hash map, that maps a name to the entity with the best score from the
-    // list of available entities. Currently the score is the number of triples
-    // available for the entity, so we prefer more "popular" entities.
-    private Map<String, String> namesIndex = new HashMap<String, String>();
+    /**
+     * Annotation class for entity resolution annotations. It is a string, which
+     * contains ID of the entity in a KB.
+     */
+    public static class EntityResolutionAnnotation
+            implements CoreAnnotation<String> {
+        public Class<String> getType() {
+            return String.class;
+        }
+    }
 }
