@@ -68,4 +68,11 @@ public class WorkflowProcessor extends Processor {
         }
         return document;
     }
+
+    @Override
+    public void finishProcessing() throws Exception {
+        for (Processor processor : processors_) {
+            processor.finishProcessing();
+        }
+    }
 }

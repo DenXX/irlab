@@ -13,11 +13,14 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Created by dsavenk on 9/26/14.
  */
-public class SerializerProcessor extends Processor {
+public class BatchSerializerProcessor extends SerializerProcessor {
 
     private final ProtobufAnnotationSerializer serializer_ =
             new ProtobufAnnotationSerializer(false);
-    private final OutputStream out_;
+    private OutputStream out_;
+    private String outFilename_;
+    private int batchIndex;
+    private int docCounter = 0;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -26,17 +29,27 @@ public class SerializerProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public SerializerProcessor(Properties properties) throws IOException {
+    public BatchSerializerProcessor(Properties properties) throws IOException {
         super(properties);
-        String outFilename = properties.getProperty("output");
+        outFilename_ = properties.getProperty("output");
+        batchIndex = 0;
+        createNewOutputStream();
+    }
+
+    private void createNewOutputStream() throws IOException {
+        if (out_ != null) out_.close();
         out_ = new BufferedOutputStream(new GZIPOutputStream(
-                new FileOutputStream(outFilename)));
+                new FileOutputStream(outFilename_ + "_" + batchIndex++)));
     }
 
     @Override
     protected Annotation doProcess(Annotation document) throws IOException {
         synchronized (this) {
             serializer_.toProto(document).writeDelimitedTo(out_);
+            if (++docCounter > 100000) {
+                createNewOutputStream();
+                docCounter = 0;
+            }
         }
         return document;
     }

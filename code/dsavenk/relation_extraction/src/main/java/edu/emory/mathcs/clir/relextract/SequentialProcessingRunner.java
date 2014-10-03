@@ -41,14 +41,14 @@ public class SequentialProcessingRunner {
             if (processor_.process(document) == null) {
                 ++filtered;
             }
-            if (++counter % 50 == 0) {
+            if (++counter % 1000 == 0) {
                 long currentTime = System.currentTimeMillis();
                 System.err.println("Processed: " + counter +
                         " (" + (1000.0 * counter /
-                        (currentTime - startTime)) + " docs/sec");
+                        (currentTime - startTime)) + " docs/sec)");
                 System.err.println("Filtered: " + filtered);
             }
-            if (counter > 1000) break;
         }
+        processor_.finishProcessing();
     }
 }

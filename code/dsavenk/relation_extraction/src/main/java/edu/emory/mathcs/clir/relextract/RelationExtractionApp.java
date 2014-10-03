@@ -1,8 +1,8 @@
 package edu.emory.mathcs.clir.relextract;
 
 import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
+import edu.emory.mathcs.clir.relextract.data.DeserializerInputProvider;
 import edu.emory.mathcs.clir.relextract.data.QuestionAnswerAnnotation;
-import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.*;
@@ -27,6 +27,8 @@ public class RelationExtractionApp {
      */
     public static final String OUTPUT_ARG = "output";
 
+    public static final String PROCESSORS_ARG = "processors";
+
     // TODO(denxx): There should be a much better way to add options.
     private static Options getOptions() {
         Options options = new Options();
@@ -36,6 +38,9 @@ public class RelationExtractionApp {
         options.addOption(OptionBuilder.isRequired(true).hasArg().
                 withArgName("output_path").withDescription("output file")
                 .create(OUTPUT_ARG));
+        options.addOption(OptionBuilder.isRequired(true).hasArg()
+                .withArgName("processors").withDescription("Processors to run")
+                .create(PROCESSORS_ARG));
         options.addOption(OptionBuilder.hasArg()
                 .withArgName(EntityResolutionAnnotator.LEXICON_PROPERTY)
                 .withDescription("entity names lexicon file").create(
@@ -91,22 +96,54 @@ public class RelationExtractionApp {
         }
     }
 
-    private static void run(Properties props) throws IOException {
+    private static void run(Properties props) throws Exception {
         WorkflowProcessor workflow = new WorkflowProcessor(props);
-        workflow.addProcessor(new EntityAnnotationProcessor(props));
-        workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
-        // workflow.addProcessor(new EntityRelationsProcessor(props));
-        workflow.addProcessor(new ParsingProcessor(props));
-        workflow.addProcessor(new SerializerProcessor(props));
+//        props.setProperty("nthreads", "24");
+//        props.setProperty("ner.maxtime", "-1");
+        for (String processor : props.getProperty(PROCESSORS_ARG).split(",")) {
+            switch (processor) {
+                case "entity":
+                    workflow.addProcessor(new EntityAnnotationProcessor(props));
+                    break;
+                case "filter":
+                    workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
+                    break;
+                case "relations":
+                    workflow.addProcessor(new EntityRelationsProcessor(props));
+                    break;
+                case "parse":
+                    workflow.addProcessor(new ParsingProcessor(props));
+                    break;
+                case "serialize":
+                    workflow.addProcessor(new SerializerProcessor(props));
+                    break;
+                case "batchserialize":
+                    workflow.addProcessor(new BatchSerializerProcessor(props));
+                    break;
+                case "print":
+                    workflow.addProcessor(new PrintTextProcessor(props));
+                    break;
+                default:
+                    throw new UnsupportedOperationException(
+                            "Processor " + processor + " doesn't exist!");
+            }
+        }
         workflow.freeze();
 
         try {
-            YahooAnswersWebscopeXmlInputProvider inputProvider =
-                    new YahooAnswersWebscopeXmlInputProvider(props);
-            //ConcurrentProcessingRunner runner =
-            //        new ConcurrentProcessingRunner(workflow, props);
-            SequentialProcessingRunner runner =
-                    new SequentialProcessingRunner(workflow, props);
+//            YahooAnswersWebscopeXmlInputProvider inputProvider =
+//                    new YahooAnswersWebscopeXmlInputProvider(props);
+
+//            DeserializerBatchInputProvider inputProvider =
+//                    new DeserializerBatchInputProvider(props);
+
+            DeserializerInputProvider inputProvider =
+                    new DeserializerInputProvider(props);
+
+            ConcurrentProcessingRunner runner =
+                    new ConcurrentProcessingRunner(workflow, props);
+//            SequentialProcessingRunner runner =
+//                    new SequentialProcessingRunner(workflow, props);
             runner.run(inputProvider);
         } catch (FileNotFoundException e) {
             System.err.println("Cannot find input file.");

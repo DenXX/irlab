@@ -28,6 +28,10 @@ public abstract class CoreNlpPipelineProcessor extends Processor {
                         "EntityResolutionAnnotator");
         properties.setProperty("customAnnotatorClass.span",
                 "edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator");
+        properties.setProperty("customAnnotatorClass.entityrel",
+                "edu.emory.mathcs.clir.relextract.annotators." +
+                        "EntityRelationsAnnotator");
+
 
         // Sets the NLP pipeline and some of the annotator properties.
         properties.put("annotators", getAnnotators());

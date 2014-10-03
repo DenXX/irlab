@@ -1,11 +1,9 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
+import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.query.ReadWrite;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.SimpleSelector;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 
 import java.util.Properties;
@@ -79,5 +77,41 @@ public class KnowledgeBase {
                 model_.getResource(convertFreebaseMidRdf(subject)),
                 null,
                 model_.getResource(convertFreebaseMidRdf(object))));
+    }
+
+    public void getSubjectObjectTriplesCVT(String subject, String object) {
+        StmtIterator iter = model_.listStatements(
+                model_.getResource(convertFreebaseMidRdf("/m/01z0ks_")),
+                null, (RDFNode) null);
+        while (iter.hasNext()) {
+            Statement triple = iter.nextStatement();
+            System.out.println(triple);
+        }
+    }
+
+    /**
+     * Returns iterator to all statement between the given subject and object
+     * literal, the type of the literal must be provided as the last argument of
+     * the method.
+     *
+     * @param subject    Subject entity id.
+     * @param object     Object literal as a string.
+     * @param objectType Type of the object literal.
+     * @return Iterator to statements between the given literals.
+     */
+    public StmtIterator getSubjectObjectTriples(String subject, String object,
+                                                RDFDatatype objectType) {
+        return model_.listStatements(new SimpleSelector(
+                model_.getResource(convertFreebaseMidRdf(subject)),
+                null,
+                model_.createTypedLiteral(object, objectType)));
+    }
+
+    public StmtIterator getSubjectPredicateTriples(String subject,
+                                                   String predicate) {
+        return model_.listStatements(new SimpleSelector(
+                model_.getResource(convertFreebaseMidRdf(subject)),
+                model_.getProperty(FREEBASE_RDF_PREFIX, predicate),
+                (RDFNode) null));
     }
 }

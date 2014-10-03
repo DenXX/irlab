@@ -55,7 +55,7 @@ public class ConcurrentProcessingRunner {
      * @throws InterruptedException
      */
     public void run(InputProvider documents)
-            throws InterruptedException {
+            throws Exception {
         ExecutorService threadPool = Executors.newFixedThreadPool(numThreads_);
         final AtomicInteger counter = new AtomicInteger(0);
         final long startTime = System.currentTimeMillis();
@@ -74,16 +74,17 @@ public class ConcurrentProcessingRunner {
                         e.printStackTrace();
                     }
                     int processed = counter.incrementAndGet();
-                    if (processed % 100 == 0) {
+                    if (processed % 1000 == 0) {
                         long currentTime = System.currentTimeMillis();
                         System.err.println("Processed: " + processed +
                                 " (" + (1000.0 * processed /
-                                (currentTime - startTime)) + " docs/sec");
+                                (currentTime - startTime)) + " docs/sec)");
                     }
                 }
             });
         }
         threadPool.shutdown();
         threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+        processor_.finishProcessing();
     }
 }

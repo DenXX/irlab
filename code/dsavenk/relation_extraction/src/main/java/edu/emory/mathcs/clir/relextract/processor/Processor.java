@@ -78,4 +78,11 @@ public abstract class Processor {
         }
         return doProcess(document);
     }
+
+    /**
+     * This method is called when Processor has done processing all of the
+     * documents and can do some finalization.
+     */
+    public void finishProcessing() throws Exception {
+    }
 }

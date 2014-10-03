@@ -49,7 +49,8 @@ public class FilterNotresolvedEntitiesProcessor extends Processor {
                 }
             }
         }
-        return (spans.size() > 1 || (spans.size() == 1 && foundLiteral))
+        return (resolvedEntities.size() > 1
+                || (resolvedEntities.size() == 1 && foundLiteral))
                 ? document
                 : null;
     }
