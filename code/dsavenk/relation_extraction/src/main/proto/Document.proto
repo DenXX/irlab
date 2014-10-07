@@ -1,0 +1,78 @@
+package edu.stanford.nlp.pipeline;
+
+option java_generate_equals_and_hash = true;
+option java_package = "edu.emory.mathcs.clir.relextract.data";
+option java_outer_classname = "Document";
+
+message NlpDocument {
+    required string text = 1;                 // Original document text.
+    optional string docId = 2;                // Document identifier.
+    repeated Token token = 3;                 // All document tokens.
+    repeated Sentence sentence = 4;           // The list of all sentences.
+    repeated Span span = 5;                   // List of entity/measure mentions.
+    repeated CorefCluster corefCluster = 6;   // Coreference clusters.
+    repeated Attribute attribute = 7;
+
+    // For Q&A documents.
+    optional uint32 questionLength = 100;
+
+    extensions 10000 to max;
+}
+
+// A key-value pair, that can store any meta-information about the document.
+message Attribute {
+    required string key = 1;
+    required string value = 2;
+}
+
+message Sentence {
+    // Indexes of the first and last token in the sentence.
+    required int32 firstToken = 1;
+    required int32 lastToken = 2;
+
+    extensions 10000 to max;
+}
+
+message Token {
+    required uint32 beginCharOffset = 1;
+    required uint32 endCharOffset = 2;
+    optional string text = 3;
+    optional string originalText = 4;
+    optional string lemma = 5;
+    optional uint32 sentenceIndex = 6;
+    optional uint32 tokenBeginIndex = 7;
+    optional uint32 tokenEndIndex = 8;
+    optional string pos = 9;
+    optional string ner = 10;
+    optional string whitespaceBefore = 11;
+    optional string whitespaceAfter = 12;
+    optional uint32 corefClusterId = 13;
+
+    extensions 10000 to max;
+}
+
+message Span {
+    // Position of the mention in tokens inside the corresponding sentence.
+    required uint32 tokenBeginOffset = 1;
+    required uint32 tokenEndOffset = 2;
+    optional string sentenceIndex = 3;
+    required string text = 4;
+    optional string value = 5;        // Canonicalized value of the token.
+    optional string type = 6;         // Span type: entity, number, date, etc.
+    optional string entityId = 7;
+    optional string corefClusterIndex = 8;
+    optional string mentionType = 9;
+    optional string mentionNumber = 10;
+    optional string gender = 11;       // Gender of the mentioned entity.
+    optional string animacy = 12;      // Animacy of the mentioned entity.
+
+    extensions 10000 to max;
+}
+
+message CorefCluster {
+    repeated Span mention = 1;
+    // Index of the representative mention for this cluster.
+    optional uint32 representativeMention = 2;
+
+    extensions 10000 to max;
+}
