@@ -1,7 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.emory.mathcs.clir.relextract.utils.ProtobufAnnotationSerializer;
-import edu.stanford.nlp.pipeline.Annotation;
+import edu.emory.mathcs.clir.relextract.AppParameters;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -15,12 +15,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class BatchSerializerProcessor extends SerializerProcessor {
 
-    private final ProtobufAnnotationSerializer serializer_ =
-            new ProtobufAnnotationSerializer(false);
-    private OutputStream out_;
-    private String outFilename_;
-    private int batchIndex;
-    private int docCounter = 0;
+    public static final String BATCH_SIZE_PARAMETER = "batch_size";
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -31,7 +26,9 @@ public class BatchSerializerProcessor extends SerializerProcessor {
      */
     public BatchSerializerProcessor(Properties properties) throws IOException {
         super(properties);
-        outFilename_ = properties.getProperty("output");
+        outFilename_ = properties.getProperty(AppParameters.OUTPUT_PARAMETER);
+        batchSize_ = Integer.parseInt(
+                properties.getProperty(BATCH_SIZE_PARAMETER, "10000"));
         batchIndex = 0;
         createNewOutputStream();
     }
@@ -43,10 +40,11 @@ public class BatchSerializerProcessor extends SerializerProcessor {
     }
 
     @Override
-    protected Annotation doProcess(Annotation document) throws IOException {
+    protected Document.NlpDocument doProcess(Document.NlpDocument document)
+            throws IOException {
         synchronized (this) {
-            serializer_.toProto(document).writeDelimitedTo(out_);
-            if (++docCounter > 100000) {
+            document.writeDelimitedTo(out_);
+            if (++docCounter > batchSize_) {
                 createNewOutputStream();
                 docCounter = 0;
             }
@@ -58,4 +56,11 @@ public class BatchSerializerProcessor extends SerializerProcessor {
     public void finishProcessing() throws Exception {
         out_.close();
     }
+
+    private final int batchSize_;
+    private OutputStream out_;
+    private String outFilename_;
+    private int batchIndex;
+    private int docCounter = 0;
+
 }

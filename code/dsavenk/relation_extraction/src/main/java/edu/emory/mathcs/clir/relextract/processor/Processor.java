@@ -1,6 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.stanford.nlp.pipeline.Annotation;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.util.Properties;
 
@@ -37,8 +37,8 @@ public abstract class Processor {
      * @param document A document to process.
      * @return Processed document or null if the document is filtered.
      */
-    protected abstract Annotation doProcess(Annotation document)
-            throws Exception;
+    protected abstract Document.NlpDocument doProcess(
+            Document.NlpDocument document) throws Exception;
 
     /**
      * Freezes the processor, which means no further changes in state are
@@ -71,7 +71,8 @@ public abstract class Processor {
      * @return Processed document or null if the document is filtered.
      * @throws IllegalStateException if processor is not frozen.
      */
-    public final Annotation process(Annotation document) throws Exception {
+    public final Document.NlpDocument process(Document.NlpDocument document)
+            throws Exception {
         if (!isFrozen()) {
             throw new IllegalStateException("Processor should be frozen " +
                     "before the process method is called.");

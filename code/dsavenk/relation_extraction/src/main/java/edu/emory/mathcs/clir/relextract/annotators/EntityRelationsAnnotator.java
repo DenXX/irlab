@@ -2,7 +2,6 @@ package edu.emory.mathcs.clir.relextract.annotators;
 
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
-import edu.emory.mathcs.clir.relextract.data.QuestionAnswerAnnotation;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.ling.CoreAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -80,12 +79,12 @@ public class EntityRelationsAnnotator implements Annotator {
                 }
             }
         }
-        if (found) {
-            final String text = annotation.get(CoreAnnotations.TextAnnotation.class);
-            System.out.println(">>> Question:\n" + text.substring(0, ((QuestionAnswerAnnotation) annotation).getQuestionLength()));
-            System.out.println("\n\n>>> Answer:\n" + text.substring(((QuestionAnswerAnnotation) annotation).getQuestionLength()));
-            System.out.println("--------------------------------------------------");
-        }
+//        if (found) {
+//            final String text = annotation.get(CoreAnnotations.TextAnnotation.class);
+//            System.out.println(">>> Question:\n" + text.substring(0, ((QuestionAnswerAnnotation) annotation).getQuestionLength()));
+//            System.out.println("\n\n>>> Answer:\n" + text.substring(((QuestionAnswerAnnotation) annotation).getQuestionLength()));
+//            System.out.println("--------------------------------------------------");
+//        }
     }
 
     @Override

@@ -1,6 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.stanford.nlp.pipeline.Annotation;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -61,7 +61,8 @@ public class WorkflowProcessor extends Processor {
      * @return Processed document or null if the document is filtered.
      */
     @Override
-    protected Annotation doProcess(Annotation document) throws Exception {
+    protected Document.NlpDocument doProcess(Document.NlpDocument document)
+            throws Exception {
         for (Processor processor : processors_) {
             document = processor.process(document);
             if (document == null) return null;

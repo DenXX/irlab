@@ -1,8 +1,7 @@
 package edu.emory.mathcs.clir.relextract;
 
-import edu.emory.mathcs.clir.relextract.data.InputProvider;
+import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.processor.Processor;
-import edu.stanford.nlp.pipeline.Annotation;
 
 import java.util.Properties;
 
@@ -28,12 +27,11 @@ public class SequentialProcessingRunner {
      * @param documents A collections of documents to process.
      * @throws InterruptedException
      */
-    public void run(InputProvider documents) throws Exception {
+    public void run(Iterable<Document.NlpDocument> documents) throws Exception {
         final long startTime = System.currentTimeMillis();
         int counter = 0;
         int filtered = 0;
-        while (documents.hasNext()) {
-            final Annotation document = documents.next();
+        for (Document.NlpDocument document : documents) {
             // Parser reads the next input on demand, that's why it cannot
             // predict that the input is over, so it will actually return null
             // element.

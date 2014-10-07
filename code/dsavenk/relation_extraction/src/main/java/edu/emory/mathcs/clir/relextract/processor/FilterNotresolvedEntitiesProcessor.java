@@ -1,13 +1,8 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
-import edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator;
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.util.CoreMap;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -29,20 +24,14 @@ public class FilterNotresolvedEntitiesProcessor extends Processor {
     }
 
     @Override
-    protected Annotation doProcess(Annotation document) {
-        List<CoreMap> spans = document.get(SpanAnnotator.SpanAnnotation.class);
+    protected Document.NlpDocument doProcess(Document.NlpDocument document) {
         Set<String> resolvedEntities = new HashSet<>();
         boolean foundLiteral = false;
-        for (CoreMap span : spans) {
-            if (span.containsKey(
-                    EntityResolutionAnnotator
-                            .EntityResolutionAnnotation.class)) {
-                resolvedEntities.add(span.get(
-                        EntityResolutionAnnotator
-                                .EntityResolutionAnnotation.class));
+        for (Document.Span span : document.getSpanList()) {
+            if (span.hasEntityId()) {
+                resolvedEntities.add(span.getEntityId());
             } else {
-                String nerTag = span.get(
-                        CoreAnnotations.NamedEntityTagAnnotation.class);
+                String nerTag = span.getType();
                 if (nerTag.equals("DATE") || nerTag.equals("NUMBER") ||
                         nerTag.equals("MONEY") || nerTag.equals("DURATION")) {
                     foundLiteral = true;

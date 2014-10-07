@@ -1,7 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.emory.mathcs.clir.relextract.utils.ProtobufAnnotationSerializer;
-import edu.stanford.nlp.pipeline.Annotation;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -15,8 +14,6 @@ import java.util.zip.GZIPOutputStream;
  */
 public class SerializerProcessor extends Processor {
 
-    private final ProtobufAnnotationSerializer serializer_ =
-            new ProtobufAnnotationSerializer(false);
     private final OutputStream out_;
 
     /**
@@ -34,9 +31,10 @@ public class SerializerProcessor extends Processor {
     }
 
     @Override
-    protected Annotation doProcess(Annotation document) throws IOException {
+    protected Document.NlpDocument doProcess(Document.NlpDocument document)
+            throws IOException {
         synchronized (this) {
-            serializer_.toProto(document).writeDelimitedTo(out_);
+            document.writeDelimitedTo(out_);
         }
         return document;
     }

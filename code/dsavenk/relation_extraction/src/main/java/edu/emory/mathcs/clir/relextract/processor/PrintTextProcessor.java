@@ -1,6 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.stanford.nlp.pipeline.Annotation;
+import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.util.Properties;
 
@@ -22,9 +22,9 @@ public class PrintTextProcessor extends Processor {
     }
 
     @Override
-    protected Annotation doProcess(Annotation document) throws Exception {
-        //System.out.println(document.toString());
-        System.out.println(count++);
+    protected Document.NlpDocument doProcess(
+            Document.NlpDocument document) throws Exception {
+        System.out.println(document.getText());
         return document;
     }
 }
