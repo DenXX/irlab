@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract;
 
 import edu.emory.mathcs.clir.relextract.data.DeserializerInputProvider;
+import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import org.apache.commons.cli.*;
 
@@ -63,14 +64,14 @@ public class RelationExtractionApp {
         workflow.freeze();
 
         try {
-//            YahooAnswersWebscopeXmlInputProvider inputProvider =
-//                    new YahooAnswersWebscopeXmlInputProvider(props);
+            YahooAnswersWebscopeXmlInputProvider inputProvider =
+                    new YahooAnswersWebscopeXmlInputProvider(props);
 
 //            DeserializerBatchInputProvider inputProvider =
 //                    new DeserializerBatchInputProvider(props);
 
-            DeserializerInputProvider inputProvider =
-                    new DeserializerInputProvider(props);
+//            DeserializerInputProvider inputProvider =
+//                    new DeserializerInputProvider(props);
 
             ConcurrentProcessingRunner runner =
                     new ConcurrentProcessingRunner(workflow, props);

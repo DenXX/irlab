@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import edu.emory.mathcs.clir.relextract.AppParameters;
 import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.io.BufferedOutputStream;
@@ -25,7 +26,8 @@ public class SerializerProcessor extends Processor {
      */
     public SerializerProcessor(Properties properties) throws IOException {
         super(properties);
-        String outFilename = properties.getProperty("output");
+        String outFilename = properties.getProperty(
+                AppParameters.OUTPUT_PARAMETER);
         out_ = new BufferedOutputStream(new GZIPOutputStream(
                 new FileOutputStream(outFilename)));
     }

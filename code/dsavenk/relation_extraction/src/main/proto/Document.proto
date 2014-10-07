@@ -29,6 +29,7 @@ message Sentence {
     // Indexes of the first and last token in the sentence.
     required int32 firstToken = 1;
     required int32 lastToken = 2;
+    optional string text = 3;
 
     extensions 10000 to max;
 }
@@ -55,7 +56,7 @@ message Span {
     // Position of the mention in tokens inside the corresponding sentence.
     required uint32 tokenBeginOffset = 1;
     required uint32 tokenEndOffset = 2;
-    optional string sentenceIndex = 3;
+    optional uint32 sentenceIndex = 3;
     required string text = 4;
     optional string value = 5;        // Canonicalized value of the token.
     optional string type = 6;         // Span type: entity, number, date, etc.

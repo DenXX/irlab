@@ -27,8 +27,7 @@ public class EntityResolutionAnnotator implements Annotator {
     public static final String ANNOTATOR_CLASS = "entityres";
     public static final Requirement ENTITYRES_REQUIREMENT =
             new Requirement(ANNOTATOR_CLASS);
-    public static final String LEXICON_PROPERTY =
-            "EntityResolutionAnnotator_lexicon_file";
+    public static final String LEXICON_PROPERTY = "entityres_lexicon";
     // A trie, that maps a name to the entity with the best score from the
     // list of available entities. Currently the score is the number of triples
     // available for the entity, so we prefer more "popular" entities.
