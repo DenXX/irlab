@@ -28,9 +28,6 @@ public class AppParameters {
         opt.addOption(OptionBuilder.isRequired(true).hasArg()
                 .withArgName("processors").withDescription("Processors to run")
                 .create(PROCESSORS_PARAMETER));
-        opt.addOption(OptionBuilder.isRequired(true).hasArg()
-                .withArgName(RUNNER_PARAMETER).withDescription("Runner to use")
-                .create(RUNNER_PARAMETER));
 
         // TODO(denxx): Move this to the corresponding classes and use
         // reflection.
@@ -39,9 +36,9 @@ public class AppParameters {
                 .withDescription("entity names lexicon file").create(
                         EntityResolutionAnnotator.LEXICON_PROPERTY));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(ConcurrentProcessingRunner.NUM_THREADS_PROPERTY)
+                .withArgName(ProcessorRunner.NUM_THREADS_PROPERTY)
                 .withDescription("Number of threads to use").create(
-                        ConcurrentProcessingRunner.NUM_THREADS_PROPERTY));
+                        ProcessorRunner.NUM_THREADS_PROPERTY));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(KnowledgeBase.KB_PROPERTY)
                 .withDescription("Apache Jena KB model location").create(
@@ -52,8 +49,9 @@ public class AppParameters {
                         BatchSerializerProcessor.BATCH_SIZE_PARAMETER));
 
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName("nthreads")
-                .withDescription("Number of threads").create("nthreads"));
+                .withArgName(ProcessorRunner.NUM_THREADS_PROPERTY)
+                .withDescription("Number of threads").create(
+                        ProcessorRunner.NUM_THREADS_PROPERTY));
         return opt;
     }
 }

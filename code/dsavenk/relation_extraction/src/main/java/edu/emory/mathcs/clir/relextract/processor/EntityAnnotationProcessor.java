@@ -84,6 +84,14 @@ public class EntityAnnotationProcessor extends Processor {
                     CoreAnnotations.PartOfSpeechAnnotation.class));
             tokenBuilder.setNer(token.get(
                     CoreAnnotations.NamedEntityTagAnnotation.class));
+            if (token.has(
+                    CoreAnnotations.NormalizedNamedEntityTagAnnotation.class)) {
+                tokenBuilder.setNormalizedNer(token.get(
+                        CoreAnnotations.NormalizedNamedEntityTagAnnotation.class));
+            } else {
+                tokenBuilder.setNormalizedNer(token.get(
+                        CoreAnnotations.NamedEntityTagAnnotation.class));
+            }
             tokenBuilder.setWhitespaceBefore(token.get(
                     CoreAnnotations.BeforeAnnotation.class));
             tokenBuilder.setWhitespaceAfter(token.get(
@@ -116,7 +124,11 @@ public class EntityAnnotationProcessor extends Processor {
                     CoreAnnotations.TokenBeginAnnotation.class))
                     .getSentenceIndex());
             spanBuilder.setText(span.get(CoreAnnotations.TextAnnotation.class));
-            //spanBuilder.setValue(span.get(CoreAnnotations.TextAnnotation.class));
+            if (span.has(CoreAnnotations.ValueAnnotation.class)) {
+                spanBuilder.setValue(span.get(CoreAnnotations.ValueAnnotation.class));
+            } else {
+                spanBuilder.setValue(span.get(CoreAnnotations.TextAnnotation.class));
+            }
             spanBuilder.setType(span.get(
                     CoreAnnotations.NamedEntityTagAnnotation.class));
             if (span.has(

@@ -6,6 +6,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.Annotator;
 import edu.stanford.nlp.pipeline.LabeledChunkIdentifier;
+import edu.stanford.nlp.time.TimeAnnotations;
 import edu.stanford.nlp.util.ArraySet;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.ErasureUtils;
@@ -49,6 +50,32 @@ public class SpanAnnotator implements Annotator {
         List<CoreMap> spans = chunker.getAnnotatedChunks(tokens,
                 annoTokenBegin, CoreAnnotations.TextAnnotation.class,
                 CoreAnnotations.NamedEntityTagAnnotation.class);
+
+        for (CoreMap span : spans) {
+            String nerTag = span.get(
+                    CoreAnnotations.NamedEntityTagAnnotation.class);
+            CoreLabel curToken =
+                    annotation.get(CoreAnnotations.TokensAnnotation.class)
+                            .get(span.get(
+                                    CoreAnnotations.TokenBeginAnnotation.class));
+            if ("NUMBER".equals(nerTag) || "ORDINAL".equals(nerTag)) {
+                if (curToken.has(CoreAnnotations.NumericCompositeValueAnnotation
+                        .class)) {
+                    span.set(CoreAnnotations.ValueAnnotation.class,
+                            curToken.get(CoreAnnotations
+                                    .NumericCompositeValueAnnotation.class)
+                                    .toString());
+                }
+            } else if ("TIME".equals(nerTag) || "SET".equals(nerTag)
+                    || "DATE".equals(nerTag) || "DURATION".equals(nerTag)) {
+                if (curToken.has(TimeAnnotations.TimexAnnotation.class)) {
+                    span.set(CoreAnnotations.ValueAnnotation.class,
+                            curToken.get(
+                                    TimeAnnotations.TimexAnnotation.class)
+                                    .value());
+                }
+            }
+        }
 
         annotation.set(SpanAnnotation.class, spans);
     }

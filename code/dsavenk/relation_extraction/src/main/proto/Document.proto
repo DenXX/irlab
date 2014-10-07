@@ -45,9 +45,10 @@ message Token {
     optional uint32 tokenEndIndex = 8;
     optional string pos = 9;
     optional string ner = 10;
-    optional string whitespaceBefore = 11;
-    optional string whitespaceAfter = 12;
-    optional uint32 corefClusterId = 13;
+    optional string normalizedNer = 11;
+    optional string whitespaceBefore = 12;
+    optional string whitespaceAfter = 13;
+    optional uint32 corefClusterId = 14;
 
     extensions 10000 to max;
 }
