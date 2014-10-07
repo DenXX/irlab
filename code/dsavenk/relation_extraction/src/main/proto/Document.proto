@@ -41,14 +41,12 @@ message Token {
     optional string originalText = 4;
     optional string lemma = 5;
     optional uint32 sentenceIndex = 6;
-    optional uint32 tokenBeginIndex = 7;
-    optional uint32 tokenEndIndex = 8;
-    optional string pos = 9;
-    optional string ner = 10;
-    optional string normalizedNer = 11;
-    optional string whitespaceBefore = 12;
-    optional string whitespaceAfter = 13;
-    optional uint32 corefClusterId = 14;
+    optional string pos = 7;
+    optional string ner = 8;
+    optional string normalizedNer = 9;
+    optional string whitespaceBefore = 10;
+    optional string whitespaceAfter = 11;
+    optional uint32 corefClusterId = 12;
 
     extensions 10000 to max;
 }

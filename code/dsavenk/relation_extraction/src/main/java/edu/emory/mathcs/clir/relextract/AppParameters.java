@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract;
 
 import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
 import edu.emory.mathcs.clir.relextract.processor.BatchSerializerProcessor;
+import edu.emory.mathcs.clir.relextract.processor.DumpEntityNamesProcessor;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -52,6 +53,10 @@ public class AppParameters {
                 .withArgName(ProcessorRunner.NUM_THREADS_PROPERTY)
                 .withDescription("Number of threads").create(
                         ProcessorRunner.NUM_THREADS_PROPERTY));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(DumpEntityNamesProcessor.ENTITY_NAMES_FILENAME)
+                .withDescription("File to dump entity names").create(
+                        DumpEntityNamesProcessor.ENTITY_NAMES_FILENAME));
         return opt;
     }
 }

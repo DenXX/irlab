@@ -28,7 +28,7 @@ public class BatchSerializerProcessor extends SerializerProcessor {
         super(properties);
         outFilename_ = properties.getProperty(AppParameters.OUTPUT_PARAMETER);
         batchSize_ = Integer.parseInt(
-                properties.getProperty(BATCH_SIZE_PARAMETER, "10000"));
+                properties.getProperty(BATCH_SIZE_PARAMETER, "100000"));
         batchIndex = 0;
         createNewOutputStream();
     }

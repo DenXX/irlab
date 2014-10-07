@@ -5,7 +5,17 @@ apply plugin: 'application'
 sourceCompatibility = 1.7
 version = '1.0'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
-applicationDefaultJvmArgs = ["-Xmx200g"]
+applicationDefaultJvmArgs = ["-Xmx220g",
+                             "-XX:+UseParallelGC",
+                             "-XX:+UseParallelOldGC",
+                             "-XX:+UseAdaptiveSizePolicy",
+                             "-XX:+AggressiveHeap",
+                             "-XX:PermSize=10g"]
+
+//applicationDefaultJvmArgs = ["-Xmx220g",
+//                             "-XX:+UseParNewGC",
+//                             "-XX:+UseConcMarkSweepGC",
+//                             "-XX:PermSize=10g"]
 
 repositories {
     mavenCentral()

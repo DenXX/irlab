@@ -46,9 +46,9 @@ public class KnowledgeBaseTest {
 //
 //    }
 
-    @org.junit.Test
-    public void testGetSubjectTriples2() throws Exception {
-        kb_.getSubjectObjectTriplesCVT("/m/09b6zr", "/m/09b6zr");
-    }
+//    @org.junit.Test
+//    public void testGetSubjectTriples2() throws Exception {
+//        kb_.getSubjectObjectTriplesCVT("/m/09b6zr", "/m/09b6zr");
+//    }
 
 }

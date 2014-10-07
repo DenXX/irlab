@@ -1,6 +1,8 @@
 package edu.emory.mathcs.clir.relextract;
 
+import edu.emory.mathcs.clir.relextract.data.DeserializerBatchInputProvider;
 import edu.emory.mathcs.clir.relextract.data.DeserializerInputProvider;
+import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import org.apache.commons.cli.*;
 
@@ -35,8 +37,6 @@ public class RelationExtractionApp {
 
     private static void run(Properties props) throws Exception {
         WorkflowProcessor workflow = new WorkflowProcessor(props);
-//        props.setProperty("nthreads", "24");
-//        props.setProperty("ner.maxtime", "-1");
         for (String processor :props.getProperty(
                 AppParameters.PROCESSORS_PARAMETER).split(",")) {
             switch (processor) {
@@ -52,6 +52,9 @@ public class RelationExtractionApp {
                 case "batchserialize":
                     workflow.addProcessor(new BatchSerializerProcessor(props));
                     break;
+                case "dumpentitynames":
+                    workflow.addProcessor(new DumpEntityNamesProcessor(props));
+                    break;
                 case "print":
                     workflow.addProcessor(new PrintTextProcessor(props));
                     break;
@@ -66,11 +69,11 @@ public class RelationExtractionApp {
 //            YahooAnswersWebscopeXmlInputProvider inputProvider =
 //                    new YahooAnswersWebscopeXmlInputProvider(props);
 
-//            DeserializerBatchInputProvider inputProvider =
-//                    new DeserializerBatchInputProvider(props);
+            DeserializerBatchInputProvider inputProvider =
+                    new DeserializerBatchInputProvider(props);
 
-            DeserializerInputProvider inputProvider =
-                    new DeserializerInputProvider(props);
+//            DeserializerInputProvider inputProvider =
+//                    new DeserializerInputProvider(props);
 
             ProcessorRunner runner =
                     new ProcessorRunner(workflow, props);

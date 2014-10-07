@@ -19,7 +19,7 @@ public class ProcessorRunner {
      * The name of the property to specify the number of threads to use. If the
      * property is missing all available threads will be used.
      */
-    public static final String NUM_THREADS_PROPERTY = "nthreads";
+    public static final String NUM_THREADS_PROPERTY = "run_nthreads";
     private final Processor processor_;
     private final int numThreads_;
 

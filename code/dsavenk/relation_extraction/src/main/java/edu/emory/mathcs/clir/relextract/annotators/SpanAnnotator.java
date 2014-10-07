@@ -69,10 +69,21 @@ public class SpanAnnotator implements Annotator {
             } else if ("TIME".equals(nerTag) || "SET".equals(nerTag)
                     || "DATE".equals(nerTag) || "DURATION".equals(nerTag)) {
                 if (curToken.has(TimeAnnotations.TimexAnnotation.class)) {
-                    span.set(CoreAnnotations.ValueAnnotation.class,
-                            curToken.get(
-                                    TimeAnnotations.TimexAnnotation.class)
-                                    .value());
+                    if (curToken.get(
+                            TimeAnnotations.TimexAnnotation.class)
+                            .value() != null) {
+                        span.set(CoreAnnotations.ValueAnnotation.class,
+                                curToken.get(
+                                        TimeAnnotations.TimexAnnotation.class)
+                                        .value());
+                    } else if (curToken.get(
+                            TimeAnnotations.TimexAnnotation.class)
+                            .altVal() != null) {
+                        span.set(CoreAnnotations.ValueAnnotation.class,
+                                curToken.get(
+                                        TimeAnnotations.TimexAnnotation.class)
+                                        .altVal());
+                    }
                 }
             }
         }

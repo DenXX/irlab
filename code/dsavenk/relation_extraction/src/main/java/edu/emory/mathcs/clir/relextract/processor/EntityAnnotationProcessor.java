@@ -27,24 +27,18 @@ public class EntityAnnotationProcessor extends Processor {
     public EntityAnnotationProcessor(Properties properties) {
         super(properties);
         // Adds custom CoreNLP annotators.
-        properties.setProperty("customAnnotatorClass.entityres",
-                "edu.emory.mathcs.clir.relextract.annotators." +
-                        "EntityResolutionAnnotator");
         properties.setProperty("customAnnotatorClass.span",
                 "edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator");
-        properties.setProperty("customAnnotatorClass.entityrel",
-                "edu.emory.mathcs.clir.relextract.annotators." +
-                        "EntityRelationsAnnotator");
 
 
         // Sets the NLP pipeline and some of the annotator properties.
         properties.put("annotators", getAnnotators());
         properties.setProperty("clean.allowflawedxml", "true");
-        nlpPipeline_ = new StanfordCoreNLP(properties, false);
+        nlpPipeline_ = new StanfordCoreNLP(properties, true);
     }
 
     protected String getAnnotators() {
-        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, entityres";
+        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span";
     }
 
     @Override
@@ -76,10 +70,6 @@ public class EntityAnnotationProcessor extends Processor {
                     CoreAnnotations.LemmaAnnotation.class));
             tokenBuilder.setSentenceIndex(token.get(
                     CoreAnnotations.SentenceIndexAnnotation.class));
-            tokenBuilder.setTokenBeginIndex(token.get(
-                    CoreAnnotations.TokenBeginAnnotation.class));
-            tokenBuilder.setTokenEndIndex(token.get(
-                    CoreAnnotations.TokenEndAnnotation.class));
             tokenBuilder.setPos(token.get(
                     CoreAnnotations.PartOfSpeechAnnotation.class));
             tokenBuilder.setNer(token.get(
