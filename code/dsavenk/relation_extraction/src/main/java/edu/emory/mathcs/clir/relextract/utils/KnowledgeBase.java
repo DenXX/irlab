@@ -6,12 +6,52 @@ import com.hp.hpl.jena.query.ReadWrite;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Provides an interface to access knowledge base, stored with Apache Jena.
  */
 public class KnowledgeBase {
+
+    public static class Triple implements Comparable<Triple> {
+        public String subject;
+        public String predicate;
+        public String object;
+
+        public Triple(Statement triple) {
+            subject = "/" + triple.getSubject().getLocalName().replace(".", "/");
+            predicate = triple.getPredicate().getLocalName();
+            if (triple.getObject().isResource()) {
+                object = "/" + triple.getObject().asResource().getLocalName().replace(".", "/");
+            } else {
+                object = triple.getObject().asLiteral().getString();
+            }
+        }
+
+        public Triple(String subj, String pred, String obj) {
+            subject = subj;
+            predicate = pred;
+            object = obj;
+        }
+
+        @Override
+        public int compareTo(Triple triple) {
+            return (subject + predicate + object).compareTo(
+                    triple.subject + triple.predicate + triple.object);
+        }
+
+        @Override
+        public int hashCode() {
+            return (subject + predicate + object).hashCode();
+        }
+
+        @Override
+        public boolean equals(Object triple) {
+            if (!(triple instanceof Triple)) return false;
+            if (this == triple) return true;
+            return this.compareTo((Triple)triple) == 0;
+        }
+    }
 
     /**
      * Property name to store the location of Apache Jena model of the KB.
@@ -37,6 +77,28 @@ public class KnowledgeBase {
         Dataset dataset = TDBFactory.createDataset(location);
         dataset.begin(ReadWrite.READ);
         model_ = dataset.getDefaultModel();
+        // Load all CVT properties.
+        StmtIterator iter = model_.listStatements(null,
+                model_.getProperty(FREEBASE_RDF_PREFIX,
+                        "freebase.type_hints.mediator"), (RDFNode)null);
+        while (iter.hasNext()) {
+            Statement triple = iter.nextStatement();
+            if (triple.getObject().asLiteral().getBoolean()) {
+                StmtIterator iter2 = model_.listStatements(null,
+                        model_.getProperty(FREEBASE_RDF_PREFIX,
+                                "type.property.expected_type"),
+                        triple.getSubject());
+                while (iter2.hasNext()) {
+                    Statement triple2 = iter2.nextStatement();
+                    StmtIterator iter3 = model_.listStatements(triple2.getSubject(),
+                            model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.id"),
+                            (RDFNode)null);
+                    while (iter3.hasNext()) {
+                        cvtProperties.add(iter3.nextStatement().getObject().asLiteral().toString());
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -73,20 +135,44 @@ public class KnowledgeBase {
      * @return Iterator to all the triples between the given arguments.
      */
     public StmtIterator getSubjectObjectTriples(String subject, String object) {
-        return model_.listStatements(new SimpleSelector(
-                model_.getResource(convertFreebaseMidRdf(subject)),
+        return model_.listStatements(model_.getResource(convertFreebaseMidRdf(subject)),
                 null,
-                model_.getResource(convertFreebaseMidRdf(object))));
+                model_.getResource(convertFreebaseMidRdf(object)));
     }
 
-    public void getSubjectObjectTriplesCVT(String subject, String object) {
+    public Set<Triple> getSubjectObjectTriplesCVT(String subject, String object) {
+        final String subjectUri = convertFreebaseMidRdf(subject);
+        final String objectUri = convertFreebaseMidRdf(object);
+        Set<Triple> res = new HashSet<>();
         StmtIterator iter = model_.listStatements(
-                model_.getResource(convertFreebaseMidRdf("/m/01z0ks_")),
-                null, (RDFNode) null);
+                model_.getResource(subjectUri), null, (RDFNode)null);
         while (iter.hasNext()) {
             Statement triple = iter.nextStatement();
-            System.out.println(triple);
+            if (isCVTProperty(triple.getPredicate().getLocalName()) && triple.getObject().isResource()) {
+                StmtIterator cvtPropsIterator = model_.listStatements(
+                        triple.getObject().asResource(), null, (RDFNode)null);
+                while (cvtPropsIterator.hasNext()) {
+                    Statement cvtTriple = cvtPropsIterator.nextStatement();
+                    if (cvtTriple.getObject().isResource() &&
+                            cvtTriple.getObject().asResource().getURI()
+                                    .equals(objectUri)) {
+                        Triple cvtTripleRes = new Triple(cvtTriple);
+                        cvtTripleRes.subject = subject;
+                        cvtTripleRes.predicate = "/" + triple.getPredicate().getLocalName().replace(".", "/") +
+                                "./" + cvtTriple.getPredicate().getLocalName().replace(".", "/");
+                        res.add(cvtTripleRes);
+                    }
+                }
+            } else {
+                if (triple.getObject().isResource() &&
+                        triple.getObject().asResource().getURI()
+                                .equals(objectUri)) {
+                    res.add(new Triple(triple));
+                }
+
+            }
         }
+        return res;
     }
 
     /**
@@ -114,4 +200,11 @@ public class KnowledgeBase {
                 model_.getProperty(FREEBASE_RDF_PREFIX, predicate),
                 (RDFNode) null));
     }
+
+    public boolean isCVTProperty(String property) {
+        String prop = property.startsWith("/") ? property : "/" + property;
+        return cvtProperties.contains(prop.replace(".", "/"));
+    }
+
+    private final Set<String> cvtProperties = new HashSet<>();
 }

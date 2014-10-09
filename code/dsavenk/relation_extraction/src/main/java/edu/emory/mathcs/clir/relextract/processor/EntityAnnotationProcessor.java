@@ -1,6 +1,5 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
 import edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -121,12 +120,6 @@ public class EntityAnnotationProcessor extends Processor {
             }
             spanBuilder.setType(span.get(
                     CoreAnnotations.NamedEntityTagAnnotation.class));
-            if (span.has(
-                    EntityResolutionAnnotator.EntityResolutionAnnotation.class)) {
-                spanBuilder.setEntityId(span.get(
-                        EntityResolutionAnnotator.EntityResolutionAnnotation
-                                .class));
-            }
             // The following fields are supposed to be filled by coreference
             // resolver: mentionType, mentionNumber, gender, animacy
 

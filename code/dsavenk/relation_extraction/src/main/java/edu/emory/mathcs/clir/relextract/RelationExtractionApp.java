@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract;
 
 import edu.emory.mathcs.clir.relextract.data.DeserializerBatchInputProvider;
 import edu.emory.mathcs.clir.relextract.data.DeserializerInputProvider;
+import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import org.apache.commons.cli.*;
@@ -43,6 +44,15 @@ public class RelationExtractionApp {
                 case "entity":
                     workflow.addProcessor(new EntityAnnotationProcessor(props));
                     break;
+                case "entityres":
+                    workflow.addProcessor(new EntityResolutionProcessor(props));
+                    break;
+                case "addrelations":
+                    workflow.addProcessor(new EntityRelationsLookupProcessor(props));
+                    break;
+                case "relstats":
+                    workflow.addProcessor(new RelationsStatsProcessor(props));
+                    break;
                 case "filter":
                     workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
                     break;
@@ -66,18 +76,24 @@ public class RelationExtractionApp {
         workflow.freeze();
 
         try {
-//            YahooAnswersWebscopeXmlInputProvider inputProvider =
-//                    new YahooAnswersWebscopeXmlInputProvider(props);
-
-            DeserializerBatchInputProvider inputProvider =
-                    new DeserializerBatchInputProvider(props);
-
-//            DeserializerInputProvider inputProvider =
-//                    new DeserializerInputProvider(props);
-
-            ProcessorRunner runner =
-                    new ProcessorRunner(workflow, props);
-            runner.run(inputProvider);
+            Iterable<Document.NlpDocument> docs = null;
+            final String reader = props.getProperty(
+                    AppParameters.READER_PARAMETER);
+            switch (reader) {
+                case "batchser":
+                    docs = new DeserializerBatchInputProvider(props);
+                    break;
+                case "ser":
+                    docs = new DeserializerInputProvider(props);
+                    break;
+                case "yahooxml":
+                    docs = new YahooAnswersWebscopeXmlInputProvider(props);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Reader " + reader +
+                        " doesn't exist!");
+            }
+            new ProcessorRunner(workflow, props).run(docs);
         } catch (FileNotFoundException e) {
             System.err.println("Cannot find input file.");
         } catch (XMLStreamException e) {

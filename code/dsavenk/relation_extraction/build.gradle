@@ -15,7 +15,7 @@ applicationDefaultJvmArgs = ["-Xmx220g",
 //applicationDefaultJvmArgs = ["-Xmx220g",
 //                             "-XX:+UseParNewGC",
 //                             "-XX:+UseConcMarkSweepGC",
-//                             "-XX:PermSize=10g"]
+//                             "-XX:PermSize=20g"]
 
 repositories {
     mavenCentral()

@@ -24,7 +24,18 @@ public class PrintTextProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(
             Document.NlpDocument document) throws Exception {
-        System.out.println(document.getText());
-        return document;
+        if (document.getRelationCount() > 0) {
+            System.out.println(document.getText());
+            for (Document.Relation rel : document.getRelationList()) {
+                System.out.println(document.getSpan(rel.getSubjectSpan()).getValue() + " [" +
+                        document.getSpan(rel.getSubjectSpan()).getEntityId() + "] " +
+                        " -- " + rel.getRelation() + " -- " +
+                        document.getSpan(rel.getObjectSpan()).getValue() + " [" +
+                        document.getSpan(rel.getObjectSpan()).getEntityId() + "]");
+            }
+            System.out.println("---------------------------------------------");
+            return document;
+        }
+        return null;
     }
 }

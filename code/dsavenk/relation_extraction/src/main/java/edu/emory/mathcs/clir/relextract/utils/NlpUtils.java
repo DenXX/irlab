@@ -16,6 +16,8 @@ public final class NlpUtils {
      */
     public static String normalizeStringForMatch(String str) {
         return Normalizer.normalize(str, Normalizer.Form.NFC).toLowerCase()
-                .replaceAll("[^\\x20-\\x7E]+", " ").replaceAll("\\s+", " ");
+                .replaceAll("\\s+", " ");
+        // To remove all non-ascii characters add this.
+        // .replaceAll("[^\\x20-\\x7E]+", " ")
     }
 }

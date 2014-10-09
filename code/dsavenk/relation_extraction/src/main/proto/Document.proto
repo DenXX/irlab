@@ -12,6 +12,7 @@ message NlpDocument {
     repeated Span span = 5;                   // List of entity/measure mentions.
     repeated CorefCluster corefCluster = 6;   // Coreference clusters.
     repeated Attribute attribute = 7;
+    repeated Relation relation = 8;
 
     // For Q&A documents.
     optional uint32 questionLength = 100;
@@ -75,4 +76,10 @@ message CorefCluster {
     optional uint32 representativeMention = 2;
 
     extensions 10000 to max;
+}
+
+message Relation {
+    required uint32 subjectSpan = 1;
+    required uint32 objectSpan = 2;
+    optional string relation = 3;
 }

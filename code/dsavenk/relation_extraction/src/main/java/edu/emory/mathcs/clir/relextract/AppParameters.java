@@ -1,8 +1,8 @@
 package edu.emory.mathcs.clir.relextract;
 
-import edu.emory.mathcs.clir.relextract.annotators.EntityResolutionAnnotator;
 import edu.emory.mathcs.clir.relextract.processor.BatchSerializerProcessor;
 import edu.emory.mathcs.clir.relextract.processor.DumpEntityNamesProcessor;
+import edu.emory.mathcs.clir.relextract.processor.EntityResolutionProcessor;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -14,7 +14,8 @@ public class AppParameters {
     public static final String INPUT_PARAMETER = "input";
     public static final String OUTPUT_PARAMETER = "output";
     public static final String PROCESSORS_PARAMETER = "processors";
-    public static final String RUNNER_PARAMETER = "runner";
+    public static final String READER_PARAMETER = "reader";
+    public static final String LOGFILE_PARAMETER = "log";
 
     public static final Options options = initOptions();
 
@@ -27,15 +28,22 @@ public class AppParameters {
                 withArgName(OUTPUT_PARAMETER).withDescription("output file")
                 .create(OUTPUT_PARAMETER));
         opt.addOption(OptionBuilder.isRequired(true).hasArg()
-                .withArgName("processors").withDescription("Processors to run")
+                .withArgName(PROCESSORS_PARAMETER).withDescription("Processors to run")
                 .create(PROCESSORS_PARAMETER));
+        opt.addOption(OptionBuilder.isRequired(true).hasArg()
+                .withArgName(READER_PARAMETER).withDescription("Reader to use")
+                .create(READER_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(AppParameters.LOGFILE_PARAMETER)
+                .withDescription("File to write logging information").create(
+                        AppParameters.LOGFILE_PARAMETER));
 
         // TODO(denxx): Move this to the corresponding classes and use
         // reflection.
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(EntityResolutionAnnotator.LEXICON_PROPERTY)
+                .withArgName(EntityResolutionProcessor.LEXICON_PARAMETER)
                 .withDescription("entity names lexicon file").create(
-                        EntityResolutionAnnotator.LEXICON_PROPERTY));
+                        EntityResolutionProcessor.LEXICON_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(ProcessorRunner.NUM_THREADS_PROPERTY)
                 .withDescription("Number of threads to use").create(
