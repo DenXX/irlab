@@ -16,6 +16,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by dsavenk on 10/9/14.
  */
 public class RelationsStatsProcessor extends Processor {
+    private final AtomicInteger docsWithRelation_ = new AtomicInteger();
+    private final AtomicInteger totalDocs_ = new AtomicInteger();
+    private String logFilename_;
+    private ConcurrentMap<String, Integer> relationCount_ = new ConcurrentHashMap<>();
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -39,15 +43,16 @@ public class RelationsStatsProcessor extends Processor {
         for (Document.Relation relation : document.getRelationList()) {
             System.out.println(
                     document.getSpan(relation.getSubjectSpan()).getText() +
-                    " [" + document.getSpan(relation.getSubjectSpan()).getEntityId() +
-                    " ] -- " + relation.getRelation() +
-                    document.getSpan(relation.getObjectSpan()).getText() +
-                    " [" + document.getSpan(relation.getObjectSpan()).getEntityId() +
-                    " ]");
+                            " [" + document.getSpan(relation.getSubjectSpan()).getEntityId() +
+                            " ] -- " + relation.getRelation() + " -- " +
+                            document.getSpan(relation.getObjectSpan()).getText() +
+                            " [" + document.getSpan(relation.getObjectSpan()).getEntityId() +
+                            " ]");
             relationCount_.putIfAbsent(relation.getRelation(), 0);
             relationCount_.put(relation.getRelation(),
                     relationCount_.get(relation.getRelation()) + 1);
         }
+        System.out.println("------------------------------------");
         return document;
     }
 
@@ -58,20 +63,15 @@ public class RelationsStatsProcessor extends Processor {
                 PrintWriter out = new PrintWriter(new BufferedOutputStream(
                         new FileOutputStream(logFilename_)));
                 for (String relation : relationCount_.keySet()) {
-                    System.out.println(relation + "\t" + relationCount_.get(relation));
+                    out.println(relation + "\t" + relationCount_.get(relation));
                 }
-                System.out.println("--------------------");
-                System.out.println("Documents with relations: " + docsWithRelation_);
-                System.out.println("Total Documents: " + totalDocs_);
+                out.println("--------------------");
+                out.println("Documents with relations: " + docsWithRelation_);
+                out.println("Total Documents: " + totalDocs_);
                 out.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
     }
-
-    private String logFilename_;
-    private final AtomicInteger docsWithRelation_ = new AtomicInteger();
-    private final AtomicInteger totalDocs_ = new AtomicInteger();
-    private ConcurrentMap<String, Integer> relationCount_ = new ConcurrentHashMap<>();
 }

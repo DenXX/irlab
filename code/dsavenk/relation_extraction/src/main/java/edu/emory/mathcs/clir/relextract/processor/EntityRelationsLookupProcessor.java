@@ -6,20 +6,17 @@ import edu.emory.mathcs.clir.relextract.AppParameters;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by dsavenk on 10/8/14.
  */
 public class EntityRelationsLookupProcessor extends Processor {
+    private final KnowledgeBase kb_;
+    //    private final ConcurrentMap<String, Integer> predCounts_ = new ConcurrentHashMap<>();
+//    private final AtomicInteger docsWithRelation = new AtomicInteger(0);
+    private final String logFilePath_;
+
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -67,6 +64,17 @@ public class EntityRelationsLookupProcessor extends Processor {
 //                                    predCounts_.get(triple.predicate) + 1);
 //                            found = true;
                         }
+                        // Now add relations throught CVT
+                        for (KnowledgeBase.Triple triple :
+                                kb_.getSubjectObjectTriplesCVTSparql(subjMid,
+                                        objMid)) {
+                            Document.Relation.Builder relBuilder =
+                                    Document.Relation.newBuilder();
+                            relBuilder.setObjectSpan(objSpanIndex);
+                            relBuilder.setSubjectSpan(subjSpanIndex);
+                            relBuilder.setRelation(triple.predicate);
+                            docBuilder.addRelation(relBuilder.build());
+                        }
                     } else {
                         // TODO(denxx): Implement measures lookup.
                     }
@@ -92,9 +100,4 @@ public class EntityRelationsLookupProcessor extends Processor {
 //            e.printStackTrace();
 //        }
     }
-
-    private final KnowledgeBase kb_;
-//    private final ConcurrentMap<String, Integer> predCounts_ = new ConcurrentHashMap<>();
-//    private final AtomicInteger docsWithRelation = new AtomicInteger(0);
-    private final String logFilePath_;
 }

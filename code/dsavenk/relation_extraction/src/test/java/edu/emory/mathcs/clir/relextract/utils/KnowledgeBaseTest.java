@@ -1,10 +1,6 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
-import java.util.List;
 import java.util.Properties;
-import java.util.Set;
-
-import org.junit.Assert;
 
 public class KnowledgeBaseTest {
 
@@ -35,12 +31,22 @@ public class KnowledgeBaseTest {
 //
 //    @org.junit.Test
 //    public void testGetSubjectTriples2() throws Exception {
-//        StmtIterator iter = kb_.getSubjectObjectTriples("/m/053w4",
-//                "1969-01-03", XSDDatatype.XSDdate);
-//        assertTrue(iter.hasNext());
+//        StmtIterator iter = kb_.getSubjectMeasureTriples("/m/02mjmr",
+//                "44", XSDDatatype.XSDinteger);
+//        Assert.assertTrue(iter.hasNext());
 //        while (iter.hasNext()) {
 //            Statement st = iter.nextStatement();
 //            System.out.println(st.getPredicate().toString());
+//        }
+//    }
+//
+//    @Test
+//    public void testSPARQL() throws Exception {
+//        Set<KnowledgeBase.Triple> res =
+//                kb_.getSubjectObjectTriplesCVTSparql("/m/02mjmr", "/m/025s5v9");
+//        Assert.assertTrue(!res.isEmpty());
+//        for (KnowledgeBase.Triple triple : res) {
+//            System.out.println(triple.predicate);
 //        }
 //    }
 //

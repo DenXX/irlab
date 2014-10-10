@@ -1,63 +1,23 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.query.Dataset;
-import com.hp.hpl.jena.query.ReadWrite;
+import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Provides an interface to access knowledge base, stored with Apache Jena.
  */
 public class KnowledgeBase {
 
-    public static class Triple implements Comparable<Triple> {
-        public String subject;
-        public String predicate;
-        public String object;
-
-        public Triple(Statement triple) {
-            subject = "/" + triple.getSubject().getLocalName().replace(".", "/");
-            predicate = triple.getPredicate().getLocalName();
-            if (triple.getObject().isResource()) {
-                object = "/" + triple.getObject().asResource().getLocalName().replace(".", "/");
-            } else {
-                object = triple.getObject().asLiteral().getString();
-            }
-        }
-
-        public Triple(String subj, String pred, String obj) {
-            subject = subj;
-            predicate = pred;
-            object = obj;
-        }
-
-        @Override
-        public int compareTo(Triple triple) {
-            return (subject + predicate + object).compareTo(
-                    triple.subject + triple.predicate + triple.object);
-        }
-
-        @Override
-        public int hashCode() {
-            return (subject + predicate + object).hashCode();
-        }
-
-        @Override
-        public boolean equals(Object triple) {
-            if (!(triple instanceof Triple)) return false;
-            if (this == triple) return true;
-            return this.compareTo((Triple)triple) == 0;
-        }
-    }
-
     /**
      * Property name to store the location of Apache Jena model of the KB.
      */
     public static final String KB_PROPERTY = "kb";
-
     /**
      * Prefix of Freebase RDF.
      */
@@ -65,6 +25,7 @@ public class KnowledgeBase {
     public static final String FREEBASE_RDF_PREFIX =
             "http://rdf.freebase.com/ns/";
     private static KnowledgeBase kb_ = null;
+    private final Set<String> cvtProperties = new HashSet<>();
     private Model model_;
 
     /**
@@ -140,6 +101,38 @@ public class KnowledgeBase {
                 model_.getResource(convertFreebaseMidRdf(object)));
     }
 
+    public Set<Triple> getSubjectObjectTriplesCVTSparql(String subject,
+                                                        String object) {
+        String queryString = String.format(
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" +
+                        "PREFIX fb: <http://rdf.freebase.com/ns/>" +
+                        "SELECT ?pred1 ?pred2 { " +
+                        "   fb:%s ?pred1 ?cvt . " +
+                        "   BIND(CONCAT(\"/\", REPLACE(STRAFTER(xsd:string(?pred1)," +
+                        "\"http://rdf.freebase.com/ns/\"), \"\\\\.\", \"/\")) AS ?pred1NameFixed) " +
+                        "   ?predId fb:type.object.id ?pred1NameFixed ; " +
+                        "           fb:type.property.expected_type ?mediatorType . " +
+                        "   ?mediatorType fb:freebase.type_hints.mediator true . " +
+                        "   ?cvt ?pred2 fb:%s . " +
+                        "} ",
+                subject.replace("/", ".").substring(1),
+                object.replace("/", ".").substring(1));
+
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qexec = QueryExecutionFactory.create(query, model_);
+        ResultSet results = qexec.execSelect();
+        Set<Triple> res = new HashSet<>();
+        while (results.hasNext()) {
+            QuerySolution soln = results.nextSolution();
+            String pred1 = soln.get("pred1").toString();
+            pred1 = pred1.substring(pred1.lastIndexOf("/")).replace(".", "/");
+            String pred2 = soln.get("pred2").toString();
+            pred2 = pred2.substring(pred2.lastIndexOf("/")).replace(".", "/");
+            res.add(new Triple(subject, pred1 + "." + pred2, object));
+        }
+        return res;
+    }
+
     public Set<Triple> getSubjectObjectTriplesCVT(String subject, String object) {
         final String subjectUri = convertFreebaseMidRdf(subject);
         final String objectUri = convertFreebaseMidRdf(object);
@@ -185,13 +178,14 @@ public class KnowledgeBase {
      * @param objectType Type of the object literal.
      * @return Iterator to statements between the given literals.
      */
-    public StmtIterator getSubjectObjectTriples(String subject, String object,
+    public StmtIterator getSubjectMeasureTriples(String subject, String measure,
                                                 RDFDatatype objectType) {
         return model_.listStatements(new SimpleSelector(
                 model_.getResource(convertFreebaseMidRdf(subject)),
                 null,
-                model_.createTypedLiteral(object, objectType)));
+                model_.createTypedLiteral(measure, objectType)));
     }
+
 
     public StmtIterator getSubjectPredicateTriples(String subject,
                                                    String predicate) {
@@ -206,5 +200,43 @@ public class KnowledgeBase {
         return cvtProperties.contains(prop.replace(".", "/"));
     }
 
-    private final Set<String> cvtProperties = new HashSet<>();
+    public static class Triple implements Comparable<Triple> {
+        public String subject;
+        public String predicate;
+        public String object;
+
+        public Triple(Statement triple) {
+            subject = "/" + triple.getSubject().getLocalName().replace(".", "/");
+            predicate = triple.getPredicate().getLocalName();
+            if (triple.getObject().isResource()) {
+                object = "/" + triple.getObject().asResource().getLocalName().replace(".", "/");
+            } else {
+                object = triple.getObject().asLiteral().getString();
+            }
+        }
+
+        public Triple(String subj, String pred, String obj) {
+            subject = subj;
+            predicate = pred;
+            object = obj;
+        }
+
+        @Override
+        public int compareTo(Triple triple) {
+            return (subject + predicate + object).compareTo(
+                    triple.subject + triple.predicate + triple.object);
+        }
+
+        @Override
+        public int hashCode() {
+            return (subject + predicate + object).hashCode();
+        }
+
+        @Override
+        public boolean equals(Object triple) {
+            if (!(triple instanceof Triple)) return false;
+            if (this == triple) return true;
+            return this.compareTo((Triple) triple) == 0;
+        }
+    }
 }
