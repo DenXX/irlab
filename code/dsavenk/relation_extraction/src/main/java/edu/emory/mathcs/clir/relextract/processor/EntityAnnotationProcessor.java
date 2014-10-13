@@ -8,7 +8,6 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
-import javax.xml.soap.Text;
 import java.util.Properties;
 
 /**
@@ -16,6 +15,8 @@ import java.util.Properties;
  * and resolves them to Freebase using the provided phrase-entity data.
  */
 public class EntityAnnotationProcessor extends Processor {
+    private final StanfordCoreNLP nlpPipeline_;
+
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -50,7 +51,6 @@ public class EntityAnnotationProcessor extends Processor {
             // about xml inside the document text.
             return null;
         }
-
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
 
         // Build tokens.
@@ -128,6 +128,4 @@ public class EntityAnnotationProcessor extends Processor {
 
         return docBuilder.build();
     }
-
-    private final StanfordCoreNLP nlpPipeline_;
 }

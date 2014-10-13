@@ -26,18 +26,8 @@ public class SpanAnnotator implements Annotator {
     public static final Requirement SPAN_REQUIREMENT =
             new Requirement(ANNOTATOR_CLASS);
 
-    /**
-     * Annotation class for span annotations. It is a list of CoreMap entries,
-     * where each CoreMap entry stores information on a span mentioned in the
-     * document.
-     */
-    public class SpanAnnotation implements CoreAnnotation<List<CoreMap>> {
-        public Class<List<CoreMap>> getType() {
-            return ErasureUtils.uncheckedCast(List.class);
-        }
+    public SpanAnnotator(String annotatorClass, Properties props) {
     }
-
-    public SpanAnnotator(String annotatorClass, Properties props) {}
 
     @Override
     public void annotate(Annotation annotation) {
@@ -46,7 +36,9 @@ public class SpanAnnotator implements Annotator {
                 CoreAnnotations.TokensAnnotation.class);
         Integer annoTokenBegin = annotation.get(
                 CoreAnnotations.TokenBeginAnnotation.class);
-        if (annoTokenBegin == null) { annoTokenBegin = 0; }
+        if (annoTokenBegin == null) {
+            annoTokenBegin = 0;
+        }
         List<CoreMap> spans = chunker.getAnnotatedChunks(tokens,
                 annoTokenBegin, CoreAnnotations.TextAnnotation.class,
                 CoreAnnotations.NamedEntityTagAnnotation.class);
@@ -69,21 +61,10 @@ public class SpanAnnotator implements Annotator {
             } else if ("TIME".equals(nerTag) || "SET".equals(nerTag)
                     || "DATE".equals(nerTag) || "DURATION".equals(nerTag)) {
                 if (curToken.has(TimeAnnotations.TimexAnnotation.class)) {
-                    if (curToken.get(
-                            TimeAnnotations.TimexAnnotation.class)
-                            .value() != null) {
-                        span.set(CoreAnnotations.ValueAnnotation.class,
-                                curToken.get(
-                                        TimeAnnotations.TimexAnnotation.class)
-                                        .value());
-                    } else if (curToken.get(
-                            TimeAnnotations.TimexAnnotation.class)
-                            .altVal() != null) {
-                        span.set(CoreAnnotations.ValueAnnotation.class,
-                                curToken.get(
-                                        TimeAnnotations.TimexAnnotation.class)
-                                        .altVal());
-                    }
+                    span.set(CoreAnnotations.ValueAnnotation.class,
+                            curToken.get(
+                                    TimeAnnotations.TimexAnnotation.class)
+                                    .toString());
                 }
             }
         }
@@ -99,5 +80,16 @@ public class SpanAnnotator implements Annotator {
     @Override
     public Set<Requirement> requires() {
         return new ArraySet<Requirement>(NER_REQUIREMENT);
+    }
+
+    /**
+     * Annotation class for span annotations. It is a list of CoreMap entries,
+     * where each CoreMap entry stores information on a span mentioned in the
+     * document.
+     */
+    public class SpanAnnotation implements CoreAnnotation<List<CoreMap>> {
+        public Class<List<CoreMap>> getType() {
+            return ErasureUtils.uncheckedCast(List.class);
+        }
     }
 }

@@ -30,13 +30,19 @@ public class KnowledgeBaseTest {
 //    }
 //
 //    @org.junit.Test
-//    public void testGetSubjectTriples2() throws Exception {
-//        StmtIterator iter = kb_.getSubjectMeasureTriples("/m/02mjmr",
-//                "44", XSDDatatype.XSDinteger);
+//    public void testGetSubjectMeasureTriples() throws Exception {
+//        EntityAnnotationProcessor processor = new EntityAnnotationProcessor(
+//                new Properties());
+//        processor.freeze();
+//        Document.NlpDocument doc = Document.NlpDocument.newBuilder().setText(
+//                "Barack Obama is 44th president of the USA and his passion is about 34.734 deep.").build();
+//        doc = processor.process(doc);
+//
+//        StmtIterator iter = kb_.getSubjectMeasureTriples("/m/02mjmr", doc.getSpan(1).getValue(), doc.getSpan(3).getType());
 //        Assert.assertTrue(iter.hasNext());
 //        while (iter.hasNext()) {
 //            Statement st = iter.nextStatement();
-//            System.out.println(st.getPredicate().toString());
+//            System.out.println(st.toString());
 //        }
 //    }
 //

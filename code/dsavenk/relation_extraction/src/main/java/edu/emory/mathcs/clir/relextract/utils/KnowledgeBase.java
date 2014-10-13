@@ -1,13 +1,17 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
+import edu.stanford.nlp.time.Timex;
 
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provides an interface to access knowledge base, stored with Apache Jena.
@@ -26,7 +30,7 @@ public class KnowledgeBase {
             "http://rdf.freebase.com/ns/";
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties = new HashSet<>();
-    private Model model_;
+    public Model model_;
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -77,6 +81,7 @@ public class KnowledgeBase {
         return kb_;
     }
 
+
     private String convertFreebaseMidRdf(String mid) {
         if (mid.startsWith("/")) mid = mid.substring(1);
         return FREEBASE_RDF_PREFIX + mid.replace("/", ".");
@@ -101,6 +106,19 @@ public class KnowledgeBase {
                 model_.getResource(convertFreebaseMidRdf(object)));
     }
 
+
+    /**
+     * Constructs and runs a SPARQL query to get all paths between 2 entities
+     * that run through an intermediate CVT node. Unfortunately the method is
+     * slow and it is faster just to enumerate neighbours manually
+     * (see {@link #getSubjectObjectTriplesCVT(String, String)}).
+     *
+     * @param subject Id of the object entity.
+     * @param object  Id of the subject entity.
+     * @return A set of
+     * {@link edu.emory.mathcs.clir.relextract.utils.KnowledgeBase.Triple}
+     * objects.
+     */
     public Set<Triple> getSubjectObjectTriplesCVTSparql(String subject,
                                                         String object) {
         String queryString = String.format(
@@ -133,6 +151,15 @@ public class KnowledgeBase {
         return res;
     }
 
+    /**
+     * Returns a set of triples, that connects a pair of entities, including
+     * thouse paths that go through a CVT node.
+     * @param subject Id of the object entity.
+     * @param object Id of the subject entity.
+     * @return A set of
+     * {@link edu.emory.mathcs.clir.relextract.utils.KnowledgeBase.Triple}
+     * objects.
+     */
     public Set<Triple> getSubjectObjectTriplesCVT(String subject, String object) {
         final String subjectUri = convertFreebaseMidRdf(subject);
         final String objectUri = convertFreebaseMidRdf(object);
@@ -141,7 +168,8 @@ public class KnowledgeBase {
                 model_.getResource(subjectUri), null, (RDFNode)null);
         while (iter.hasNext()) {
             Statement triple = iter.nextStatement();
-            if (isCVTProperty(triple.getPredicate().getLocalName()) && triple.getObject().isResource()) {
+            if (isCVTProperty(triple.getPredicate().getLocalName()) &&
+                    triple.getObject().isResource()) {
                 StmtIterator cvtPropsIterator = model_.listStatements(
                         triple.getObject().asResource(), null, (RDFNode)null);
                 while (cvtPropsIterator.hasNext()) {
@@ -151,8 +179,11 @@ public class KnowledgeBase {
                                     .equals(objectUri)) {
                         Triple cvtTripleRes = new Triple(cvtTriple);
                         cvtTripleRes.subject = subject;
-                        cvtTripleRes.predicate = "/" + triple.getPredicate().getLocalName().replace(".", "/") +
-                                "./" + cvtTriple.getPredicate().getLocalName().replace(".", "/");
+                        cvtTripleRes.predicate = "/" +
+                                triple.getPredicate().getLocalName()
+                                        .replace(".", "/") +
+                                "./" + cvtTriple.getPredicate().getLocalName()
+                                .replace(".", "/");
                         res.add(cvtTripleRes);
                     }
                 }
@@ -174,12 +205,64 @@ public class KnowledgeBase {
      * the method.
      *
      * @param subject    Subject entity id.
-     * @param object     Object literal as a string.
-     * @param objectType Type of the object literal.
+     * @param measure    Object measure as a String.
+     * @param measureType Type of the object literal.
      * @return Iterator to statements between the given literals.
      */
     public StmtIterator getSubjectMeasureTriples(String subject, String measure,
-                                                RDFDatatype objectType) {
+                                                 String measureType) {
+        RDFDatatype objectType = XSDDatatype.XSDstring;
+        try {
+            Timex tm;
+            Matcher matcher;
+            switch (measureType) {
+                case "TIME":
+                    tm = Timex.fromXml(measure);
+                    measure = tm.value() != null ? tm.value() : tm.altVal();
+                    objectType = XSDDatatype.XSDdateTime;
+                    break;
+                case "DATE":
+                    tm = Timex.fromXml(measure);
+                    measure = tm.value() != null ? tm.value() : tm.altVal();
+                    objectType = XSDDatatype.XSDdate;
+                    break;
+                case "DURATION":
+                    // Duration is in a TimeML format and we will just extract
+                    // the number.
+                    tm = Timex.fromXml(measure);
+                    String val = tm.value() != null ? tm.value() : tm.altVal();
+                    matcher = Pattern.compile("\\d+").matcher(val);
+                    matcher.find();
+                    measure = matcher.group();
+                    objectType = XSDDatatype.XSDfloat;
+                    break;
+                case "MONEY":
+                case "PERCENT":
+                    matcher = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+")
+                            .matcher(measure);
+                    matcher.find();
+                    measure = String.format("%.2f", Float.parseFloat(matcher.group()));
+                    objectType = XSDDatatype.XSDfloat;
+                    break;
+                case "NUMBER":
+                    if (measure.indexOf(".") != -1) {
+                        matcher = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+")
+                                .matcher(measure);
+                        matcher.find();
+                        measure = String.format("%.2f", Float.parseFloat(matcher.group()));
+                        objectType = XSDDatatype.XSDfloat;
+                    } else
+                        objectType = XSDDatatype.XSDinteger;
+                    break;
+                case "ORDINAL":
+                    objectType = XSDDatatype.XSDinteger;
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception exc) {
+            System.err.println("Error converting measure: " + exc.getMessage());
+        }
         return model_.listStatements(new SimpleSelector(
                 model_.getResource(convertFreebaseMidRdf(subject)),
                 null,
