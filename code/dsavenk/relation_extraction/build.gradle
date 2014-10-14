@@ -3,7 +3,7 @@ apply plugin: 'gradleProtobufPlugin'
 apply plugin: 'application'
 
 sourceCompatibility = 1.7
-version = '1.0'
+version = '1.1'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 applicationDefaultJvmArgs = ["-Xmx220g",
                              "-XX:+UseParallelGC",
@@ -23,6 +23,10 @@ repositories {
     maven {
         url = "http://maven.twttr.com/"
     }
+
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 buildscript {
@@ -35,6 +39,7 @@ buildscript {
 }
 
 dependencies {
+    compile name: 'stanford-srparser-2014-08-28-models'
     compile group: 'org.maltparser', name: 'maltparser', version: '1.8'
     compile group: 'com.twitter.elephantbird', name: 'elephant-bird-core', version: '4.5'
     compile group: 'com.google.protobuf', name: 'protobuf-java', version: '2.6.0'

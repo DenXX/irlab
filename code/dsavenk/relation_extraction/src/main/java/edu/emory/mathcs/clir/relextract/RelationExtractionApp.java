@@ -41,8 +41,8 @@ public class RelationExtractionApp {
         for (String processor :props.getProperty(
                 AppParameters.PROCESSORS_PARAMETER).split(",")) {
             switch (processor) {
-                case "entity":
-                    workflow.addProcessor(new EntityAnnotationProcessor(props));
+                case "corenlp":
+                    workflow.addProcessor(new StanfordCoreNlpProcessor(props));
                     break;
                 case "entityres":
                     workflow.addProcessor(new EntityResolutionProcessor(props));

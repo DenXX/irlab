@@ -31,6 +31,8 @@ message Sentence {
     required int32 firstToken = 1;
     required int32 lastToken = 2;
     optional string text = 3;
+    optional uint32 dependencyRootToken = 4;
+    optional string dependencyTree = 5;
 
     extensions 10000 to max;
 }
@@ -48,6 +50,8 @@ message Token {
     optional string whitespaceBefore = 10;
     optional string whitespaceAfter = 11;
     optional uint32 corefClusterId = 12;
+    optional uint32 dependencyGovernor = 13;
+    optional string dependencyType = 14;
 
     extensions 10000 to max;
 }
@@ -61,9 +65,9 @@ message Span {
     optional string value = 5;        // Canonicalized value of the token.
     optional string type = 6;         // Span type: entity, number, date, etc.
     optional string entityId = 7;
-    optional string corefClusterIndex = 8;
+    optional uint32 corefClusterIndex = 8;
     optional string mentionType = 9;
-    optional string mentionNumber = 10;
+    optional uint32 mentionNumber = 10;
     optional string gender = 11;       // Gender of the mentioned entity.
     optional string animacy = 12;      // Animacy of the mentioned entity.
 

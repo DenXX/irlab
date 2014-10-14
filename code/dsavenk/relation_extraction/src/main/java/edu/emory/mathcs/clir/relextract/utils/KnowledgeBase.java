@@ -45,7 +45,7 @@ public class KnowledgeBase {
         // Load all CVT properties.
         StmtIterator iter = model_.listStatements(null,
                 model_.getProperty(FREEBASE_RDF_PREFIX,
-                        "freebase.type_hints.mediator"), (RDFNode)null);
+                        "freebase.type_hints.mediator"), (RDFNode) null);
         while (iter.hasNext()) {
             Statement triple = iter.nextStatement();
             if (triple.getObject().asLiteral().getBoolean()) {
@@ -57,7 +57,7 @@ public class KnowledgeBase {
                     Statement triple2 = iter2.nextStatement();
                     StmtIterator iter3 = model_.listStatements(triple2.getSubject(),
                             model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.id"),
-                            (RDFNode)null);
+                            (RDFNode) null);
                     while (iter3.hasNext()) {
                         cvtProperties.add(iter3.nextStatement().getObject().asLiteral().toString());
                     }
@@ -154,8 +154,9 @@ public class KnowledgeBase {
     /**
      * Returns a set of triples, that connects a pair of entities, including
      * thouse paths that go through a CVT node.
+     *
      * @param subject Id of the object entity.
-     * @param object Id of the subject entity.
+     * @param object  Id of the subject entity.
      * @return A set of
      * {@link edu.emory.mathcs.clir.relextract.utils.KnowledgeBase.Triple}
      * objects.
@@ -165,13 +166,13 @@ public class KnowledgeBase {
         final String objectUri = convertFreebaseMidRdf(object);
         Set<Triple> res = new HashSet<>();
         StmtIterator iter = model_.listStatements(
-                model_.getResource(subjectUri), null, (RDFNode)null);
+                model_.getResource(subjectUri), null, (RDFNode) null);
         while (iter.hasNext()) {
             Statement triple = iter.nextStatement();
             if (isCVTProperty(triple.getPredicate().getLocalName()) &&
                     triple.getObject().isResource()) {
                 StmtIterator cvtPropsIterator = model_.listStatements(
-                        triple.getObject().asResource(), null, (RDFNode)null);
+                        triple.getObject().asResource(), null, (RDFNode) null);
                 while (cvtPropsIterator.hasNext()) {
                     Statement cvtTriple = cvtPropsIterator.nextStatement();
                     if (cvtTriple.getObject().isResource() &&
@@ -204,8 +205,8 @@ public class KnowledgeBase {
      * literal, the type of the literal must be provided as the last argument of
      * the method.
      *
-     * @param subject    Subject entity id.
-     * @param measure    Object measure as a String.
+     * @param subject     Subject entity id.
+     * @param measure     Object measure as a String.
      * @param measureType Type of the object literal.
      * @return Iterator to statements between the given literals.
      */
@@ -261,7 +262,8 @@ public class KnowledgeBase {
                     break;
             }
         } catch (Exception exc) {
-            System.err.println("Error converting measure: " + exc.getMessage());
+            // Something went wrong, still try just with a string.
+            objectType = XSDDatatype.XSDstring;
         }
         return model_.listStatements(new SimpleSelector(
                 model_.getResource(convertFreebaseMidRdf(subject)),
