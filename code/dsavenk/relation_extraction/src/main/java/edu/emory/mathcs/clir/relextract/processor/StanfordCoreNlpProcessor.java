@@ -2,7 +2,6 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator;
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.stanford.nlp.dcoref.CoNLL2011DocumentReader;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations;
@@ -13,9 +12,13 @@ import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.Interval;
+import edu.stanford.nlp.util.IntervalTree;
 import edu.stanford.nlp.util.Pair;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * The processor runs standard Stanford CoreNLP pipeline to tag named entities
@@ -53,6 +56,7 @@ public class StanfordCoreNlpProcessor extends Processor {
         // the non-terminal X. This is useful when parsing noisy web text,
         // which may generate arbitrarily long sentences.
         //properties.setProperty("parse.maxlen", "50");
+        properties.setProperty("dcoref.postprocessing", "true");
         nlpPipeline_ = new StanfordCoreNLP(properties, true);
     }
 
@@ -141,150 +145,135 @@ public class StanfordCoreNlpProcessor extends Processor {
             }
         }
 
-        Set<Integer> processedSpans = new HashSet<>();
-        // Now let's process all coreference clusters.
-        if (annotation.has(CorefCoreAnnotations.CorefChainAnnotation.class)) {
-            for (CorefChain corefChain : annotation.get(
-                    CorefCoreAnnotations.CorefChainAnnotation.class)
-                    .values()) {
+        // Process spans and coreference clusters.
 
-                // First I need to find a set of entities/measures that belong to this cluster.
-                List<CoreMap> spans = new LinkedList<>();
-                for (CorefChain.CorefMention mention :
-                        corefChain.getMentionsInTextualOrder()) {
-                    int sentenceFirstToken =
-                            docBuilder.getSentence(mention.sentNum - 1)
-                                    .getFirstToken();
-                    int firstToken = sentenceFirstToken +
-                            mention.startIndex - 1;
-                    int endToken = sentenceFirstToken + mention.endIndex - 1;
+        // First we create a span and mentions for all coreference clusters.
+        Map<Interval<Integer>, Pair<Integer, Integer>> intervalToMention =
+                new HashMap<>();
+        IntervalTree<Integer, Interval<Integer>> mentionIntervals =
+                new IntervalTree<>();
+        int corefIndex = 0;
+        for (CorefChain corefCluster :
+                annotation.get(CorefCoreAnnotations.CorefChainAnnotation.class)
+                        .values()) {
+            if (corefCluster.getRepresentativeMention() == null) continue;
 
-                    int spanIndex = 0;
-                    for (CoreMap span : annotation.get(
-                            SpanAnnotator.SpanAnnotation.class)) {
-                        int spanFirstToken = span.get(
-                                CoreAnnotations.TokenBeginAnnotation.class);
-                        int spanEndToken = span.get(
-                                CoreAnnotations.TokenEndAnnotation.class);
-                        if (spanFirstToken < endToken &&
-                                firstToken < spanEndToken &&
-                                !processedSpans.contains(spanIndex)) {
-                            spans.add(span);
-                            processedSpans.add(spanIndex);
-                        }
-                        ++spanIndex;
-                    }
+            Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
+            spanBuilder
+                    .setText(corefCluster.getRepresentativeMention()
+                            .mentionSpan)
+                    .setValue(corefCluster.getRepresentativeMention()
+                            .mentionSpan)
+                    .setType("OTHER")
+                    .setNerType("NONE");
+
+            // Add all mentions.
+            int mentionIndex = 0;
+            for (CorefChain.CorefMention mention :
+                    corefCluster.getMentionsInTextualOrder()) {
+                int sentenceFirstToken =
+                        docBuilder.getSentence(mention.sentNum - 1)
+                                .getFirstToken();
+                int firstToken = sentenceFirstToken +
+                        mention.startIndex - 1;
+                int endToken = sentenceFirstToken + mention.endIndex - 1;
+                spanBuilder.addMentionBuilder()
+                        .setText(mention.mentionSpan)
+                        .setValue(mention.mentionSpan)
+                        .setType("OTHER")
+                        .setSentenceIndex(mention.sentNum - 1)
+                        .setTokenBeginOffset(firstToken)
+                        .setTokenEndOffset(endToken)
+                        .setGender(mention.gender.name())
+                        .setAnimacy(mention.animacy.name())
+                        .setNumber(mention.number.name())
+                        .setMentionType(mention.mentionType.name());
+                Interval<Integer> interval = Interval.toInterval(firstToken,
+                        endToken);
+                intervalToMention.put(interval, new Pair<>(corefIndex,
+                        mentionIndex));
+                mentionIntervals.add(interval);
+                if (mention.equals(corefCluster.getRepresentativeMention())) {
+                    spanBuilder.setRepresentativeMention(mentionIndex);
                 }
-                Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
-                String type;
-                String nerType = "NONE";
-                String value = "";
-                int cnt = 1;
-                for (CoreMap span : spans) {
-                    if (span.has(CoreAnnotations.ValueAnnotation.class)) {
-                        String newVal = span.get(CoreAnnotations.ValueAnnotation.class);
-                        if (newVal.length() > value.length())
-                            value = newVal;
-                    }
-                    if (nerType.equals(span.get(
-                            CoreAnnotations.NamedEntityTagAnnotation.class))) {
-                        ++cnt;
-                    } else {
-                        --cnt;
-                        if (cnt == 0) {
-                            nerType = span.get(
-                                    CoreAnnotations.NamedEntityTagAnnotation.class);
-                        }
-                    }
-                }
-                switch (nerType) {
-                    case "PERSON":
-                    case "LOCATION":
-                    case "ORGANIZATION":
-                    case "MISC":
-                        type = "ENTITY";
-                        break;
-                    case "OTHER":
-                        type = "NONE";
-                        break;
-                    default:
-                        type = "MEASURE";
-                }
-                spanBuilder.setType(type).setNerType(nerType).setValue(value);
-                int mentionIndex = 0;
-                for (CorefChain.CorefMention mention :
-                        corefChain.getMentionsInTextualOrder()) {
-                    int sentenceFirstToken =
-                            docBuilder.getSentence(mention.sentNum - 1)
-                                    .getFirstToken();
-                    int firstToken = sentenceFirstToken +
-                            mention.startIndex - 1;
-                    int endToken = sentenceFirstToken + mention.endIndex - 1;
-                    spanBuilder.addMentionBuilder()
-                            .setTokenBeginOffset(firstToken)
-                            .setTokenEndOffset(endToken)
-                            .setSentenceIndex(mention.sentNum - 1)
-                            .setText(mention.mentionSpan)
-                            .setAnimacy(mention.animacy.name())
-                            .setMentionType(mention.mentionType.name())
-                            .setGender(mention.gender.name());
-                    if (mention.equals(corefChain.getRepresentativeMention())) {
-                        spanBuilder.setRepresentativeMention(mentionIndex);
-                        // Set value to the value of the representative mention.
-                        spanBuilder.setText(mention.mentionSpan);
-                    }
-                    ++mentionIndex;
-                }
+                ++mentionIndex;
             }
+            ++corefIndex;
         }
 
-        // Process all Spans, that were not found in coreference clusters, if any.
-        int spanIndex = 0;
-        for (CoreMap span : annotation.get(SpanAnnotator.SpanAnnotation.class)) {
-            if (!processedSpans.contains(spanIndex)) {
-                Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
-                spanBuilder.setText(span.get(
-                        CoreAnnotations.TextAnnotation.class));
-                if (span.has(CoreAnnotations.ValueAnnotation.class)) {
-                    spanBuilder.setValue(span.get(
-                            CoreAnnotations.ValueAnnotation.class));
-                } else {
-                    spanBuilder.setValue(span.get(
-                            CoreAnnotations.TextAnnotation.class));
-                }
-                spanBuilder.setNerType(
-                        span.get(CoreAnnotations.NamedEntityTagAnnotation.class));
-                switch (spanBuilder.getNerType()) {
-                    case "PERSON":
-                    case "LOCATION":
-                    case "ORGANIZATION":
-                    case "MISC":
-                        spanBuilder.setType("ENTITY");
-                        break;
-                    default:
-                        spanBuilder.setType("MEASURE");
-                }
-                int firstTokenIndex = span.get(
-                        CoreAnnotations.TokenBeginAnnotation.class);
-                int endTokenIndex = span.get(
-                        CoreAnnotations.TokenEndAnnotation.class);
+        // Now go over all spans and find the span, that works best for them.
+        for (CoreMap span : annotation.get(
+                SpanAnnotator.SpanAnnotation.class)) {
 
-                Document.Mention.Builder mentionBuilder =
-                        spanBuilder.addMentionBuilder()
-                        .setTokenBeginOffset(firstTokenIndex)
-                        .setTokenEndOffset(endTokenIndex)
-                        .setSentenceIndex(docBuilder.getToken(span.get(
-                                CoreAnnotations.TokenBeginAnnotation.class))
-                                .getSentenceIndex())
-                        .setText(span.get(CoreAnnotations.TextAnnotation.class));
-                if (span.has(CoreAnnotations.ValueAnnotation.class)) {
-                    mentionBuilder.setValue(span.get(CoreAnnotations.ValueAnnotation.class));
-                } else {
-                    mentionBuilder.setValue(span.get(CoreAnnotations.TextAnnotation.class));
-                }
-                mentionBuilder.setType(span.get(
-                        CoreAnnotations.NamedEntityTagAnnotation.class));
+            final String ner = span.get(
+                    CoreAnnotations.NamedEntityTagAnnotation.class);
+            String type;
+            if ("PERSON".equals(ner) || "ORGANIZATION".equals(ner) ||
+                    "LOCATION".equals(ner) || "MISC".equals(ner)) {
+                type = "ENTITY";
+            } else {
+                type = "MEASURE";
             }
+
+            int firstToken = span.get(CoreAnnotations.TokenBeginAnnotation.class);
+            int endToken = span.get(CoreAnnotations.TokenEndAnnotation.class);
+            Interval<Integer> spanInterval =
+                    Interval.toInterval(firstToken, endToken);
+            // Let's find the tightest mention interval, that cover the given
+            // span.
+            Interval<Integer> tightestInterval = null;
+            for (Interval<Integer> mention :
+                    mentionIntervals.getOverlapping(spanInterval)) {
+                if (tightestInterval == null ||
+                        (tightestInterval.getEnd() - tightestInterval.getBegin()
+                                > mention.getEnd() - mention.getBegin())) {
+                    tightestInterval = mention;
+                }
+            }
+
+            Document.Span.Builder spanBuilder;
+            Document.Mention.Builder mentionBuilder;
+            // If we didn't find any interval, we will create a new span.
+            if (tightestInterval == null) {
+                spanBuilder = docBuilder.addSpanBuilder();
+                mentionBuilder = spanBuilder.addMentionBuilder();
+                spanBuilder.setRepresentativeMention(0);
+            } else {
+                Pair<Integer, Integer> mention =
+                        intervalToMention.get(tightestInterval);
+                spanBuilder = docBuilder.getSpanBuilder(mention.first);
+                // If span interval exactly equals the given one, then we reuse,
+                // otherwise we creare a new one.
+                if (tightestInterval.equals(spanInterval)) {
+                    mentionBuilder = spanBuilder.getMentionBuilder(
+                            mention.second);
+                } else {
+                    mentionBuilder = spanBuilder.addMentionBuilder();
+                }
+            }
+
+            spanBuilder
+                    .setText(span.get(CoreAnnotations.TextAnnotation.class))
+                    .setValue(span.has(CoreAnnotations.ValueAnnotation.class)
+                            ? span.get(CoreAnnotations.ValueAnnotation.class)
+                            : span.get(CoreAnnotations.TextAnnotation.class))
+                    .setType(type)
+                    .setNerType(ner);
+            // Overwrite everything for the mention.
+            // TODO(denxx): Should I pick the best value is there are multiple?
+            mentionBuilder
+                    .setText(span.get(CoreAnnotations.TextAnnotation.class))
+                    .setValue(span.has(CoreAnnotations.ValueAnnotation.class)
+                            ? span.get(CoreAnnotations.ValueAnnotation.class)
+                            : span.get(CoreAnnotations.TextAnnotation.class))
+                    .setType(ner)
+                    .setSentenceIndex(docBuilder.getToken(span.get(
+                            CoreAnnotations.TokenBeginAnnotation.class))
+                            .getSentenceIndex())
+                    .setTokenBeginOffset(firstToken)
+                    .setTokenEndOffset(endToken)
+                    .setMentionType(type.equals("ENTITY") ? "NOMINAL" :
+                            "VALUE");
         }
 
         return docBuilder.build();

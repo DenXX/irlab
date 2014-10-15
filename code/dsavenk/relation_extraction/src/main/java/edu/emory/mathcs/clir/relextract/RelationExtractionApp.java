@@ -22,7 +22,7 @@ public class RelationExtractionApp {
     }
 
     private static CommandLine parseCommandLine(
-            Options options, String[] args) throws ParseException{
+            Options options, String[] args) throws ParseException {
         CommandLineParser parser = new GnuParser();
         return parser.parse(options, args);
     }
@@ -38,7 +38,7 @@ public class RelationExtractionApp {
 
     private static void run(Properties props) throws Exception {
         WorkflowProcessor workflow = new WorkflowProcessor(props);
-        for (String processor :props.getProperty(
+        for (String processor : props.getProperty(
                 AppParameters.PROCESSORS_PARAMETER).split(",")) {
             switch (processor) {
                 case "corenlp":
@@ -64,9 +64,6 @@ public class RelationExtractionApp {
                     break;
                 case "dumpentitynames":
                     workflow.addProcessor(new DumpEntityNamesProcessor(props));
-                    break;
-                case "fixcoref":
-                    workflow.addProcessor(new FixCorefAnnotationProcessor(props));
                     break;
                 case "print":
                     workflow.addProcessor(new PrintTextProcessor(props));
@@ -94,7 +91,7 @@ public class RelationExtractionApp {
                     break;
                 default:
                     throw new UnsupportedOperationException("Reader " + reader +
-                        " doesn't exist!");
+                            " doesn't exist!");
             }
             new ProcessorRunner(workflow, props).run(docs);
         } catch (FileNotFoundException e) {

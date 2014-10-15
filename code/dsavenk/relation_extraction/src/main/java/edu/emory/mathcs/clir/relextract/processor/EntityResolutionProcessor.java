@@ -4,7 +4,10 @@ import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
@@ -19,6 +22,12 @@ public class EntityResolutionProcessor extends Processor {
      * Name of the property storing the location of the entity lexicon.
      */
     public static final String LEXICON_PARAMETER = "entityres_lexicon";
+    // A trie, that maps a name to the entity with the best score from the
+    // list of available entities. Currently the score is the number of triples
+    // available for the entity, so we prefer more "popular" entities.
+    private final PatriciaTrie<String> namesIndex_ = new PatriciaTrie<>();
+    private final AtomicInteger resolved = new AtomicInteger(0);
+    private final AtomicInteger total = new AtomicInteger(0);
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -65,19 +74,44 @@ public class EntityResolutionProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document)
             throws Exception {
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
+        String longestMentionEntityId = "";
+        int longestMentionLength = 0;
         for (Document.Span.Builder span : docBuilder.getSpanBuilderList()) {
-            if ("PERSON".equals(span.getType()) ||
-                "LOCATION".equals(span.getType()) ||
-                "ORGANIZATION".equals(span.getType()) ||
-                "MISC".equals(span.getType())) {
+            if ("ENTITY".equals(span.getType())) {
                 total.incrementAndGet();
-                final String normalizedName = NlpUtils.normalizeStringForMatch(
+                String normalizedName = NlpUtils.normalizeStringForMatch(
                         span.getValue());
                 if (namesIndex_.containsKey(normalizedName)) {
                     resolved.incrementAndGet();
                     final String entityId = namesIndex_.get(normalizedName);
-                    span.setEntityId(entityId);
+                    if (normalizedName.length() > longestMentionLength) {
+                        longestMentionEntityId = entityId;
+                        longestMentionLength = normalizedName.length();
+                    }
                 }
+                // TODO(denxx): Decide on 2 strategies: longest mention or most
+                // frequent.
+                for (Document.Mention.Builder mention :
+                        span.getMentionBuilderList()) {
+                    if (mention.getMentionType().equals("NOMINAL") ||
+                            mention.getMentionType().equals("PROPER")) {
+                        normalizedName = NlpUtils.normalizeStringForMatch(
+                                mention.getValue());
+                        if (namesIndex_.containsKey(normalizedName)) {
+                            final String entityId = namesIndex_.get(
+                                    normalizedName);
+                            mention.setEntityId(entityId);
+                            if (normalizedName.length() > longestMentionLength) {
+                                longestMentionEntityId = entityId;
+                                longestMentionLength = normalizedName.length();
+                            }
+                        }
+                    }
+                }
+            }
+            if (!longestMentionEntityId.isEmpty()) {
+                resolved.incrementAndGet();
+                span.setEntityId(longestMentionEntityId);
             }
         }
         return docBuilder.build();
@@ -88,12 +122,5 @@ public class EntityResolutionProcessor extends Processor {
         System.err.println("Total: " + total.get());
         System.err.println("Resolved: " + resolved.get());
     }
-
-    // A trie, that maps a name to the entity with the best score from the
-    // list of available entities. Currently the score is the number of triples
-    // available for the entity, so we prefer more "popular" entities.
-    private final PatriciaTrie<String> namesIndex_ = new PatriciaTrie<>();
-    private final AtomicInteger resolved = new AtomicInteger(0);
-    private final AtomicInteger total = new AtomicInteger(0);
 
 }

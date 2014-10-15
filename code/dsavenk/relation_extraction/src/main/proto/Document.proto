@@ -64,7 +64,7 @@ message Mention {
     optional string type = 6;         // Span type: entity, number, date, etc.
     optional string entityId = 7;
     optional string mentionType = 8;
-    optional uint32 mentionNumber = 9;
+    optional string number = 9; // singular, plural
     optional string gender = 10;       // Gender of the mentioned entity.
     optional string animacy = 11;      // Animacy of the mentioned entity.
 

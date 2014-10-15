@@ -3,7 +3,7 @@ apply plugin: 'gradleProtobufPlugin'
 apply plugin: 'application'
 
 sourceCompatibility = 1.7
-version = '1.1'
+version = '1.2'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 applicationDefaultJvmArgs = ["-Xmx220g",
                              "-XX:+UseParallelGC",

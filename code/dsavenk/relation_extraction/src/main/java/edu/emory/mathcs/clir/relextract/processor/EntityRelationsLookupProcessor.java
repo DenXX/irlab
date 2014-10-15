@@ -42,14 +42,14 @@ public class EntityRelationsLookupProcessor extends Processor {
                         String objMid = objSpan.getEntityId();
                         if (subjMid.equals(objMid)) continue;
                         iter = kb_.getSubjectObjectTriples(subjMid, objMid);
-                    } else {
+                    } else if (objSpan.getType().equals("MEASURE")) {
                         // Now process measures.
                         iter = kb_.getSubjectMeasureTriples(subjMid,
                                 objSpan.getValue(), objSpan.getType());
                     }
 
                     // Now iterate over all triples and add them as annotations.
-                    while (iter.hasNext()) {
+                    while (iter != null && iter.hasNext()) {
                         Statement tripleSt = iter.nextStatement();
                         KnowledgeBase.Triple triple =
                                 new KnowledgeBase.Triple(tripleSt);
