@@ -12,7 +12,10 @@ import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.Pair;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -50,7 +53,7 @@ public class StanfordCoreNlpProcessor extends Processor {
         // creates a flat structure, where every token is assigned to
         // the non-terminal X. This is useful when parsing noisy web text,
         // which may generate arbitrarily long sentences.
-        properties.setProperty("parse.maxlen", "50");
+        //properties.setProperty("parse.maxlen", "50");
         nlpPipeline_ = new StanfordCoreNLP(properties, true);
     }
 
@@ -131,7 +134,7 @@ public class StanfordCoreNlpProcessor extends Processor {
                     docBuilder.getTokenBuilder(firstSentenceToken
                             + dep.dep().index() - 1).setDependencyGovernor(
                             dep.gov().index()).setDependencyType(
-                            dep.reln().getLongName());
+                            dep.reln().getShortName());
                     if (dep.gov().index() == 0) {
                         sentBuilder.setDependencyRootToken(dep.dep().index());
                     }
@@ -139,13 +142,20 @@ public class StanfordCoreNlpProcessor extends Processor {
             }
         }
 
+        // Process all spans.
+        int spanIndex = 0;
+        Map<Pair<Integer, Integer>, Integer> spanTokens = new HashMap<>();
         for (CoreMap span : annotation.get(
                 SpanAnnotator.SpanAnnotation.class)) {
             Document.Span.Builder spanBuilder = Document.Span.newBuilder();
-            spanBuilder.setTokenBeginOffset(span.get(
-                    CoreAnnotations.TokenBeginAnnotation.class));
-            spanBuilder.setTokenEndOffset(span.get(
-                    CoreAnnotations.TokenEndAnnotation.class));
+            int firstTokenIndex = span.get(
+                    CoreAnnotations.TokenBeginAnnotation.class);
+            int endTokenIndex = span.get(
+                    CoreAnnotations.TokenEndAnnotation.class);
+            spanBuilder.setTokenBeginOffset(firstTokenIndex);
+            spanBuilder.setTokenEndOffset(endTokenIndex);
+            spanTokens.put(new Pair<>(firstTokenIndex, endTokenIndex),
+                    spanIndex);
             spanBuilder.setSentenceIndex(docBuilder.getToken(span.get(
                     CoreAnnotations.TokenBeginAnnotation.class))
                     .getSentenceIndex());
@@ -161,6 +171,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             // resolver: mentionType, mentionNumber, gender, animacy
 
             docBuilder.addSpan(spanBuilder);
+            ++spanIndex;
         }
 
         // Now let's process all coreference clusters.
@@ -174,17 +185,43 @@ public class StanfordCoreNlpProcessor extends Processor {
                 int mentionIndex = 0;
                 for (CorefChain.CorefMention mention :
                         corefChain.getMentionsInTextualOrder()) {
+                    int sentenceFirstToken =
+                            docBuilder.getSentence(mention.sentNum - 1)
+                                    .getFirstToken();
+                    int firstToken = sentenceFirstToken +
+                            mention.startIndex - 1;
+                    int endToken = sentenceFirstToken + mention.endIndex - 1;
+                    // Set coref cluster id for tokens of the mention.
+                    for (int tokenIndex = firstToken; tokenIndex < endToken;
+                         ++tokenIndex) {
+                        docBuilder.getTokenBuilder(tokenIndex)
+                                .setCorefClusterId(index);
+                    }
                     corefBuilder.addMentionBuilder()
-                            .setTokenBeginOffset(mention.startIndex)
-                            .setTokenEndOffset(mention.endIndex)
+                            .setTokenBeginOffset(firstToken)
+                            .setTokenEndOffset(endToken)
                             .setCorefClusterIndex(index)
-                            .setSentenceIndex(mention.sentNum)
+                            .setSentenceIndex(mention.sentNum - 1)
                             .setText(mention.mentionSpan)
                             .setAnimacy(mention.animacy.name())
                             .setMentionType(mention.mentionType.name())
                             .setGender(mention.gender.name());
                     if (mention.equals(corefChain.getRepresentativeMention())) {
                         corefBuilder.setRepresentativeMention(mentionIndex);
+                    }
+                    // If this mention corresponds to a entity/measure span,
+                    // fill the corresponding fields in the span.
+                    if (spanTokens.containsKey(
+                            new Pair<>(firstToken, endToken))) {
+                        Document.Span.Builder spanBuilder =
+                                docBuilder.getSpanBuilder(
+                                        spanTokens.get(
+                                                new Pair<>(firstToken,
+                                                        endToken)));
+                        spanBuilder.setCorefClusterIndex(index)
+                                .setGender(mention.gender.name())
+                                .setAnimacy(mention.animacy.name())
+                                .setMentionType(mention.mentionType.name());
                     }
                     ++mentionIndex;
                 }

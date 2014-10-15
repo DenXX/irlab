@@ -50,6 +50,8 @@ message Token {
     optional string whitespaceBefore = 10;
     optional string whitespaceAfter = 11;
     optional uint32 corefClusterId = 12;
+    // 1-based index relative to the beginning of the sentence. Index = 0 means
+    // the current token is the root.
     optional uint32 dependencyGovernor = 13;
     optional string dependencyType = 14;
 
@@ -58,9 +60,9 @@ message Token {
 
 message Span {
     // Position of the mention in tokens inside the corresponding sentence.
-    required uint32 tokenBeginOffset = 1;
-    required uint32 tokenEndOffset = 2;
-    optional uint32 sentenceIndex = 3;
+    required uint32 tokenBeginOffset = 1;  // Absolute index of the first token.
+    required uint32 tokenEndOffset = 2;    // Absolute index of the last token.
+    optional uint32 sentenceIndex = 3;     // Index of the sentence.
     required string text = 4;
     optional string value = 5;        // Canonicalized value of the token.
     optional string type = 6;         // Span type: entity, number, date, etc.

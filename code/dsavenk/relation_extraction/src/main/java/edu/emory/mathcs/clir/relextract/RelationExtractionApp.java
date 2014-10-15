@@ -65,6 +65,9 @@ public class RelationExtractionApp {
                 case "dumpentitynames":
                     workflow.addProcessor(new DumpEntityNamesProcessor(props));
                     break;
+                case "fixcoref":
+                    workflow.addProcessor(new FixCorefAnnotationProcessor(props));
+                    break;
                 case "print":
                     workflow.addProcessor(new PrintTextProcessor(props));
                     break;
