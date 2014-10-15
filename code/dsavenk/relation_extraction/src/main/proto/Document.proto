@@ -9,10 +9,9 @@ message NlpDocument {
     optional string docId = 2;                // Document identifier.
     repeated Token token = 3;                 // All document tokens.
     repeated Sentence sentence = 4;           // The list of all sentences.
-    repeated Span span = 5;                   // List of entity/measure mentions.
-    repeated CorefCluster corefCluster = 6;   // Coreference clusters.
-    repeated Attribute attribute = 7;
-    repeated Relation relation = 8;
+    repeated Span span = 5;                   // List of entity/measure mentioned in this document.
+    repeated Attribute attribute = 6;
+    repeated Relation relation = 7;
 
     // For Q&A documents.
     optional uint32 questionLength = 100;
@@ -49,37 +48,38 @@ message Token {
     optional string normalizedNer = 9;
     optional string whitespaceBefore = 10;
     optional string whitespaceAfter = 11;
-    optional uint32 corefClusterId = 12;
-    // 1-based index relative to the beginning of the sentence. Index = 0 means
-    // the current token is the root.
-    optional uint32 dependencyGovernor = 13;
-    optional string dependencyType = 14;
+    optional uint32 dependencyGovernor = 12;
+    optional string dependencyType = 13;
+
+    extensions 10000 to max;
+}
+
+message Mention {
+    // Index of the first and next to the last tokens of the mention.
+    required uint32 tokenBeginOffset = 1;
+    required uint32 tokenEndOffset = 2;
+    optional uint32 sentenceIndex = 3;
+    required string text = 4;
+    optional string value = 5;        // Canonicalized value of the token.
+    optional string type = 6;         // Span type: entity, number, date, etc.
+    optional string entityId = 7;
+    optional string mentionType = 8;
+    optional uint32 mentionNumber = 9;
+    optional string gender = 10;       // Gender of the mentioned entity.
+    optional string animacy = 11;      // Animacy of the mentioned entity.
 
     extensions 10000 to max;
 }
 
 message Span {
-    // Position of the mention in tokens inside the corresponding sentence.
-    required uint32 tokenBeginOffset = 1;  // Absolute index of the first token.
-    required uint32 tokenEndOffset = 2;    // Absolute index of the last token.
-    optional uint32 sentenceIndex = 3;     // Index of the sentence.
-    required string text = 4;
-    optional string value = 5;        // Canonicalized value of the token.
-    optional string type = 6;         // Span type: entity, number, date, etc.
-    optional string entityId = 7;
-    optional uint32 corefClusterIndex = 8;
-    optional string mentionType = 9;
-    optional uint32 mentionNumber = 10;
-    optional string gender = 11;       // Gender of the mentioned entity.
-    optional string animacy = 12;      // Animacy of the mentioned entity.
-
-    extensions 10000 to max;
-}
-
-message CorefCluster {
-    repeated Span mention = 1;
+    optional string text = 1;
+    optional string value = 2;
+    optional string type = 3;
+    optional string nerType = 4;
+    optional string entityId = 5;
+    repeated Mention mention = 6;
     // Index of the representative mention for this cluster.
-    optional uint32 representativeMention = 2;
+    optional uint32 representativeMention = 7;
 
     extensions 10000 to max;
 }

@@ -77,6 +77,9 @@ protoBuf {
         'Linux' {
             path = "protoc"
         }
+        'Mac OS X' {
+            path = '/usr/local/bin/protoc'
+        }
     }
 
     sourceSets {
