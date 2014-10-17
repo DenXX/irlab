@@ -74,15 +74,14 @@ public class EntityResolutionProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document)
             throws Exception {
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
-        String longestMentionEntityId = "";
-        int longestMentionLength = 0;
         for (Document.Span.Builder span : docBuilder.getSpanBuilderList()) {
             if ("ENTITY".equals(span.getType())) {
+                String longestMentionEntityId = "";
+                int longestMentionLength = -1;
                 total.incrementAndGet();
                 String normalizedName = NlpUtils.normalizeStringForMatch(
                         span.getValue());
                 if (namesIndex_.containsKey(normalizedName)) {
-                    resolved.incrementAndGet();
                     final String entityId = namesIndex_.get(normalizedName);
                     if (normalizedName.length() > longestMentionLength) {
                         longestMentionEntityId = entityId;
@@ -108,10 +107,10 @@ public class EntityResolutionProcessor extends Processor {
                         }
                     }
                 }
-            }
-            if (!longestMentionEntityId.isEmpty()) {
-                resolved.incrementAndGet();
-                span.setEntityId(longestMentionEntityId);
+                if (longestMentionLength != -1) {
+                    resolved.incrementAndGet();
+                    span.setEntityId(longestMentionEntityId);
+                }
             }
         }
         return docBuilder.build();

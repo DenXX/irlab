@@ -72,6 +72,7 @@ public class StanfordCoreNlpProcessor extends Processor {
         } catch (IllegalArgumentException exc) {
             // cleanxml annotator throws exceptions if it doesn't like something
             // about xml inside the document text.
+            System.err.println(exc);
             return null;
         }
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
@@ -189,7 +190,7 @@ public class StanfordCoreNlpProcessor extends Processor {
                         .setNumber(mention.number.name())
                         .setMentionType(mention.mentionType.name());
                 Interval<Integer> interval = Interval.toInterval(firstToken,
-                        endToken);
+                        endToken - 1);
                 intervalToMention.put(interval, new Pair<>(corefIndex,
                         mentionIndex));
                 mentionIntervals.add(interval);
@@ -218,7 +219,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             int firstToken = span.get(CoreAnnotations.TokenBeginAnnotation.class);
             int endToken = span.get(CoreAnnotations.TokenEndAnnotation.class);
             Interval<Integer> spanInterval =
-                    Interval.toInterval(firstToken, endToken);
+                    Interval.toInterval(firstToken, endToken - 1);
             // Let's find the tightest mention interval, that cover the given
             // span.
             Interval<Integer> tightestInterval = null;

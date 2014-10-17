@@ -1,9 +1,6 @@
 package edu.emory.mathcs.clir.relextract;
 
-import edu.emory.mathcs.clir.relextract.data.DeserializerBatchInputProvider;
-import edu.emory.mathcs.clir.relextract.data.DeserializerInputProvider;
-import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
+import edu.emory.mathcs.clir.relextract.data.*;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import org.apache.commons.cli.*;
 
@@ -53,6 +50,9 @@ public class RelationExtractionApp {
                 case "relstats":
                     workflow.addProcessor(new RelationsStatsProcessor(props));
                     break;
+                case "rellocstats":
+                    workflow.addProcessor(new RelationLocationStatsProcessor(props));
+                    break;
                 case "filter":
                     workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
                     break;
@@ -80,6 +80,9 @@ public class RelationExtractionApp {
             final String reader = props.getProperty(
                     AppParameters.READER_PARAMETER);
             switch (reader) {
+                case "text":
+                    docs = new TextInputProvider(props);
+                    break;
                 case "batchser":
                     docs = new DeserializerBatchInputProvider(props);
                     break;

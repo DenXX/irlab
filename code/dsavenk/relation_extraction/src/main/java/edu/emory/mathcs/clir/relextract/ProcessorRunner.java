@@ -78,17 +78,24 @@ public class ProcessorRunner {
         } else {
             ExecutorService threadPool = Executors.newFixedThreadPool(numThreads_);
             final AtomicInteger counter = new AtomicInteger(0);
+            final AtomicInteger filtered = new AtomicInteger(0);
+            int skipped = 0;
             final long startTime = System.currentTimeMillis();
             for (final Document.NlpDocument document : documents) {
                 // Parser reads the next input on demand, that's why it cannot
                 // predict that the input is over, so it will actually return null
                 // element.
-                if (document == null) continue;
+                if (document == null) {
+                    ++skipped;
+                    System.err.println("Skipped: " + skipped);
+                }
                 threadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            processor_.process(document);
+                            if (processor_.process(document) == null) {
+                                filtered.incrementAndGet();
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -98,6 +105,7 @@ public class ProcessorRunner {
                             System.err.println("Processed: " + processed +
                                     " (" + (1000.0 * processed /
                                     (currentTime - startTime)) + " docs/sec)");
+                            System.err.println("Filtered: " + filtered);
                         }
                     }
                 });

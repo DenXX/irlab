@@ -16,7 +16,11 @@ import java.util.zip.GZIPOutputStream;
 public class BatchSerializerProcessor extends SerializerProcessor {
 
     public static final String BATCH_SIZE_PARAMETER = "batch_size";
-
+    private final int batchSize_;
+    private OutputStream out_ = null;
+    private String outFilename_;
+    private int batchIndex;
+    private int docCounter = 0;
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -56,11 +60,5 @@ public class BatchSerializerProcessor extends SerializerProcessor {
     public void finishProcessing() throws Exception {
         out_.close();
     }
-
-    private final int batchSize_;
-    private OutputStream out_;
-    private String outFilename_;
-    private int batchIndex;
-    private int docCounter = 0;
 
 }

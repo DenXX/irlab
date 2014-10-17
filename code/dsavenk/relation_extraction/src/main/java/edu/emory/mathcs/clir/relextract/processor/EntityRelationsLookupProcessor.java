@@ -45,7 +45,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                     } else if (objSpan.getType().equals("MEASURE")) {
                         // Now process measures.
                         iter = kb_.getSubjectMeasureTriples(subjMid,
-                                objSpan.getValue(), objSpan.getType());
+                                objSpan.getValue(), objSpan.getNerType());
                     }
 
                     // Now iterate over all triples and add them as annotations.
