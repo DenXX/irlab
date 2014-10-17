@@ -53,6 +53,9 @@ public class RelationExtractionApp {
                 case "rellocstats":
                     workflow.addProcessor(new RelationLocationStatsProcessor(props));
                     break;
+                case "sentencetraining":
+                    workflow.addProcessor(new SentenceExtractorTrainingDataProcessor(props));
+                    break;
                 case "filter":
                     workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
                     break;
@@ -67,6 +70,9 @@ public class RelationExtractionApp {
                     break;
                 case "print":
                     workflow.addProcessor(new PrintTextProcessor(props));
+                    break;
+                case "test":
+                    workflow.addProcessor(new TestProcessor(props));
                     break;
                 default:
                     throw new UnsupportedOperationException(
