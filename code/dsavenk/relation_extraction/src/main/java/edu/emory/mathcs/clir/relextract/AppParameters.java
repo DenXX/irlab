@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract;
 import edu.emory.mathcs.clir.relextract.processor.BatchSerializerProcessor;
 import edu.emory.mathcs.clir.relextract.processor.DumpEntityNamesProcessor;
 import edu.emory.mathcs.clir.relextract.processor.EntityResolutionProcessor;
+import edu.emory.mathcs.clir.relextract.processor.LuceneEntityResolutionProcessor;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -65,6 +66,15 @@ public class AppParameters {
                 .withArgName(DumpEntityNamesProcessor.ENTITY_NAMES_FILENAME)
                 .withDescription("File to dump entity names").create(
                         DumpEntityNamesProcessor.ENTITY_NAMES_FILENAME));
+
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(LuceneEntityResolutionProcessor.LUCENE_INDEX_PARAMETER)
+                .withDescription("Entity names lucene index").create(
+                        LuceneEntityResolutionProcessor.LUCENE_INDEX_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER)
+                .withDescription("Lucene spellcheck index").create(
+                        LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER));
         return opt;
     }
 }

@@ -69,4 +69,40 @@ public class KnowledgeBaseTest {
 //        Assert.assertTrue(triples.isEmpty());
 //    }
 
+//    @Test
+//    public void testSpellCheck() throws IOException, ParseException {
+//        Directory spellIndexDir = FSDirectory.open(
+//                new File("/home/dsavenk/Projects/octiron/data/Freebase/spellcheck_index/"));
+//        Directory searchIndexDir = FSDirectory.open(
+//                new File("/home/dsavenk/Projects/octiron/data/Freebase/lexicon_index/"));
+//        IndexReader searchIndexReader = DirectoryReader.open(searchIndexDir);
+//        SpellChecker spellChecker = new SpellChecker(spellIndexDir);
+//        IndexSearcher searcher = new IndexSearcher(searchIndexReader);
+//
+//        Analyzer analyzer = new StandardAnalyzer(new CharArraySet(0, true));
+//        QueryParser parser = new QueryParser("name", analyzer);
+//
+//        String name = "Asia";
+//        Query query = parser.parse(name);
+//        Set<Term> terms = new HashSet<>();
+//        query.extractTerms(terms);
+//            ScoreDoc[] docs = searcher.search(query, 10).scoreDocs;
+//            for (ScoreDoc doc : docs) {
+//                if (doc.score / docs[0].score < 0.8) break;
+//                System.out.println(searcher.doc(doc.doc).get("name") + " = " + searcher.doc(doc.doc).get("id") + " (" + searcher.doc(doc.doc).get("triple_count") + ")" + doc.score + ", " + new LevensteinDistance().getDistance(name, searcher.doc(doc.doc).get("name")));
+//            }
+//
+//            for (String suggest : spellChecker.suggestSimilar(name, 10, 0.5f)) {
+//                System.out.println("---\n" + suggest);
+//                docs = searcher.search(parser.parse(suggest), 10).scoreDocs;
+//
+//                for (ScoreDoc doc : docs) {
+//                    if (doc.score / docs[0].score < 0.8) break;
+//                    System.out.println(searcher.doc(doc.doc).get("name") + " = " + searcher.doc(doc.doc).get("id") + " (" + searcher.doc(doc.doc).get("triple_count") + ")" + doc.score + ", " + new LevensteinDistance().getDistance(name, searcher.doc(doc.doc).get("name")));
+//                }
+//            }
+//
+//
+//
+//    }
 }

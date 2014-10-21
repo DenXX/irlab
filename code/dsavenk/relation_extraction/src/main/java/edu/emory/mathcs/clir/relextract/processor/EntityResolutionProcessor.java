@@ -3,8 +3,6 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import org.apache.commons.collections4.trie.PatriciaTrie;
-import org.apache.lucene.search.spell.SpellChecker;
-import org.apache.lucene.store.RAMDirectory;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -25,14 +23,12 @@ public class EntityResolutionProcessor extends Processor {
      * Name of the property storing the location of the entity lexicon.
      */
     public static final String LEXICON_PARAMETER = "entityres_lexicon";
-    public static final String ENTITYNAMES_PARAMETER = "entityres_names";
     // A trie, that maps a name to the entity with the best score from the
     // list of available entities. Currently the score is the number of triples
     // available for the entity, so we prefer more "popular" entities.
     private final PatriciaTrie<String> namesIndex_ = new PatriciaTrie<>();
     private final AtomicInteger resolved = new AtomicInteger(0);
     private final AtomicInteger total = new AtomicInteger(0);
-    private SpellChecker spellCherker_ = new SpellChecker(new RAMDirectory());
 
     /**
      * Processors can take parameters, that are stored inside the properties

@@ -40,8 +40,11 @@ buildscript {
 
 dependencies {
     compile name: 'stanford-srparser-2014-08-28-models'
-    compile group: 'org.apache.lucene', name: 'lucene-spellchecker', version: '3.6.2'
-    compile group: 'com.twitter.elephantbird', name: 'elephant-bird-core', version: '4.5'
+    compile group: 'org.apache.lucene', name: 'lucene-core', version: '4.10.1'
+    compile group: 'org.apache.lucene', name: 'lucene-analyzers-common', version: '4.10.1'
+    compile group: 'org.apache.lucene', name: 'lucene-suggest', version: '4.10.1'
+    compile group: 'org.apache.lucene', name: 'lucene-queries', version: '4.10.1'
+    compile group: 'org.apache.lucene', name: 'lucene-queryparser', version: '4.10.1'
     compile group: 'com.google.protobuf', name: 'protobuf-java', version: '2.6.0'
     compile group: 'edu.umd', name: 'cloud9', version: '1.4.17'
     compile group: 'info.bliki.wiki', name: 'bliki-core', version: '3.0.19'

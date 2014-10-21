@@ -44,6 +44,9 @@ public class RelationExtractionApp {
                 case "entityres":
                     workflow.addProcessor(new EntityResolutionProcessor(props));
                     break;
+                case "luceneentityres":
+                    workflow.addProcessor(new LuceneEntityResolutionProcessor(props));
+                    break;
                 case "addrelations":
                     workflow.addProcessor(new EntityRelationsLookupProcessor(props));
                     break;

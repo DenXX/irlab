@@ -27,8 +27,9 @@ public class EntityRelationsLookupProcessor extends Processor {
     }
 
     @Override
-    protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+    protected Document.NlpDocument doProcess(Document.NlpDocument document) {
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
+        docBuilder.clearRelation();
         int subjSpanIndex = -1;
         for (Document.Span subjSpan : document.getSpanList()) {
             ++subjSpanIndex;
