@@ -81,6 +81,19 @@ public class KnowledgeBase {
         return kb_;
     }
 
+    private String getEntityName(String mid) {
+        StmtIterator iter = model_.listStatements(
+                model_.getResource(convertFreebaseMidRdf(mid)),
+                model_.getProperty(FREEBASE_RDF_PREFIX,
+                        "type.object.name"), (RDFNode) null);
+        while (iter.hasNext()) {
+            Statement st = iter.nextStatement();
+            if (st.getObject().asLiteral().getLanguage().equals("en")) {
+                return st.getString();
+            }
+        }
+        return "";
+    }
 
     private String convertFreebaseMidRdf(String mid) {
         if (mid.startsWith("/")) mid = mid.substring(1);
@@ -322,6 +335,15 @@ public class KnowledgeBase {
             if (!(triple instanceof Triple)) return false;
             if (this == triple) return true;
             return this.compareTo((Triple) triple) == 0;
+        }
+
+        @Override
+        public String toString() {
+            // TODO(denxx): Can't access private member. It might not exist and
+            // it is bad anyway.
+            return kb_.getEntityName(subject) + " [" + subject + "] - "
+                    + predicate + " - " + kb_.getEntityName(object) +
+                    " [" + object + "]";
         }
     }
 }

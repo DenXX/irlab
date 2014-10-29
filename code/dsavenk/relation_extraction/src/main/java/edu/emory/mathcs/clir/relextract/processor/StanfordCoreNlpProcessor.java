@@ -56,7 +56,7 @@ public class StanfordCoreNlpProcessor extends Processor {
         // the non-terminal X. This is useful when parsing noisy web text,
         // which may generate arbitrarily long sentences.
         //properties.setProperty("parse.maxlen", "50");
-        properties.setProperty("dcoref.postprocessing", "true");
+        //properties.setProperty("dcoref.postprocessing", "true");
         nlpPipeline_ = new StanfordCoreNLP(properties, true);
     }
 

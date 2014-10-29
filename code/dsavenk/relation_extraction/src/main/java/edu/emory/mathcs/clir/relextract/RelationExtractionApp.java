@@ -59,6 +59,9 @@ public class RelationExtractionApp {
                 case "sentencetraining":
                     workflow.addProcessor(new SentenceExtractorTrainingDataProcessor(props));
                     break;
+                case "qatraining":
+                    workflow.addProcessor(new QuestionAnswerExtractorTrainingDataProcessor(props));
+                    break;
                 case "filter":
                     workflow.addProcessor(new FilterNotresolvedEntitiesProcessor(props));
                     break;

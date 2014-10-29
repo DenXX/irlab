@@ -3,6 +3,8 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -10,6 +12,7 @@ import java.util.Properties;
  */
 public class TestProcessor extends Processor {
     private int count = 0;
+    private int total = 0;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -76,7 +79,24 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        System.out.println(++count);
+        ++total;
+
+        int questionSentencesCount = 0;
+        for (Document.Sentence sent : document.getSentenceList()) {
+            if (document.getToken(sent.getFirstToken()).getBeginCharOffset() >=
+                    document.getQuestionLength()) {
+                break;
+            }
+            ++questionSentencesCount;
+        }
+        if (questionSentencesCount != 1) return null;
+
+        if (!document.getToken(0).getText().toLowerCase().equals("how"))
+            return null;
+
+        System.out.println(document.getSentence(0).getText().replace("\n", " "));
+       
+
 //        for (Document.Span span : document.getSpanList()) {
 //            if (span.getType().equals("ENTITY")) {
 //                System.out.println(span.getValue() + "\t" + (span.hasEntityId() ? span.getEntityId() : ""));
@@ -101,5 +121,10 @@ public class TestProcessor extends Processor {
 //            }
 //        }
         return null;
+    }
+
+    @Override
+    public void finishProcessing() {
+        System.out.println("With relations: " + count + "\nTotal: " + total);
     }
 }
