@@ -1,24 +1,24 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.spell.SpellChecker;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.QueryBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,11 +30,13 @@ public class LuceneEntityResolutionProcessor extends Processor {
 
     public static final String LUCENE_INDEX_PARAMETER = "lucene_lexicon_index";
     public static final String LUCENE_SPELLCHECKINDEX_PARAMETER = "spellcheck_index";
-    private final ConcurrentMap<String, String> entityNameCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String[]> entityNameCache = new ConcurrentHashMap<>();
     private final IndexSearcher searcher_;
     private final SpellChecker spellChecker_;
     private final AtomicInteger resolved = new AtomicInteger(0);
     private final AtomicInteger total = new AtomicInteger(0);
+    QueryBuilder queryBuilder_ = new QueryBuilder(new StandardAnalyzer(
+            new CharArraySet(0, true)));
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -46,7 +48,8 @@ public class LuceneEntityResolutionProcessor extends Processor {
     public LuceneEntityResolutionProcessor(Properties properties) throws IOException, ParseException {
         super(properties);
         Directory spellIndexDir = FSDirectory.open(
-                new File(properties.getProperty(LUCENE_SPELLCHECKINDEX_PARAMETER)));
+                new File(properties.getProperty(
+                        LUCENE_SPELLCHECKINDEX_PARAMETER)));
         Directory searchIndexDir = FSDirectory.open(
                 new File(properties.getProperty(LUCENE_INDEX_PARAMETER)));
         IndexReader searchIndexReader = DirectoryReader.open(searchIndexDir);
@@ -58,30 +61,32 @@ public class LuceneEntityResolutionProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) {
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
         for (Document.Span.Builder span : docBuilder.getSpanBuilderList()) {
-            if ("ENTITY".equals(span.getType())) {
+            if ("ENTITY".equals(span.getType()) ||
+                    "OTHER".equals(span.getType())) {
+                Set<String> entityIds = new HashSet<>();
                 String longestMentionEntityId = "";
                 int longestMentionLength = -1;
                 total.incrementAndGet();
-                String name = span.getValue();
-                String entityId = resolveEntity(name);
-                if (!entityId.isEmpty()) {
-                    if (name.length() > longestMentionLength) {
-                        longestMentionEntityId = entityId;
-                        longestMentionLength = name.length();
-                    }
-                }
-                // TODO(denxx): Decide on 2 strategies: longest mention or most
-                // frequent.
+                String name;
                 for (Document.Mention.Builder mention :
                         span.getMentionBuilderList()) {
                     if (mention.getMentionType().equals("NOMINAL") ||
                             mention.getMentionType().equals("PROPER")) {
                         name = mention.getValue();
-                        entityId = resolveEntity(name);
-                        if (!entityId.isEmpty()) {
-                            mention.setEntityId(entityId);
+                        // Do not try to correct spelling for mentions that are
+                        // too long.
+                        String[] entityId = resolveEntity(name,
+                                (mention.getTokenEndOffset() -
+                                        mention.getTokenBeginOffset()) < 3 &&
+                                        span.getType().equals("ENTITY"));
+                        if (entityId.length > 0) {
+                            mention.setEntityId(entityId[0]);
+                            for (String id : entityId) {
+                                mention.addCandidateEntityIds(id);
+                                entityIds.add(id);
+                            }
                             if (name.length() > longestMentionLength) {
-                                longestMentionEntityId = entityId;
+                                longestMentionEntityId = entityId[0];
                                 longestMentionLength = name.length();
                             }
                         }
@@ -90,63 +95,76 @@ public class LuceneEntityResolutionProcessor extends Processor {
                 if (longestMentionLength != -1) {
                     resolved.incrementAndGet();
                     span.setEntityId(longestMentionEntityId);
+                    for (String id : entityIds) {
+                        span.addCandidateEntityIds(id);
+                    }
                 }
             }
         }
         return docBuilder.build();
     }
 
-    private String resolveEntity(String name) {
+    private String[] resolveEntity(final String name, boolean correctSpelling) {
+        // Check cache.
         if (entityNameCache.containsKey(name))
             return entityNameCache.get(name);
-        Analyzer analyzer = new StandardAnalyzer(new CharArraySet(0, true));
-        QueryParser queryParser = new QueryParser("name", analyzer);
+
         String res = "";
-        char[] nameChars = NlpUtils.normalizeStringForMatch(name).toCharArray();
-        Arrays.sort(nameChars);
         ScoreDoc[] docs = new ScoreDoc[0];
+        Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
+        // This can happen if query doesn't really contain any terms.
+        if (q == null) return new String[0];
+
         try {
-            docs = searcher_.search(queryParser.parse(QueryParser.escape(name)),
-                    1000).scoreDocs;
-        } catch (Exception e) {
+            docs = searcher_.search(q, 100).scoreDocs;
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         long maxCount = 0;
+        long maxPhraseCount = -1;
+        Set<String> candidateIds = new HashSet<>();
         for (ScoreDoc doc : docs) {
             try {
                 org.apache.lucene.document.Document document =
                         searcher_.doc(doc.doc);
-                String entityName = document.get("name");
-                char[] entityNameChars = NlpUtils.normalizeStringForMatch(entityName).toCharArray();
-                Arrays.sort(entityNameChars);
-                if (charSimilarity(entityNameChars, nameChars) < 0.9) {
+                // Quit if the number of terms in the entity name is more than
+                // twice the number of tokens in our name.
+                if (doc.score < docs[0].score * 0.8 ||
+                        document.get("name").split("\\s+").length >
+                                name.split("\\s+").length + 1) {
                     break;
                 }
                 long count = Long.parseLong(document.get("triple_count"));
-                if (count > maxCount) {
-                    res = document.get("id");
+                long phraseCount = Long.parseLong(document.get("phrase_count"));
+                String id = document.get("id");
+                candidateIds.add(id);
+                if ((phraseCount != -1 && phraseCount > maxPhraseCount) ||
+                        (maxPhraseCount == -1 && count > maxCount)) {
+                    res = id;
                     maxCount = count;
+                    maxPhraseCount = phraseCount;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        if (res.isEmpty()) {
+        if (correctSpelling && res.isEmpty() && name.length() < 255) {
             maxCount = 0;
             String[] suggestions = new String[0];
             try {
                 suggestions = spellChecker_.suggestSimilar(name, 10, 0.8f);
             } catch (IOException e) {
+                e.printStackTrace();
             }
             for (String suggest : suggestions) {
                 docs = new ScoreDoc[0];
+                q = queryBuilder_.createMinShouldMatchQuery("name", suggest, 1.0f);
                 try {
-                    docs = searcher_.search(
-                            queryParser.parse(QueryParser.escape(suggest)),
-                            1000).scoreDocs;
-                } catch (Exception e) {
+                    docs = searcher_.search(q, 10).scoreDocs;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
                 for (ScoreDoc doc : docs) {
@@ -158,37 +176,39 @@ public class LuceneEntityResolutionProcessor extends Processor {
                         // continue loop.
                         continue;
                     }
-                    String entityName = document.get("name");
-                    char[] entityNameChars = NlpUtils.normalizeStringForMatch(entityName).toCharArray();
-                    Arrays.sort(entityNameChars);
-                    if (charSimilarity(entityNameChars, nameChars) < 0.8) {
+                    if (doc.score < docs[0].score ||
+                            !document.get("name").equals(suggest)) {
                         break;
                     }
+                    String id = document.get("id");
                     long count = Long.parseLong(document.get("triple_count"));
-                    if (count > maxCount) {
-                        res = document.get("id");
+                    long phraseCount = Long.parseLong(document.get("phrase_count"));
+                    candidateIds.add(id);
+                    if ((phraseCount != -1 && phraseCount > maxPhraseCount) ||
+                            (maxPhraseCount == -1 && count > maxCount)) {
+                        res = id;
                         maxCount = count;
+                        maxPhraseCount = phraseCount;
                     }
                 }
             }
         }
-        entityNameCache.put(name, res);
-        return res;
-    }
-
-    private double charSimilarity(char[] entityNameChars, char[] nameChars) {
-        int same = 0;
-        int total = Math.max(entityNameChars.length, nameChars.length);
-        int i = 0, j = 0;
-        while (i < entityNameChars.length && j < nameChars.length) {
-            if (entityNameChars[i] == nameChars[j]) {
-                ++same;
-                ++i;
-                ++j;
-            } else if (entityNameChars[i] < nameChars[j]) ++i;
-            else ++j;
+        String[] resList;
+        if (!res.isEmpty()) {
+            resList = new String[candidateIds.size()];
+            resList[0] = res;
+            int index = 1;
+            for (String id : candidateIds) {
+                if (!id.equals(res)) {
+                    resList[index++] = id;
+                }
+            }
+            entityNameCache.put(name, resList);
+            return resList;
         }
-        return 1.0 * same / total;
+        resList = new String[0];
+        entityNameCache.put(name, resList);
+        return resList;
     }
 
     @Override

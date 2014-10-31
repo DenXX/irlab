@@ -6,6 +6,7 @@ import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.stanford.nlp.time.Timex;
+import edu.stanford.nlp.util.Pair;
 
 import java.util.HashSet;
 import java.util.Properties;
@@ -22,6 +23,9 @@ public class KnowledgeBase {
      * Property name to store the location of Apache Jena model of the KB.
      */
     public static final String KB_PROPERTY = "kb";
+
+    public static final String CVT_PREDICATE_LIST_PARAMETER = "cvt";
+
     /**
      * Prefix of Freebase RDF.
      */
@@ -30,6 +34,7 @@ public class KnowledgeBase {
             "http://rdf.freebase.com/ns/";
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties = new HashSet<>();
+    private final Set<Pair<String, String>> cvtPaths = new HashSet<>();
     public Model model_;
 
     /**
@@ -64,6 +69,14 @@ public class KnowledgeBase {
                 }
             }
         }
+
+//        BufferedReader reader = new BufferedReader(new FileReader(cvtPathsFile));
+//        String line;
+//        while ((line = reader.readLine()) != null) {
+//            String[] parts = line.split("\\.");
+//            cvtPaths.add(new Pair<>(parts[0], parts[1]));
+//        }
+//        reader.close();
     }
 
     /**
@@ -93,6 +106,16 @@ public class KnowledgeBase {
             }
         }
         return "";
+    }
+
+    public long getTripleCount(String mid) {
+        long count = 0;
+        StmtIterator iter = model_.getResource(convertFreebaseMidRdf(mid)).listProperties();
+        while (iter.hasNext()) {
+            iter.nextStatement();
+            ++count;
+        }
+        return count;
     }
 
     private String convertFreebaseMidRdf(String mid) {

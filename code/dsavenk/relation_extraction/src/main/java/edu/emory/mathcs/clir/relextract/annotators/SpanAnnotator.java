@@ -79,7 +79,7 @@ public class SpanAnnotator implements Annotator {
 
     @Override
     public Set<Requirement> requires() {
-        return new ArraySet<Requirement>(NER_REQUIREMENT);
+        return new ArraySet<>(NER_REQUIREMENT);
     }
 
     /**

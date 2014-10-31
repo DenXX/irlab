@@ -4,6 +4,7 @@ import edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
+import edu.stanford.nlp.dcoref.Dictionaries;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -56,6 +57,11 @@ public class StanfordCoreNlpProcessor extends Processor {
         // the non-terminal X. This is useful when parsing noisy web text,
         // which may generate arbitrarily long sentences.
         //properties.setProperty("parse.maxlen", "50");
+        // Load big file with gender and number information.
+        properties.setProperty("dcoref.use.big.gender.number", "true");
+
+        // Post-processing removes singletons, let's keep them in order to get
+        // more mentions and hopefully more relations.
         //properties.setProperty("dcoref.postprocessing", "true");
         nlpPipeline_ = new StanfordCoreNLP(properties, true);
     }
@@ -158,6 +164,15 @@ public class StanfordCoreNlpProcessor extends Processor {
                 annotation.get(CorefCoreAnnotations.CorefChainAnnotation.class)
                         .values()) {
             if (corefCluster.getRepresentativeMention() == null) continue;
+            boolean keep = false;
+            for (CorefChain.CorefMention mention :
+                    corefCluster.getMentionsInTextualOrder()) {
+                if (mention.mentionType != Dictionaries.MentionType.PRONOMINAL) {
+                    keep = true;
+                }
+            }
+            // If this cluster doesn't have any nominal mentions, remove it.
+            if (!keep) continue;
 
             Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
             spanBuilder
@@ -244,7 +259,7 @@ public class StanfordCoreNlpProcessor extends Processor {
                         intervalToMention.get(tightestInterval);
                 spanBuilder = docBuilder.getSpanBuilder(mention.first);
                 // If span interval exactly equals the given one, then we reuse,
-                // otherwise we creare a new one.
+                // otherwise we create a new mention.
                 if (tightestInterval.equals(spanInterval)) {
                     mentionBuilder = spanBuilder.getMentionBuilder(
                             mention.second);

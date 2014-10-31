@@ -54,6 +54,10 @@ public class AppParameters {
                 .withDescription("Apache Jena KB model location").create(
                         KnowledgeBase.KB_PROPERTY));
         opt.addOption(OptionBuilder.hasArg()
+                .withArgName(KnowledgeBase.CVT_PREDICATE_LIST_PARAMETER)
+                .withDescription("File with CVT predicates").create(
+                        KnowledgeBase.CVT_PREDICATE_LIST_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
                 .withArgName(BatchSerializerProcessor.BATCH_SIZE_PARAMETER)
                 .withDescription("Batch size in documents").create(
                         BatchSerializerProcessor.BATCH_SIZE_PARAMETER));

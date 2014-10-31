@@ -3,8 +3,10 @@ apply plugin: 'gradleProtobufPlugin'
 apply plugin: 'application'
 
 sourceCompatibility = 1.7
-version = '1.2'
+version = '1.3'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
+//mainClassName = 'edu.emory.mathcs.clir.relextract.tools.FreebaseLexiconLuceneIndexBuilder'
+
 applicationDefaultJvmArgs = ["-Xmx220g",
                              "-XX:+UseParallelGC",
                              "-XX:+UseParallelOldGC",

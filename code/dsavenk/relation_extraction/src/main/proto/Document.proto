@@ -1,15 +1,17 @@
 package edu.stanford.nlp.pipeline;
 
 option java_generate_equals_and_hash = true;
+
 option java_package = "edu.emory.mathcs.clir.relextract.data";
+
 option java_outer_classname = "Document";
 
 message NlpDocument {
-    required string text = 1;                 // Original document text.
-    optional string docId = 2;                // Document identifier.
-    repeated Token token = 3;                 // All document tokens.
-    repeated Sentence sentence = 4;           // The list of all sentences.
-    repeated Span span = 5;                   // List of entity/measure mentioned in this document.
+    required string text = 1; // Original document text.
+    optional string docId = 2; // Document identifier.
+    repeated Token token = 3; // All document tokens.
+    repeated Sentence sentence = 4; // The list of all sentences.
+    repeated Span span = 5; // List of entity/measure mentioned in this document.
     repeated Attribute attribute = 6;
     repeated Relation relation = 7;
 
@@ -60,13 +62,14 @@ message Mention {
     required uint32 tokenEndOffset = 2;
     optional uint32 sentenceIndex = 3;
     required string text = 4;
-    optional string value = 5;        // Canonicalized value of the token.
-    optional string type = 6;         // Span type: entity, number, date, etc.
+    optional string value = 5; // Canonicalized value of the token.
+    optional string type = 6; // Span type: entity, number, date, etc.
     optional string entityId = 7;
     optional string mentionType = 8;
     optional string number = 9; // singular, plural
-    optional string gender = 10;       // Gender of the mentioned entity.
-    optional string animacy = 11;      // Animacy of the mentioned entity.
+    optional string gender = 10; // Gender of the mentioned entity.
+    optional string animacy = 11; // Animacy of the mentioned entity.
+    repeated string candidateEntityIds = 12;
 
     extensions 10000 to max;
 }
@@ -80,6 +83,7 @@ message Span {
     repeated Mention mention = 6;
     // Index of the representative mention for this cluster.
     optional uint32 representativeMention = 7;
+    repeated string candidateEntityIds = 8;
 
     extensions 10000 to max;
 }
@@ -88,4 +92,6 @@ message Relation {
     required uint32 subjectSpan = 1;
     required uint32 objectSpan = 2;
     optional string relation = 3;
+    optional uint32 subjectSpanCandidateEntityIdIndex = 4;
+    optional uint32 objectSpanCandidateEntityIdIndex = 5;
 }
