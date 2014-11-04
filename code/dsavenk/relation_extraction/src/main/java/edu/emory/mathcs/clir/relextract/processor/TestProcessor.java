@@ -25,6 +25,10 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        for (Document.Span span : document.getSpanList()) {
+            if (span.hasEntityId())
+                System.out.println(span.getCandidateEntityIdsCount());
+        }
 //        ++total;
 //
 //        int questionSentencesCount = 0;

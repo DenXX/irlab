@@ -39,15 +39,15 @@ public class RelationsStatsProcessor extends Processor {
             return null;
         }
         docsWithRelation_.incrementAndGet();
-//        System.out.println(document.getText());
+        System.out.println(document.getText());
         for (Document.Relation relation : document.getRelationList()) {
-//            System.out.println(
-//                    document.getSpan(relation.getSubjectSpan()).getText() +
-//                            " [" + document.getSpan(relation.getSubjectSpan()).getEntityId() +
-//                            " ] -- " + relation.getRelation() + " -- " +
-//                            document.getSpan(relation.getObjectSpan()).getText() +
-//                            " [" + document.getSpan(relation.getObjectSpan()).getEntityId() +
-//                            " ]");
+            System.out.println(
+                    document.getSpan(relation.getSubjectSpan()).getText() +
+                            " [" + document.getSpan(relation.getSubjectSpan()).getEntityId() +
+                            " ] -- " + relation.getRelation() + " -- " +
+                            document.getSpan(relation.getObjectSpan()).getText() +
+                            " [" + document.getSpan(relation.getObjectSpan()).getEntityId() +
+                            " ]");
             relationCount_.putIfAbsent(relation.getRelation(), 0);
             relationCount_.put(relation.getRelation(),
                     relationCount_.get(relation.getRelation()) + 1);
