@@ -7,6 +7,7 @@ import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
 import edu.stanford.nlp.dcoref.Dictionaries;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
@@ -17,9 +18,7 @@ import edu.stanford.nlp.util.Interval;
 import edu.stanford.nlp.util.IntervalTree;
 import edu.stanford.nlp.util.Pair;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * The processor runs standard Stanford CoreNLP pipeline to tag named entities
@@ -86,7 +85,7 @@ public class StanfordCoreNlpProcessor extends Processor {
         // Build tokens.
         for (CoreLabel token : annotation.get(
                 CoreAnnotations.TokensAnnotation.class)) {
-            Document.Token.Builder tokenBuilder = Document.Token.newBuilder();
+            Document.Token.Builder tokenBuilder = docBuilder.addTokenBuilder();
             tokenBuilder.setText(token.get(
                     CoreAnnotations.TextAnnotation.class));
             tokenBuilder.setBeginCharOffset(token.get(
@@ -115,7 +114,6 @@ public class StanfordCoreNlpProcessor extends Processor {
                     CoreAnnotations.BeforeAnnotation.class));
             tokenBuilder.setWhitespaceAfter(token.get(
                     CoreAnnotations.AfterAnnotation.class));
-            docBuilder.addToken(tokenBuilder);
         }
 
         // Build sentences.
@@ -123,14 +121,14 @@ public class StanfordCoreNlpProcessor extends Processor {
                 CoreAnnotations.SentencesAnnotation.class)) {
             int firstSentenceToken = sentence.get(
                     CoreAnnotations.TokenBeginAnnotation.class);
+            int endSentenceToken = sentence.get(
+                    CoreAnnotations.TokenEndAnnotation.class);
             Document.Sentence.Builder sentBuilder =
-                    Document.Sentence.newBuilder();
+                    docBuilder.addSentenceBuilder();
             sentBuilder.setFirstToken(firstSentenceToken);
-            sentBuilder.setLastToken(sentence.get(
-                    CoreAnnotations.TokenEndAnnotation.class));
+            sentBuilder.setLastToken(endSentenceToken);
             sentBuilder.setText(sentence.get(
                     CoreAnnotations.TextAnnotation.class));
-            docBuilder.addSentence(sentBuilder);
             // Process dependency tree.
             if (sentence.has(
                     SemanticGraphCoreAnnotations
@@ -139,6 +137,11 @@ public class StanfordCoreNlpProcessor extends Processor {
                 SemanticGraph graph = sentence.get(SemanticGraphCoreAnnotations
                         .CollapsedCCProcessedDependenciesAnnotation
                         .class);
+                Queue<IndexedWord> q = new LinkedList<>(graph.getRoots());
+                int[] depths = new int[endSentenceToken - firstSentenceToken];
+                boolean[] visited = new boolean[
+                        endSentenceToken - firstSentenceToken];
+
                 for (TypedDependency dep : graph.typedDependencies()) {
                     sentBuilder.setDependencyTree(graph.toString());
                     docBuilder.getTokenBuilder(firstSentenceToken
@@ -147,6 +150,25 @@ public class StanfordCoreNlpProcessor extends Processor {
                             dep.reln().getShortName());
                     if (dep.gov().index() == 0) {
                         sentBuilder.setDependencyRootToken(dep.dep().index());
+                        // Set depth of the root.
+                        docBuilder.getTokenBuilder(firstSentenceToken
+                                + dep.dep().index() - 1)
+                                .setDependencyTreeNodeDepth(0);
+                        visited[dep.dep().index() - 1] = true;
+                    }
+                }
+
+                // Set depth of other nodes in the graph.
+                while (!q.isEmpty()) {
+                    IndexedWord w = q.poll();
+                    for (IndexedWord child : graph.getChildren(w)) {
+                        if (!visited[child.index() - 1]) {
+                            depths[child.index() - 1] = depths[w.index() - 1] + 1;
+                            docBuilder.getTokenBuilder(firstSentenceToken
+                                    + child.index() - 1).setDependencyTreeNodeDepth(
+                                    depths[child.index() - 1]);
+                            q.add(child);
+                        }
                     }
                 }
             }
@@ -167,7 +189,10 @@ public class StanfordCoreNlpProcessor extends Processor {
             boolean keep = false;
             for (CorefChain.CorefMention mention :
                     corefCluster.getMentionsInTextualOrder()) {
-                if (mention.mentionType != Dictionaries.MentionType.PRONOMINAL) {
+                // Don't want to keep clusters with only prononinal mentions
+                // and mentions longer than 7 tokens (7 is just my favorite number).
+                if (mention.mentionType != Dictionaries.MentionType.PRONOMINAL
+                        && mention.endIndex - mention.startIndex <= 7) {
                     keep = true;
                 }
             }
@@ -237,30 +262,33 @@ public class StanfordCoreNlpProcessor extends Processor {
                     Interval.toInterval(firstToken, endToken - 1);
             // Let's find the tightest mention interval, that cover the given
             // span.
-            Interval<Integer> tightestInterval = null;
+            Interval<Integer> bestInterval = null;
+            int bestScore = Integer.MAX_VALUE;
             for (Interval<Integer> mention :
                     mentionIntervals.getOverlapping(spanInterval)) {
-                if (tightestInterval == null ||
-                        (tightestInterval.getEnd() - tightestInterval.getBegin()
-                                > mention.getEnd() - mention.getBegin())) {
-                    tightestInterval = mention;
+                int score = Math.abs(spanInterval.getBegin() - mention.getBegin()) +
+                        Math.abs(spanInterval.getEnd() - mention.getEnd());
+                if (bestInterval == null || score < bestScore) {
+                    bestInterval = mention;
+                    bestScore = score;
                 }
             }
 
             Document.Span.Builder spanBuilder;
             Document.Mention.Builder mentionBuilder;
             // If we didn't find any interval, we will create a new span.
-            if (tightestInterval == null) {
+            if (bestInterval == null) {
                 spanBuilder = docBuilder.addSpanBuilder();
                 mentionBuilder = spanBuilder.addMentionBuilder();
                 spanBuilder.setRepresentativeMention(0);
             } else {
                 Pair<Integer, Integer> mention =
-                        intervalToMention.get(tightestInterval);
+                        intervalToMention.get(bestInterval);
                 spanBuilder = docBuilder.getSpanBuilder(mention.first);
+
                 // If span interval exactly equals the given one, then we reuse,
                 // otherwise we create a new mention.
-                if (tightestInterval.equals(spanInterval)) {
+                if (bestInterval.equals(spanInterval)) {
                     mentionBuilder = spanBuilder.getMentionBuilder(
                             mention.second);
                 } else {

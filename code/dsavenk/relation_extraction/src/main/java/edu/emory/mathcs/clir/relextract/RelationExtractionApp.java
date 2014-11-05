@@ -41,6 +41,9 @@ public class RelationExtractionApp {
                 case "corenlp":
                     workflow.addProcessor(new StanfordCoreNlpProcessor(props));
                     break;
+                case "adddepth":
+                    workflow.addProcessor(new AddDependencyTreeDepthProcessor(props));
+                    break;
                 case "entityres":
                     workflow.addProcessor(new EntityResolutionProcessor(props));
                     break;
@@ -57,7 +60,7 @@ public class RelationExtractionApp {
                     workflow.addProcessor(new RelationLocationStatsProcessor(props));
                     break;
                 case "sentencetraining":
-                    workflow.addProcessor(new SentenceExtractorTrainingDataProcessor(props));
+                    workflow.addProcessor(new SentenceRelationExtractorTrainerProcessor(props));
                     break;
                 case "qatraining":
                     workflow.addProcessor(new QuestionAnswerExtractorTrainingDataProcessor(props));

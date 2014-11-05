@@ -8,9 +8,7 @@ import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,9 +31,9 @@ public class KnowledgeBase {
     public static final String FREEBASE_RDF_PREFIX =
             "http://rdf.freebase.com/ns/";
     private static KnowledgeBase kb_ = null;
-    private final Set<String> cvtProperties = new HashSet<>();
-    private final Set<Pair<String, String>> cvtPaths = new HashSet<>();
+    private final Set<String> cvtProperties_ = new HashSet<>();
     public Model model_;
+    private Map<Pair<String, String>, Set<Triple>> tripleCache_ = new HashMap<>();
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -64,19 +62,11 @@ public class KnowledgeBase {
                             model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.id"),
                             (RDFNode) null);
                     while (iter3.hasNext()) {
-                        cvtProperties.add(iter3.nextStatement().getObject().asLiteral().toString());
+                        cvtProperties_.add(iter3.nextStatement().getObject().asLiteral().toString());
                     }
                 }
             }
         }
-
-//        BufferedReader reader = new BufferedReader(new FileReader(cvtPathsFile));
-//        String line;
-//        while ((line = reader.readLine()) != null) {
-//            String[] parts = line.split("\\.");
-//            cvtPaths.add(new Pair<>(parts[0], parts[1]));
-//        }
-//        reader.close();
     }
 
     /**
@@ -198,9 +188,13 @@ public class KnowledgeBase {
      * objects.
      */
     public Set<Triple> getSubjectObjectTriplesCVT(String subject, String object) {
+        Pair<String, String> pair = new Pair<>(subject, object);
+        if (tripleCache_.containsKey(pair))
+            return tripleCache_.get(pair);
         final String subjectUri = convertFreebaseMidRdf(subject);
         final String objectUri = convertFreebaseMidRdf(object);
         Set<Triple> res = new HashSet<>();
+//        tripleCache_.put(pair, res);
         StmtIterator iter = model_.listStatements(
                 model_.getResource(subjectUri), null, (RDFNode) null);
         while (iter.hasNext()) {
@@ -208,29 +202,27 @@ public class KnowledgeBase {
             if (isCVTProperty(triple.getPredicate().getLocalName()) &&
                     triple.getObject().isResource()) {
                 StmtIterator cvtPropsIterator = model_.listStatements(
-                        triple.getObject().asResource(), null, (RDFNode) null);
+                        triple.getObject().asResource(), null,
+                        model_.getResource(objectUri));
                 while (cvtPropsIterator.hasNext()) {
                     Statement cvtTriple = cvtPropsIterator.nextStatement();
-                    if (cvtTriple.getObject().isResource() &&
-                            cvtTriple.getObject().asResource().getURI()
-                                    .equals(objectUri)) {
-                        Triple cvtTripleRes = new Triple(cvtTriple);
-                        cvtTripleRes.subject = subject;
-                        cvtTripleRes.predicate = "/" +
-                                triple.getPredicate().getLocalName()
-                                        .replace(".", "/") +
-                                "./" + cvtTriple.getPredicate().getLocalName()
-                                .replace(".", "/");
-                        res.add(cvtTripleRes);
-                    }
+                    Triple cvtTripleRes = new Triple(cvtTriple);
+                    cvtTripleRes.subject = subject;
+                    cvtTripleRes.predicate = "/" +
+                            triple.getPredicate().getLocalName()
+                                    .replace(".", "/") +
+                            "./" + cvtTriple.getPredicate().getLocalName()
+                            .replace(".", "/");
+                    res.add(cvtTripleRes);
                 }
             } else {
                 if (triple.getObject().isResource() &&
                         triple.getObject().asResource().getURI()
                                 .equals(objectUri)) {
-                    res.add(new Triple(triple));
+                    Triple t = new Triple(triple);
+                    t.predicate = "/" + t.predicate.replace(".", "/");
+                    res.add(t);
                 }
-
             }
         }
         return res;
@@ -318,7 +310,7 @@ public class KnowledgeBase {
 
     public boolean isCVTProperty(String property) {
         String prop = property.startsWith("/") ? property : "/" + property;
-        return cvtProperties.contains(prop.replace(".", "/"));
+        return cvtProperties_.contains(prop.replace(".", "/"));
     }
 
     public static class Triple implements Comparable<Triple> {

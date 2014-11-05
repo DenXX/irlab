@@ -52,6 +52,7 @@ message Token {
     optional string whitespaceAfter = 11;
     optional uint32 dependencyGovernor = 12;
     optional string dependencyType = 13;
+    optional uint32 dependencyTreeNodeDepth = 14;
 
     extensions 10000 to max;
 }
