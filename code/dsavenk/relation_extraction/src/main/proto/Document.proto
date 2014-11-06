@@ -1,4 +1,4 @@
-package edu.stanford.nlp.pipeline;
+package edu.emory.mathcs.clir.relextract.data;
 
 option java_generate_equals_and_hash = true;
 

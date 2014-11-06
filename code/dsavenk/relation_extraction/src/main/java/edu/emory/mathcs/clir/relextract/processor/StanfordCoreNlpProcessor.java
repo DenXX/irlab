@@ -163,6 +163,7 @@ public class StanfordCoreNlpProcessor extends Processor {
                     IndexedWord w = q.poll();
                     for (IndexedWord child : graph.getChildren(w)) {
                         if (!visited[child.index() - 1]) {
+                            visited[child.index() - 1] = true;
                             depths[child.index() - 1] = depths[w.index() - 1] + 1;
                             docBuilder.getTokenBuilder(firstSentenceToken
                                     + child.index() - 1).setDependencyTreeNodeDepth(

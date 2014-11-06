@@ -1,0 +1,44 @@
+package edu.emory.mathcs.clir.relextract.data;
+
+option java_generate_equals_and_hash = true;
+
+option java_package = "edu.emory.mathcs.clir.relextract.data";
+
+option java_outer_classname = "Dataset";
+
+message RelationMentionsDataset {
+    repeated Feature feature = 1;
+    repeated RelationMentionInstance instance = 2;
+
+    extensions 10000 to max;
+}
+
+message RelationMentionInstance {
+    repeated string label = 1;
+    repeated Triple triple = 2;
+    repeated uint32 featureId = 3;
+    repeated double featureValue = 4;
+    optional string docId = 5;
+    optional uint32 subjSpan = 6;
+    optional uint32 subjMention = 7;
+    optional uint32 objSpan = 8;
+    optional uint32 objMention = 9;
+    optional string mentionText = 10;
+
+    extensions 10000 to max;
+}
+
+// Represent a record in a feature alphabet.
+message Feature {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional string shortName = 3;
+
+    extensions 10000 to max;
+}
+
+message Triple {
+    optional string subject = 1;
+    optional string predicate = 2;
+    optional string object = 3;
+}
