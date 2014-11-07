@@ -39,7 +39,7 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
      * A label that means that we found a relation between the given entities,
      * but it was not one of the active predicates.
      */
-    public static final String OTHER_RELATIONS_LABEL = "OTHER"
+    public static final String OTHER_RELATIONS_LABEL = "OTHER";
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
     private final String datasetOutFilename_;

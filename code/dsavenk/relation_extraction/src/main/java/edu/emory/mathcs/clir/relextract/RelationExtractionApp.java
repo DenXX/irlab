@@ -60,7 +60,7 @@ public class RelationExtractionApp {
                     workflow.addProcessor(new RelationLocationStatsProcessor(props));
                     break;
                 case "sentencetraining":
-                    workflow.addProcessor(new RelationExtractorTrainerProcessor(props));
+                    workflow.addProcessor(new SentenceBasedRelationExtractorTrainerProcessor(props));
                     break;
                 case "qatraining":
                     workflow.addProcessor(new QuestionAnswerExtractorTrainingDataProcessor(props));
