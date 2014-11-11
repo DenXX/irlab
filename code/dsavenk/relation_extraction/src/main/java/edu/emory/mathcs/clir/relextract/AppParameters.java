@@ -1,9 +1,6 @@
 package edu.emory.mathcs.clir.relextract;
 
-import edu.emory.mathcs.clir.relextract.processor.BatchSerializerProcessor;
-import edu.emory.mathcs.clir.relextract.processor.DumpEntityNamesProcessor;
-import edu.emory.mathcs.clir.relextract.processor.EntityResolutionProcessor;
-import edu.emory.mathcs.clir.relextract.processor.LuceneEntityResolutionProcessor;
+import edu.emory.mathcs.clir.relextract.processor.*;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
@@ -79,6 +76,25 @@ public class AppParameters {
                 .withArgName(LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER)
                 .withDescription("Lucene spellcheck index").create(
                         LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainerProcessor.PREDICATES_LIST_PARAMETER)
+                .withDescription("File with the list of predicates to train extractor for").create(
+                        RelationExtractorTrainerProcessor.PREDICATES_LIST_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainerProcessor.DATASET_OUTFILE_PARAMETER)
+                .withDescription("Name of the file to output training dataset to.").create(
+                        RelationExtractorTrainerProcessor.DATASET_OUTFILE_PARAMETER));
+
+        // Cascade entity resolver
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)
+                .withDescription("Wikilinks dictionary file").create(
+                        CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER)
+                .withDescription("Wikilinks normalized dictionary file").create(
+                        CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER));
+
         return opt;
     }
 }

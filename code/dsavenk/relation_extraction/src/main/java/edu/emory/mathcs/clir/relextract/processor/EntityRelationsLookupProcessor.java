@@ -12,7 +12,7 @@ import java.util.Properties;
  */
 public class EntityRelationsLookupProcessor extends Processor {
 
-    private final int MAX_ENTITY_IDS_COUNT = 3;
+    private final int MAX_ENTITY_IDS_COUNT = 0;
 
     private final KnowledgeBase kb_;
 
@@ -39,7 +39,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                 int subjEntityIdIndex = 0;
                 boolean seenSubjMainMid = false;
                 for (String subjMid :
-                        subjSpan.getCandidateEntityIdsList()) {
+                        subjSpan.getCandidateEntityIdList()) {
                     subjEntityIdIndex++;
                     if (subjEntityIdIndex > MAX_ENTITY_IDS_COUNT) {
                         if (seenSubjMainMid) break;
@@ -58,7 +58,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                         if (objSpan.hasEntityId()) {
                             int objEntityIdIndex = 0;
                             boolean seenObjMainMid = false;
-                            for (String objMid : objSpan.getCandidateEntityIdsList()) {
+                            for (String objMid : objSpan.getCandidateEntityIdList()) {
                                 ++objEntityIdIndex;
 
                                 if (objEntityIdIndex > MAX_ENTITY_IDS_COUNT) {
@@ -126,8 +126,10 @@ public class EntityRelationsLookupProcessor extends Processor {
                                 relBuilder.setObjectSpan(objSpanIndex);
                                 relBuilder.setSubjectSpan(subjSpanIndex);
                                 relBuilder.setRelation(triple.predicate);
-                                relBuilder.setSubjectSpanCandidateEntityIdIndex(
-                                        subjEntityIdIndex);
+                                if (!subjMid.equals(subjSpan.getEntityId())) {
+                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(
+                                            subjEntityIdIndex);
+                                }
                                 docBuilder.addRelation(relBuilder.build());
                             }
                         }

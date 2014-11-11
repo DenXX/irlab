@@ -38,6 +38,9 @@ public class RelationExtractionApp {
         for (String processor : props.getProperty(
                 AppParameters.PROCESSORS_PARAMETER).split(",")) {
             switch (processor) {
+                case "setdocid":
+                    workflow.addProcessor(new SetDocIdProcessor(props));
+                    break;
                 case "corenlp":
                     workflow.addProcessor(new StanfordCoreNlpProcessor(props));
                     break;
@@ -49,6 +52,9 @@ public class RelationExtractionApp {
                     break;
                 case "luceneentityres":
                     workflow.addProcessor(new LuceneEntityResolutionProcessor(props));
+                    break;
+                case "cascadeentityres":
+                    workflow.addProcessor(new CascaseEntityResolutionProcessor(props));
                     break;
                 case "addrelations":
                     workflow.addProcessor(new EntityRelationsLookupProcessor(props));

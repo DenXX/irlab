@@ -82,7 +82,7 @@ public class LuceneEntityResolutionProcessor extends Processor {
                         if (entityId.length > 0) {
                             mention.setEntityId(entityId[0]);
                             for (String id : entityId) {
-                                mention.addCandidateEntityIds(id);
+                                mention.addCandidateEntityId(id);
                                 entityIds.add(id);
                             }
                             if (name.length() > longestMentionLength) {
@@ -96,7 +96,7 @@ public class LuceneEntityResolutionProcessor extends Processor {
                     resolved.incrementAndGet();
                     span.setEntityId(longestMentionEntityId);
                     for (String id : entityIds) {
-                        span.addCandidateEntityIds(id);
+                        span.addCandidateEntityId(id);
                     }
                 }
             }

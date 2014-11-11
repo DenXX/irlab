@@ -70,7 +70,8 @@ message Mention {
     optional string number = 9; // singular, plural
     optional string gender = 10; // Gender of the mentioned entity.
     optional string animacy = 11; // Animacy of the mentioned entity.
-    repeated string candidateEntityIds = 12;
+    repeated string candidateEntityId = 12; // entityId should always be 0th
+    repeated double candidateEntityScore = 13;
 
     extensions 10000 to max;
 }
@@ -84,7 +85,8 @@ message Span {
     repeated Mention mention = 6;
     // Index of the representative mention for this cluster.
     optional uint32 representativeMention = 7;
-    repeated string candidateEntityIds = 8;
+    repeated string candidateEntityId = 8;
+    repeated double candidateEntityScore = 9;
 
     extensions 10000 to max;
 }

@@ -8,7 +8,8 @@ option java_outer_classname = "Dataset";
 
 message RelationMentionsDataset {
     repeated Feature feature = 1;
-    repeated RelationMentionInstance instance = 2;
+    repeated string label = 2;
+    repeated RelationMentionInstance instance = 3;
 
     extensions 10000 to max;
 }

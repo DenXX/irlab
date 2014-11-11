@@ -201,11 +201,10 @@ public class StanfordCoreNlpProcessor extends Processor {
             if (!keep) continue;
 
             Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
-            spanBuilder
-                    .setText(corefCluster.getRepresentativeMention()
-                            .mentionSpan)
-                    .setValue(corefCluster.getRepresentativeMention()
-                            .mentionSpan)
+            String spanName = fixCoreNlpMentionText(
+                    corefCluster.getRepresentativeMention().mentionSpan);
+            spanBuilder.setText(spanName)
+                    .setValue(spanName)
                     .setType("OTHER")
                     .setNerType("NONE");
 
@@ -213,6 +212,8 @@ public class StanfordCoreNlpProcessor extends Processor {
             int mentionIndex = 0;
             for (CorefChain.CorefMention mention :
                     corefCluster.getMentionsInTextualOrder()) {
+                String mentionText = fixCoreNlpMentionText(mention.mentionSpan);
+
                 int sentenceFirstToken =
                         docBuilder.getSentence(mention.sentNum - 1)
                                 .getFirstToken();
@@ -220,8 +221,8 @@ public class StanfordCoreNlpProcessor extends Processor {
                         mention.startIndex - 1;
                 int endToken = sentenceFirstToken + mention.endIndex - 1;
                 spanBuilder.addMentionBuilder()
-                        .setText(mention.mentionSpan)
-                        .setValue(mention.mentionSpan)
+                        .setText(mentionText)
+                        .setValue(mentionText)
                         .setType("OTHER")
                         .setSentenceIndex(mention.sentNum - 1)
                         .setTokenBeginOffset(firstToken)
@@ -322,5 +323,18 @@ public class StanfordCoreNlpProcessor extends Processor {
         }
 
         return docBuilder.build();
+    }
+
+    // TODO(denxx): There is probably a better way to get this data from CoreNLP.
+    private String fixCoreNlpMentionText(String name) {
+        return name.replace("-LRB- ", "(")
+                .replace(" -RRB-", ")")
+                .replace(" ,", ",")
+                .replace(" .", ".")
+                .replace(" !", "!")
+                .replace(" ?", "?")
+                .replace(" :", ":")
+                .replace("` ", "`")
+                .replace(" '", "'");
     }
 }

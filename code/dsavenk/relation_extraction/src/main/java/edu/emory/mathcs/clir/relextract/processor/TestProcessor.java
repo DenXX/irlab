@@ -23,11 +23,32 @@ public class TestProcessor extends Processor {
         super(properties);
     }
 
+    private static String fixName(String name) {
+        return name.replace("-LRB- ", "(")
+                .replace(" -RRB-", ")")
+                .replace(" ,", ",")
+                .replace(" .", ".")
+                .replace(" !", "!")
+                .replace(" ?", "?")
+                .replace(" :", ":")
+                .replace("` ", "`")
+                .replace(" '", "'");
+    }
+
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        System.out.println("---------------------------");
+        System.out.println(document.getText());
         for (Document.Span span : document.getSpanList()) {
-            if (span.hasEntityId())
-                System.out.println(span.getCandidateEntityIdsCount());
+            if ("ENTITY".equals(span.getType()) ||
+                    "OTHER".equals(span.getType())) {
+                for (Document.Mention mention : span.getMentionList()) {
+                    if (mention.getMentionType().equals("NOMINAL") ||
+                            mention.getMentionType().equals("PROPER")) {
+                        System.out.println(fixName(mention.getValue()) + " - " + (mention.hasEntityId() ? mention.getEntityId() : ""));
+                    }
+                }
+            }
         }
 //        ++total;
 //
@@ -75,6 +96,6 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("With relations: " + count + "\nTotal: " + total);
+//        System.out.println("With relations: " + count + "\nTotal: " + total);
     }
 }

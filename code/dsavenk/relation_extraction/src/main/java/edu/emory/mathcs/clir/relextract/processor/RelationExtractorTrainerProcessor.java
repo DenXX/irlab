@@ -3,15 +3,13 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
+import edu.emory.mathcs.clir.relextract.utils.RelationExtractorModelTrainer;
 import edu.stanford.nlp.util.Pair;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Base class for relation extractors, provides functionality to store instances
@@ -83,15 +81,30 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
     @Override
     public void finishProcessing() throws IOException {
         for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
-            mentionsDataset_.addFeatureBuilder().setId(feature.getValue());
-            mentionsDataset_.addFeatureBuilder().setName(feature.getKey());
+            mentionsDataset_.addFeatureBuilder().setId(feature.getValue())
+                    .setName(feature.getKey());
+        }
+
+        // Add all possible labels.
+        mentionsDataset_.addLabel(NO_RELATIONS_LABEL);
+        mentionsDataset_.addLabel(OTHER_RELATIONS_LABEL);
+
+        // We construct hash map to make sure labels are unique.
+        for (String label : new HashSet<>(predicates_)) {
+            mentionsDataset_.addLabel(label);
+        }
+
+        try {
+            RelationExtractorModelTrainer.train(mentionsDataset_.build());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         // Write dataset to a file.
-        mentionsDataset_.build().writeDelimitedTo(
-                new BufferedOutputStream(
-                        new GZIPOutputStream(
-                                new FileOutputStream(datasetOutFilename_))));
+//        mentionsDataset_.build().writeDelimitedTo(
+//                new BufferedOutputStream(
+//                        new GZIPOutputStream(
+//                                new FileOutputStream(datasetOutFilename_))));
     }
 
     /**
@@ -141,18 +154,33 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
                                             mentionPair.second));
 
                             boolean foundActivePredicate = false;
-                            for (Document.Relation label : labels) {
-                                if (isPredicateActive(label.getRelation())) {
-                                    mentionInstance.addLabel(label.getRelation());
-                                    foundActivePredicate = true;
-                                }
+                            if (labels != null) {
+                                for (Document.Relation label : labels) {
+                                    if (isPredicateActive(label.getRelation())) {
+                                        mentionInstance.addLabel(label.getRelation());
 
-                                // TODO(denxx): need to attach an actual triple.
+                                        // TODO(denxx): This is not correct,
+                                        // we need to use entityIdIndex, but
+                                        // currently it is incorrect in the
+                                        // document.
+                                        String objectId = objSpan.hasEntityId() ?
+                                                objSpan.getEntityId() :
+                                                objSpan.getValue();
+
+                                        mentionInstance.addTripleBuilder()
+                                                .setSubject(subjSpan.getEntityId())
+                                                .setObject(objectId)
+                                                .setPredicate(label.getRelation());
+                                        foundActivePredicate = true;
+                                    }
+
+                                    // TODO(denxx): need to attach an actual triple.
+                                }
                             }
                             // If we didn't find any labels to add we should add
                             // none or other label.
                             if (!foundActivePredicate) {
-                                if (labels.size() == 0) {
+                                if (labels == null || labels.size() == 0) {
                                     mentionInstance.addLabel(NO_RELATIONS_LABEL);
                                 } else {
                                     mentionInstance.addLabel(OTHER_RELATIONS_LABEL);
@@ -202,7 +230,9 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
      * @return The integer Id of the feature.
      */
     private Integer getFeatureId(String feature) {
-        return featureAlphabet_.putIfAbsent(feature, feature.hashCode());
+        // We want to have positive Ids only.
+        featureAlphabet_.putIfAbsent(feature, feature.hashCode() & 0x7FFFFFFF);
+        return featureAlphabet_.get(feature);
     }
 
     /**
@@ -258,6 +288,6 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
                 objSpan.getEntityId() != subjSpan.getEntityId())
                 || (objSpan.getType().equals("MEASURE") &&
                 (objSpan.getNerType().equals("DATE")
-                           || objSpan.getNerType().equals("TIME")));
+                        || objSpan.getNerType().equals("TIME")));
     }
 }
