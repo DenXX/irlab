@@ -4,6 +4,7 @@ import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.RelationExtractorModelTrainer;
+import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.util.Pair;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
  * Base class for relation extractors, provides functionality to store instances
  * of relation mentions.
  */
-public abstract class RelationExtractorTrainerProcessor extends Processor {
+public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     /**
      * The name of the parameter specifying a file with predicates to build
@@ -27,6 +28,11 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
      * The name of the parameter specifying a file to store dataset into.
      */
     public static final String DATASET_OUTFILE_PARAMETER = "dataset_file";
+
+    /**
+     * The name of the parameter specifying a file to store dataset into.
+     */
+    public static final String MODEL_OUTFILE_PARAMETER = "model_file";
 
     /**
      * A label that means that there is no relations between the given entities.
@@ -41,9 +47,12 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
     private final String datasetOutFilename_;
+    private final String modelFilename_;
     private ConcurrentMap<String, Integer> featureAlphabet_ =
             new ConcurrentHashMap<>();
-    private Dataset.RelationMentionsDataset.Builder mentionsDataset_ =
+    private Dataset.RelationMentionsDataset.Builder trainDataset_ =
+            Dataset.RelationMentionsDataset.newBuilder();
+    private Dataset.RelationMentionsDataset.Builder testDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
 
     /**
@@ -53,11 +62,12 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public RelationExtractorTrainerProcessor(Properties properties) throws IOException {
+    public RelationExtractorTrainEvalProcessor(Properties properties) throws IOException {
         super(properties);
         predicates_ = new HashSet<>(FileUtils.readLinesFromFile(
                 properties.getProperty(PREDICATES_LIST_PARAMETER)));
         datasetOutFilename_ = properties.getProperty(DATASET_OUTFILE_PARAMETER);
+        modelFilename_ = properties.getProperty(MODEL_OUTFILE_PARAMETER);
     }
 
     /**
@@ -79,29 +89,33 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
     }
 
     @Override
-    public void finishProcessing() throws IOException {
+    public void finishProcessing() throws Exception {
         for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
-            mentionsDataset_.addFeatureBuilder().setId(feature.getValue())
+            trainDataset_.addFeatureBuilder().setId(feature.getValue())
+                    .setName(feature.getKey());
+            testDataset_.addFeatureBuilder().setId(feature.getValue())
                     .setName(feature.getKey());
         }
 
         // Add all possible labels.
-        mentionsDataset_.addLabel(NO_RELATIONS_LABEL);
-        mentionsDataset_.addLabel(OTHER_RELATIONS_LABEL);
+        trainDataset_.addLabel(NO_RELATIONS_LABEL);
+        trainDataset_.addLabel(OTHER_RELATIONS_LABEL);
+        testDataset_.addLabel(NO_RELATIONS_LABEL);
+        testDataset_.addLabel(OTHER_RELATIONS_LABEL);
 
         // We construct hash map to make sure labels are unique.
         for (String label : new HashSet<>(predicates_)) {
-            mentionsDataset_.addLabel(label);
+            trainDataset_.addLabel(label);
+            testDataset_.addLabel(label);
         }
 
-        try {
-            RelationExtractorModelTrainer.train(mentionsDataset_.build());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        LinearClassifier<String, Integer> model =
+                RelationExtractorModelTrainer.train(trainDataset_.build());
+        RelationExtractorModelTrainer.eval(model, testDataset_.build());
+
 
         // Write dataset to a file.
-//        mentionsDataset_.build().writeDelimitedTo(
+//        trainDataset_.build().writeDelimitedTo(
 //                new BufferedOutputStream(
 //                        new GZIPOutputStream(
 //                                new FileOutputStream(datasetOutFilename_))));
@@ -114,28 +128,33 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
      * @param document
      */
     protected void processSpans(Document.NlpDocument document) {
-        // Store a mapping from a pair of spans to their relation.
-        Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
-                new HashMap<>();
-        for (Document.Relation rel : document.getRelationList()) {
-            Pair<Integer, Integer> spans = new Pair<>(rel.getSubjectSpan(),
-                    rel.getObjectSpan());
-            if (!spans2Labels.containsKey(spans)) {
-                spans2Labels.put(spans, new LinkedList<Document.Relation>());
-            }
-            spans2Labels.get(spans).add(rel);
-        }
+        // Decide where this document is going to go = training of testing.
+        boolean isInTraining = document.hasDocId()
+                ? (document.getDocId().hashCode() % 10) < 8
+                : (document.getText().hashCode()) % 10 < 8;
 
-        int subjSpanIndex = 0;
+        Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
+                getSpanPairLabels(document, isInTraining);
+
+        int subjSpanIndex = -1;
         for (Document.Span subjSpan : document.getSpanList()) {
+            ++subjSpanIndex;
             if (continueWithSubjectSpan(subjSpan)) {
-                int objSpanIndex = 0;
+                int objSpanIndex = -1;
                 for (Document.Span objSpan : document.getSpanList()) {
+                    ++objSpanIndex;
                     if (continueWithObjectSpan(subjSpan, objSpan)) {
 
                         // Get the list of relations between the given entities.
                         List<Document.Relation> labels = spans2Labels.get(
                                 new Pair<>(subjSpanIndex, objSpanIndex));
+
+                        // We don't want too many noisy negative examples.
+                        if (labels == null &&
+                                (subjSpan.getType().equals("OTHER")
+                                        || objSpan.getType().equals("OTHER"))) {
+                            continue;
+                        }
 
                         for (Pair<Integer, Integer> mentionPair :
                                 getRelationMentionsIterator(subjSpan, objSpan)) {
@@ -173,8 +192,6 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
                                                 .setPredicate(label.getRelation());
                                         foundActivePredicate = true;
                                     }
-
-                                    // TODO(denxx): need to attach an actual triple.
                                 }
                             }
                             // If we didn't find any labels to add we should add
@@ -187,25 +204,75 @@ public abstract class RelationExtractorTrainerProcessor extends Processor {
                                 }
                             }
 
-                            // Get ids of all features and add them to the
-                            // instance.
-                            for (String feature : generateFeatures(document,
-                                    subjSpan, mentionPair.first,
-                                    objSpan, mentionPair.second)) {
-                                mentionInstance.addFeatureId(
-                                        getFeatureId(feature));
-                            }
+                            if (keepInstance(mentionInstance, isInTraining)) {
 
-                            synchronized (mentionsDataset_) {
-                                mentionsDataset_.addInstance(mentionInstance);
+                                // Get ids of all features and add them to the
+                                // instance.
+                                List<String> features = generateFeatures(document,
+                                        subjSpan, mentionPair.first,
+                                        objSpan, mentionPair.second);
+                                for (String feature : features) {
+                                    mentionInstance.addFeatureId(
+                                            getFeatureId(feature));
+                                }
+
+//                            System.out.println("\n\n--------------------------");
+//                            System.out.println(mentionInstance.getMentionText().replace("\n", " "));
+//                            System.out.println("SUBJ: " + subjSpan.getText() + "[" + subjSpan.getEntityId() + "]");
+//                            System.out.println("OBJ: " + objSpan.getText() + "[" + objSpan.getEntityId() + "]");
+//                            System.out.println("Label: " + mentionInstance.getLabel(0));
+//                            for (String featureId : features) {
+//                                System.out.println(featureId);
+//                            }
+
+                                if (isInTraining) {
+                                    synchronized (trainDataset_) {
+                                        trainDataset_.addInstance(mentionInstance);
+                                    }
+                                } else {
+                                    synchronized (testDataset_) {
+                                        testDataset_.addInstance(mentionInstance);
+                                    }
+                                }
                             }
                         }
                     }
-                    ++objSpanIndex;
                 }
             }
-            ++subjSpanIndex;
         }
+    }
+
+    private Map<Pair<Integer, Integer>, List<Document.Relation>>
+    getSpanPairLabels(Document.NlpDocument document, boolean isInTraining) {
+        // Store a mapping from a pair of spans to their relation.
+        Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
+                new HashMap<>();
+        for (Document.Relation rel : document.getRelationList()) {
+            Document.Span objSpan = document.getSpan(rel.getObjectSpan());
+            int strTripleHash = (document.getSpan(rel.getSubjectSpan()).getEntityId() +
+                    rel.getRelation() + (objSpan.getType().equals("MEASURE")
+                    ? objSpan.getValue()
+                    : objSpan.getEntityId())).hashCode();
+
+            if ((isInTraining && strTripleHash % 2 == 0)
+                    || (!isInTraining && strTripleHash % 2 != 0)) {
+                Pair<Integer, Integer> spans = new Pair<>(rel.getSubjectSpan(),
+                        rel.getObjectSpan());
+                if (!spans2Labels.containsKey(spans)) {
+                    spans2Labels.put(spans, new LinkedList<Document.Relation>());
+                }
+                spans2Labels.get(spans).add(rel);
+            }
+        }
+        return spans2Labels;
+    }
+
+    private boolean keepInstance(Dataset.RelationMentionInstanceOrBuilder mentionInstance, boolean isInTraining) {
+        String label = mentionInstance.getLabel(0);
+        if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
+            return Math.random() > 0.95;
+        }
+        return true;
     }
 
     /**

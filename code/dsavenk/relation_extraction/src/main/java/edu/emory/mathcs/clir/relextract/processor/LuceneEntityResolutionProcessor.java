@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.stanford.nlp.process.PTBTokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.DirectoryReader;
@@ -72,7 +73,7 @@ public class LuceneEntityResolutionProcessor extends Processor {
                         span.getMentionBuilderList()) {
                     if (mention.getMentionType().equals("NOMINAL") ||
                             mention.getMentionType().equals("PROPER")) {
-                        name = mention.getValue();
+                        name = PTBTokenizer.ptb2Text(mention.getValue());
                         // Do not try to correct spelling for mentions that are
                         // too long.
                         String[] entityId = resolveEntity(name,
@@ -136,7 +137,7 @@ public class LuceneEntityResolutionProcessor extends Processor {
                     break;
                 }
                 long count = Long.parseLong(document.get("triple_count"));
-                long phraseCount = Long.parseLong(document.get("phrase_count"));
+                long phraseCount = -1; //Long.parseLong(document.get("phrase_count"));
                 String id = document.get("id");
                 candidateIds.add(id);
                 if ((phraseCount != -1 && phraseCount > maxPhraseCount) ||

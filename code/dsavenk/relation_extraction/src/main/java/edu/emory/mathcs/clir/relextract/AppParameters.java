@@ -77,13 +77,17 @@ public class AppParameters {
                 .withDescription("Lucene spellcheck index").create(
                         LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainerProcessor.PREDICATES_LIST_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.PREDICATES_LIST_PARAMETER)
                 .withDescription("File with the list of predicates to train extractor for").create(
-                        RelationExtractorTrainerProcessor.PREDICATES_LIST_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.PREDICATES_LIST_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainerProcessor.DATASET_OUTFILE_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.DATASET_OUTFILE_PARAMETER)
                 .withDescription("Name of the file to output training dataset to.").create(
-                        RelationExtractorTrainerProcessor.DATASET_OUTFILE_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.DATASET_OUTFILE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_OUTFILE_PARAMETER)
+                .withDescription("Name of the file to output trained model.").create(
+                        RelationExtractorTrainEvalProcessor.MODEL_OUTFILE_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

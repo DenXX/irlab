@@ -10,7 +10,6 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessCrossWikisDictionary'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.LnrmEntityNameConverter'
 
-
 //applicationDefaultJvmArgs = ["-Xmx30g"]
 
 applicationDefaultJvmArgs = ["-Xmx150g",
@@ -47,7 +46,6 @@ buildscript {
 }
 
 dependencies {
-    compile group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.6.11'
     compile name: 'stanford-srparser-2014-08-28-models'
     compile group: 'org.apache.lucene', name: 'lucene-core', version: '4.10.1'
     compile group: 'org.apache.lucene', name: 'lucene-analyzers-common', version: '4.10.1'

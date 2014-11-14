@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
+import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.util.Pair;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
@@ -19,6 +20,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
@@ -33,8 +35,9 @@ public class CascaseEntityResolutionProcessor extends Processor {
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
     private final Map<String, Pair<String, Float>> wikilinksDictionary;
     private final Map<String, Pair<String, Float>> wikilinksLnrmDictionary;
-    private final Map<String, Pair<String, Float>> searchCache_ = new HashMap<>();
-    private final Map<String, Pair<String, Float>> spellCheckSearchCache_ = new HashMap<>();
+    private final Map<String, Pair<String, Float>> searchCache_ = new ConcurrentHashMap<>();
+    private final Map<String, Pair<String, Float>> spellCheckSearchCache_ = new ConcurrentHashMap<>();
+    private final Pair<String, Float> emptyPair = new Pair<>();
     private final SpellChecker spellChecker_;
     private final IndexSearcher searcher_;
     // Counters for
@@ -94,19 +97,20 @@ public class CascaseEntityResolutionProcessor extends Processor {
                     mention.clearEntityId();
                     mention.clearCandidateEntityId();
                     mention.clearCandidateEntityScore();
-                    String name = mention.getValue();
+                    String name = PTBTokenizer.ptb2Text(mention.getValue());
+
                     Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
-                    if (match != null) {
+                    if (match == emptyPair) {
                         match = resolveByNormalizedPhrasesMatch(name);
-                        if (match != null && isNamedEntity) {
+                        if (match == emptyPair && !mention.getType().equals("OTHER")) {
                             match = resolveByEntityNameCached(name);
-                            if (match != null) {
+                            if (match == emptyPair) {
                                 match = resolveBySpellcorrectedEntityNameCached(name);
                             }
                         }
                     }
 
-                    if (match != null) {
+                    if (match != emptyPair) {
                         mention.setEntityId(match.first);
                         mention.addCandidateEntityId(match.first);
                         mention.addCandidateEntityScore(match.second);
@@ -121,7 +125,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
                             curMap.put(match.first, match.second);
                         } else {
                             // TODO(denxx): This is bad. We have 2 types of scores: p(entity|phrase) and triple count.
-                            curMap.put(match.first, Math.max(namedEntityIdScores.get(match.first), match.second));
+                            curMap.put(match.first, Math.max(curMap.get(match.first), match.second));
                         }
                     }
                 }
@@ -167,20 +171,21 @@ public class CascaseEntityResolutionProcessor extends Processor {
         if (wikilinksDictionary.containsKey(name)) {
             return wikilinksDictionary.get(name);
         }
-        return null;
+        return emptyPair;
     }
 
     private Pair<String, Float> resolveByNormalizedPhrasesMatch(String name) {
         String normalizedName = NlpUtils.normalizeStringForMatch(name);
-        if (wikilinksDictionary.containsKey(normalizedName)) {
-            return wikilinksDictionary.get(normalizedName);
+        if (wikilinksLnrmDictionary.containsKey(normalizedName)) {
+            return wikilinksLnrmDictionary.get(normalizedName);
         }
-        return null;
+        return emptyPair;
     }
 
     private Pair<String, Float> resolveByEntityNameCached(String name) {
-        if (searchCache_.containsKey(name))
+        if (searchCache_.containsKey(name)) {
             return searchCache_.get(name);
+        }
 
         Pair<String, Float> res = resolveByEntityName(name, 0.8f, true);
         searchCache_.put(name, res);
@@ -191,7 +196,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         ScoreDoc[] docs = new ScoreDoc[0];
         Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
         // This can happen if query doesn't really contain any terms.
-        if (q == null) return null;
+        if (q == null) return emptyPair;
 
         try {
             docs = searcher_.search(q, 100).scoreDocs;
@@ -227,7 +232,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             Pair<String, Float> res = new Pair<>(bestId, (float) bestCount);
             return res;
         }
-        return null;
+        return emptyPair;
     }
 
     private Pair<String, Float> resolveBySpellcorrectedEntityNameCached(String name) {
@@ -244,16 +249,16 @@ public class CascaseEntityResolutionProcessor extends Processor {
             Pair<String, Float> bestPair = new Pair<>("", 0f);
             for (String suggest : spellChecker_.suggestSimilar(name, 10, 0.8f)) {
                 Pair<String, Float> res = resolveByEntityName(suggest, 1, false);
-                if (res != null && res.second > bestPair.second) {
+                if (res != emptyPair && res.second > bestPair.second) {
                     bestPair = res;
                 }
             }
             if (bestPair.second > 0) {
                 return bestPair;
             }
-            return null;
+            return emptyPair;
         } catch (IOException e) {
-            return null;
+            return emptyPair;
         }
     }
 
@@ -288,5 +293,4 @@ public class CascaseEntityResolutionProcessor extends Processor {
             dictionary.put(lastPhrase, new Pair<>(bestEntity, bestScore));
         }
     }
-
 }

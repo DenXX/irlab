@@ -1,57 +1,80 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
-import weka.classifiers.functions.Logistic;
-import weka.core.*;
+import edu.stanford.nlp.classify.LinearClassifier;
+import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.stats.Counter;
+import edu.stanford.nlp.util.Triple;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by dsavenk on 11/7/14.
  */
 public class RelationExtractorModelTrainer {
-
-    public static final int featureAlphabetSize = 1000000;
-
-    public static void train(Dataset.RelationMentionsDataset trainingDataset)
+    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset)
             throws Exception {
-        Logistic model = new Logistic();
-        model.setDebug(true);
-        model.buildClassifier(convertDataset(trainingDataset));
-        System.out.println(model.toString());
+
+        Map<Integer, String> featAlphabet = new HashMap<>();
+        for (Dataset.Feature feat : trainingDataset.getFeatureList()) {
+            featAlphabet.put(feat.getId(), feat.getName());
+        }
+
+        edu.stanford.nlp.classify.Dataset<String, Integer> dataset =
+                convertDataset(trainingDataset);
+
+        LinearClassifierFactory<String, Integer> classifierFactory_ =
+                new LinearClassifierFactory<>(1e-4, false, 5.0);
+        //classifierFactory_.setTuneSigmaHeldOut();
+        //classifierFactory_.useConjugateGradientAscent();
+
+        LinearClassifier<String, Integer> model =
+                classifierFactory_.trainClassifier(dataset);
+
+        for (Triple<Integer, String, Double> feat :
+                model.getTopFeatures(0.0001, true, 1000)) {
+            if (!feat.second.equals("NONE")) {
+                System.out.println(feat.first + "(" + featAlphabet.get(feat.first) + ") [" + feat.second + "] = " + feat.third);
+            }
+        }
+
+        return model;
     }
 
-    private static Instances convertDataset(Dataset.RelationMentionsDataset dataset) {
-        FastVector attrInfo = new FastVector(featureAlphabetSize + 1);
-        FastVector labels = new FastVector(dataset.getLabelCount());
-        for (String label : dataset.getLabelList()) {
-            labels.addElement(label);
-        }
-        Attribute classAttribute = new Attribute("relation", labels);
-        attrInfo.addElement(classAttribute);
-        for (Dataset.Feature feature : dataset.getFeatureList()) {
-            int index = feature.getId() % featureAlphabetSize + 1;
-            attrInfo.setElementAt(new Attribute(feature.getName(), index), index);
-        }
+    private static edu.stanford.nlp.classify.Dataset<String, Integer>
+    convertDataset(Dataset.RelationMentionsDataset dataset) {
+        edu.stanford.nlp.classify.Dataset<String, Integer> res =
+                new edu.stanford.nlp.classify.Dataset<>();
 
-        Instances instances = new Instances("rel_extract", attrInfo,
-                dataset.getInstanceCount());
-        instances.setClassIndex(0);
+        Map<String, Integer> counts = new HashMap<>();
 
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
-            Instance wekaInstance = new SparseInstance(featureAlphabetSize + 1);
-            wekaInstance.setDataset(instances);
-            // TODO(denxx): Since Weka needs only 1 class label, then we take the
-            // first label only.
-            wekaInstance.setClassValue(instance.getLabel(0));
-            for (int feature : instance.getFeatureIdList()) {
-                wekaInstance.setValue(getFeatureIndex(feature), 1);
+            for (String label : instance.getLabelList()) {
+                res.add(instance.getFeatureIdList(), label, true);
+                if (!counts.containsKey(label)) {
+                    counts.put(label, 1);
+                } else {
+                    counts.put(label, counts.get(label) + 1);
+                }
             }
-            instances.add(wekaInstance);
         }
 
-        return instances;
+        for (Map.Entry<String, Integer> e : counts.entrySet()) {
+            System.out.println(e.getKey() + ": " + e.getValue());
+        }
+        System.out.println("----------------------------");
+
+        return res;
     }
 
-    private static int getFeatureIndex(int featureId) {
-        return featureId % featureAlphabetSize + 1;
+    public static void eval(LinearClassifier<String, Integer> model, Dataset.RelationMentionsDataset testDataset) {
+        edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset);
+        for (Datum<String, Integer> example : dataset) {
+            Counter<String> predictions = model.logProbabilityOf(example);
+            for (Map.Entry<String, Double> pred : predictions.entrySet())
+                System.out.println(example.label() + "\t" + pred.getKey() + "\t" + pred.getValue());
+        }
     }
 }

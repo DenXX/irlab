@@ -10,6 +10,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
@@ -130,13 +131,12 @@ public class StanfordCoreNlpProcessor extends Processor {
             sentBuilder.setText(sentence.get(
                     CoreAnnotations.TextAnnotation.class));
             // Process dependency tree.
-            if (sentence.has(
-                    SemanticGraphCoreAnnotations
-                            .CollapsedCCProcessedDependenciesAnnotation
-                            .class)) {
+            // TODO(denxx): I switched to the basic dependency tree, so that I
+            // have no loops and everything is a tree.
+            if (sentence.has(SemanticGraphCoreAnnotations
+                    .BasicDependenciesAnnotation.class)) {
                 SemanticGraph graph = sentence.get(SemanticGraphCoreAnnotations
-                        .CollapsedCCProcessedDependenciesAnnotation
-                        .class);
+                        .BasicDependenciesAnnotation.class);
                 Queue<IndexedWord> q = new LinkedList<>(graph.getRoots());
                 int[] depths = new int[endSentenceToken - firstSentenceToken];
                 boolean[] visited = new boolean[
@@ -201,7 +201,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             if (!keep) continue;
 
             Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
-            String spanName = fixCoreNlpMentionText(
+            String spanName = PTBTokenizer.ptb2Text(
                     corefCluster.getRepresentativeMention().mentionSpan);
             spanBuilder.setText(spanName)
                     .setValue(spanName)
@@ -212,7 +212,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             int mentionIndex = 0;
             for (CorefChain.CorefMention mention :
                     corefCluster.getMentionsInTextualOrder()) {
-                String mentionText = fixCoreNlpMentionText(mention.mentionSpan);
+                String mentionText = PTBTokenizer.ptb2Text(mention.mentionSpan);
 
                 int sentenceFirstToken =
                         docBuilder.getSentence(mention.sentNum - 1)
@@ -323,18 +323,5 @@ public class StanfordCoreNlpProcessor extends Processor {
         }
 
         return docBuilder.build();
-    }
-
-    // TODO(denxx): There is probably a better way to get this data from CoreNLP.
-    private String fixCoreNlpMentionText(String name) {
-        return name.replace("-LRB- ", "(")
-                .replace(" -RRB-", ")")
-                .replace(" ,", ",")
-                .replace(" .", ".")
-                .replace(" !", "!")
-                .replace(" ?", "?")
-                .replace(" :", ":")
-                .replace("` ", "`")
-                .replace(" '", "'");
     }
 }

@@ -10,18 +10,18 @@ import java.util.*;
  * Relation extractor that extracts relation mentions from spans that occur in
  * the same sentence. Based on Mintz et al 2009 work.
  */
-public class SentenceBasedRelationExtractorTrainerProcessor
-        extends RelationExtractorTrainerProcessor {
+public class SentenceBasedRelationExtractorTrainEvalProcessor
+        extends RelationExtractorTrainEvalProcessor {
 
     /**
      * Creates an instance of the SentenceBasedRelationExtractorTrainerProcessor
      * class.
      *
-     * @param properties Need to have {@link edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainerProcessor.PREDICATES_LIST_PARAMETER}
-     *                   and {@link edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainerProcessor.DATASET_OUTFILE_PARAMETER}
+     * @param properties Need to have {@link RelationExtractorTrainEvalProcessor.PREDICATES_LIST_PARAMETER}
+     *                   and {@link RelationExtractorTrainEvalProcessor.DATASET_OUTFILE_PARAMETER}
      *                   parameters set.
      */
-    public SentenceBasedRelationExtractorTrainerProcessor(Properties properties)
+    public SentenceBasedRelationExtractorTrainEvalProcessor(Properties properties)
             throws IOException {
         super(properties);
     }
@@ -42,8 +42,17 @@ public class SentenceBasedRelationExtractorTrainerProcessor
                                             Document.Span objSpan,
                                             Integer objMention) {
         List<String> features = new ArrayList<>();
-        features.add("SUBJ_NER:" + subjSpan.getNerType());
-        features.add("OBJ_NER:" + objSpan.getNerType());
+        //features.add("SUBJ_NER:" + subjSpan.getNerType());
+        //features.add("OBJ_NER:" + objSpan.getNerType());
+        int subjMentionHeadToken = getHeadToken(document,
+                subjSpan.getMention(subjMention));
+        int objMentionHeadToken = getHeadToken(document,
+                objSpan.getMention(objMention));
+
+        // Now we need to find a path between this nodes...
+        addDirectedPath(document, subjSpan, objSpan, subjMentionHeadToken,
+                objMentionHeadToken, true, features);
+        addSurfaceFeatures(document, subjSpan, subjMention, objSpan, objMention, features);
         return features;
     }
 
@@ -53,18 +62,16 @@ public class SentenceBasedRelationExtractorTrainerProcessor
         return new SentenceRelationMentionIterable(subjSpan, objSpan);
     }
 
-    protected Map<String, Double> generateFeatures(
-            Document.NlpDocument document, int subjSpanIndex,
-            int subjSpanMentionIndex, int objSpanIndex,
-            int objSpanMentionIndex) {
-        Map<String, Double> features = new HashMap<>();
-
-        String subjNerType = document.getSpan(subjSpanIndex).getNerType();
-        String objNerType = document.getSpan(objSpanIndex).getNerType();
+    protected void addSurfaceFeatures(
+            Document.NlpDocument document, Document.Span subjSpan,
+            int subjSpanMentionIndex, Document.Span objSpan,
+            int objSpanMentionIndex, List<String> features) {
+        String subjNerType = subjSpan.getNerType();
+        String objNerType = objSpan.getNerType();
         Document.Mention subjMention =
-                document.getSpan(subjSpanIndex).getMention(subjSpanMentionIndex);
+                subjSpan.getMention(subjSpanMentionIndex);
         Document.Mention objMention =
-                document.getSpan(objSpanIndex).getMention(objSpanMentionIndex);
+                objSpan.getMention(objSpanMentionIndex);
         boolean reversed = subjMention.getTokenBeginOffset() >
                 objMention.getTokenBeginOffset();
 
@@ -88,7 +95,7 @@ public class SentenceBasedRelationExtractorTrainerProcessor
             if (tokenIndex != minLastToken) {
                 between.append(" ");
             }
-            between.append(document.getToken(tokenIndex).getLemma());
+            between.append(document.getToken(tokenIndex).getLemma().toLowerCase());
             between.append("/");
             between.append(document.getToken(tokenIndex).getPos());
         }
@@ -102,44 +109,38 @@ public class SentenceBasedRelationExtractorTrainerProcessor
         for (int leftWindowTokenIndex = minFirstToken - 1;
              leftWindowTokenIndex >= Math.max(firstSentenceToken, minFirstToken - 3);
              --leftWindowTokenIndex) {
-            leftWindows.add(document.getToken(leftWindowTokenIndex).getLemma() + "/" +
-                    document.getToken(leftWindowTokenIndex).getPos() + " " + leftWindows.get(leftWindows.size() - 1));
+            String tmp = document.getToken(leftWindowTokenIndex).getLemma() + "/" +
+                    document.getToken(leftWindowTokenIndex).getPos() + " " + leftWindows.get(leftWindows.size() - 1);
+            leftWindows.add(tmp.trim().replaceAll("\\s+", " "));
         }
         for (int rightWindowTokenIndex = maxLastToken; rightWindowTokenIndex < Math.min(lastSentenceToken, maxLastToken + 3); ++rightWindowTokenIndex) {
-            rightWindows.add(rightWindows.get(rightWindows.size() - 1) + " " +
+            String tmp = rightWindows.get(rightWindows.size() - 1) + " " +
                     document.getToken(rightWindowTokenIndex).getLemma() + "/" +
-                    document.getToken(rightWindowTokenIndex).getPos());
+                    document.getToken(rightWindowTokenIndex).getPos();
+            rightWindows.add(tmp.trim().replaceAll("\\s+", " "));
         }
 
-        System.out.println("-------------------------");
-        System.out.println(document.getSentence(subjMention.getSentenceIndex()).getText());
-        System.out.println("Subject: " + subjMention.getText());
-        System.out.println("Object: " + objMention.getText());
         for (String left : leftWindows) {
             for (String right : rightWindows) {
-                // TODO(denxx): Add to the list of features.
-                System.out.println((reversed ? "<> " : "") + left + " : " + (!reversed ? subjNerType : objNerType) + " - " + between + " - " + (reversed ? subjNerType : objNerType) + " : " + right);
+                String feature = (reversed ? "<-- <" : "--> <") + left +
+                        "> [" + (!reversed ? subjNerType : objNerType) + "] -"
+                        + between + "- [" + (reversed ? subjNerType : objNerType) + "] <" +
+                        right + ">";
+                features.add("SURFACE_PATH:\t" + feature.trim().replaceAll("\\s+", " "));
             }
         }
-
-        // Dependency tree pattern
-        int subjMentionHeadToken = getHeadToken(document, subjMention);
-        int objMentionHeadToken = getHeadToken(document, objMention);
-
-        // Now we need to find a path between this nodes...
-        String path = getDirectedPath(document, subjMentionHeadToken, objMentionHeadToken, true);
-        System.out.println(path);
-
-        return features;
     }
 
-    private String getDirectedPath(Document.NlpDocument document,
-                                   int leftTokenIndex,
-                                   int rightTokenIndex, boolean lexalized) {
+    private void addDirectedPath(Document.NlpDocument document,
+                                 Document.Span subjSpan,
+                                 Document.Span objSpan,
+                                 int leftTokenIndex,
+                                 int rightTokenIndex, boolean lexicalized,
+                                 List<String> features) {
         // If any of the nodes have no depth information, then we need to skip.
         if (!document.getToken(leftTokenIndex).hasDependencyTreeNodeDepth() ||
                 !document.getToken(rightTokenIndex).hasDependencyTreeNodeDepth()) {
-            return null;
+            return;
         }
 
         int leftNodeDepth = document.getToken(leftTokenIndex).getDependencyTreeNodeDepth();
@@ -149,13 +150,14 @@ public class SentenceBasedRelationExtractorTrainerProcessor
                 leftTokenIndex).getSentenceIndex()).getFirstToken();
 
         // If something was wrong with the parse tree, we better skip.
-        if (leftNodeDepth == -1 || rightNodeDepth == -1) return null;
+        if (leftNodeDepth == -1 || rightNodeDepth == -1) return;
 
         // Left and right part of the path
         LinkedList<String> leftPart = new LinkedList<>();
         LinkedList<String> rightPart = new LinkedList<>();
 
-        while (leftTokenIndex != rightTokenIndex) {
+        // Stanford tree might have multiple roots for some reason (even basic)
+        while (leftTokenIndex != rightTokenIndex && (leftNodeDepth != 0 || rightNodeDepth != 0)) {
             int nextToken;
             int curToken;
             StringBuilder currentNode = new StringBuilder();
@@ -165,19 +167,21 @@ public class SentenceBasedRelationExtractorTrainerProcessor
                 curToken = leftTokenIndex;
                 nextToken = firstSentenceToken + document.getToken(leftTokenIndex).getDependencyGovernor() - 1;
                 currentNode.append(document.getToken(curToken).getDependencyType());
+                // TODO(denxx): Why do we need this anyway? It seems that even for
+                // basic tree this happens.
+                if (nextToken == curToken) nextToken = rightTokenIndex;
             } else {
                 curToken = rightTokenIndex;
                 nextToken = firstSentenceToken + document.getToken(rightTokenIndex).getDependencyGovernor() - 1;
+
+                if (nextToken == curToken) nextToken = leftTokenIndex;
             }
-            // Just in case, let's check that we are no getting in a loop or
-            // something.
-            assert nextToken != curToken;
 
             // We don't want a duplicate of the common ancestor, thus we check
             // that the next node is not an ancestor.
-            if (lexalized && nextToken != leftTokenIndex && nextToken != rightTokenIndex) {
+            if (lexicalized && nextToken != leftTokenIndex && nextToken != rightTokenIndex) {
                 currentNode.append("(");
-                currentNode.append(document.getToken(nextToken).getLemma());
+                currentNode.append(document.getToken(nextToken).getLemma().toLowerCase());
                 currentNode.append(")");
             }
 
@@ -195,14 +199,17 @@ public class SentenceBasedRelationExtractorTrainerProcessor
                 rightNodeDepth = document.getToken(rightTokenIndex).getDependencyTreeNodeDepth();
             }
         }
-        StringBuilder path = new StringBuilder();
-        for (String left : leftPart) {
-            path.append(left);
+        if (leftTokenIndex == rightTokenIndex) {
+            StringBuilder path = new StringBuilder();
+            for (String left : leftPart) {
+                path.append(left);
+            }
+            for (String right : rightPart) {
+                path.append(right);
+            }
+            features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
+                    ":[" + objSpan.getNerType() + "]");
         }
-        for (String right : rightPart) {
-            path.append(right);
-        }
-        return path.toString();
     }
 
     private int getHeadToken(Document.NlpDocument document, Document.Mention mention) {
@@ -213,7 +220,13 @@ public class SentenceBasedRelationExtractorTrainerProcessor
             // Skip nodes without parent (ROOT or dependency was collapsed).
             if (document.getToken(tokenIndex).hasDependencyGovernor()) {
                 int governonTokenIndex = tokenIndex;
+//                int iterations = 0;
                 do {
+                    // TODO(denxx): Why do we need this? Loops?
+//                    if (++iterations > mention.getTokenEndOffset() - mention.getTokenBeginOffset()) {
+//                        tokenIndex = mention.getTokenEndOffset() - 1;
+//                        break;
+//                    }
                     tokenIndex = governonTokenIndex;
                     governonTokenIndex = document.getToken(tokenIndex).getDependencyGovernor() + firstSentenceToken - 1;
                 } while (governonTokenIndex >= mention.getTokenBeginOffset() &&
@@ -246,7 +259,7 @@ public class SentenceBasedRelationExtractorTrainerProcessor
         private class SentenceRelationMentionIterator implements Iterator<Pair<Integer, Integer>> {
 
             private int currentSubjectMention = 0;
-            private int currentObjectMention = 0;
+            private int currentObjectMention = -1;
 
             public SentenceRelationMentionIterator() {
                 findNextPair();
@@ -255,14 +268,21 @@ public class SentenceBasedRelationExtractorTrainerProcessor
             private boolean findNextPair() {
                 while (currentSubjectMention < subjectSpan_.getMentionCount()) {
                     while (++currentObjectMention < objectSpan_.getMentionCount()) {
-                        if (subjectSpan_.getMention(currentSubjectMention).getSentenceIndex() ==
-                                objectSpan_.getMention(currentObjectMention).getSentenceIndex())
+                        if (isMentionOk())
                             return true;
                     }
-                    currentObjectMention = 0;
+                    currentObjectMention = -1;
                     ++currentSubjectMention;
                 }
                 return false;
+            }
+
+            private boolean isMentionOk() {
+                int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention).getTokenEndOffset());
+                int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
+                return subjectSpan_.getMention(currentSubjectMention).getSentenceIndex() ==
+                        objectSpan_.getMention(currentObjectMention).getSentenceIndex() &&
+                        maxBegin - minEnd <= 10;
             }
 
             @Override

@@ -37,15 +37,13 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        System.out.println("---------------------------");
-        System.out.println(document.getText());
         for (Document.Span span : document.getSpanList()) {
             if ("ENTITY".equals(span.getType()) ||
                     "OTHER".equals(span.getType())) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getMentionType().equals("NOMINAL") ||
                             mention.getMentionType().equals("PROPER")) {
-                        System.out.println(fixName(mention.getValue()) + " - " + (mention.hasEntityId() ? mention.getEntityId() : ""));
+//                        System.out.println(PTBTokenizer.ptb2Text(mention.getValue()));
                     }
                 }
             }
