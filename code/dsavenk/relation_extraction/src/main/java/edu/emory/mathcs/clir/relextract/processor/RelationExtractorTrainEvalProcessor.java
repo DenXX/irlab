@@ -111,8 +111,49 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         LinearClassifier<String, Integer> model =
                 RelationExtractorModelTrainer.train(trainDataset_.build());
-        RelationExtractorModelTrainer.eval(model, testDataset_.build());
+        Dataset.RelationMentionsDataset testDataset = testDataset_.build();
+        ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model, testDataset);
+        Map<Pair<String, String>, Map<String, Double>> extractedTriples = new HashMap<>();
+        Map<Pair<String, String>, Set<String>> triplesLabels = new HashMap<>();
+        int index = 0;
+        for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
+            for (Dataset.Triple curTriple : instance.getTripleList()) {
+                Pair<String, String> arguments = new Pair<>(
+                        curTriple.getSubject(), curTriple.getObject());
+                if (!triplesLabels.containsKey(arguments)) {
+                    triplesLabels.put(arguments, new HashSet<String>());
+                    extractedTriples.put(arguments, new HashMap<String, Double>());
+                }
+                triplesLabels.get(arguments).add(curTriple.getPredicate());
+                double prevValue = extractedTriples.get(arguments).containsKey(predicatedLabels.get(index).first)
+                        ? extractedTriples.get(arguments).get(predicatedLabels.get(index).first)
+                        : Double.NEGATIVE_INFINITY;
+                extractedTriples.get(arguments).put(predicatedLabels.get(index).first,
+                        Math.max(prevValue, predicatedLabels.get(index).second));
+            }
+            ++index;
+        }
 
+        for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples.entrySet()) {
+            if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
+                preds.getValue().remove("NONE");
+            }
+            for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
+                if (!pred.getKey().equals("NONE")) {
+                    if (triplesLabels.get(preds.getKey()).contains(pred.getKey())) {
+                        System.out.println(pred.getKey() + "\t" +
+                                preds.getKey().first + "-" + preds.getKey().second + "\t"
+                                + pred.getKey() + "\t" + pred.getValue());
+                    } else {
+                        for (String label : triplesLabels.get(preds.getKey())) {
+                            System.out.println(label + "\t" +
+                                    preds.getKey().first + "-" + preds.getKey().second + "\t"
+                                    + pred.getKey() + "\t" + pred.getValue());
+                        }
+                    }
+                }
+            }
+        }
 
         // Write dataset to a file.
 //        trainDataset_.build().writeDelimitedTo(
@@ -202,6 +243,18 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 } else {
                                     mentionInstance.addLabel(OTHER_RELATIONS_LABEL);
                                 }
+
+                                // We still want to set subject and object and
+                                // keep relation empty, so we can use this
+                                // information for aggregation instead of
+                                // looking through original document.
+                                String objectId = objSpan.hasEntityId()
+                                        ? objSpan.getEntityId()
+                                        : objSpan.getValue();
+
+                                mentionInstance.addTripleBuilder()
+                                        .setSubject(subjSpan.getEntityId())
+                                        .setObject(objectId);
                             }
 
                             if (keepInstance(mentionInstance, isInTraining)) {

@@ -5,8 +5,10 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.stats.Counter;
+import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class RelationExtractorModelTrainer {
                 convertDataset(trainingDataset);
 
         LinearClassifierFactory<String, Integer> classifierFactory_ =
-                new LinearClassifierFactory<>(1e-4, false, 5.0);
+                new LinearClassifierFactory<>(1e-4, false, 0.1);
         //classifierFactory_.setTuneSigmaHeldOut();
         //classifierFactory_.useConjugateGradientAscent();
 
@@ -69,12 +71,23 @@ public class RelationExtractorModelTrainer {
         return res;
     }
 
-    public static void eval(LinearClassifier<String, Integer> model, Dataset.RelationMentionsDataset testDataset) {
+    public static ArrayList<Pair<String, Double>> eval(LinearClassifier<String, Integer> model,
+                                                       Dataset.RelationMentionsDataset testDataset) {
+        ArrayList<Pair<String, Double>> res = new ArrayList<>();
+
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset);
         for (Datum<String, Integer> example : dataset) {
             Counter<String> predictions = model.logProbabilityOf(example);
-            for (Map.Entry<String, Double> pred : predictions.entrySet())
-                System.out.println(example.label() + "\t" + pred.getKey() + "\t" + pred.getValue());
+            double bestScore = predictions.getCount("NONE");
+            String bestLabel = "NONE";
+            for (Map.Entry<String, Double> pred : predictions.entrySet()) {
+                if (pred.getValue() > bestScore) {
+                    bestScore = pred.getValue();
+                    bestLabel = pred.getKey();
+                }
+            }
+            res.add(new Pair<>(bestLabel, bestScore));
         }
+        return res;
     }
 }
