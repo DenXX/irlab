@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.stanford.nlp.util.Pair;
 
 import java.io.IOException;
@@ -53,6 +54,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         addDirectedPath(document, subjSpan, objSpan, subjMentionHeadToken,
                 objMentionHeadToken, true, features);
         addSurfaceFeatures(document, subjSpan, subjMention, objSpan, objMention, features);
+        addQuestionFeatures(document, true, features);
         return features;
     }
 
@@ -137,78 +139,55 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                                  int leftTokenIndex,
                                  int rightTokenIndex, boolean lexicalized,
                                  List<String> features) {
-        // If any of the nodes have no depth information, then we need to skip.
-        if (!document.getToken(leftTokenIndex).hasDependencyTreeNodeDepth() ||
-                !document.getToken(rightTokenIndex).hasDependencyTreeNodeDepth()) {
-            return;
-        }
-
-        int leftNodeDepth = document.getToken(leftTokenIndex).getDependencyTreeNodeDepth();
-        int rightNodeDepth = document.getToken(rightTokenIndex).getDependencyTreeNodeDepth();
-
-        int firstSentenceToken = document.getSentence(document.getToken(
-                leftTokenIndex).getSentenceIndex()).getFirstToken();
-
-        // If something was wrong with the parse tree, we better skip.
-        if (leftNodeDepth == -1 || rightNodeDepth == -1) return;
-
-        // Left and right part of the path
-        LinkedList<String> leftPart = new LinkedList<>();
-        LinkedList<String> rightPart = new LinkedList<>();
-
-        // Stanford tree might have multiple roots for some reason (even basic)
-        while (leftTokenIndex != rightTokenIndex && (leftNodeDepth != 0 || rightNodeDepth != 0)) {
-            int nextToken;
-            int curToken;
-            StringBuilder currentNode = new StringBuilder();
-
-            if (leftNodeDepth > rightNodeDepth) {
-                currentNode.append(" -> ");
-                curToken = leftTokenIndex;
-                nextToken = firstSentenceToken + document.getToken(leftTokenIndex).getDependencyGovernor() - 1;
-                currentNode.append(document.getToken(curToken).getDependencyType());
-                // TODO(denxx): Why do we need this anyway? It seems that even for
-                // basic tree this happens.
-                if (nextToken == curToken) nextToken = rightTokenIndex;
-            } else {
-                curToken = rightTokenIndex;
-                nextToken = firstSentenceToken + document.getToken(rightTokenIndex).getDependencyGovernor() - 1;
-
-                if (nextToken == curToken) nextToken = leftTokenIndex;
-            }
-
-            // We don't want a duplicate of the common ancestor, thus we check
-            // that the next node is not an ancestor.
-            if (lexicalized && nextToken != leftTokenIndex && nextToken != rightTokenIndex) {
-                currentNode.append("(");
-                currentNode.append(document.getToken(nextToken).getLemma().toLowerCase());
-                currentNode.append(")");
-            }
-
-            if (leftNodeDepth > rightNodeDepth) {
-                leftPart.add(currentNode.toString());
-                leftTokenIndex = nextToken;
-                // It should be just depth - 1, but let's assume it might be different.
-                leftNodeDepth = document.getToken(leftTokenIndex).getDependencyTreeNodeDepth();
-            } else {
-                currentNode.append(document.getToken(curToken).getDependencyType());
-                currentNode.append(" <- ");
-                rightPart.addFirst(currentNode.toString());
-                rightTokenIndex = nextToken;
-                // It should be just depth - 1, but let's assume it might be different.
-                rightNodeDepth = document.getToken(rightTokenIndex).getDependencyTreeNodeDepth();
-            }
-        }
-        if (leftTokenIndex == rightTokenIndex) {
-            StringBuilder path = new StringBuilder();
-            for (String left : leftPart) {
-                path.append(left);
-            }
-            for (String right : rightPart) {
-                path.append(right);
-            }
+        String path = DependencyTreeUtils.getDependencyPath(document,
+                leftTokenIndex, rightTokenIndex, lexicalized, false);
+        if (path != null) {
             features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
                     ":[" + objSpan.getNerType() + "]");
+        }
+    }
+
+    private void addQuestionFeatures(Document.NlpDocument document,
+                                     boolean lexicalized, List<String> features) {
+        if (document.hasQuestionLength()) {
+            int sentences = 0;
+            while (sentences < document.getSentenceCount() &&
+                    document.getToken(document.getSentence(
+                            sentences).getFirstToken()).getBeginCharOffset() <
+                            document.getQuestionLength()) {
+                ++sentences;
+            }
+            for (int index = 0; index < sentences; ++index) {
+                int rootToken = document.getSentence(index).getFirstToken() +
+                        document.getSentence(index).getDependencyRootToken() - 1;
+                List<Integer> questionWords = new ArrayList<>();
+                List<Integer> subjectWords = new ArrayList<>();
+                for (int token = document.getSentence(index).getFirstToken();
+                        token < document.getSentence(index).getLastToken();
+                        ++token) {
+                    if (document.getToken(token).getPos().startsWith("W")) {
+                        questionWords.add(token);
+                    }
+                    // If this is a node under the root
+                    if (document.getToken(token).getDependencyGovernor() ==
+                            rootToken - document.getSentence(index).getFirstToken() + 1
+                                && document.getToken(token).getDependencyType().contains("subj")) {
+                        subjectWords.add(token);
+                    }
+                }
+                for (int questionWord : questionWords) {
+                    if (questionWord != rootToken) {
+                        String qToRoot = DependencyTreeUtils.getDependencyPath(document, questionWord, rootToken, lexicalized, lexicalized);
+                        features.add("QUESTION_PATH: " + qToRoot);
+                    }
+                    for (int subj : subjectWords) {
+                        if (subj != questionWord && subj != rootToken) {
+                            String qToSubj = DependencyTreeUtils.getDependencyPath(document, questionWord, subj, lexicalized, lexicalized);
+                            features.add("QUESTION_PATH: " + qToSubj);
+                        }
+                    }
+                }
+            }
         }
     }
 
