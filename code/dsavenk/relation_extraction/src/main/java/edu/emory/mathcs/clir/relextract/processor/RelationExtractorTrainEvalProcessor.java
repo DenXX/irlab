@@ -55,6 +55,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private Dataset.RelationMentionsDataset.Builder testDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
 
+    private Random rnd_ = new Random(42);
+
     /**
      * This class cannot be instantiated, constructor is used by child
      * classes to initialize the list of predicates.
@@ -323,7 +325,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private boolean keepInstance(Dataset.RelationMentionInstanceOrBuilder mentionInstance, boolean isInTraining) {
         String label = mentionInstance.getLabel(0);
         if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
-            return Math.random() > 0.95;
+            return rnd_.nextFloat() > 0.95;
         }
         return true;
     }

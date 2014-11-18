@@ -1,0 +1,2 @@
+- Question topicality for sentence-based extractions (just question features)\\
+- Q\&A extractions: question features (template, question word, dep paths, etc) for extractions for QnA pairs
