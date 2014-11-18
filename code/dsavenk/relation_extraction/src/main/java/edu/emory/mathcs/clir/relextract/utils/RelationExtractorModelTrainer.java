@@ -25,7 +25,7 @@ public class RelationExtractorModelTrainer {
         }
 
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset =
-                convertDataset(trainingDataset);
+                convertDataset(trainingDataset, false);
 
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, 0.1);
@@ -46,19 +46,23 @@ public class RelationExtractorModelTrainer {
     }
 
     private static edu.stanford.nlp.classify.Dataset<String, Integer>
-    convertDataset(Dataset.RelationMentionsDataset dataset) {
+    convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
         edu.stanford.nlp.classify.Dataset<String, Integer> res =
                 new edu.stanford.nlp.classify.Dataset<>();
 
         Map<String, Integer> counts = new HashMap<>();
 
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
-            for (String label : instance.getLabelList()) {
-                res.add(instance.getFeatureIdList(), label, true);
-                if (!counts.containsKey(label)) {
-                    counts.put(label, 1);
-                } else {
-                    counts.put(label, counts.get(label) + 1);
+            if (ignoreLabels) {
+                res.add(instance.getFeatureIdList(), "", true);
+            } else {
+                for (String label : instance.getLabelList()) {
+                    res.add(instance.getFeatureIdList(), label, true);
+                    if (!counts.containsKey(label)) {
+                        counts.put(label, 1);
+                    } else {
+                        counts.put(label, counts.get(label) + 1);
+                    }
                 }
             }
         }
@@ -75,7 +79,7 @@ public class RelationExtractorModelTrainer {
                                                        Dataset.RelationMentionsDataset testDataset) {
         ArrayList<Pair<String, Double>> res = new ArrayList<>();
 
-        edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset);
+        edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true);
         for (Datum<String, Integer> example : dataset) {
             Counter<String> predictions = model.logProbabilityOf(example);
             double bestScore = predictions.getCount("NONE");

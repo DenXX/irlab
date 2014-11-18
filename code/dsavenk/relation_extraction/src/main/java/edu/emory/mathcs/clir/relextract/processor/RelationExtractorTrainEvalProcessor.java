@@ -146,7 +146,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 + pred.getKey() + "\t" + pred.getValue());
                     } else {
                         for (String label : triplesLabels.get(preds.getKey())) {
-                            System.out.println(label + "\t" +
+                            System.out.println((label.isEmpty() ? "NONE" : label) + "\t" +
                                     preds.getKey().first + "-" + preds.getKey().second + "\t"
                                     + pred.getKey() + "\t" + pred.getValue());
                         }
