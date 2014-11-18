@@ -200,7 +200,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         }
 
                         for (Pair<Integer, Integer> mentionPair :
-                                getRelationMentionsIterator(subjSpan, objSpan)) {
+                                getRelationMentionsIterator(document, subjSpan, objSpan)) {
                             Dataset.RelationMentionInstance.Builder mentionInstance =
                                     Dataset.RelationMentionInstance.newBuilder();
 
@@ -259,7 +259,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                         .setObject(objectId);
                             }
 
-                            if (keepInstance(mentionInstance, isInTraining)) {
+                            if (keepInstance(document, mentionInstance, isInTraining)) {
 
                                 // Get ids of all features and add them to the
                                 // instance.
@@ -304,10 +304,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 new HashMap<>();
         for (Document.Relation rel : document.getRelationList()) {
             Document.Span objSpan = document.getSpan(rel.getObjectSpan());
-            int strTripleHash = (document.getSpan(rel.getSubjectSpan()).getEntityId() +
+            String triple = document.getSpan(rel.getSubjectSpan()).getEntityId() +
                     rel.getRelation() + (objSpan.getType().equals("MEASURE")
                     ? objSpan.getValue()
-                    : objSpan.getEntityId())).hashCode();
+                    : objSpan.getEntityId());
+            int strTripleHash = triple.hashCode() & 0x7FFFFFFF;
 
             if ((isInTraining && strTripleHash % 2 == 0)
                     || (!isInTraining && strTripleHash % 2 != 0)) {
@@ -322,12 +323,21 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         return spans2Labels;
     }
 
-    private boolean keepInstance(Dataset.RelationMentionInstanceOrBuilder mentionInstance, boolean isInTraining) {
-        String label = mentionInstance.getLabel(0);
-        if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
-            return rnd_.nextFloat() > 0.95;
+    private boolean keepInstance(Document.NlpDocument document,
+                                 Dataset.RelationMentionInstanceOrBuilder mentionInstance,
+                                 boolean isInTraining) {
+        if (isInTraining) {
+            String label = mentionInstance.getLabel(0);
+            if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
+                return rnd_.nextFloat() > 0.95;
+            }
+            return true;
+        } else {
+            String subjType = document.getSpan(mentionInstance.getSubjSpan()).getMention(mentionInstance.getSubjMention()).getMentionType();
+            String objType = document.getSpan(mentionInstance.getObjSpan()).getMention(mentionInstance.getObjMention()).getMentionType();
+            return (subjType.equals("NOMINAL") || subjType.equals("PRONOMINAL")) &&
+                    (objType.equals("NOMINAL") || objType.equals("PRONOMINAL"));
         }
-        return true;
     }
 
     /**
@@ -381,7 +391,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * @return Iterable over mention spans.
      */
     protected abstract Iterable<Pair<Integer, Integer>>
-    getRelationMentionsIterator(Document.Span subjSpan,
+    getRelationMentionsIterator(Document.NlpDocument document,
+                                Document.Span subjSpan,
                                 Document.Span objSpan);
 
     /**

@@ -81,7 +81,7 @@ public class RelationExtractorModelTrainer {
 
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true);
         for (Datum<String, Integer> example : dataset) {
-            Counter<String> predictions = model.logProbabilityOf(example);
+            Counter<String> predictions = model.probabilityOf(example);
             double bestScore = predictions.getCount("NONE");
             String bestLabel = "NONE";
             for (Map.Entry<String, Double> pred : predictions.entrySet()) {

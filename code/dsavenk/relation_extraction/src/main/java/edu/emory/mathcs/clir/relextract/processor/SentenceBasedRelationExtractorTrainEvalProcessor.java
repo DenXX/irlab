@@ -45,9 +45,9 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         List<String> features = new ArrayList<>();
         //features.add("SUBJ_NER:" + subjSpan.getNerType());
         //features.add("OBJ_NER:" + objSpan.getNerType());
-        int subjMentionHeadToken = getHeadToken(document,
+        int subjMentionHeadToken = DependencyTreeUtils.getMentionHeadToken(document,
                 subjSpan.getMention(subjMention));
-        int objMentionHeadToken = getHeadToken(document,
+        int objMentionHeadToken = DependencyTreeUtils.getMentionHeadToken(document,
                 objSpan.getMention(objMention));
 
         // Now we need to find a path between this nodes...
@@ -60,8 +60,8 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
 
     @Override
     protected Iterable<Pair<Integer, Integer>> getRelationMentionsIterator(
-            Document.Span subjSpan, Document.Span objSpan) {
-        return new SentenceRelationMentionIterable(subjSpan, objSpan);
+            Document.NlpDocument document, Document.Span subjSpan, Document.Span objSpan) {
+        return new SentenceRelationMentionIterable(document, subjSpan, objSpan);
     }
 
     protected void addSurfaceFeatures(
@@ -140,7 +140,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                                  int rightTokenIndex, boolean lexicalized,
                                  List<String> features) {
         String path = DependencyTreeUtils.getDependencyPath(document,
-                leftTokenIndex, rightTokenIndex, lexicalized, false);
+                leftTokenIndex, rightTokenIndex, lexicalized, false, false);
         if (path != null) {
             features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
                     ":[" + objSpan.getNerType() + "]");
@@ -177,12 +177,12 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 }
                 for (int questionWord : questionWords) {
                     if (questionWord != rootToken) {
-                        String qToRoot = DependencyTreeUtils.getDependencyPath(document, questionWord, rootToken, lexicalized, lexicalized);
+                        String qToRoot = DependencyTreeUtils.getDependencyPath(document, questionWord, rootToken, lexicalized, lexicalized, lexicalized);
                         features.add("QUESTION_PATH: " + qToRoot);
                     }
                     for (int subj : subjectWords) {
                         if (subj != questionWord && subj != rootToken) {
-                            String qToSubj = DependencyTreeUtils.getDependencyPath(document, questionWord, subj, lexicalized, lexicalized);
+                            String qToSubj = DependencyTreeUtils.getDependencyPath(document, questionWord, subj, lexicalized, lexicalized, lexicalized);
                             features.add("QUESTION_PATH: " + qToSubj);
                         }
                     }
@@ -191,40 +191,13 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         }
     }
 
-    private int getHeadToken(Document.NlpDocument document, Document.Mention mention) {
-        int firstSentenceToken = document.getSentence(mention.getSentenceIndex()).getFirstToken();
-
-        for (int tokenIndex = mention.getTokenBeginOffset();
-             tokenIndex < mention.getTokenEndOffset(); ++tokenIndex) {
-            // Skip nodes without parent (ROOT or dependency was collapsed).
-            if (document.getToken(tokenIndex).hasDependencyGovernor()) {
-                int governonTokenIndex = tokenIndex;
-//                int iterations = 0;
-                do {
-                    // TODO(denxx): Why do we need this? Loops?
-//                    if (++iterations > mention.getTokenEndOffset() - mention.getTokenBeginOffset()) {
-//                        tokenIndex = mention.getTokenEndOffset() - 1;
-//                        break;
-//                    }
-                    tokenIndex = governonTokenIndex;
-                    governonTokenIndex = document.getToken(tokenIndex).getDependencyGovernor() + firstSentenceToken - 1;
-                } while (governonTokenIndex >= mention.getTokenBeginOffset() &&
-                        governonTokenIndex < mention.getTokenEndOffset() &&
-                        document.getToken(tokenIndex).getDependencyGovernor() != 0);
-
-                return tokenIndex;
-            }
-        }
-        // If we wasn't able to find a head in a normal way, last token is usually head.
-        return mention.getTokenEndOffset() - 1;
-    }
-
     private static class SentenceRelationMentionIterable implements Iterable<Pair<Integer, Integer>> {
 
         private final Document.Span subjectSpan_;
         private final Document.Span objectSpan_;
 
-        public SentenceRelationMentionIterable(Document.Span subjSpan,
+        public SentenceRelationMentionIterable(Document.NlpDocument document,
+                                               Document.Span subjSpan,
                                                Document.Span objSpan) {
             subjectSpan_ = subjSpan;
             objectSpan_ = objSpan;

@@ -21,7 +21,8 @@ public class DependencyTreeUtils {
     public static String getDependencyPath(Document.NlpDocument document,
                                            int firstToken, int secondToken,
                                            boolean lexicalized,
-                                           boolean includeEndNodes) {
+                                           boolean includeFirstNode,
+                                           boolean includeLastNode) {
         // If any of the nodes have no depth information, then we need to skip.
         if (!document.getToken(firstToken).hasDependencyTreeNodeDepth() ||
                 !document.getToken(secondToken).hasDependencyTreeNodeDepth() ||
@@ -42,8 +43,10 @@ public class DependencyTreeUtils {
         // Left and right part of the path
         LinkedList<String> leftPart = new LinkedList<>();
         LinkedList<String> rightPart = new LinkedList<>();
-        if (includeEndNodes) {
-            leftPart.add("("+document.getToken(firstToken).getLemma().toLowerCase()+")");
+        if (includeFirstNode) {
+            leftPart.add("(" + document.getToken(firstToken).getLemma().toLowerCase() + ")");
+        }
+        if (includeLastNode) {
             rightPart.add("("+document.getToken(secondToken).getLemma().toLowerCase()+")");
         }
 
@@ -103,4 +106,32 @@ public class DependencyTreeUtils {
         return null;
     }
 
+
+    public static int getMentionHeadToken(Document.NlpDocument document, Document.Mention mention) {
+        int firstSentenceToken = document.getSentence(mention.getSentenceIndex()).getFirstToken();
+
+        for (int tokenIndex = mention.getTokenBeginOffset();
+             tokenIndex < mention.getTokenEndOffset(); ++tokenIndex) {
+            // Skip nodes without parent (ROOT or dependency was collapsed).
+            if (document.getToken(tokenIndex).hasDependencyGovernor()) {
+                int governonTokenIndex = tokenIndex;
+//                int iterations = 0;
+                do {
+                    // TODO(denxx): Why do we need this? Loops?
+//                    if (++iterations > mention.getTokenEndOffset() - mention.getTokenBeginOffset()) {
+//                        tokenIndex = mention.getTokenEndOffset() - 1;
+//                        break;
+//                    }
+                    tokenIndex = governonTokenIndex;
+                    governonTokenIndex = document.getToken(tokenIndex).getDependencyGovernor() + firstSentenceToken - 1;
+                } while (governonTokenIndex >= mention.getTokenBeginOffset() &&
+                        governonTokenIndex < mention.getTokenEndOffset() &&
+                        document.getToken(tokenIndex).getDependencyGovernor() != 0);
+
+                return tokenIndex;
+            }
+        }
+        // If we wasn't able to find a head in a normal way, last token is usually head.
+        return mention.getTokenEndOffset() - 1;
+    }
 }
