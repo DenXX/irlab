@@ -114,9 +114,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         LinearClassifier<String, Integer> model =
                 RelationExtractorModelTrainer.train(trainDataset_.build());
         Dataset.RelationMentionsDataset testDataset = testDataset_.build();
+
         ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model, testDataset);
         Map<Pair<String, String>, Map<String, Double>> extractedTriples = new HashMap<>();
         Map<Pair<String, String>, Set<String>> triplesLabels = new HashMap<>();
+
         int index = 0;
         for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
             for (Dataset.Triple curTriple : instance.getTripleList()) {
@@ -141,17 +143,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 preds.getValue().remove("NONE");
             }
             for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
-                if (!pred.getKey().equals("NONE")) {
-                    if (triplesLabels.get(preds.getKey()).contains(pred.getKey())) {
-                        System.out.println((pred.getKey() + "\t" +
+                if (triplesLabels.get(preds.getKey()).contains(pred.getKey())) {
+                    System.out.println((pred.getKey() + "\t" +
+                            preds.getKey().first + "-" + preds.getKey().second + "\t"
+                            + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+                } else {
+                    for (String label : triplesLabels.get(preds.getKey())) {
+                        System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
                                 preds.getKey().first + "-" + preds.getKey().second + "\t"
                                 + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
-                    } else {
-                        for (String label : triplesLabels.get(preds.getKey())) {
-                            System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
-                                    preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                    + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
-                        }
                     }
                 }
             }
@@ -325,7 +325,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private boolean keepInstance(Dataset.RelationMentionInstanceOrBuilder mentionInstance, boolean isInTraining) {
         String label = mentionInstance.getLabel(0);
         if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
-            return !isInTraining || rnd_.nextFloat() > 0.95;
+            return rnd_.nextFloat() > 0.95;
         }
         return true;
     }
