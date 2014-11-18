@@ -282,7 +282,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
                 return subjectSpan_.getMention(currentSubjectMention).getSentenceIndex() ==
                         objectSpan_.getMention(currentObjectMention).getSentenceIndex() &&
-                        maxBegin - minEnd <= 10;
+                        maxBegin - minEnd <= 20;
             }
 
             @Override

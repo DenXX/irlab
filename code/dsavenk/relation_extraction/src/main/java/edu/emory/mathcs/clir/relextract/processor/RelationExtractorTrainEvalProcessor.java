@@ -143,14 +143,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
                 if (!pred.getKey().equals("NONE")) {
                     if (triplesLabels.get(preds.getKey()).contains(pred.getKey())) {
-                        System.out.println(pred.getKey() + "\t" +
+                        System.out.println((pred.getKey() + "\t" +
                                 preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                + pred.getKey() + "\t" + pred.getValue());
+                                + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
                     } else {
                         for (String label : triplesLabels.get(preds.getKey())) {
-                            System.out.println((label.isEmpty() ? "NONE" : label) + "\t" +
+                            System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
                                     preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                    + pred.getKey() + "\t" + pred.getValue());
+                                    + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
                         }
                     }
                 }
@@ -325,7 +325,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private boolean keepInstance(Dataset.RelationMentionInstanceOrBuilder mentionInstance, boolean isInTraining) {
         String label = mentionInstance.getLabel(0);
         if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
-            return rnd_.nextFloat() > 0.95;
+            return !isInTraining || rnd_.nextFloat() > 0.95;
         }
         return true;
     }

@@ -12,7 +12,7 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 
 //applicationDefaultJvmArgs = ["-Xmx30g"]
 
-applicationDefaultJvmArgs = ["-Xmx150g",
+applicationDefaultJvmArgs = ["-Xmx9g",
                              "-XX:+UseParallelGC",
                              "-XX:+UseParallelOldGC",
                              "-XX:+UseAdaptiveSizePolicy",

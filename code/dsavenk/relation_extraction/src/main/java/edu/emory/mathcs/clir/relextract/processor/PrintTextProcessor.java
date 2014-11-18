@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.Properties;
 
@@ -24,19 +25,28 @@ public class PrintTextProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(
             Document.NlpDocument document) throws Exception {
-        ++count;
-        if (document.getRelationCount() > 0) {
-//            System.out.println(document.getText());
-//            for (Document.Relation rel : document.getRelationList()) {
-//                System.out.println(document.getSpan(rel.getSubjectSpan()).getValue() + " [" +
-//                        document.getSpan(rel.getSubjectSpan()).getEntityId() + "] " +
-//                        " -- " + rel.getRelation() + " -- " +
-//                        document.getSpan(rel.getObjectSpan()).getValue() + " [" +
-//                        document.getSpan(rel.getObjectSpan()).getEntityId() + "]");
-//            }
-//            System.out.println("---------------------------------------------");
-            return document;
+        if (document.hasQuestionLength()) {
+            for (int i = 0; i < document.getSentenceCount(); ++i) {
+                int firstToken = document.getSentence(i).getFirstToken();
+                int lastToken = document.getSentence(i).getLastToken();
+                if (document.getToken(firstToken).getBeginCharOffset() >= document.getQuestionLength()) {
+                    break;
+                }
+                System.out.println(document.getSentence(i).getText().replace("\n", " "));
+                for (int j = firstToken; j < lastToken; ++j) {
+                    if (document.getToken(j).hasDependencyGovernor() &&
+                            document.getToken(j).getDependencyGovernor() == 0) {
+                        System.out.println("---> " + document.getToken(j).getText());
+                    }
+                    if (document.getToken(j).getPos().startsWith("VB")) {
+                        System.out.println("VB - " + document.getToken(j).getText() + "[" + document.getToken(j).getPos() + "]");
+                    } else if (document.getToken(j).getPos().startsWith("W")) {
+                        System.out.println("W - " + document.getToken(j).getText() + "[" + document.getToken(j).getPos() + "]");
+                    }
+                }
+            }
         }
+        System.out.println();
         return null;
     }
 
