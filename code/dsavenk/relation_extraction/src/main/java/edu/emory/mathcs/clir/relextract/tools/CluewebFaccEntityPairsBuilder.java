@@ -55,7 +55,7 @@ public class CluewebFaccEntityPairsBuilder {
                 if (!pairDist.containsKey(pair)) {
                     pairDist.put(pair, Math.abs(entities.get(i).first - entities.get(j).first));
                 } else {
-                    pairDist.put(pair, Math.min(pairDist.get(pair), Math.abs(entities.get(i).first - entities.get(j).first));
+                    pairDist.put(pair, Math.min(pairDist.get(pair), Math.abs(entities.get(i).first - entities.get(j).first)));
                 }
             }
         }
