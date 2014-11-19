@@ -230,11 +230,11 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
             }
 
             private boolean isMentionOk() {
-                int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention).getTokenEndOffset());
-                int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
+                // 2 Lines below can be used to check the distance between mentions, but we will ignore it for now.
+                //int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention).getTokenEndOffset());
+                //int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
                 return subjectSpan_.getMention(currentSubjectMention).getSentenceIndex() ==
-                        objectSpan_.getMention(currentObjectMention).getSentenceIndex() &&
-                        maxBegin - minEnd <= 20;
+                        objectSpan_.getMention(currentObjectMention).getSentenceIndex();
             }
 
             @Override

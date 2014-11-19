@@ -6,6 +6,7 @@ import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by dsavenk on 10/8/14.
@@ -81,8 +82,12 @@ public class EntityRelationsLookupProcessor extends Processor {
 //                                    relBuilder.setObjectSpan(objSpanIndex);
 //                                    relBuilder.setSubjectSpan(subjSpanIndex);
 //                                    relBuilder.setRelation(triple.predicate);
-//                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
-//                                    relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
+//                                    if (!subjMid.equals(subjSpan.getEntityId())) {
+//                                        relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
+//                                    }
+//                                    if (!objMid.equals(objSpan.getEntityId())) {
+//                                        relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
+//                                    }
 //                                    docBuilder.addRelation(relBuilder.build());
 //                                }
 
@@ -103,7 +108,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                                     if (!subjMid.equals(subjSpan.getEntityId())) {
                                         relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
                                     }
-                                    if (objMid.equals(objSpan.getEntityId())) {
+                                    if (!objMid.equals(objSpan.getEntityId())) {
                                         relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
                                     }
                                     docBuilder.addRelation(relBuilder.build());

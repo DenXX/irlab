@@ -151,50 +151,52 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
         private class QuestionAnswerRelationMentionIterator implements Iterator<Pair<Integer, Integer>> {
 
-            private int currentSubjectMention = 0;
-            private int currentObjectMention = -1;
-            private int questionTokens = 0;
+            private int currentSubjectMention_ = 0;
+            private int currentObjectMention_ = -1;
+            private int questionTokens_ = 0;
 
             public QuestionAnswerRelationMentionIterator() {
                 int questionSentencesCount = 0;
                 while (questionSentencesCount < document_.getSentenceCount() &&
-                        document_.getToken(document_.getSentence(questionSentencesCount).getFirstToken()).getBeginCharOffset() < document_.getQuestionLength()) {
+                        document_.getToken(
+                                document_.getSentence(questionSentencesCount)
+                                        .getFirstToken()).getBeginCharOffset()
+                                < document_.getQuestionLength()) {
                     ++questionSentencesCount;
                 }
-                questionTokens = document_.getSentence(questionSentencesCount - 1).getLastToken();
+                questionTokens_ = document_.getSentence(questionSentencesCount - 1).getLastToken();
                 findNextPair();
             }
 
             private boolean findNextPair() {
-                while (currentSubjectMention < subjectSpan_.getMentionCount()) {
-                    while (++currentObjectMention < objectSpan_.getMentionCount()) {
+                while (currentSubjectMention_ < subjectSpan_.getMentionCount()) {
+                    while (++currentObjectMention_ < objectSpan_.getMentionCount()) {
                         if (isMentionOk())
                             return true;
                     }
-                    currentObjectMention = -1;
-                    ++currentSubjectMention;
+                    currentObjectMention_ = -1;
+                    ++currentSubjectMention_;
                 }
                 return false;
             }
 
             private boolean isMentionOk() {
-                // One of the spans should be in the question.
-                return (subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset() < questionTokens &&
-                            objectSpan_.getMention(currentObjectMention).getTokenEndOffset() >= questionTokens) ||
-                       (subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset() < questionTokens &&
-                            objectSpan_.getMention(currentObjectMention).getTokenEndOffset() >= questionTokens);
+                // One of the spans should be in the question and the other in
+                // the answer.
+                return (subjectSpan_.getMention(currentSubjectMention_).getTokenEndOffset() < questionTokens_)
+                        != (objectSpan_.getMention(currentObjectMention_).getTokenEndOffset() < questionTokens_);
             }
 
             @Override
             public boolean hasNext() {
-                return currentSubjectMention < subjectSpan_.getMentionCount() &&
-                        currentObjectMention < objectSpan_.getMentionCount();
+                return currentSubjectMention_ < subjectSpan_.getMentionCount() &&
+                        currentObjectMention_ < objectSpan_.getMentionCount();
             }
 
             @Override
             public Pair<Integer, Integer> next() {
                 Pair<Integer, Integer> pair =
-                        new Pair<>(currentSubjectMention, currentObjectMention);
+                        new Pair<>(currentSubjectMention_, currentObjectMention_);
                 findNextPair();
                 return pair;
             }

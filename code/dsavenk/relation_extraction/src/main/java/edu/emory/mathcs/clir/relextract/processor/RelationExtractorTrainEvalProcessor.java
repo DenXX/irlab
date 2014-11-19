@@ -35,6 +35,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public static final String MODEL_OUTFILE_PARAMETER = "model_file";
 
     /**
+     * The name of the parameter to specify whether we need to split all
+     * triples into 2 parts for training and validation.
+     */
+    public static final String SPLIT_TRAIN_TEST_TRIPLES_PARAMETER = "split_triples";
+
+    /**
      * A label that means that there is no relations between the given entities.
      */
     public static final String NO_RELATIONS_LABEL = "NONE";
@@ -44,10 +50,16 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * but it was not one of the active predicates.
      */
     public static final String OTHER_RELATIONS_LABEL = "OTHER";
+
+    public static final int TRAIN_SIZE_FROM_100 = 75;
+
+    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.95f;
+
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
     private final String datasetOutFilename_;
     private final String modelFilename_;
+    private final boolean splitTrainTestTriples_;
     private ConcurrentMap<String, Integer> featureAlphabet_ =
             new ConcurrentHashMap<>();
     private Dataset.RelationMentionsDataset.Builder trainDataset_ =
@@ -70,6 +82,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 properties.getProperty(PREDICATES_LIST_PARAMETER)));
         datasetOutFilename_ = properties.getProperty(DATASET_OUTFILE_PARAMETER);
         modelFilename_ = properties.getProperty(MODEL_OUTFILE_PARAMETER);
+
+        // Whether to split all triples into 2 sets for training and testing.
+        if (properties.containsKey(SPLIT_TRAIN_TEST_TRIPLES_PARAMETER)) {
+            splitTrainTestTriples_ = Boolean.parseBoolean(
+                    properties.getProperty(SPLIT_TRAIN_TEST_TRIPLES_PARAMETER));
+        } else {
+            splitTrainTestTriples_ = true;
+        }
     }
 
     /**
@@ -173,11 +193,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     protected void processSpans(Document.NlpDocument document) {
         // Decide where this document is going to go = training of testing.
         boolean isInTraining = document.hasDocId()
-                ? (document.getDocId().hashCode() % 10) < 8
-                : (document.getText().hashCode()) % 10 < 8;
+                ? (document.getDocId().hashCode() % 100) < TRAIN_SIZE_FROM_100
+                : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
         Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
-                getSpanPairLabels(document, isInTraining);
+                getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
 
         int subjSpanIndex = -1;
         for (Document.Span subjSpan : document.getSpanList()) {
@@ -192,15 +212,36 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         List<Document.Relation> labels = spans2Labels.get(
                                 new Pair<>(subjSpanIndex, objSpanIndex));
 
-                        // We don't want too many noisy negative examples.
-                        if (labels == null &&
-                                (subjSpan.getType().equals("OTHER")
-                                        || objSpan.getType().equals("OTHER"))) {
-                            continue;
+                        List<String> activeLabels = new ArrayList<>();
+                        if (labels != null) {
+                            for (Document.Relation label : labels) {
+                                if (isPredicateActive(label.getRelation())) {
+                                    activeLabels.add(label.getRelation());
+                                }
+                            }
+                        } else {
+                            activeLabels.add(NO_RELATIONS_LABEL);
                         }
+
+                        // TODO(denxx): This is not correct,
+                        // we need to use entityIdIndex, but
+                        // currently it is incorrect in the
+                        // document.
+                        String objectId = objSpan.hasEntityId() ?
+                                objSpan.getEntityId() :
+                                objSpan.getValue();
 
                         for (Pair<Integer, Integer> mentionPair :
                                 getRelationMentionsIterator(document, subjSpan, objSpan)) {
+
+                            // Do we want to keep this instance, or it should be
+                            // removed.
+                            if (!keepInstance(subjSpan, mentionPair.first,
+                                    objSpan, mentionPair.second,
+                                    activeLabels, isInTraining)) {
+                                continue;
+                            }
+
                             Dataset.RelationMentionInstance.Builder mentionInstance =
                                     Dataset.RelationMentionInstance.newBuilder();
 
@@ -215,79 +256,36 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                             mentionPair.first, objSpan,
                                             mentionPair.second));
 
-                            boolean foundActivePredicate = false;
-                            if (labels != null) {
-                                for (Document.Relation label : labels) {
-                                    if (isPredicateActive(label.getRelation())) {
-                                        mentionInstance.addLabel(label.getRelation());
+                            for (String label : activeLabels) {
+                                mentionInstance.addLabel(label);
 
-                                        // TODO(denxx): This is not correct,
-                                        // we need to use entityIdIndex, but
-                                        // currently it is incorrect in the
-                                        // document.
-                                        String objectId = objSpan.hasEntityId() ?
-                                                objSpan.getEntityId() :
-                                                objSpan.getValue();
-
-                                        mentionInstance.addTripleBuilder()
-                                                .setSubject(subjSpan.getEntityId())
-                                                .setObject(objectId)
-                                                .setPredicate(label.getRelation());
-                                        foundActivePredicate = true;
-                                    }
-                                }
-                            }
-                            // If we didn't find any labels to add we should add
-                            // none or other label.
-                            if (!foundActivePredicate) {
-                                if (labels == null || labels.size() == 0) {
-                                    mentionInstance.addLabel(NO_RELATIONS_LABEL);
-                                } else {
-                                    mentionInstance.addLabel(OTHER_RELATIONS_LABEL);
-                                }
-
-                                // We still want to set subject and object and
-                                // keep relation empty, so we can use this
-                                // information for aggregation instead of
-                                // looking through original document.
-                                String objectId = objSpan.hasEntityId()
-                                        ? objSpan.getEntityId()
-                                        : objSpan.getValue();
-
+                                // TODO(denxx): This is not correct,
+                                // we need to use entityIdIndex, but
+                                // currently it is incorrect in the
+                                // document.
                                 mentionInstance.addTripleBuilder()
                                         .setSubject(subjSpan.getEntityId())
-                                        .setObject(objectId);
+                                        .setObject(objectId)
+                                        .setPredicate(label);
                             }
 
-                            if (keepInstance(document, mentionInstance, isInTraining)) {
+                            // Get ids of all features and add them to the
+                            // instance.
+                            List<String> features = generateFeatures(document,
+                                    subjSpan, mentionPair.first,
+                                    objSpan, mentionPair.second);
+                            for (String feature : features) {
+                                mentionInstance.addFeatureId(
+                                        getFeatureId(feature));
+                            }
 
-                                // Get ids of all features and add them to the
-                                // instance.
-                                List<String> features = generateFeatures(document,
-                                        subjSpan, mentionPair.first,
-                                        objSpan, mentionPair.second);
-                                for (String feature : features) {
-                                    mentionInstance.addFeatureId(
-                                            getFeatureId(feature));
+                            if (isInTraining) {
+                                synchronized (trainDataset_) {
+                                    trainDataset_.addInstance(mentionInstance);
                                 }
-
-//                            System.out.println("\n\n--------------------------");
-//                            System.out.println(mentionInstance.getMentionText().replace("\n", " "));
-//                            System.out.println("SUBJ: " + subjSpan.getText() + "[" + subjSpan.getEntityId() + "]");
-//                            System.out.println("OBJ: " + objSpan.getText() + "[" + objSpan.getEntityId() + "]");
-//                            System.out.println("Label: " + mentionInstance.getLabel(0));
-//                            for (String featureId : features) {
-//                                System.out.println(featureId);
-//                            }
-
-                                if (isInTraining) {
-                                    synchronized (trainDataset_) {
-                                        trainDataset_.addInstance(mentionInstance);
-                                    }
-                                } else {
-                                    synchronized (testDataset_) {
-                                        testDataset_.addInstance(mentionInstance);
-                                    }
+                            } else {
+                                synchronized (testDataset_) {
+                                    testDataset_.addInstance(mentionInstance);
                                 }
                             }
                         }
@@ -298,22 +296,27 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     }
 
     private Map<Pair<Integer, Integer>, List<Document.Relation>>
-    getSpanPairLabels(Document.NlpDocument document, boolean isInTraining) {
+        getSpanPairLabels(Document.NlpDocument document, boolean isInTraining, boolean splitTriples) {
+
         // Store a mapping from a pair of spans to their relation.
         Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
                 new HashMap<>();
         for (Document.Relation rel : document.getRelationList()) {
             Document.Span objSpan = document.getSpan(rel.getObjectSpan());
             String triple = document.getSpan(rel.getSubjectSpan()).getEntityId() +
-                    rel.getRelation() + (objSpan.getType().equals("MEASURE")
+                    rel.getRelation()
+                    + (objSpan.getType().equals("MEASURE")
                     ? objSpan.getValue()
                     : objSpan.getEntityId());
+            // Take positive hashCode of the triple and use it.
             int strTripleHash = triple.hashCode() & 0x7FFFFFFF;
 
-            if ((isInTraining && strTripleHash % 2 == 0)
-                    || (!isInTraining && strTripleHash % 2 != 0)) {
-                Pair<Integer, Integer> spans = new Pair<>(rel.getSubjectSpan(),
-                        rel.getObjectSpan());
+            // We include the label if we don't need to split triples for
+            // training and test or if hash parity is appropriate.
+            if (!splitTriples
+                    || isInTraining == (strTripleHash % 2 == 0)) {
+                Pair<Integer, Integer> spans =
+                        new Pair<>(rel.getSubjectSpan(), rel.getObjectSpan());
                 if (!spans2Labels.containsKey(spans)) {
                     spans2Labels.put(spans, new LinkedList<Document.Relation>());
                 }
@@ -323,20 +326,19 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         return spans2Labels;
     }
 
-    private boolean keepInstance(Document.NlpDocument document,
-                                 Dataset.RelationMentionInstanceOrBuilder mentionInstance,
+    private boolean keepInstance(Document.Span subjSpan, Integer subjMention,
+                                 Document.Span objSpan, Integer objMention,
+                                 List<String> activeLabels,
                                  boolean isInTraining) {
         if (isInTraining) {
-            String label = mentionInstance.getLabel(0);
-            if (OTHER_RELATIONS_LABEL.equals(label) || NO_RELATIONS_LABEL.equals(label)) {
-                return rnd_.nextFloat() > 0.95;
-            }
-            return true;
+            boolean hasRel = !activeLabels.get(0).equals(NO_RELATIONS_LABEL) &&
+                    !activeLabels.get(0).equals(OTHER_RELATIONS_LABEL);
+            return hasRel || rnd_.nextFloat() > NEGATIVE_SUBSAMPLE_RATE;
         } else {
-            String subjType = document.getSpan(mentionInstance.getSubjSpan()).getMention(mentionInstance.getSubjMention()).getMentionType();
-            String objType = document.getSpan(mentionInstance.getObjSpan()).getMention(mentionInstance.getObjMention()).getMentionType();
-            return (subjType.equals("NOMINAL") || subjType.equals("PRONOMINAL")) &&
-                    (objType.equals("NOMINAL") || objType.equals("PRONOMINAL"));
+            String subjMentionType = subjSpan.getMention(subjMention).getMentionType();
+            String objMentionType = objSpan.getMention(objMention).getMentionType();
+            return (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
+                    (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
         }
     }
 
@@ -391,7 +393,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * @return Iterable over mention spans.
      */
     protected abstract Iterable<Pair<Integer, Integer>>
-    getRelationMentionsIterator(Document.NlpDocument document,
+        getRelationMentionsIterator(Document.NlpDocument document,
                                 Document.Span subjSpan,
                                 Document.Span objSpan);
 
@@ -419,8 +421,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                              Document.Span objSpan) {
         return (objSpan.hasEntityId() &&
                 objSpan.getEntityId() != subjSpan.getEntityId())
-                || (objSpan.getType().equals("MEASURE") &&
-                (objSpan.getNerType().equals("DATE")
-                        || objSpan.getNerType().equals("TIME")));
+                || (objSpan.getType().equals("MEASURE")
+                    && (objSpan.getNerType().equals("DATE")
+                    || objSpan.getNerType().equals("TIME")));
     }
 }
