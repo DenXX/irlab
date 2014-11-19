@@ -89,6 +89,9 @@ public class RelationExtractionApp {
                 case "test":
                     workflow.addProcessor(new TestProcessor(props));
                     break;
+                case "dumptriples":
+                    workflow.addProcessor(new TriplesDumpProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");

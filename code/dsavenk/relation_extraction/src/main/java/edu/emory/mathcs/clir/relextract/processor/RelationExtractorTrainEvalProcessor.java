@@ -35,6 +35,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public static final String MODEL_OUTFILE_PARAMETER = "model_file";
 
     /**
+     * The name of the parameter that stores the name of a file with model to
+     * apply.
+     */
+    public static final String MODEL_PARAMETER = "model";
+
+    /**
      * The name of the parameter to specify whether we need to split all
      * triples into 2 parts for training and validation.
      */
@@ -73,6 +79,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             Dataset.RelationMentionsDataset.newBuilder();
     private Dataset.RelationMentionsDataset.Builder testDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
+    private LinearClassifier<String, Integer> model_ = null;
 
     private Random rnd_ = new Random(42);
 
@@ -102,6 +109,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             mentionTypes_ = properties.getProperty(TYPES_OF_MENTIONS_TO_KEEP_PARAMETER).split(",");
         } else {
             mentionTypes_ = null;
+        }
+
+        if (properties.containsKey(MODEL_PARAMETER)) {
+            model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_PARAMETER));
         }
     }
 
@@ -144,13 +155,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             testDataset_.addLabel(label);
         }
 
-        LinearClassifier<String, Integer> model =
-                RelationExtractorModelTrainer.train(trainDataset_.build());
-        LinearClassifier.writeClassifier(model, modelFilename_);
+        model_ = RelationExtractorModelTrainer.train(trainDataset_.build());
+        LinearClassifier.writeClassifier(model_, modelFilename_);
 
         Dataset.RelationMentionsDataset testDataset = testDataset_.build();
 
-        ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model, testDataset);
+        ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
         Map<Pair<String, String>, Map<String, Double>> extractedTriples = new HashMap<>();
         Map<Pair<String, String>, Set<String>> triplesLabels = new HashMap<>();
 
@@ -299,21 +309,22 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                         getFeatureId(feature));
                             }
 
-                            if (isInTraining) {
-                                synchronized (trainDataset_) {
-                                    trainDataset_.addInstance(mentionInstance);
-                                }
-                            } else {
-                                synchronized (testDataset_) {
-                                    System.out.println(mentionInstance.getMentionText().replace("\n", " "));
-                                    System.out.println(document.getSpan(mentionInstance.getSubjSpan()).getMention(mentionInstance.getSubjMention()).getText());
-                                    System.out.println(document.getSpan(mentionInstance.getObjSpan()).getMention(mentionInstance.getObjMention()).getText());
-                                    testDataset_.addInstance(mentionInstance);
-                                }
-                            }
+                            processRelationMentionInstance(document, isInTraining, mentionInstance);
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void processRelationMentionInstance(Document.NlpDocument document, boolean isInTraining, Dataset.RelationMentionInstance.Builder mentionInstance) {
+        if (isInTraining) {
+            synchronized (trainDataset_) {
+                trainDataset_.addInstance(mentionInstance);
+            }
+        } else {
+            synchronized (testDataset_) {
+                testDataset_.addInstance(mentionInstance);
             }
         }
     }

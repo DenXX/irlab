@@ -100,6 +100,10 @@ public class AppParameters {
                 .withArgName(EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER)
                 .withDescription("File with the list of CVT predicates to use.").create(
                         EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_PARAMETER)
+                .withDescription("File with serialized model to apply").create(
+                        RelationExtractorTrainEvalProcessor.MODEL_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
