@@ -13,6 +13,7 @@ import java.util.zip.GZIPInputStream;
  */
 public class CluewebFaccEntityPairsBuilder {
 
+    private static Set<String> yaUrl = new HashSet<>();
     private static Map<Pair<String, String>, Integer> pairDist = new HashMap<>();
 
     public static void processTgzFile(String tgzFileName) throws IOException {
@@ -29,6 +30,7 @@ public class CluewebFaccEntityPairsBuilder {
                 while ((line = tgzReader.readLine()) != null) {
                     String[] fields = line.split("\t");
                     String filename = fields[0];
+                    if (yaUrl.contains(filename)) continue;
                     int beginOffset = Integer.parseInt(fields[3]);
                     String mid = fields[7];
                     if (!filename.equals(lastFilename)) {
@@ -63,8 +65,16 @@ public class CluewebFaccEntityPairsBuilder {
 
     public static void main(String[] args) {
         try {
+            BufferedReader input = new BufferedReader(new FileReader(args[0]));
+            String line;
+            while ((line = input.readLine()) != null) {
+                yaUrl.add(line.split(",")[0]);
+            }
+            boolean first = true;
             for (String inputFile : args) {
-                processTgzFile(inputFile);
+                if (!first)
+                    processTgzFile(inputFile);
+                first = false;
             }
         } catch (IOException exc) {
             System.err.println(exc.getMessage());
