@@ -88,6 +88,14 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.MODEL_OUTFILE_PARAMETER)
                 .withDescription("Name of the file to output trained model.").create(
                         RelationExtractorTrainEvalProcessor.MODEL_OUTFILE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.SPLIT_TRAIN_TEST_TRIPLES_PARAMETER)
+                .withDescription("True or False - whether to split triples into sets for training and test.").create(
+                        RelationExtractorTrainEvalProcessor.SPLIT_TRAIN_TEST_TRIPLES_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.TYPES_OF_MENTIONS_TO_KEEP_PARAMETER)
+                .withDescription("Types of mentions to keep for training and testing.").create(
+                        RelationExtractorTrainEvalProcessor.TYPES_OF_MENTIONS_TO_KEEP_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

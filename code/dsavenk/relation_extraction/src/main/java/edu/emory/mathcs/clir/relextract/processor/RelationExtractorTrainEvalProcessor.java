@@ -41,6 +41,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public static final String SPLIT_TRAIN_TEST_TRIPLES_PARAMETER = "split_triples";
 
     /**
+     * The name of the parameter to specify whether we need to split all
+     * triples into 2 parts for training and validation.
+     */
+    public static final String TYPES_OF_MENTIONS_TO_KEEP_PARAMETER = "mention_types";
+
+    /**
      * A label that means that there is no relations between the given entities.
      */
     public static final String NO_RELATIONS_LABEL = "NONE";
@@ -59,6 +65,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private final Set<String> predicates_;
     private final String datasetOutFilename_;
     private final String modelFilename_;
+    private final String[] mentionTypes_;
     private final boolean splitTrainTestTriples_;
     private ConcurrentMap<String, Integer> featureAlphabet_ =
             new ConcurrentHashMap<>();
@@ -89,6 +96,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     properties.getProperty(SPLIT_TRAIN_TEST_TRIPLES_PARAMETER));
         } else {
             splitTrainTestTriples_ = true;
+        }
+
+        if (properties.containsKey(TYPES_OF_MENTIONS_TO_KEEP_PARAMETER)) {
+            mentionTypes_ = properties.getProperty(TYPES_OF_MENTIONS_TO_KEEP_PARAMETER).split(",");
+        } else {
+            mentionTypes_ = null;
         }
     }
 
@@ -330,15 +343,30 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                  Document.Span objSpan, Integer objMention,
                                  List<String> activeLabels,
                                  boolean isInTraining) {
+        String subjMentionType = subjSpan.getMention(subjMention).getMentionType();
+        String objMentionType = objSpan.getMention(objMention).getMentionType();
+        boolean subjTypeOk = mentionTypes_ == null;
+        boolean objTypeOk = mentionTypes_ == null;
+        if (mentionTypes_ != null) {
+            for (String type : mentionTypes_) {
+                if (subjMentionType.equals(type)) subjTypeOk = true;
+                if (objMentionType.equals(type)) objTypeOk = true;
+            }
+        }
+
         if (isInTraining) {
             boolean hasRel = !activeLabels.get(0).equals(NO_RELATIONS_LABEL) &&
                     !activeLabels.get(0).equals(OTHER_RELATIONS_LABEL);
-            return hasRel || rnd_.nextFloat() > NEGATIVE_SUBSAMPLE_RATE;
+            return subjTypeOk && objTypeOk && (hasRel || rnd_.nextFloat() > NEGATIVE_SUBSAMPLE_RATE);
         } else {
-            String subjMentionType = subjSpan.getMention(subjMention).getMentionType();
-            String objMentionType = objSpan.getMention(objMention).getMentionType();
-            return (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
-                    (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
+            // If mention types are specified as command line parameter, we will
+            // use them, otherwise using nominal, pronomial and values.
+            if (mentionTypes_ == null) {
+                return (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
+                        (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
+            } else {
+                return subjTypeOk && objTypeOk;
+            }
         }
     }
 
