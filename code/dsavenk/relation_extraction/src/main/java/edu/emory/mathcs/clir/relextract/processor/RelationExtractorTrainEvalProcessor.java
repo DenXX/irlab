@@ -57,7 +57,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     public static final String OTHER_RELATIONS_LABEL = "OTHER";
 
-    public static final int TRAIN_SIZE_FROM_100 = 75;
+    public static final int TRAIN_SIZE_FROM_100 = 80;
 
     private static final float NEGATIVE_SUBSAMPLE_RATE = 0.95f;
 
@@ -366,11 +366,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             // If mention types are specified as command line parameter, we will
             // use them, otherwise using nominal, pronomial and values.
+            boolean subjSpanOk = subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
+            boolean objSpanOk = objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
             if (mentionTypes_ == null) {
-                return (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
+                return subjSpanOk && objSpanOk && (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
                         (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
             } else {
-                return subjTypeOk && objTypeOk;
+                return subjSpanOk && objSpanOk && subjTypeOk && objTypeOk;
             }
         }
     }
