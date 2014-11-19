@@ -232,8 +232,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     activeLabels.add(label.getRelation());
                                 }
                             }
-                        } else {
-                            activeLabels.add(NO_RELATIONS_LABEL);
+                        }
+                        if (activeLabels.size() == 0) {
+                            if (labels == null) {
+                                activeLabels.add(NO_RELATIONS_LABEL);
+                            } else {
+                                activeLabels.add(OTHER_RELATIONS_LABEL);
+                            }
                         }
 
                         // TODO(denxx): This is not correct,
