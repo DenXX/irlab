@@ -57,7 +57,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     public static final String OTHER_RELATIONS_LABEL = "OTHER";
 
-    public static final int TRAIN_SIZE_FROM_100 = 80;
+    public static final int TRAIN_SIZE_FROM_100 = 75;
 
     private static final float NEGATIVE_SUBSAMPLE_RATE = 0.95f;
 
@@ -146,6 +146,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         LinearClassifier<String, Integer> model =
                 RelationExtractorModelTrainer.train(trainDataset_.build());
+        LinearClassifier.writeClassifier(model, modelFilename_);
+
         Dataset.RelationMentionsDataset testDataset = testDataset_.build();
 
         ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model, testDataset);
@@ -303,6 +305,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 }
                             } else {
                                 synchronized (testDataset_) {
+                                    System.out.println(mentionInstance.getMentionText().replace("\n", " "));
+                                    System.out.println(document.getSpan(mentionInstance.getSubjSpan()).getMention(mentionInstance.getSubjMention()).getText());
+                                    System.out.println(document.getSpan(mentionInstance.getObjSpan()).getMention(mentionInstance.getObjMention()).getText());
                                     testDataset_.addInstance(mentionInstance);
                                 }
                             }
