@@ -132,6 +132,37 @@ public class KnowledgeBase {
                 model_.getResource(convertFreebaseMidRdf(object)));
     }
 
+    /**
+     * Returns iterator to all statements between the given subject and object.
+     *
+     * @param subject Subject entity id.
+     * @param object  Object (maybe entity or literal).
+     * @return Iterator to all the triples between the given arguments.
+     */
+    public Set<Triple> getSubjectObjectTriples(String subject, String object, List<Pair<String, String>> cvtPredicates) {
+        Set<Triple> res = new HashSet<>();
+        StmtIterator iter = getSubjectObjectTriples(subject, object);
+        while (iter.hasNext()) {
+            res.add(new Triple(iter.nextStatement()));
+        }
+
+        if (cvtPredicates != null) {
+            for (Pair<String, String> cvtPred : cvtPredicates) {
+                iter = getSubjectPredicateTriples(subject, cvtPred.first);
+                while (iter.hasNext()) {
+                    Statement t = iter.nextStatement();
+                    StmtIterator iter2 = getSubjectObjectTriples(t.getSubject().getLocalName(), object);
+                    while (iter2.hasNext()) {
+                        Statement t2 = iter2.nextStatement();
+                        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> FOUND");
+                        res.add(new Triple(subject, t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName(), object));
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
 
     /**
      * Constructs and runs a SPARQL query to get all paths between 2 entities

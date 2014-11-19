@@ -4,7 +4,14 @@ import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
+import edu.stanford.nlp.util.Pair;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -13,9 +20,13 @@ import java.util.Set;
  */
 public class EntityRelationsLookupProcessor extends Processor {
 
+    public static final String CVT_PREDICATES_LIST_PARAMETER = "cvt";
+
     private final int MAX_ENTITY_IDS_COUNT = 0;
 
     private final KnowledgeBase kb_;
+
+    private final List<Pair<String, String>> cvtProperties_;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -24,9 +35,21 @@ public class EntityRelationsLookupProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public EntityRelationsLookupProcessor(Properties properties) {
+    public EntityRelationsLookupProcessor(Properties properties) throws IOException {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
+        if (properties.containsKey(CVT_PREDICATES_LIST_PARAMETER)) {
+            cvtProperties_ = new ArrayList<>();
+            BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(CVT_PREDICATES_LIST_PARAMETER)));
+            String line;
+            while ((line = input.readLine()) != null) {
+                String[] parts = line.split("\\.");
+                cvtProperties_.add(new Pair<>(parts[0].substring(1).replaceAll("/", "."),
+                        parts[1].substring(1).replaceAll("/", ".")));
+            }
+        } else {
+            cvtProperties_ = null;
+        }
     }
 
     @Override
@@ -91,12 +114,9 @@ public class EntityRelationsLookupProcessor extends Processor {
 //                                    docBuilder.addRelation(relBuilder.build());
 //                                }
 
-                                iter = kb_.getSubjectObjectTriples(subjMid, objMid);
+                                Set<KnowledgeBase.Triple> triples = kb_.getSubjectObjectTriples(subjMid, objMid, cvtProperties_);
                                 // Now iterate over all triples and add them as annotations.
-                                while (iter != null && iter.hasNext()) {
-                                    Statement tripleSt = iter.nextStatement();
-                                    KnowledgeBase.Triple triple =
-                                            new KnowledgeBase.Triple(tripleSt);
+                                for (KnowledgeBase.Triple triple : triples) {
                                     Document.Relation.Builder relBuilder =
                                             Document.Relation.newBuilder();
                                     relBuilder.setObjectSpan(objSpanIndex);

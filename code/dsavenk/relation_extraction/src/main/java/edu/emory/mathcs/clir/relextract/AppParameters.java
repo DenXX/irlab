@@ -96,6 +96,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.TYPES_OF_MENTIONS_TO_KEEP_PARAMETER)
                 .withDescription("Types of mentions to keep for training and testing.").create(
                         RelationExtractorTrainEvalProcessor.TYPES_OF_MENTIONS_TO_KEEP_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER)
+                .withDescription("File with the list of CVT predicates to use.").create(
+                        EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
