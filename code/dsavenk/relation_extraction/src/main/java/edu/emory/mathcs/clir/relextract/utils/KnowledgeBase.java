@@ -151,11 +151,13 @@ public class KnowledgeBase {
                 iter = getSubjectPredicateTriples(subject, cvtPred.first);
                 while (iter.hasNext()) {
                     Statement t = iter.nextStatement();
-                    StmtIterator iter2 = getSubjectObjectTriples(t.getSubject().getLocalName(), object);
-                    while (iter2.hasNext()) {
-                        Statement t2 = iter2.nextStatement();
-                        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> FOUND");
-                        res.add(new Triple(subject, t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName(), object));
+                    if (t.getObject().isResource()) {
+                        StmtIterator iter2 = getSubjectObjectTriples(t.getObject().asResource().getLocalName(), object);
+                        while (iter2.hasNext()) {
+                            Statement t2 = iter2.nextStatement();
+                            System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> FOUND: " + subject + " " + t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName() + " " + object);
+                            res.add(new Triple(subject, t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName(), object));
+                        }
                     }
                 }
             }
