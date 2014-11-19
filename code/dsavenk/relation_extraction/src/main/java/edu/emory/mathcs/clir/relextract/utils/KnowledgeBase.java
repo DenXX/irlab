@@ -155,7 +155,6 @@ public class KnowledgeBase {
                         StmtIterator iter2 = getSubjectObjectTriples(t.getObject().asResource().getLocalName(), object);
                         while (iter2.hasNext()) {
                             Statement t2 = iter2.nextStatement();
-                            System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> FOUND: " + subject + " " + t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName() + " " + object);
                             res.add(new Triple(subject, t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName(), object));
                         }
                     }
