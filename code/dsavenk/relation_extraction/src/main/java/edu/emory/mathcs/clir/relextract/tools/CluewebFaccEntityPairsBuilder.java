@@ -13,6 +13,8 @@ import java.util.zip.GZIPInputStream;
  */
 public class CluewebFaccEntityPairsBuilder {
 
+    private static Map<Pair<String, String>, Integer> pairDist = new HashMap<>();
+
     public static void processTgzFile(String tgzFileName) throws IOException {
         TarArchiveInputStream tarInput =
                 new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(tgzFileName)));
@@ -49,7 +51,12 @@ public class CluewebFaccEntityPairsBuilder {
                 if (i == j ||
                         entities.get(i).second.equals(
                                 entities.get(j).second)) continue;
-                System.out.println(entities.get(i).second + "\t" + entities.get(j).second + "\t" + (entities.get(i).first - entities.get(j).first));
+                Pair<String, String> pair = new Pair<>(entities.get(i).second, entities.get(j).second);
+                if (!pairDist.containsKey(pair)) {
+                    pairDist.put(pair, Math.abs(entities.get(i).first - entities.get(j).first));
+                } else {
+                    pairDist.put(pair, Math.min(pairDist.get(pair), Math.abs(entities.get(i).first - entities.get(j).first));
+                }
             }
         }
     }
@@ -61,6 +68,13 @@ public class CluewebFaccEntityPairsBuilder {
             }
         } catch (IOException exc) {
             System.err.println(exc.getMessage());
+        }
+        outputEntityPairs();
+    }
+
+    private static void outputEntityPairs() {
+        for (Map.Entry<Pair<String, String>, Integer> entityPair : pairDist.entrySet()) {
+            System.out.println(entityPair.getKey().first + "\t" + entityPair.getKey().second + "\t" + entityPair.getValue());
         }
     }
 }
