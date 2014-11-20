@@ -24,10 +24,9 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //                             "-XX:+UseConcMarkSweepGC",
 //                             "-XX:PermSize=20g"]
 
-applicationDefaultJvmArgs = ["-Xmx7g",
-                             "-XX:+UseParallelGC",
-                             "-XX:+UseParallelOldGC",
-                             "-XX:+UseAdaptiveSizePolicy"]
+applicationDefaultJvmArgs = ["-Xmx100g",
+                             "-XX:+UseParNewGC",
+                             "-XX:+UseConcMarkSweepGC"]
 
 repositories {
     mavenCentral()
