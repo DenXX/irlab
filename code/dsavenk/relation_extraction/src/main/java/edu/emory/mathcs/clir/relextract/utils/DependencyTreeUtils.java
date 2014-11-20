@@ -124,7 +124,8 @@ public class DependencyTreeUtils {
 //                    }
                     tokenIndex = governonTokenIndex;
                     governonTokenIndex = document.getToken(tokenIndex).getDependencyGovernor() + firstSentenceToken - 1;
-                } while (governonTokenIndex >= mention.getTokenBeginOffset() &&
+                } while (governonTokenIndex != tokenIndex &&
+                        governonTokenIndex >= mention.getTokenBeginOffset() &&
                         governonTokenIndex < mention.getTokenEndOffset() &&
                         document.getToken(tokenIndex).getDependencyGovernor() != 0);
 

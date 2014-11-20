@@ -221,6 +221,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 ? (document.getDocId().hashCode() % 100) < TRAIN_SIZE_FROM_100
                 : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
+        if (!isInTraining) return;
+
         Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
                 getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
 
