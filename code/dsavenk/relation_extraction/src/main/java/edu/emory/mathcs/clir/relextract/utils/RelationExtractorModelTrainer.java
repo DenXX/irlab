@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.utils;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.util.Pair;
@@ -46,33 +47,25 @@ public class RelationExtractorModelTrainer {
     }
 
     private static edu.stanford.nlp.classify.Dataset<String, Integer>
-    convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
+        convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
         edu.stanford.nlp.classify.Dataset<String, Integer> res =
                 new edu.stanford.nlp.classify.Dataset<>();
-
-        Map<String, Integer> counts = new HashMap<>();
-
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
             if (ignoreLabels) {
                 res.add(instance.getFeatureIdList(), "", true);
             } else {
                 for (String label : instance.getLabelList()) {
                     res.add(instance.getFeatureIdList(), label, true);
-                    if (!counts.containsKey(label)) {
-                        counts.put(label, 1);
-                    } else {
-                        counts.put(label, counts.get(label) + 1);
-                    }
                 }
             }
         }
 
-        for (Map.Entry<String, Integer> e : counts.entrySet()) {
-            System.out.println(e.getKey() + ": " + e.getValue());
-        }
-        System.out.println("----------------------------");
-
         return res;
+    }
+
+    private static Datum<String, Integer> convertTestInstance(
+            Dataset.RelationMentionInstance instance) {
+        return new BasicDatum<>(instance.getFeatureIdList(), "");
     }
 
     public static ArrayList<Pair<String, Double>> eval(LinearClassifier<String, Integer> model,
@@ -93,5 +86,20 @@ public class RelationExtractorModelTrainer {
             res.add(new Pair<>(bestLabel, bestScore));
         }
         return res;
+    }
+
+    public static Pair<String, Double> eval(LinearClassifier<String, Integer> model,
+                                            Dataset.RelationMentionInstance testInstance) {
+        Datum<String, Integer> example = convertTestInstance(testInstance);
+        Counter<String> predictions = model.probabilityOf(example);
+        double bestScore = predictions.getCount("NONE");
+        String bestLabel = "NONE";
+        for (Map.Entry<String, Double> pred : predictions.entrySet()) {
+            if (pred.getValue() > bestScore) {
+                bestScore = pred.getValue();
+                bestLabel = pred.getKey();
+            }
+        }
+        return new Pair<>(bestLabel, bestScore);
     }
 }

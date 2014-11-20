@@ -65,7 +65,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final int TRAIN_SIZE_FROM_100 = 75;
 
-    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.95f;
+    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.995f;
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -80,6 +80,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private Dataset.RelationMentionsDataset.Builder testDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
     private LinearClassifier<String, Integer> model_ = null;
+    private ConcurrentMap<Pair<String, String>, Map<String, Double>> extractedTriples_ = new ConcurrentHashMap<>();
+    private ConcurrentMap<Pair<String, String>, Set<String>> triplesLabels_ = new ConcurrentHashMap<>();
+
 
     private Random rnd_ = new Random(42);
 
@@ -136,64 +139,54 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     @Override
     public void finishProcessing() throws Exception {
-        for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
-            trainDataset_.addFeatureBuilder().setId(feature.getValue())
-                    .setName(feature.getKey());
-            testDataset_.addFeatureBuilder().setId(feature.getValue())
-                    .setName(feature.getKey());
-        }
-
-        // Add all possible labels.
-        trainDataset_.addLabel(NO_RELATIONS_LABEL);
-        trainDataset_.addLabel(OTHER_RELATIONS_LABEL);
-        testDataset_.addLabel(NO_RELATIONS_LABEL);
-        testDataset_.addLabel(OTHER_RELATIONS_LABEL);
-
-        // We construct hash map to make sure labels are unique.
-        for (String label : new HashSet<>(predicates_)) {
-            trainDataset_.addLabel(label);
-            testDataset_.addLabel(label);
-        }
-
-        model_ = RelationExtractorModelTrainer.train(trainDataset_.build());
-        LinearClassifier.writeClassifier(model_, modelFilename_);
-
-        Dataset.RelationMentionsDataset testDataset = testDataset_.build();
-
-        ArrayList<Pair<String, Double>> predicatedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
-        Map<Pair<String, String>, Map<String, Double>> extractedTriples = new HashMap<>();
-        Map<Pair<String, String>, Set<String>> triplesLabels = new HashMap<>();
-
-        int index = 0;
-        for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
-            for (Dataset.Triple curTriple : instance.getTripleList()) {
-                Pair<String, String> arguments = new Pair<>(
-                        curTriple.getSubject(), curTriple.getObject());
-                if (!triplesLabels.containsKey(arguments)) {
-                    triplesLabels.put(arguments, new HashSet<String>());
-                    extractedTriples.put(arguments, new HashMap<String, Double>());
-                }
-                triplesLabels.get(arguments).add(curTriple.getPredicate());
-                double prevValue = extractedTriples.get(arguments).containsKey(predicatedLabels.get(index).first)
-                        ? extractedTriples.get(arguments).get(predicatedLabels.get(index).first)
-                        : Double.NEGATIVE_INFINITY;
-                extractedTriples.get(arguments).put(predicatedLabels.get(index).first,
-                        Math.max(prevValue, predicatedLabels.get(index).second));
+        // If model is null, we will predict labels here, otherwise it was
+        // done in the main method.
+        if (model_ == null) {
+            for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
+                trainDataset_.addFeatureBuilder().setId(feature.getValue())
+                        .setName(feature.getKey());
+                testDataset_.addFeatureBuilder().setId(feature.getValue())
+                        .setName(feature.getKey());
             }
-            ++index;
+
+            // Add all possible labels.
+            trainDataset_.addLabel(NO_RELATIONS_LABEL);
+            trainDataset_.addLabel(OTHER_RELATIONS_LABEL);
+            testDataset_.addLabel(NO_RELATIONS_LABEL);
+            testDataset_.addLabel(OTHER_RELATIONS_LABEL);
+
+            // We construct hash map to make sure labels are unique.
+            for (String label : new HashSet<>(predicates_)) {
+                trainDataset_.addLabel(label);
+                testDataset_.addLabel(label);
+            }
+
+            model_ = RelationExtractorModelTrainer.train(trainDataset_.build());
+            LinearClassifier.writeClassifier(model_, modelFilename_);
+
+            Dataset.RelationMentionsDataset testDataset = testDataset_.build();
+
+            ArrayList<Pair<String, Double>> predictedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
+
+            int index = 0;
+            for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
+                Pair<String, Double> predictedLabel = predictedLabels.get(index);
+                processPrediction(instance, predictedLabel);
+                ++index;
+            }
         }
 
-        for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples.entrySet()) {
+        for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples_.entrySet()) {
             if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
                 preds.getValue().remove("NONE");
             }
             for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
-                if (triplesLabels.get(preds.getKey()).contains(pred.getKey())) {
+                if (triplesLabels_.get(preds.getKey()).contains(pred.getKey())) {
                     System.out.println((pred.getKey() + "\t" +
                             preds.getKey().first + "-" + preds.getKey().second + "\t"
                             + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
                 } else {
-                    for (String label : triplesLabels.get(preds.getKey())) {
+                    for (String label : triplesLabels_.get(preds.getKey())) {
                         System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
                                 preds.getKey().first + "-" + preds.getKey().second + "\t"
                                 + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
@@ -209,6 +202,24 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 //                                new FileOutputStream(datasetOutFilename_))));
     }
 
+    private void processPrediction(Dataset.RelationMentionInstance instance,
+                                   Pair<String, Double> predictedLabel) {
+        for (Dataset.Triple curTriple : instance.getTripleList()) {
+            Pair<String, String> arguments = new Pair<>(
+                    curTriple.getSubject(), curTriple.getObject());
+            if (!triplesLabels_.containsKey(arguments)) {
+                triplesLabels_.put(arguments, new HashSet<String>());
+                extractedTriples_.put(arguments, new HashMap<String, Double>());
+            }
+            triplesLabels_.get(arguments).add(curTriple.getPredicate());
+            double prevValue = extractedTriples_.get(arguments).containsKey(predictedLabel.first)
+                    ? extractedTriples_.get(arguments).get(predictedLabel.first)
+                    : Double.NEGATIVE_INFINITY;
+            extractedTriples_.get(arguments).put(predictedLabel.first,
+                    Math.max(prevValue, predictedLabel.second));
+        }
+    }
+
     /**
      * Iterates over pairs of spans, where first span is an entity and the
      * second span is measure or entity.
@@ -221,7 +232,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 ? (document.getDocId().hashCode() % 100) < TRAIN_SIZE_FROM_100
                 : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
-        if (!isInTraining) return;
+        // If model is specified we only keep testing instances and vice versa.
+        if ((model_ != null) == isInTraining) return;
 
         Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
                 getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
@@ -319,14 +331,23 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
     }
 
-    private void processRelationMentionInstance(Document.NlpDocument document, boolean isInTraining, Dataset.RelationMentionInstance.Builder mentionInstance) {
+    private void processRelationMentionInstance(Document.NlpDocument document,
+                                                boolean isInTraining,
+                                                Dataset.RelationMentionInstance.Builder mentionInstance) {
         if (isInTraining) {
             synchronized (trainDataset_) {
                 trainDataset_.addInstance(mentionInstance);
             }
         } else {
-            synchronized (testDataset_) {
-                testDataset_.addInstance(mentionInstance);
+            if (model_ != null) {
+                Dataset.RelationMentionInstance mention = mentionInstance.build();
+                Pair<String, Double> prediction =
+                        RelationExtractorModelTrainer.eval(model_, mention);
+                processPrediction(mention, prediction);
+            } else {
+                synchronized (testDataset_) {
+                    testDataset_.addInstance(mentionInstance);
+                }
             }
         }
     }
