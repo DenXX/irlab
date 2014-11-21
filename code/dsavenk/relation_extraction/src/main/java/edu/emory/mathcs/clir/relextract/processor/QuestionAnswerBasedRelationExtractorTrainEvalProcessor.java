@@ -215,8 +215,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             private boolean isMentionOk() {
                 // One of the spans should be in the question and the other in
                 // the answer.
-                return (subjectSpan_.getMention(currentSubjectMention_).getTokenEndOffset() < questionTokens_)
-                        != (objectSpan_.getMention(currentObjectMention_).getTokenEndOffset() < questionTokens_);
+                return (subjectSpan_.getMention(currentSubjectMention_).getTokenBeginOffset() < questionTokens_)
+                        != (objectSpan_.getMention(currentObjectMention_).getTokenBeginOffset() < questionTokens_);
             }
 
             @Override

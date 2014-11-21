@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.utils;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.classify.LogPrior;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.stats.Counter;
@@ -30,7 +31,7 @@ public class RelationExtractorModelTrainer {
 
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, 0.1);
-        //classifierFactory_.setTuneSigmaHeldOut();
+        classifierFactory_.setTuneSigmaHeldOut();
         //classifierFactory_.useConjugateGradientAscent();
 
         LinearClassifier<String, Integer> model =
