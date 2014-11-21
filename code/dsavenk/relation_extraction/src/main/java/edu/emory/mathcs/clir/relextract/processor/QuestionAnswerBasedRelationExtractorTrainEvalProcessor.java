@@ -2,7 +2,12 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
+import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.util.Pair;
+import org.apache.lucene.analysis.core.StopAnalyzer;
+import org.apache.lucene.analysis.core.StopFilter;
+import org.apache.lucene.analysis.util.StopwordAnalyzerBase;
 
 import java.io.IOException;
 import java.util.*;
@@ -82,6 +87,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
         addQuestionFeatures(document, questionSentenceIndex, questionEntityToken, features);
         addAnswerFeatures(document, answerSentenceIndex, answerEntityToken, features);
+        addQuestionTemplateFeatures(document, questionSentenceIndex, features);
 
         return features;
     }
@@ -122,6 +128,32 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 }
             }
         }
+    }
+
+    private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex,
+                                             List<String> features) {
+        StringBuilder template = new StringBuilder();
+        String lastNer = "";
+        for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
+                token < document.getSentence(questionSentenceIndex).getLastToken();
+                ++token) {
+            if (document.getToken(token).hasNer()) {
+                if (!document.getToken(token).getNer().equals(lastNer)) {
+                    lastNer = document.getToken(token).getNer();
+                    template.append(" [" + lastNer.toUpperCase() + "]");
+                }
+            } else {
+                lastNer = "";
+                if (document.getToken(token).getPos().startsWith("W")
+                        || (Character.isLetterOrDigit(document.getToken(token).getPos().charAt(0)) &&
+                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(document.getToken(token).getLemma()))) {
+                    template.append(" " + NlpUtils.normalizeStringForMatch(PTBTokenizer.ptb2Text(document.getToken(token).getLemma())));
+                }
+            }
+
+        }
+
+        features.add("QUESTION_TEMPLATE: " + template.toString().trim());
     }
 
     @Override
