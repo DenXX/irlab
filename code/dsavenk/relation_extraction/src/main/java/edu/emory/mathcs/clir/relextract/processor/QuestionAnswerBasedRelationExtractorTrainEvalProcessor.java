@@ -72,6 +72,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         int answerEntityToken = 0;
         Document.Span questionSpan;
         Document.Span answerSpan;
+        int questionMention = 0;
+        int answerMention = 0;
         if (subjMentionHeadToken < objMentionHeadToken) {
             questionSentenceIndex =
                     document.getToken(subjMentionHeadToken).getSentenceIndex();
@@ -80,6 +82,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             answerEntityToken = objMentionHeadToken;
             questionSpan = subjSpan;
             answerSpan = objSpan;
+            questionMention = subjMention;
+            answerMention = objMention;
         } else {
             questionSentenceIndex =
                     document.getToken(objMentionHeadToken).getSentenceIndex();
@@ -88,11 +92,13 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             answerEntityToken = subjMentionHeadToken;
             questionSpan = objSpan;
             answerSpan = subjSpan;
+            questionMention = objMention;
+            answerMention = subjMention;
         }
 
-        addQuestionFeatures(document, questionSentenceIndex, questionSpan, answerSpan, questionEntityToken, features);
+        addQuestionFeatures(document, questionSentenceIndex, answerSentenceIndex, questionSpan, answerSpan, answerMention, questionEntityToken, features);
         addAnswerFeatures(document, answerSentenceIndex, answerSpan, questionSpan, answerEntityToken, features);
-        addQuestionTemplateFeatures(document, questionSentenceIndex, answerSpan, features);
+        addQuestionTemplateFeatures(document, questionSentenceIndex, answerSentenceIndex, answerSpan, answerMention, features);
         addQuestionAnswerPathFeatures(document, questionSentenceIndex, answerSentenceIndex, questionSpan, answerSpan, questionEntityToken, answerEntityToken, features);
 
         return features;
@@ -104,26 +110,39 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         String path = DependencyTreeUtils.getDependencyPath(document, root, answerEntityToken, true, true, false);
         if (path != null) {
             path = "[" + questionSpan.getNerType() + "] => " + path.trim() + " [" + answerSpan.getNerType() + "]";
-            features.add("ANSWER_PATH: " + path);
+            features.add("ANSWER_PATH:\t" + path);
         }
     }
 
-    private void addQuestionFeatures(Document.NlpDocument document, int questionSentenceIndex, Document.Span questionSpan, Document.Span answerSpan, int questionEntityToken, List<String> features) {
+    private void addQuestionFeatures(Document.NlpDocument document, int questionSentenceIndex, int answerSentenceIndex, Document.Span questionSpan, Document.Span answerSpan, int answerMention, int questionEntityToken, List<String> features) {
         List<Integer> questionWords = new ArrayList<>();
         for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
              index < document.getSentence(questionSentenceIndex).getLastToken();
                 ++index) {
-            if (document.getToken(index).getPos().startsWith("W")) {
+            if (document.getToken(index).getPos().startsWith("W")||
+                    document.getToken(index).getPos().startsWith("MD")) {
                 questionWords.add(index);
             }
+        }
+
+        List<String> window = new ArrayList<>();
+        window.add("");
+        int mentionFirstToken = answerSpan.getMention(answerMention).getTokenBeginOffset();
+        for (int token = mentionFirstToken;
+             token >= Math.max(document.getSentence(answerSentenceIndex).getFirstToken(), mentionFirstToken - 3); --token) {
+            window.add(document.getToken(token).getLemma().toLowerCase());
         }
 
         if (questionWords.size() > 0) {
             for (int questionWord : questionWords) {
                 String path = DependencyTreeUtils.getDependencyPath(document, questionWord, questionEntityToken, true, true, false);
                 if (path != null) {
-                    path = path.trim() + " [" + questionSpan.getNerType() + "]" + " => [" +answerSpan.getNerType() + "]";
-                    features.add("QUESTION_PATH: " + path);
+                    StringBuilder windowStrAcc = new StringBuilder();
+                    for (String windowStr : window) {
+                        if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
+                        windowStrAcc.append(windowStr);
+                        features.add("QUESTION_PATH:\t" + path.trim() + " [" + questionSpan.getNerType() + "]" + " => |" + windowStrAcc + "| [" +answerSpan.getNerType() + "]");
+                    }
                 }
             }
         } else {
@@ -132,8 +151,12 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             if (root >= 0) {
                 String path = DependencyTreeUtils.getDependencyPath(document, root, questionEntityToken, true, true, false);
                 if (path != null) {
-                    path = path.trim() + " [" + questionSpan.getNerType() + "]" + " => [" +answerSpan.getNerType() + "]";
-                    features.add("QUESTION_PATH: " + path);
+                    StringBuilder windowStrAcc = new StringBuilder();
+                    for (String windowStr : window) {
+                        if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
+                        windowStrAcc.append(windowStr);
+                        features.add("QUESTION_PATH:\t" + path.trim() + " [" + questionSpan.getNerType() + "]" + " => |" + windowStrAcc + "| [" +answerSpan.getNerType() + "]");
+                    }
                 }
             }
         }
@@ -156,7 +179,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
              index < document.getSentence(questionSentenceIndex).getLastToken();
              ++index) {
-            if (document.getToken(index).getPos().startsWith("W")) {
+            if (document.getToken(index).getPos().startsWith("W")||
+                    document.getToken(index).getPos().startsWith("MD")) {
                 questionWords.add(index);
             }
         }
@@ -166,7 +190,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 String questionPath = DependencyTreeUtils.getDependencyPath(document, questionWord, questionEntityToken, true, true, false);
                 if (questionPath != null) {
                     questionPath = questionPath.trim() + " [" + questionSpan.getNerType() + "]";
-                    features.add("QUESTION_ANSWER_PATH: " + questionPath + " => " + ansPath);
+                    features.add("QUESTION_ANSWER_PATH:\t" + questionPath + " => " + ansPath);
                 }
             }
         } else {
@@ -176,14 +200,14 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 String questionPath = DependencyTreeUtils.getDependencyPath(document, questionRoot, questionEntityToken, true, true, false);
                 if (questionPath != null) {
                     questionPath = questionPath.trim() + " [" + questionSpan.getNerType() + "]";
-                    features.add("QUESTION_ANSWER_PATH: " + questionPath + " => " + ansPath);
+                    features.add("QUESTION_ANSWER_PATH:\t" + questionPath + " => " + ansPath);
                 }
             }
         }
     }
 
-    private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex,
-                                             Document.Span answerSpan, List<String> features) {
+    private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex, int answerSentenceIndex,
+                                             Document.Span answerSpan, int answerMention, List<String> features) {
         StringBuilder template = new StringBuilder();
         String lastNer = "";
         for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
@@ -195,17 +219,31 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                     template.append(" [" + lastNer.toUpperCase() + "]");
                 }
             } else {
-                if (document.getToken(token).getPos().startsWith("W")
+                if (document.getToken(token).getPos().startsWith("W") ||
+                        document.getToken(token).getPos().startsWith("MD")
                         || (Character.isLetterOrDigit(document.getToken(token).getPos().charAt(0)) &&
                         !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(document.getToken(token).getLemma()))) {
                     lastNer = "";
-                    template.append(" " + NlpUtils.normalizeStringForMatch(PTBTokenizer.ptb2Text(document.getToken(token).getLemma())));
+                    template.append(" " + document.getToken(token).getLemma().toLowerCase());
                 }
             }
 
         }
 
-        features.add("QUESTION_TEMPLATE: " + template.toString().trim() + " => [" + answerSpan.getNerType() + "]");
+        List<String> window = new ArrayList<>();
+        window.add("");
+        int mentionFirstToken = answerSpan.getMention(answerMention).getTokenBeginOffset();
+        for (int token = mentionFirstToken;
+             token >= Math.max(document.getSentence(answerSentenceIndex).getFirstToken(), mentionFirstToken - 3); --token) {
+            window.add(document.getToken(token).getLemma().toLowerCase());
+        }
+
+        StringBuilder windowStrAcc = new StringBuilder();
+        for (String windowStr : window) {
+            if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
+            windowStrAcc.append(windowStr);
+            features.add("QUESTION_TEMPLATE:\t" + template.toString().trim() + " => |" + windowStrAcc + "| [" + answerSpan.getNerType() + "]");
+        }
     }
 
     @Override

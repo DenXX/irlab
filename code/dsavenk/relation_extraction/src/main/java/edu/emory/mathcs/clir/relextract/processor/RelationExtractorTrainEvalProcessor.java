@@ -444,8 +444,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             // If mention types are specified as command line parameter, we will
             // use them, otherwise using nominal, pronomial and values.
-            boolean subjSpanOk = subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
-            boolean objSpanOk = objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
+            boolean subjSpanOk = true; //subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
+            boolean objSpanOk = true; //objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
             if (mentionTypes_ == null) {
                 return subjSpanOk && objSpanOk && (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
                         (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));

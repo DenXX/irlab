@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 
 import java.io.IOException;
 import java.util.Properties;

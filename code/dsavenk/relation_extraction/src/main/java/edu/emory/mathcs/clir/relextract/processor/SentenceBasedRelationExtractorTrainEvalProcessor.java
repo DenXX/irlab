@@ -51,7 +51,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 objSpan.getMention(objMention));
 
         // Now we need to find a path between this nodes...
-        addDirectedPath(document, subjSpan, objSpan, subjMentionHeadToken,
+        addDirectedPath(document, subjSpan.getMention(subjMention).getSentenceIndex(), subjSpan, objSpan, subjMentionHeadToken,
                 objMentionHeadToken, true, features);
         addSurfaceFeatures(document, subjSpan, subjMention, objSpan, objMention, features);
         addQuestionFeatures(document, true, features);
@@ -111,13 +111,13 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         for (int leftWindowTokenIndex = minFirstToken - 1;
              leftWindowTokenIndex >= Math.max(firstSentenceToken, minFirstToken - 3);
              --leftWindowTokenIndex) {
-            String tmp = document.getToken(leftWindowTokenIndex).getLemma() + "/" +
+            String tmp = document.getToken(leftWindowTokenIndex).getLemma().toLowerCase() + "/" +
                     document.getToken(leftWindowTokenIndex).getPos() + " " + leftWindows.get(leftWindows.size() - 1);
             leftWindows.add(tmp.trim().replaceAll("\\s+", " "));
         }
         for (int rightWindowTokenIndex = maxLastToken; rightWindowTokenIndex < Math.min(lastSentenceToken, maxLastToken + 3); ++rightWindowTokenIndex) {
             String tmp = rightWindows.get(rightWindows.size() - 1) + " " +
-                    document.getToken(rightWindowTokenIndex).getLemma() + "/" +
+                    document.getToken(rightWindowTokenIndex).getLemma().toLowerCase() + "/" +
                     document.getToken(rightWindowTokenIndex).getPos();
             rightWindows.add(tmp.trim().replaceAll("\\s+", " "));
         }
@@ -134,6 +134,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
     }
 
     private void addDirectedPath(Document.NlpDocument document,
+                                 int sentenceIndex,
                                  Document.Span subjSpan,
                                  Document.Span objSpan,
                                  int leftTokenIndex,
@@ -141,9 +142,42 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                                  List<String> features) {
         String path = DependencyTreeUtils.getDependencyPath(document,
                 leftTokenIndex, rightTokenIndex, lexicalized, false, false);
+
         if (path != null) {
+//            List<Integer> leftArgs = new ArrayList<>();
+//            List<Integer> rightArgs = new ArrayList<>();
+//            for (int token = document.getSentence(sentenceIndex).getFirstToken();
+//                 token < document.getSentence(sentenceIndex).getLastToken(); ++token) {
+//                if (token == leftTokenIndex || token == rightTokenIndex) continue;
+//                if (document.getToken(token).getDependencyGovernor() ==
+//                        leftTokenIndex - document.getSentence(sentenceIndex).getFirstToken() - 1) {
+//                    leftArgs.add(token);
+//                }
+//                if (document.getToken(token).getDependencyGovernor() ==
+//                        rightTokenIndex - document.getSentence(sentenceIndex).getFirstToken() - 1) {
+//                    rightArgs.add(token);
+//                }
+//            }
+
             features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
                     ":[" + objSpan.getNerType() + "]");
+//            for (int left : leftArgs) {
+//                path = DependencyTreeUtils.getDependencyPath(document,
+//                        left, rightTokenIndex, lexicalized, false, false);
+//                if (path != null) {
+//                    features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
+//                            ":[" + objSpan.getNerType() + "]");
+//                }
+//            }
+//
+//            for (int right : rightArgs) {
+//                path = DependencyTreeUtils.getDependencyPath(document,
+//                        leftTokenIndex, right, lexicalized, false, false);
+//                if (path != null) {
+//                    features.add("DEP_PATH:\t[" + subjSpan.getNerType() + "]:" + path +
+//                            ":[" + objSpan.getNerType() + "]");
+//                }
+//            }
         }
     }
 
@@ -165,25 +199,29 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 for (int token = document.getSentence(index).getFirstToken();
                         token < document.getSentence(index).getLastToken();
                         ++token) {
-                    if (document.getToken(token).getPos().startsWith("W")) {
+                    if (document.getToken(token).getPos().startsWith("W") ||
+                            document.getToken(token).getPos().startsWith("MD")) {
                         questionWords.add(token);
                     }
                     // If this is a node under the root
                     if (document.getToken(token).getDependencyGovernor() ==
                             rootToken - document.getSentence(index).getFirstToken() + 1
-                                && document.getToken(token).getDependencyType().contains("subj")) {
+                                && (document.getToken(token).getDependencyType().contains("subj")
+                                    || document.getToken(token).getDependencyType().contains("vmod")
+                                    || document.getToken(token).getDependencyType().contains("dobj")
+                                    || document.getToken(token).getDependencyType().contains("dep"))) {
                         subjectWords.add(token);
                     }
                 }
                 for (int questionWord : questionWords) {
                     if (questionWord != rootToken) {
                         String qToRoot = DependencyTreeUtils.getDependencyPath(document, questionWord, rootToken, lexicalized, lexicalized, lexicalized);
-                        features.add("QUESTION_DEP_PATH: " + qToRoot);
+                        features.add("QUESTION_DEP_PATH:\t" + qToRoot);
                     }
                     for (int subj : subjectWords) {
                         if (subj != questionWord && subj != rootToken) {
                             String qToSubj = DependencyTreeUtils.getDependencyPath(document, questionWord, subj, lexicalized, lexicalized, lexicalized);
-                            features.add("QUESTION_DEP_PATH: " + qToSubj);
+                            features.add("QUESTION_DEP_PATH:\t" + qToSubj);
                         }
                     }
                 }
