@@ -53,6 +53,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public static final String TYPES_OF_MENTIONS_TO_KEEP_PARAMETER = "mention_types";
 
     /**
+     * The name of the parameter to specify whether we need to split all
+     * triples into 2 parts for training and validation.
+     */
+    public static final String QUESTION_FEATS_PARAMETER = "qfeats";
+
+    /**
      * A label that means that there is no relations between the given entities.
      */
     public static final String NO_RELATIONS_LABEL = "NONE";
@@ -61,11 +67,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * A label that means that we found a relation between the given entities,
      * but it was not one of the active predicates.
      */
-    public static final String OTHER_RELATIONS_LABEL = "OTHER";
+    public static final String OTHER_RELATIONS_LABEL = "NONE";
 
     public static final int TRAIN_SIZE_FROM_100 = 75;
 
-    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.995f;
+    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.985f;
+
+    private final boolean includeQFeatures;
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -116,6 +124,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         if (properties.containsKey(MODEL_PARAMETER)) {
             model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_PARAMETER));
+        }
+
+        if (properties.containsKey(QUESTION_FEATS_PARAMETER)) {
+            includeQFeatures = true;
+        } else {
+            includeQFeatures = false;
         }
     }
 
@@ -319,6 +333,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
                             for (String feature : features) {
+                                if (!includeQFeatures && feature.startsWith("QUESTION_DEP_PATH"))
+                                    continue;
                                 mentionInstance.addFeatureId(
                                         getFeatureId(feature));
                             }

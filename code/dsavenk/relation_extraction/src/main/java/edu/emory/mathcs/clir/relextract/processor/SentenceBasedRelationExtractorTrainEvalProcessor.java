@@ -178,12 +178,12 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 for (int questionWord : questionWords) {
                     if (questionWord != rootToken) {
                         String qToRoot = DependencyTreeUtils.getDependencyPath(document, questionWord, rootToken, lexicalized, lexicalized, lexicalized);
-                        features.add("QUESTION_PATH: " + qToRoot);
+                        features.add("QUESTION_DEP_PATH: " + qToRoot);
                     }
                     for (int subj : subjectWords) {
                         if (subj != questionWord && subj != rootToken) {
                             String qToSubj = DependencyTreeUtils.getDependencyPath(document, questionWord, subj, lexicalized, lexicalized, lexicalized);
-                            features.add("QUESTION_PATH: " + qToSubj);
+                            features.add("QUESTION_DEP_PATH: " + qToSubj);
                         }
                     }
                 }

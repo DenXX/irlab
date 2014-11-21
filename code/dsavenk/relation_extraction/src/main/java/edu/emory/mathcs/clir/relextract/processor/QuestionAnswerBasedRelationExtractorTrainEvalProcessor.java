@@ -137,7 +137,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
                 token < document.getSentence(questionSentenceIndex).getLastToken();
                 ++token) {
-            if (document.getToken(token).hasNer()) {
+            if (!document.getToken(token).getNer().equals("O")) {
                 if (!document.getToken(token).getNer().equals(lastNer)) {
                     lastNer = document.getToken(token).getNer();
                     template.append(" [" + lastNer.toUpperCase() + "]");

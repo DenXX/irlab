@@ -104,6 +104,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.MODEL_PARAMETER)
                 .withDescription("File with serialized model to apply").create(
                         RelationExtractorTrainEvalProcessor.MODEL_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER)
+                .withDescription("Whether to include question features or not").create(
+                        RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
