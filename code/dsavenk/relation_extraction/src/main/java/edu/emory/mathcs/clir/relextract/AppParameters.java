@@ -108,6 +108,14 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER)
                 .withDescription("Whether to include question features or not").create(
                         RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.NEGATIVE_SUBSAMPLE_PARAMETER)
+                .withDescription("Which fraction of negative examples to remove from training").create(
+                        RelationExtractorTrainEvalProcessor.NEGATIVE_SUBSAMPLE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.REGALURIZATION_PARAMETER)
+                .withDescription("L2 regularization parameter").create(
+                        RelationExtractorTrainEvalProcessor.REGALURIZATION_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

@@ -60,8 +60,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         int questionTokens = document.getSentence(questionSentences - 1).getLastToken();
 
         List<String> features = new ArrayList<>();
-        //features.add("SUBJ_NER:" + subjSpan.getNerType());
-        //features.add("OBJ_NER:" + objSpan.getNerType());
+        //features.add("SUBJ_OBJ:" + subjSpan.getNerType() + " " + objSpan.getNerType());
         int subjMentionHeadToken = DependencyTreeUtils.getMentionHeadToken(document,
                 subjSpan.getMention(subjMention));
         int objMentionHeadToken = DependencyTreeUtils.getMentionHeadToken(document,
@@ -71,37 +70,45 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         int questionEntityToken = 0;
         int answerSentenceIndex = 0;
         int answerEntityToken = 0;
+        Document.Span questionSpan;
+        Document.Span answerSpan;
         if (subjMentionHeadToken < objMentionHeadToken) {
             questionSentenceIndex =
                     document.getToken(subjMentionHeadToken).getSentenceIndex();
             questionEntityToken = subjMentionHeadToken;
             answerSentenceIndex = document.getToken(objMentionHeadToken).getSentenceIndex();
             answerEntityToken = objMentionHeadToken;
+            questionSpan = subjSpan;
+            answerSpan = objSpan;
         } else {
             questionSentenceIndex =
                     document.getToken(objMentionHeadToken).getSentenceIndex();
             questionEntityToken = objMentionHeadToken;
             answerSentenceIndex = document.getToken(subjMentionHeadToken).getSentenceIndex();
             answerEntityToken = subjMentionHeadToken;
+            questionSpan = objSpan;
+            answerSpan = subjSpan;
         }
 
-        addQuestionFeatures(document, questionSentenceIndex, questionEntityToken, features);
-        addAnswerFeatures(document, answerSentenceIndex, answerEntityToken, features);
-        addQuestionTemplateFeatures(document, questionSentenceIndex, features);
+        addQuestionFeatures(document, questionSentenceIndex, questionSpan, answerSpan, questionEntityToken, features);
+        addAnswerFeatures(document, answerSentenceIndex, answerSpan, questionSpan, answerEntityToken, features);
+        addQuestionTemplateFeatures(document, questionSentenceIndex, answerSpan, features);
+        addQuestionAnswerPathFeatures(document, questionSentenceIndex, answerSentenceIndex, questionSpan, answerSpan, questionEntityToken, answerEntityToken, features);
 
         return features;
     }
 
-    private void addAnswerFeatures(Document.NlpDocument document, int answerSentenceIndex, int answerEntityToken, List<String> features) {
+    private void addAnswerFeatures(Document.NlpDocument document, int answerSentenceIndex, Document.Span answerSpan, Document.Span questionSpan, int answerEntityToken, List<String> features) {
         int root = document.getSentence(answerSentenceIndex).getDependencyRootToken() +
                 document.getSentence(answerSentenceIndex).getFirstToken() - 1;
         String path = DependencyTreeUtils.getDependencyPath(document, root, answerEntityToken, true, true, false);
         if (path != null) {
+            path = "[" + questionSpan.getNerType() + "] => " + path.trim() + " [" + answerSpan.getNerType() + "]";
             features.add("ANSWER_PATH: " + path);
         }
     }
 
-    private void addQuestionFeatures(Document.NlpDocument document, int questionSentenceIndex, int questionEntityToken, List<String> features) {
+    private void addQuestionFeatures(Document.NlpDocument document, int questionSentenceIndex, Document.Span questionSpan, Document.Span answerSpan, int questionEntityToken, List<String> features) {
         List<Integer> questionWords = new ArrayList<>();
         for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
              index < document.getSentence(questionSentenceIndex).getLastToken();
@@ -115,6 +122,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             for (int questionWord : questionWords) {
                 String path = DependencyTreeUtils.getDependencyPath(document, questionWord, questionEntityToken, true, true, false);
                 if (path != null) {
+                    path = path.trim() + " [" + questionSpan.getNerType() + "]" + " => [" +answerSpan.getNerType() + "]";
                     features.add("QUESTION_PATH: " + path);
                 }
             }
@@ -124,14 +132,58 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             if (root >= 0) {
                 String path = DependencyTreeUtils.getDependencyPath(document, root, questionEntityToken, true, true, false);
                 if (path != null) {
+                    path = path.trim() + " [" + questionSpan.getNerType() + "]" + " => [" +answerSpan.getNerType() + "]";
                     features.add("QUESTION_PATH: " + path);
                 }
             }
         }
     }
 
+    private void addQuestionAnswerPathFeatures(Document.NlpDocument document, int questionSentenceIndex,
+                                               int answerSentenceIndex,
+                                               Document.Span questionSpan,
+                                               Document.Span answerSpan,
+                                               int questionEntityToken,
+                                               int answerEntityToken,
+                                               List<String> features) {
+        int ansRoot = document.getSentence(answerSentenceIndex).getDependencyRootToken() +
+                document.getSentence(answerSentenceIndex).getFirstToken() - 1;
+        String ansPath = DependencyTreeUtils.getDependencyPath(document, ansRoot, answerEntityToken, true, true, false);
+        if (ansPath == null) return;
+
+        ansPath = ansPath.trim() + " [" + answerSpan.getNerType() + "]";
+        List<Integer> questionWords = new ArrayList<>();
+        for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
+             index < document.getSentence(questionSentenceIndex).getLastToken();
+             ++index) {
+            if (document.getToken(index).getPos().startsWith("W")) {
+                questionWords.add(index);
+            }
+        }
+
+        if (questionWords.size() > 0) {
+            for (int questionWord : questionWords) {
+                String questionPath = DependencyTreeUtils.getDependencyPath(document, questionWord, questionEntityToken, true, true, false);
+                if (questionPath != null) {
+                    questionPath = questionPath.trim() + " [" + questionSpan.getNerType() + "]";
+                    features.add("QUESTION_ANSWER_PATH: " + questionPath + " => " + ansPath);
+                }
+            }
+        } else {
+            int questionRoot = document.getSentence(questionSentenceIndex).getDependencyRootToken() +
+                    document.getSentence(questionSentenceIndex).getFirstToken() - 1;
+            if (questionRoot >= 0) {
+                String questionPath = DependencyTreeUtils.getDependencyPath(document, questionRoot, questionEntityToken, true, true, false);
+                if (questionPath != null) {
+                    questionPath = questionPath.trim() + " [" + questionSpan.getNerType() + "]";
+                    features.add("QUESTION_ANSWER_PATH: " + questionPath + " => " + ansPath);
+                }
+            }
+        }
+    }
+
     private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex,
-                                             List<String> features) {
+                                             Document.Span answerSpan, List<String> features) {
         StringBuilder template = new StringBuilder();
         String lastNer = "";
         for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
@@ -143,17 +195,17 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                     template.append(" [" + lastNer.toUpperCase() + "]");
                 }
             } else {
-                lastNer = "";
                 if (document.getToken(token).getPos().startsWith("W")
                         || (Character.isLetterOrDigit(document.getToken(token).getPos().charAt(0)) &&
                         !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(document.getToken(token).getLemma()))) {
+                    lastNer = "";
                     template.append(" " + NlpUtils.normalizeStringForMatch(PTBTokenizer.ptb2Text(document.getToken(token).getLemma())));
                 }
             }
 
         }
 
-        features.add("QUESTION_TEMPLATE: " + template.toString().trim());
+        features.add("QUESTION_TEMPLATE: " + template.toString().trim() + " => [" + answerSpan.getNerType() + "]");
     }
 
     @Override

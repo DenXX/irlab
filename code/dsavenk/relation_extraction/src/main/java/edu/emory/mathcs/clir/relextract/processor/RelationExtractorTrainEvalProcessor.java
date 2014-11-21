@@ -53,10 +53,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public static final String TYPES_OF_MENTIONS_TO_KEEP_PARAMETER = "mention_types";
 
     /**
-     * The name of the parameter to specify whether we need to split all
-     * triples into 2 parts for training and validation.
      */
     public static final String QUESTION_FEATS_PARAMETER = "qfeats";
+
+    /**
+     */
+    public static final String NEGATIVE_SUBSAMPLE_PARAMETER = "neg_subsample";
+
+    public static final String REGALURIZATION_PARAMETER = "regularization";
 
     /**
      * A label that means that there is no relations between the given entities.
@@ -67,11 +71,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * A label that means that we found a relation between the given entities,
      * but it was not one of the active predicates.
      */
-    public static final String OTHER_RELATIONS_LABEL = "NONE";
+    public static final String OTHER_RELATIONS_LABEL = "OTHER";
 
     public static final int TRAIN_SIZE_FROM_100 = 75;
 
-    private static final float NEGATIVE_SUBSAMPLE_RATE = 0.985f;
+    private float negativeSubsampleRate = 0.99f;
+
+    private float regularization_ = 0.5f;
 
     private final boolean includeQFeatures;
 
@@ -131,6 +137,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             includeQFeatures = false;
         }
+
+        if (properties.contains(NEGATIVE_SUBSAMPLE_PARAMETER)) {
+            negativeSubsampleRate = Float.parseFloat(properties.getProperty(NEGATIVE_SUBSAMPLE_PARAMETER));
+        }
+
+        if (properties.contains(REGALURIZATION_PARAMETER)) {
+            regularization_ = Float.parseFloat(properties.getProperty(REGALURIZATION_PARAMETER));
+        }
     }
 
     /**
@@ -175,7 +189,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 testDataset_.addLabel(label);
             }
 
-            model_ = RelationExtractorModelTrainer.train(trainDataset_.build());
+            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_);
             LinearClassifier.writeClassifier(model_, modelFilename_);
 
             Dataset.RelationMentionsDataset testDataset = testDataset_.build();
@@ -221,6 +235,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         for (Dataset.Triple curTriple : instance.getTripleList()) {
             Pair<String, String> arguments = new Pair<>(
                     curTriple.getSubject(), curTriple.getObject());
+
+            // We do not need to store triples that are non-related and
+            // classifier predicts the same.
+            if ((curTriple.getPredicate().equals(NO_RELATIONS_LABEL)
+                    || curTriple.getPredicate().equals(OTHER_RELATIONS_LABEL))
+                    && (predictedLabel.first.equals(NO_RELATIONS_LABEL)
+                    || predictedLabel.first.equals(OTHER_RELATIONS_LABEL))) {
+                continue;
+            }
             if (!triplesLabels_.containsKey(arguments)) {
                 triplesLabels_.put(arguments, new HashSet<String>());
                 extractedTriples_.put(arguments, new HashMap<String, Double>());
@@ -417,7 +440,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (isInTraining) {
             boolean hasRel = !activeLabels.get(0).equals(NO_RELATIONS_LABEL) &&
                     !activeLabels.get(0).equals(OTHER_RELATIONS_LABEL);
-            return subjTypeOk && objTypeOk && (hasRel || rnd_.nextFloat() > NEGATIVE_SUBSAMPLE_RATE);
+            return subjTypeOk && objTypeOk && (hasRel || rnd_.nextFloat() > negativeSubsampleRate);
         } else {
             // If mention types are specified as command line parameter, we will
             // use them, otherwise using nominal, pronomial and values.
