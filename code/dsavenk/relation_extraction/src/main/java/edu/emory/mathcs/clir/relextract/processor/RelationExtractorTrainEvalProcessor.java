@@ -60,7 +60,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     public static final String NEGATIVE_SUBSAMPLE_PARAMETER = "neg_subsample";
 
-    public static final String REGALURIZATION_PARAMETER = "regularization";
+    public static final String REGULARIZATION_PARAMETER = "regularization";
 
     /**
      * A label that means that there is no relations between the given entities.
@@ -138,12 +138,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             includeQFeatures = false;
         }
 
-        if (properties.contains(NEGATIVE_SUBSAMPLE_PARAMETER)) {
+        if (properties.containsKey(NEGATIVE_SUBSAMPLE_PARAMETER)) {
             negativeSubsampleRate = Float.parseFloat(properties.getProperty(NEGATIVE_SUBSAMPLE_PARAMETER));
         }
 
-        if (properties.contains(REGALURIZATION_PARAMETER)) {
-            regularization_ = Float.parseFloat(properties.getProperty(REGALURIZATION_PARAMETER));
+        if (properties.containsKey(REGULARIZATION_PARAMETER)) {
+            regularization_ = Float.parseFloat(properties.getProperty(REGULARIZATION_PARAMETER));
         }
     }
 
@@ -272,7 +272,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         // If model is specified we only keep testing instances and vice versa.
         if ((model_ != null) == isInTraining) return;
 
-        Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
+        Map<Pair<Integer, Integer>, List<String>> spans2Labels =
                 getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
 
         int subjSpanIndex = -1;
@@ -285,17 +285,29 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     if (continueWithObjectSpan(subjSpan, objSpan)) {
 
                         // Get the list of relations between the given entities.
-                        List<Document.Relation> labels = spans2Labels.get(
+                        List<String> labels = spans2Labels.get(
                                 new Pair<>(subjSpanIndex, objSpanIndex));
 
                         List<String> activeLabels = new ArrayList<>();
+                        boolean shouldSkip = false;
                         if (labels != null) {
-                            for (Document.Relation label : labels) {
-                                if (isPredicateActive(label.getRelation())) {
-                                    activeLabels.add(label.getRelation());
+                            for (String label : labels) {
+                                if (label.equals("TRAINING")) {
+                                    shouldSkip = true;
+                                    break;
+                                }
+                                if (isPredicateActive(label)) {
+                                    activeLabels.add(label);
                                 }
                             }
                         }
+                        // This is example of a triple that we trained on,
+                        // we don't want to treat it as negative, let's just
+                        // remove it.
+                        if (shouldSkip) {
+                            continue;
+                        }
+
                         if (activeLabels.size() == 0) {
                             if (labels == null) {
                                 activeLabels.add(NO_RELATIONS_LABEL);
@@ -391,11 +403,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
     }
 
-    private Map<Pair<Integer, Integer>, List<Document.Relation>>
+    private Map<Pair<Integer, Integer>, List<String>>
         getSpanPairLabels(Document.NlpDocument document, boolean isInTraining, boolean splitTriples) {
 
         // Store a mapping from a pair of spans to their relation.
-        Map<Pair<Integer, Integer>, List<Document.Relation>> spans2Labels =
+        Map<Pair<Integer, Integer>, List<String>> spans2Labels =
                 new HashMap<>();
         for (Document.Relation rel : document.getRelationList()) {
             Document.Span objSpan = document.getSpan(rel.getObjectSpan());
@@ -410,13 +422,21 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             // We include the label if we don't need to split triples for
             // training and test or if hash parity is appropriate.
             if (!splitTriples
-                    || isInTraining == (strTripleHash % 2 == 0)) {
+                    || isInTraining == (strTripleHash % 2 == 0)
+                    || !isInTraining) {
                 Pair<Integer, Integer> spans =
                         new Pair<>(rel.getSubjectSpan(), rel.getObjectSpan());
                 if (!spans2Labels.containsKey(spans)) {
-                    spans2Labels.put(spans, new LinkedList<Document.Relation>());
+                    spans2Labels.put(spans, new ArrayList<String>());
                 }
-                spans2Labels.get(spans).add(rel);
+                if (!splitTriples
+                        || isInTraining == (strTripleHash % 2 == 0)) {
+                    spans2Labels.get(spans).add(rel.getRelation());
+                } else if (!isInTraining) {
+                    // It is not fair to consider all examples we trained on as
+                    // incorrect. Let's rather filter them later.
+                    spans2Labels.get(spans).add("TRAINING");
+                }
             }
         }
         return spans2Labels;

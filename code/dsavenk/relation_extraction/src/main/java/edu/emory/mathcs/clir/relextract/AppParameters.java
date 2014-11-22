@@ -113,9 +113,9 @@ public class AppParameters {
                 .withDescription("Which fraction of negative examples to remove from training").create(
                         RelationExtractorTrainEvalProcessor.NEGATIVE_SUBSAMPLE_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainEvalProcessor.REGALURIZATION_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.REGULARIZATION_PARAMETER)
                 .withDescription("L2 regularization parameter").create(
-                        RelationExtractorTrainEvalProcessor.REGALURIZATION_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.REGULARIZATION_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
