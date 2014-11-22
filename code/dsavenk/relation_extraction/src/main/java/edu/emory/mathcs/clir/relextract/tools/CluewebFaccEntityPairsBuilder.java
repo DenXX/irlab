@@ -17,6 +17,7 @@ public class CluewebFaccEntityPairsBuilder {
     private static Map<Pair<String, String>, Integer> pairDist = new HashMap<>();
 
     public static void processTgzFile(String tgzFileName) throws IOException {
+        System.err.println(tgzFileName);
         TarArchiveInputStream tarInput =
                 new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(tgzFileName)));
 
@@ -53,11 +54,13 @@ public class CluewebFaccEntityPairsBuilder {
                 if (i == j ||
                         entities.get(i).second.equals(
                                 entities.get(j).second)) continue;
-                Pair<String, String> pair = new Pair<>(entities.get(i).second, entities.get(j).second);
-                if (!pairDist.containsKey(pair)) {
-                    pairDist.put(pair, Math.abs(entities.get(i).first - entities.get(j).first));
-                } else {
-                    pairDist.put(pair, Math.min(pairDist.get(pair), Math.abs(entities.get(i).first - entities.get(j).first)));
+                if (Math.abs(entities.get(i).first - entities.get(j).first) <= 200) {
+                    Pair<String, String> pair = new Pair<>(entities.get(i).second, entities.get(j).second);
+                    if (!pairDist.containsKey(pair)) {
+                        pairDist.put(pair, Math.abs(entities.get(i).first - entities.get(j).first));
+                    } else {
+                        pairDist.put(pair, Math.min(pairDist.get(pair), Math.abs(entities.get(i).first - entities.get(j).first)));
+                    }
                 }
             }
         }
