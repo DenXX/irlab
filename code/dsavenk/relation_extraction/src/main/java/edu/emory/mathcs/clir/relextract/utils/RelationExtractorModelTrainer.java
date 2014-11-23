@@ -18,7 +18,7 @@ import java.util.Map;
  * Created by dsavenk on 11/7/14.
  */
 public class RelationExtractorModelTrainer {
-    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg)
+    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg, String optMethod)
             throws Exception {
 
         Map<Integer, String> featAlphabet = new HashMap<>();
@@ -32,7 +32,13 @@ public class RelationExtractorModelTrainer {
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, reg);
         //classifierFactory_.setTuneSigmaHeldOut();
-        //classifierFactory_.useConjugateGradientAscent();
+        if (optMethod.equals("CG")) {
+            classifierFactory_.useConjugateGradientAscent();
+        } else if (optMethod.equals("QN")) {
+            classifierFactory_.useQuasiNewton();
+        }
+        //classifierFactory_.setUseSum(true);
+        classifierFactory_.setVerbose(true);
 
         LinearClassifier<String, Integer> model =
                 classifierFactory_.trainClassifier(dataset);

@@ -116,6 +116,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.REGULARIZATION_PARAMETER)
                 .withDescription("L2 regularization parameter").create(
                         RelationExtractorTrainEvalProcessor.REGULARIZATION_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER)
+            .withDescription("Optimization method (CONJ or QN)").create(
+                        RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

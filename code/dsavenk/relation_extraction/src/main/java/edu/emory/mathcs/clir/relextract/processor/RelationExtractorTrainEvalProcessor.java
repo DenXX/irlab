@@ -62,6 +62,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String REGULARIZATION_PARAMETER = "regularization";
 
+    public static final String OPTIMIZATION_METHOD_PARAMETER = "optimization";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -80,6 +82,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private float regularization_ = 0.5f;
 
     private final boolean includeQFeatures;
+
+    private final String optimizationMethod_;
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -145,6 +149,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (properties.containsKey(REGULARIZATION_PARAMETER)) {
             regularization_ = Float.parseFloat(properties.getProperty(REGULARIZATION_PARAMETER));
         }
+
+        if (properties.containsKey(OPTIMIZATION_METHOD_PARAMETER)) {
+            optimizationMethod_ = properties.getProperty(OPTIMIZATION_METHOD_PARAMETER);
+        } else {
+            optimizationMethod_ = "QN";
+        }
     }
 
     /**
@@ -189,7 +199,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 testDataset_.addLabel(label);
             }
 
-            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_);
+            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_);
             LinearClassifier.writeClassifier(model_, modelFilename_);
 
             Dataset.RelationMentionsDataset testDataset = testDataset_.build();
@@ -464,8 +474,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             // If mention types are specified as command line parameter, we will
             // use them, otherwise using nominal, pronomial and values.
-            boolean subjSpanOk = true; //subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
-            boolean objSpanOk = true; //objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
+            boolean subjSpanOk = subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
+            boolean objSpanOk = objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
             if (mentionTypes_ == null) {
                 return subjSpanOk && objSpanOk && (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
                         (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
