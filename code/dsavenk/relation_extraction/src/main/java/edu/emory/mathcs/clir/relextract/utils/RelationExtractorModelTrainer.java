@@ -12,22 +12,26 @@ import edu.stanford.nlp.util.Triple;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by dsavenk on 11/7/14.
  */
 public class RelationExtractorModelTrainer {
-    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg, String optMethod)
+    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg, String optMethod, float negativeWeights)
             throws Exception {
 
-        Map<Integer, String> featAlphabet = new HashMap<>();
+        Map<Integer, List<String>> featAlphabet = new HashMap<>();
         for (Dataset.Feature feat : trainingDataset.getFeatureList()) {
-            featAlphabet.put(feat.getId(), feat.getName());
+            if (!featAlphabet.containsKey(feat.getId())) {
+                featAlphabet.put(feat.getId(), new ArrayList<String>());
+            }
+            featAlphabet.get(feat.getId()).add(feat.getName());
         }
 
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset =
-                convertDataset(trainingDataset, false);
+                convertDataset(trainingDataset, false, negativeWeights);
 
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, reg);
@@ -46,17 +50,21 @@ public class RelationExtractorModelTrainer {
         for (Triple<Integer, String, Double> feat :
                 model.getTopFeatures(0.0001, true, 1000)) {
             if (!feat.second.equals("NONE")) {
-                System.out.println(feat.first + "(" + featAlphabet.get(feat.first) + ") [" + feat.second + "] = " + feat.third);
+                System.out.print(feat.first + " ");
+                for (String featName : featAlphabet.get(feat.first)) {
+                    System.out.print("(" + featName + ") ");
+                }
+                System.out.println("[" + feat.second + "] = " + feat.third);
             }
         }
 
         return model;
     }
 
-    private static edu.stanford.nlp.classify.Dataset<String, Integer>
-        convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
-        edu.stanford.nlp.classify.Dataset<String, Integer> res =
-                new edu.stanford.nlp.classify.Dataset<>();
+    private static edu.stanford.nlp.classify.WeightedDataset<String, Integer>
+        convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels, float negativeWeights) {
+        edu.stanford.nlp.classify.WeightedDataset<String, Integer> res =
+                new edu.stanford.nlp.classify.WeightedDataset<>();
         Map<String, Integer> count = new HashMap<>();
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
             if (ignoreLabels) {
@@ -67,7 +75,11 @@ public class RelationExtractorModelTrainer {
                         count.put(label, 0);
                     }
                     count.put(label, count.get(label) + 1);
-                    res.add(instance.getFeatureIdList(), label, true);
+                    if (label.equals("NONE") || label.equals("OTHER")) {
+                        res.add(instance.getFeatureIdList(), label, negativeWeights);
+                    } else {
+                        res.add(instance.getFeatureIdList(), label, 1.0f);
+                    }
                 }
             }
         }
@@ -88,7 +100,7 @@ public class RelationExtractorModelTrainer {
                                                        Dataset.RelationMentionsDataset testDataset) {
         ArrayList<Pair<String, Double>> res = new ArrayList<>();
 
-        edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true);
+        edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true, 1.0f);
         for (Datum<String, Integer> example : dataset) {
             Counter<String> predictions = model.probabilityOf(example);
             double bestScore = predictions.getCount("NONE");

@@ -120,6 +120,14 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER)
             .withDescription("Optimization method (CONJ or QN)").create(
                         RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.NEGATIVE_WEIGHTS_PARAMETER)
+                .withDescription("Weights of negative class instances").create(
+                        RelationExtractorTrainEvalProcessor.NEGATIVE_WEIGHTS_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.FEATURE_DICTIONARY_SIZE_PARAMETER)
+                .withDescription("The size of feature dictionary. Feature ids will be taken modulo this number").create(
+                        RelationExtractorTrainEvalProcessor.FEATURE_DICTIONARY_SIZE_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

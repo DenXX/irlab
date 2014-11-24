@@ -64,6 +64,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String OPTIMIZATION_METHOD_PARAMETER = "optimization";
 
+    public static final String NEGATIVE_WEIGHTS_PARAMETER = "neg_weight";
+
+    public static final String FEATURE_DICTIONARY_SIZE_PARAMETER = "feats_count";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -84,6 +88,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private final boolean includeQFeatures;
 
     private final String optimizationMethod_;
+
+    private float negativeWeights_ = 1.0f;
+
+    private int featuresDictionarySize = -1;
+
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -155,6 +164,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             optimizationMethod_ = "QN";
         }
+
+        if (properties.containsKey(NEGATIVE_WEIGHTS_PARAMETER)) {
+            negativeWeights_ = Float.parseFloat(properties.getProperty(NEGATIVE_WEIGHTS_PARAMETER));
+        }
+
+        if (properties.containsKey(FEATURE_DICTIONARY_SIZE_PARAMETER)) {
+            featuresDictionarySize = Integer.parseInt(properties.getProperty(FEATURE_DICTIONARY_SIZE_PARAMETER));
+        }
     }
 
     /**
@@ -199,7 +216,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 testDataset_.addLabel(label);
             }
 
-            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_);
+            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_, negativeWeights_);
             LinearClassifier.writeClassifier(model_, modelFilename_);
 
             Dataset.RelationMentionsDataset testDataset = testDataset_.build();
@@ -508,7 +525,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     private Integer getFeatureId(String feature) {
         // We want to have positive Ids only.
-        featureAlphabet_.putIfAbsent(feature, feature.hashCode() & 0x7FFFFFFF);
+        if (featuresDictionarySize == -1) {
+            featureAlphabet_.putIfAbsent(feature, feature.hashCode() & 0x7FFFFFFF);
+        } else {
+            featureAlphabet_.putIfAbsent(feature, (feature.hashCode() & 0x7FFFFFFF) % featuresDictionarySize);
+        }
         return featureAlphabet_.get(feature);
     }
 
