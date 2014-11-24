@@ -57,14 +57,23 @@ public class RelationExtractorModelTrainer {
         convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
         edu.stanford.nlp.classify.Dataset<String, Integer> res =
                 new edu.stanford.nlp.classify.Dataset<>();
+        Map<String, Integer> count = new HashMap<>();
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
             if (ignoreLabels) {
                 res.add(instance.getFeatureIdList(), "", true);
             } else {
                 for (String label : instance.getLabelList()) {
+                    if (!count.containsKey(label)) {
+                        count.put(label, 0);
+                    }
+                    count.put(label, count.get(label) + 1);
                     res.add(instance.getFeatureIdList(), label, true);
                 }
             }
+        }
+
+        for (Map.Entry<String, Integer> cnt : count.entrySet()) {
+            System.out.println(cnt.getKey() + " => " + cnt.getValue());
         }
 
         return res;
