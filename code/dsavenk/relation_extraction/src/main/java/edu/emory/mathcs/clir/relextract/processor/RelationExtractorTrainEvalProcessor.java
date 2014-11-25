@@ -102,6 +102,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private final boolean splitTrainTestTriples_;
     private ConcurrentMap<String, Integer> featureAlphabet_ =
             new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, String> featureAlphabet2_ =
+            new ConcurrentHashMap<>();
     private Dataset.RelationMentionsDataset.Builder trainDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
     private Dataset.RelationMentionsDataset.Builder testDataset_ =
@@ -281,6 +283,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     : Double.NEGATIVE_INFINITY;
             extractedTriples_.get(arguments).put(predictedLabel.first,
                     Math.max(prevValue, predictedLabel.second));
+        }
+
+        if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
+                !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) {
+            for (int featureId : instance.getFeatureIdList()) {
+                System.out.println(featureId + " = " + featureAlphabet2_.get(featureId));
+            }
         }
     }
 
@@ -530,6 +539,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             featureAlphabet_.putIfAbsent(feature, (feature.hashCode() & 0x7FFFFFFF) % featuresDictionarySize);
         }
+        featureAlphabet2_.putIfAbsent(featureAlphabet_.get(feature), feature);
         return featureAlphabet_.get(feature);
     }
 

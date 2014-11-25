@@ -128,6 +128,10 @@ public class RelationExtractorModelTrainer {
                 bestLabel = pred.getKey();
             }
         }
+        if (!bestLabel.equals("NONE") && !bestLabel.equals("OTHER")) {
+            System.out.println(testInstance.getMentionText());
+            model.justificationOf(example);
+        }
         return new Pair<>(bestLabel, bestScore);
     }
 }
