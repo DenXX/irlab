@@ -403,7 +403,17 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             List<String> features = generateFeatures(document,
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
+
+                            if (!activeLabels.get(0).equals("NONE") &&
+                                    !activeLabels.get(0).equals("OTHER")) {
+                                System.out.println("\n\n-----\n" + activeLabels.get(0));
+                                System.out.println(mentionInstance.getMentionText());
+                            }
                             for (String feature : features) {
+                                if (!activeLabels.get(0).equals("NONE") &&
+                                        !activeLabels.get(0).equals("OTHER")) {
+                                    System.out.println(feature);
+                                }
                                 if (!includeQFeatures && feature.startsWith("QUESTION_DEP_PATH"))
                                     continue;
                                 mentionInstance.addFeatureId(

@@ -128,7 +128,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         List<String> window = new ArrayList<>();
         window.add("");
         int mentionFirstToken = answerSpan.getMention(answerMention).getTokenBeginOffset();
-        for (int token = mentionFirstToken;
+        for (int token = mentionFirstToken - 1;
              token >= Math.max(document.getSentence(answerSentenceIndex).getFirstToken(), mentionFirstToken - 3); --token) {
             window.add(document.getToken(token).getLemma().toLowerCase());
         }
@@ -139,8 +139,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 if (path != null) {
                     StringBuilder windowStrAcc = new StringBuilder();
                     for (String windowStr : window) {
-                        if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
-                        windowStrAcc.append(windowStr);
+                        if (windowStrAcc.length() != 0) windowStrAcc.insert(0, " ");
+                        windowStrAcc.insert(0, windowStr);
                         features.add("QUESTION_PATH:\t" + path.trim() + " [" + questionSpan.getNerType() + "]" + " => |" + windowStrAcc + "| [" +answerSpan.getNerType() + "]");
                     }
                 }
@@ -153,8 +153,8 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 if (path != null) {
                     StringBuilder windowStrAcc = new StringBuilder();
                     for (String windowStr : window) {
-                        if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
-                        windowStrAcc.append(windowStr);
+                        if (windowStrAcc.length() != 0) windowStrAcc.insert(0, " ");
+                        windowStrAcc.insert(0, windowStr);
                         features.add("QUESTION_PATH:\t" + path.trim() + " [" + questionSpan.getNerType() + "]" + " => |" + windowStrAcc + "| [" +answerSpan.getNerType() + "]");
                     }
                 }
@@ -233,15 +233,15 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         List<String> window = new ArrayList<>();
         window.add("");
         int mentionFirstToken = answerSpan.getMention(answerMention).getTokenBeginOffset();
-        for (int token = mentionFirstToken;
+        for (int token = mentionFirstToken - 1;
              token >= Math.max(document.getSentence(answerSentenceIndex).getFirstToken(), mentionFirstToken - 3); --token) {
             window.add(document.getToken(token).getLemma().toLowerCase());
         }
 
         StringBuilder windowStrAcc = new StringBuilder();
         for (String windowStr : window) {
-            if (windowStrAcc.length() != 0) windowStrAcc.append(" ");
-            windowStrAcc.append(windowStr);
+            if (windowStrAcc.length() != 0) windowStrAcc.insert(0, " ");
+            windowStrAcc.insert(0, windowStr);
             features.add("QUESTION_TEMPLATE:\t" + template.toString().trim() + " => |" + windowStrAcc + "| [" + answerSpan.getNerType() + "]");
         }
     }

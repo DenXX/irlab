@@ -34,6 +34,11 @@ public class RelationExtractorModelTrainer {
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset =
                 convertDataset(trainingDataset, false, negativeWeights);
 
+        System.out.println("Were feats: " + dataset.numFeatures());
+        dataset.applyFeatureCountThreshold(2); //47);
+        System.out.println("Now feats: " + dataset.numFeatures());
+
+
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, reg);
         //classifierFactory_.setTuneSigmaHeldOut();
