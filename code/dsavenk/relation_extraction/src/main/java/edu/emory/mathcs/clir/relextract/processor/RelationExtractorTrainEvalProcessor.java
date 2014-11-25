@@ -56,6 +56,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     public static final String QUESTION_FEATS_PARAMETER = "qfeats";
 
+    public static final String NER_ONLY_PARAMETER = "ner_only";
+
     /**
      */
     public static final String NEGATIVE_SUBSAMPLE_PARAMETER = "neg_subsample";
@@ -94,6 +96,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private int featuresDictionarySize = -1;
 
     private boolean verbose_ = false;
+
+    private boolean nerOnly_ = false;
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -174,6 +178,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         if (properties.containsKey(FEATURE_DICTIONARY_SIZE_PARAMETER)) {
             featuresDictionarySize = Integer.parseInt(properties.getProperty(FEATURE_DICTIONARY_SIZE_PARAMETER));
+        }
+
+        if (properties.containsKey(NER_ONLY_PARAMETER)) {
+            nerOnly_ = Boolean.parseBoolean(properties.getProperty(NER_ONLY_PARAMETER));
         }
     }
 
@@ -492,6 +500,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                  boolean isInTraining) {
         String subjMentionType = subjSpan.getMention(subjMention).getMentionType();
         String objMentionType = objSpan.getMention(objMention).getMentionType();
+
+        // Should we only keep NER mentions.
+        boolean subjIsNer = !subjSpan.getMention(subjMention).getType().equals("OTHER");
+        boolean objIsNer = !objSpan.getMention(objMention).getType().equals("OTHER");
+        if (nerOnly_ && (!subjIsNer || !objIsNer)) {
+            return false;
+        }
+
         boolean subjTypeOk = mentionTypes_ == null;
         boolean objTypeOk = mentionTypes_ == null;
         if (mentionTypes_ != null) {
@@ -506,16 +522,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     !activeLabels.get(0).equals(OTHER_RELATIONS_LABEL);
             return subjTypeOk && objTypeOk && (hasRel || rnd_.nextFloat() > negativeSubsampleRate);
         } else {
-            // If mention types are specified as command line parameter, we will
-            // use them, otherwise using nominal, pronomial and values.
-            boolean subjSpanOk = subjSpan.getType().equals("MEASURE") || subjSpan.getType().equals("ENTITY");
-            boolean objSpanOk = objSpan.getType().equals("MEASURE") || objSpan.getType().equals("ENTITY");
-            if (mentionTypes_ == null) {
-                return subjSpanOk && objSpanOk && (subjMentionType.equals("NOMINAL") || subjMentionType.equals("PRONOMINAL")) &&
-                        (objMentionType.equals("NOMINAL") || objMentionType.equals("PRONOMINAL") || objMention.equals("VALUE"));
-            } else {
-                return subjSpanOk && objSpanOk && subjTypeOk && objTypeOk;
-            }
+            return subjTypeOk && objTypeOk;
         }
     }
 

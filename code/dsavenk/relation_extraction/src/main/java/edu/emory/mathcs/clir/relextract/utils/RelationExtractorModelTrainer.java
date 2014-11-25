@@ -54,12 +54,16 @@ public class RelationExtractorModelTrainer {
             HashSet<String> labels = new HashSet<>();
             labels.add(label);
             System.out.println("\n\n{{{{{ " + label);
-            for (Triple<Integer, String, Double> feat :
-                    model.getTopFeatures(labels, 0.0000001, true, 30, true)) {
-                for (String featName : featAlphabet.get(feat.first)) {
-                    System.out.print("(" + featName + ") ");
+            try {
+                for (Triple<Integer, String, Double> feat :
+                        model.getTopFeatures(labels, 0.0000001, false, 30, true)) {
+                    for (String featName : featAlphabet.get(feat.first)) {
+                        System.out.print("(" + featName + ") ");
+                    }
+                    System.out.println("[" + feat.second + "] = " + feat.third);
                 }
-                System.out.println("[" + feat.second + "] = " + feat.third);
+            } catch (IllegalArgumentException exc) {
+
             }
         }
 

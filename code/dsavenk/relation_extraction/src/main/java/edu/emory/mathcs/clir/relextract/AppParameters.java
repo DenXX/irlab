@@ -128,6 +128,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.FEATURE_DICTIONARY_SIZE_PARAMETER)
                 .withDescription("The size of feature dictionary. Feature ids will be taken modulo this number").create(
                         RelationExtractorTrainEvalProcessor.FEATURE_DICTIONARY_SIZE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.NER_ONLY_PARAMETER)
+                .withDescription("Use only named entity tagged mentions").create(
+                        RelationExtractorTrainEvalProcessor.NER_ONLY_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
