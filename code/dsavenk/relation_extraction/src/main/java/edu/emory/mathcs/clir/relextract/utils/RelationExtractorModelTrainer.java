@@ -123,7 +123,7 @@ public class RelationExtractorModelTrainer {
     }
 
     public static Pair<String, Double> eval(LinearClassifier<String, Integer> model,
-                                            Dataset.RelationMentionInstance testInstance) {
+                                            Dataset.RelationMentionInstance testInstance, boolean verbose) {
         Datum<String, Integer> example = convertTestInstance(testInstance);
         Counter<String> predictions = model.probabilityOf(example);
         double bestScore = predictions.getCount("NONE");
@@ -134,14 +134,21 @@ public class RelationExtractorModelTrainer {
                 bestLabel = pred.getKey();
             }
         }
-//        if (!bestLabel.equals("NONE") && !bestLabel.equals("OTHER")) {
-//            System.out.println("\n\n\n" + bestLabel + " = " + bestScore);
-//            System.out.println(testInstance.getMentionText());
-//            for (Map.Entry<String, Double> score: model.scoresOf(example).entrySet()) {
-//                System.out.println(score.getKey() + ": " + score.getValue());
-//            }
-//            model.justificationOf(example, new PrintWriter(System.out));
-//        }
+        if (verbose) {
+            if ((!bestLabel.equals("NONE") && !bestLabel.equals("OTHER") ||
+                    (!testInstance.getLabel(0).equals("NONE") &&
+                     !testInstance.getLabel(0).equals("OTHER")))) {
+                System.out.println("\n\n======================================\n"
+                        + bestLabel + " = " + bestScore);
+                System.out.println(testInstance.getMentionText());
+                for (Map.Entry<String, Double> score: model.scoresOf(example).entrySet()) {
+                    System.out.println(score.getKey() + ": " + score.getValue());
+                }
+                PrintWriter w =new PrintWriter(System.out);
+                model.justificationOf(example, w);
+                w.flush();
+            }
+        }
         return new Pair<>(bestLabel, bestScore);
     }
 }

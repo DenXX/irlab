@@ -93,6 +93,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private int featuresDictionarySize = -1;
 
+    private boolean verbose_ = false;
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -285,12 +286,23 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     Math.max(prevValue, predictedLabel.second));
         }
 
-//        if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
-//                !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) {
-//            for (int featureId : instance.getFeatureIdList()) {
-//                System.out.println(featureId + " = " + featureAlphabet2_.get(featureId));
-//            }
-//        }
+        if (verbose_) {
+            if ((!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
+                    !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) ||
+                    (!instance.getLabel(0).equals(NO_RELATIONS_LABEL) &&
+                     !instance.getLabel(0).equals(OTHER_RELATIONS_LABEL))) {
+
+                    System.out.println("-----\nCorrect: " + instance.getLabel(0));
+                    System.out.println(instance.getMentionText());
+                    for (Dataset.Triple triple : instance.getTripleList()) {
+                        System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
+                    }
+
+                for (int featureId : instance.getFeatureIdList()) {
+                    System.out.println(featureId + " = " + featureAlphabet2_.get(featureId));
+                }
+            }
+        }
     }
 
     /**
@@ -404,16 +416,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
 
-//                            if (!activeLabels.get(0).equals("NONE") &&
-//                                    !activeLabels.get(0).equals("OTHER")) {
-//                                System.out.println("\n\n-----\n" + activeLabels.get(0));
-//                                System.out.println(mentionInstance.getMentionText());
-//                            }
                             for (String feature : features) {
-//                                if (!activeLabels.get(0).equals("NONE") &&
-//                                        !activeLabels.get(0).equals("OTHER")) {
-//                                    System.out.println(feature);
-//                                }
                                 if (!includeQFeatures && feature.startsWith("QUESTION_DEP_PATH"))
                                     continue;
                                 mentionInstance.addFeatureId(
@@ -439,7 +442,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             if (model_ != null) {
                 Dataset.RelationMentionInstance mention = mentionInstance.build();
                 Pair<String, Double> prediction =
-                        RelationExtractorModelTrainer.eval(model_, mention);
+                        RelationExtractorModelTrainer.eval(model_, mention, verbose_);
                 processPrediction(mention, prediction);
             } else {
                 synchronized (testDataset_) {
@@ -599,7 +602,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     protected boolean continueWithObjectSpan(Document.Span subjSpan,
                                              Document.Span objSpan) {
         return (objSpan.hasEntityId() &&
-                objSpan.getEntityId() != subjSpan.getEntityId())
+                !objSpan.getEntityId().equals(subjSpan.getEntityId()))
                 || (objSpan.getType().equals("MEASURE")
                     && (objSpan.getNerType().equals("DATE")
                     || objSpan.getNerType().equals("TIME")));

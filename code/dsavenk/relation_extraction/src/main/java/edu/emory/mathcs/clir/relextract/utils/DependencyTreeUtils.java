@@ -43,11 +43,14 @@ public class DependencyTreeUtils {
         // Left and right part of the path
         LinkedList<String> leftPart = new LinkedList<>();
         LinkedList<String> rightPart = new LinkedList<>();
-        if (includeFirstNode) {
+        if (includeFirstNode && firstToken != secondToken) {
             leftPart.add("(" + document.getToken(firstToken).getLemma().toLowerCase() + ")");
         }
-        if (includeLastNode) {
+        if (includeLastNode && firstToken != secondToken) {
             rightPart.add("("+document.getToken(secondToken).getLemma().toLowerCase()+")");
+        }
+        if (firstToken == secondToken && includeFirstNode && includeLastNode) {
+            leftPart.add("(" + document.getToken(firstToken).getLemma().toLowerCase() + ")");
         }
 
         // Stanford tree might have multiple roots for some reason (even basic)
