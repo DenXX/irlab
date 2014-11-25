@@ -285,12 +285,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     Math.max(prevValue, predictedLabel.second));
         }
 
-        if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
-                !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) {
-            for (int featureId : instance.getFeatureIdList()) {
-                System.out.println(featureId + " = " + featureAlphabet2_.get(featureId));
-            }
-        }
+//        if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
+//                !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) {
+//            for (int featureId : instance.getFeatureIdList()) {
+//                System.out.println(featureId + " = " + featureAlphabet2_.get(featureId));
+//            }
+//        }
     }
 
     /**
@@ -328,7 +328,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         boolean shouldSkip = false;
                         if (labels != null) {
                             for (String label : labels) {
-                                if (label.equals("TRAINING")) {
+                                if (label.equals("SKIP")) {
                                     shouldSkip = true;
                                     break;
                                 }
@@ -455,24 +455,19 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             // Take positive hashCode of the triple and use it.
             int strTripleHash = triple.hashCode() & 0x7FFFFFFF;
 
-            // We include the label if we don't need to split triples for
-            // training and test or if hash parity is appropriate.
-            if (!splitTriples
-                    || isInTraining == (strTripleHash % 2 == 0)
-                    || !isInTraining) {
-                Pair<Integer, Integer> spans =
-                        new Pair<>(rel.getSubjectSpan(), rel.getObjectSpan());
-                if (!spans2Labels.containsKey(spans)) {
-                    spans2Labels.put(spans, new ArrayList<String>());
-                }
-                if (!splitTriples
-                        || isInTraining == (strTripleHash % 2 == 0)) {
-                    spans2Labels.get(spans).add(rel.getRelation());
-                } else if (!isInTraining) {
-                    // It is not fair to consider all examples we trained on as
-                    // incorrect. Let's rather filter them later.
-                    spans2Labels.get(spans).add("TRAINING");
-                }
+
+            Pair<Integer, Integer> spans =
+                    new Pair<>(rel.getSubjectSpan(), rel.getObjectSpan());
+            if (!spans2Labels.containsKey(spans)) {
+                spans2Labels.put(spans, new ArrayList<String>());
+            }
+
+            if (!splitTriples || isInTraining == (strTripleHash % 2 == 0)) {
+                spans2Labels.get(spans).add(rel.getRelation());
+            } else {
+                // It is not fair to consider all examples we trained on as
+                // incorrect. Let's rather filter them later.
+                spans2Labels.get(spans).add("SKIP");
             }
         }
         return spans2Labels;
