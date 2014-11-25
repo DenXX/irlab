@@ -130,11 +130,12 @@ public class RelationExtractorModelTrainer {
             }
         }
         if (!bestLabel.equals("NONE") && !bestLabel.equals("OTHER")) {
+            System.out.println("\n\n\n" + bestLabel + " = " + bestScore);
             System.out.println(testInstance.getMentionText());
             for (Map.Entry<String, Double> score: model.scoresOf(example).entrySet()) {
                 System.out.println(score.getKey() + ": " + score.getValue());
             }
-            model.justificationOf(example, new PrintWriter(System.out), true);
+            model.justificationOf(example, new PrintWriter(System.out));
         }
         return new Pair<>(bestLabel, bestScore);
     }
