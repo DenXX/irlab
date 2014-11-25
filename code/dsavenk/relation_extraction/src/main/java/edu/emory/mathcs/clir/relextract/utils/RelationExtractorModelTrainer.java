@@ -11,10 +11,7 @@ import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by dsavenk on 11/7/14.
@@ -53,10 +50,12 @@ public class RelationExtractorModelTrainer {
         LinearClassifier<String, Integer> model =
                 classifierFactory_.trainClassifier(dataset);
 
-        for (Triple<Integer, String, Double> feat :
-                model.getTopFeatures(0.0001, true, 1000)) {
-            if (!feat.second.equals("NONE")) {
-                System.out.print(feat.first + " ");
+        for (String label : trainingDataset.getLabelList()) {
+            HashSet<String> labels = new HashSet<>();
+            labels.add(label);
+            System.out.println("\n\n{{{{{ " + label);
+            for (Triple<Integer, String, Double> feat :
+                    model.getTopFeatures(labels, 0.0000001, true, 30, true)) {
                 for (String featName : featAlphabet.get(feat.first)) {
                     System.out.print("(" + featName + ") ");
                 }

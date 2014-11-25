@@ -104,7 +104,8 @@ public class DependencyTreeUtils {
             for (String right : rightPart) {
                 path.append(right);
             }
-            return path.toString();
+            String res = path.toString().trim();
+            return res.length() > 0 ? res : null;
         }
         return null;
     }

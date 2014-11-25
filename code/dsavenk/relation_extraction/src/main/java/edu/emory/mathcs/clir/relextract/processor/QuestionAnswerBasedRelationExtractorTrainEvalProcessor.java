@@ -173,9 +173,9 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         int ansRoot = document.getSentence(answerSentenceIndex).getDependencyRootToken() +
                 document.getSentence(answerSentenceIndex).getFirstToken() - 1;
         String ansPath = DependencyTreeUtils.getDependencyPath(document, ansRoot, answerEntityToken, true, true, false);
-        if (ansPath == null) return;
+        if (ansPath == null) ansPath = "";
 
-        ansPath = ansPath.trim() + " [" + answerSpan.getNerType() + "]";
+        ansPath = (ansPath.trim() + " [" + answerSpan.getNerType() + "]").trim();
         List<Integer> questionWords = new ArrayList<>();
         for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
              index < document.getSentence(questionSentenceIndex).getLastToken();
