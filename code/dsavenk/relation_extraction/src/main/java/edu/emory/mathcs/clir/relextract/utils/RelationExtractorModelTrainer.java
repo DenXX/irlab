@@ -10,6 +10,7 @@ import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,7 +131,10 @@ public class RelationExtractorModelTrainer {
         }
         if (!bestLabel.equals("NONE") && !bestLabel.equals("OTHER")) {
             System.out.println(testInstance.getMentionText());
-            model.justificationOf(example);
+            for (Map.Entry<String, Double> score: model.scoresOf(example).entrySet()) {
+                System.out.println(score.getKey() + ": " + score.getValue());
+            }
+            model.justificationOf(example, new PrintWriter(System.out), true);
         }
         return new Pair<>(bestLabel, bestScore);
     }
