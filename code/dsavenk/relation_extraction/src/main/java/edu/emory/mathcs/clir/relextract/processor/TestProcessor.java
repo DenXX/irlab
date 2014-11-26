@@ -38,17 +38,18 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        for (Document.Span span : document.getSpanList()) {
-            if ("ENTITY".equals(span.getType()) ||
-                    "OTHER".equals(span.getType())) {
-                for (Document.Mention mention : span.getMentionList()) {
-                    if (mention.getMentionType().equals("NOMINAL") ||
-                            mention.getMentionType().equals("PROPER")) {
-//                        System.out.println(PTBTokenizer.ptb2Text(mention.getValue()));
-                    }
-                }
+        int tokenIndex = 0;
+        while (tokenIndex < document.getTokenCount()) {
+            if (document.getToken(tokenIndex).getBeginCharOffset() >= document.getQuestionLength()) {
+                break;
             }
+            ++tokenIndex;
         }
+        if (document.getTokenCount() - tokenIndex < 5) {
+            ++count;
+        }
+
+
 //        ++total;
 //
 //        int questionSentencesCount = 0;
@@ -95,6 +96,6 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-//        System.out.println("With relations: " + count + "\nTotal: " + total);
+        System.out.println("Simple answer: " + count);
     }
 }

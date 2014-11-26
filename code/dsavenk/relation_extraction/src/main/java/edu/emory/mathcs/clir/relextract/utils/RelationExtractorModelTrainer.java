@@ -112,14 +112,12 @@ public class RelationExtractorModelTrainer {
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true, 1.0f);
         for (Datum<String, Integer> example : dataset) {
             Counter<String> predictions = model.probabilityOf(example);
-            double bestScore = 0.000001; //1.0 / testDataset.getLabelCount(); //predictions.getCount("NONE");
+            double bestScore = predictions.getCount("NONE");
             String bestLabel = "NONE";
             for (Map.Entry<String, Double> pred : predictions.entrySet()) {
-                if (!pred.getKey().equals("NONE") && !pred.getKey().equals("OTHER")) {
-                    if (pred.getValue() > bestScore) {
-                        bestScore = pred.getValue();
-                        bestLabel = pred.getKey();
-                    }
+                if (pred.getValue() > bestScore) {
+                    bestScore = pred.getValue();
+                    bestLabel = pred.getKey();
                 }
             }
             res.add(new Pair<>(bestLabel, bestScore));
@@ -131,14 +129,12 @@ public class RelationExtractorModelTrainer {
                                             Dataset.RelationMentionInstance testInstance, boolean verbose) {
         Datum<String, Integer> example = convertTestInstance(testInstance);
         Counter<String> predictions = model.probabilityOf(example);
-        double bestScore = 0.000001; //predictions.getCount("NONE");
+        double bestScore = predictions.getCount("NONE");
         String bestLabel = "NONE";
         for (Map.Entry<String, Double> pred : predictions.entrySet()) {
-            if (!pred.getKey().equals("NONE") && !pred.getKey().equals("OTHER")) {
-                if (pred.getValue() > bestScore) {
-                    bestScore = pred.getValue();
-                    bestLabel = pred.getKey();
-                }
+            if (pred.getValue() > bestScore) {
+                bestScore = pred.getValue();
+                bestLabel = pred.getKey();
             }
         }
         if (verbose) {
