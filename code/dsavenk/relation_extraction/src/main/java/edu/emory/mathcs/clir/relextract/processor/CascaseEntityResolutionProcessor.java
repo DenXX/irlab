@@ -32,6 +32,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
     public static final String WIKILINKS_DICTIONARY_PARAMETER = "wikilinks_dict";
     public static final String WIKILINKS_LNRM_DICTIONARY_PARAMETER = "wikilinks_lnrm_dict";
 
+    private static final double PHRASE_PROBABILITY_THRESHOLD = 0.5;
+
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
     private final Map<String, Pair<String, Float>> wikilinksDictionary;
     private final Map<String, Pair<String, Float>> wikilinksLnrmDictionary;
@@ -94,38 +96,40 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
                 // Iterate over all mentions.
                 for (Document.Mention.Builder mention : span.getMentionBuilderList()) {
-                    mention.clearEntityId();
-                    mention.clearCandidateEntityId();
-                    mention.clearCandidateEntityScore();
-                    String name = PTBTokenizer.ptb2Text(mention.getValue());
+                    if (!mention.getMentionType().equals("PRONOMINAL")) {
+                        mention.clearEntityId();
+                        mention.clearCandidateEntityId();
+                        mention.clearCandidateEntityScore();
+                        String name = PTBTokenizer.ptb2Text(mention.getValue());
 
-                    Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
-                    if (match == emptyPair) {
-                        match = resolveByNormalizedPhrasesMatch(name);
-                        if (match == emptyPair && !mention.getType().equals("OTHER")) {
-                            match = resolveByEntityNameCached(name);
-                            if (match == emptyPair) {
-                                match = resolveBySpellcorrectedEntityNameCached(name);
+                        Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
+                        if (match == emptyPair) {
+                            match = resolveByNormalizedPhrasesMatch(name);
+                            if (match == emptyPair && !mention.getType().equals("OTHER")) {
+                                match = resolveByEntityNameCached(name);
+                                if (match == emptyPair) {
+                                    match = resolveBySpellcorrectedEntityNameCached(name);
+                                }
                             }
                         }
-                    }
 
-                    if (match != emptyPair) {
-                        mention.setEntityId(match.first);
-                        mention.addCandidateEntityId(match.first);
-                        mention.addCandidateEntityScore(match.second);
-                        Map<String, Float> curMap = null;
-                        if ("ENTITY".equals(mention.getType())) {
-                            curMap = namedEntityIdScores;
-                        } else {
-                            curMap = entityIdScores;
-                        }
+                        if (match != emptyPair) {
+                            mention.setEntityId(match.first);
+                            mention.addCandidateEntityId(match.first);
+                            mention.addCandidateEntityScore(match.second);
+                            Map<String, Float> curMap = null;
+                            if ("ENTITY".equals(mention.getType())) {
+                                curMap = namedEntityIdScores;
+                            } else {
+                                curMap = entityIdScores;
+                            }
 
-                        if (!curMap.containsKey(match.first)) {
-                            curMap.put(match.first, match.second);
-                        } else {
-                            // TODO(denxx): This is bad. We have 2 types of scores: p(entity|phrase) and triple count.
-                            curMap.put(match.first, Math.max(curMap.get(match.first), match.second));
+                            if (!curMap.containsKey(match.first)) {
+                                curMap.put(match.first, match.second);
+                            } else {
+                                // TODO(denxx): This is bad. We have 2 types of scores: p(entity|phrase) and triple count.
+                                curMap.put(match.first, Math.max(curMap.get(match.first), match.second));
+                            }
                         }
                     }
                 }
@@ -283,7 +287,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 lastPhrase = fields[0];
             }
             float score = Float.parseFloat(fields[2]);
-            if (score > bestScore) {
+            if (score > PHRASE_PROBABILITY_THRESHOLD && score > bestScore) {
                 bestScore = score;
                 bestEntity = fields[1];
             }
