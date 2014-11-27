@@ -1,9 +1,10 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.stanford.nlp.util.Pair;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by dsavenk on 9/26/14.
@@ -25,29 +26,63 @@ public class PrintTextProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(
             Document.NlpDocument document) throws Exception {
-        if (document.hasQuestionLength()) {
-            for (int i = 0; i < document.getSentenceCount(); ++i) {
-                int firstToken = document.getSentence(i).getFirstToken();
-                int lastToken = document.getSentence(i).getLastToken();
-                if (document.getToken(firstToken).getBeginCharOffset() >= document.getQuestionLength()) {
-                    break;
+
+        Map<Integer, List<Pair<Integer, Integer>>> beginToken2Mention = new HashMap<>();
+        for (int spanIndex = 0; spanIndex < document.getSpanCount(); ++spanIndex) {
+            Document.Span span = document.getSpan(spanIndex);
+            for (int mentionIndex = 0; mentionIndex < span.getMentionCount(); ++mentionIndex) {
+                Document.Mention mention = span.getMention(mentionIndex);
+                int firstToken = mention.getTokenBeginOffset();
+                if (!beginToken2Mention.containsKey(firstToken)) {
+                    beginToken2Mention.put(firstToken, new ArrayList<Pair<Integer, Integer>>());
                 }
-                System.out.println(document.getSentence(i).getText().replace("\n", " "));
-                for (int j = firstToken; j < lastToken; ++j) {
-                    if (document.getToken(j).hasDependencyGovernor() &&
-                            document.getToken(j).getDependencyGovernor() == 0) {
-                        System.out.println("---> " + document.getToken(j).getText());
-                    }
-                    if (document.getToken(j).getPos().startsWith("VB")) {
-                        System.out.println("VB - " + document.getToken(j).getText() + "[" + document.getToken(j).getPos() + "]");
-                    } else if (document.getToken(j).getPos().startsWith("W")) {
-                        System.out.println("W - " + document.getToken(j).getText() + "[" + document.getToken(j).getPos() + "]");
-                    }
-                }
+                beginToken2Mention.get(firstToken).add(new Pair<>(spanIndex, mentionIndex));
             }
         }
-        System.out.println();
+
+        PriorityQueue<Pair<Integer, Integer>> currentMentions = new PriorityQueue<>();
+        int prevSentenceIndex = 0;
+        for (int tokenIndex = 0;
+             tokenIndex < document.getTokenCount(); ++tokenIndex) {
+            if (document.getToken(tokenIndex).getSentenceIndex() != prevSentenceIndex) {
+                System.out.println();
+                prevSentenceIndex = document.getToken(tokenIndex).getSentenceIndex();
+            }
+            if (beginToken2Mention.containsKey(tokenIndex)) {
+                for (Pair<Integer, Integer> mention : beginToken2Mention.get(tokenIndex)) {
+                    currentMentions.add(mention);
+                    Document.Span span = document.getSpan(mention.first);
+                    Document.Mention spanMention = span.getMention(mention.second);
+                    String spanTypeStr = (span.hasEntityId()
+                            ? ":" + span.getEntityId()
+                            : (span.getType().equals("MEASURE") ? ":" + span.getValue() : ""));
+                    String mentionTypeStr = (spanMention.hasEntityId()
+                            ? ":" + spanMention.getEntityId()
+                            : (spanMention.getType().equals("MEASURE") ? ":" + spanMention.getValue() : ""));
+                    System.out.print("<" + mention.first + span.getType().charAt(0) + spanTypeStr + "|" +
+                            spanMention.getType().charAt(0) + mentionTypeStr + " - ");
+                }
+            }
+            System.out.print(document.getToken(tokenIndex).getText() + " ");
+            printMentionEnds(document, currentMentions, tokenIndex);
+        }
+        printMentionEnds(document, currentMentions, document.getTokenCount());
+
+        System.out.println("\n------------------------------------------------------------------------");
         return null;
+    }
+
+    private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Pair<Integer, Integer>> currentMentions, int tokenIndex) {
+        while (currentMentions.size() != 0) {
+            Pair<Integer, Integer> nextMention = currentMentions.peek();
+            Document.Mention mention = document.getSpan(nextMention.first).getMention(nextMention.second);
+            if (mention.getTokenEndOffset() - 1 <= tokenIndex) {
+                System.out.print(nextMention.first + "> ");
+                currentMentions.poll();
+            } else {
+                break;
+            }
+        }
     }
 
     @Override
