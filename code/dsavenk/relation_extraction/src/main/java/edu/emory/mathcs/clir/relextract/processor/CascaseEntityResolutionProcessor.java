@@ -96,12 +96,12 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
                 // Iterate over all mentions.
                 for (Document.Mention.Builder mention : span.getMentionBuilderList()) {
-                    if (!mention.getMentionType().equals("PRONOMINAL")) {
-                        mention.clearEntityId();
-                        mention.clearCandidateEntityId();
-                        mention.clearCandidateEntityScore();
-                        String name = PTBTokenizer.ptb2Text(mention.getValue());
+                    mention.clearEntityId();
+                    mention.clearCandidateEntityId();
+                    mention.clearCandidateEntityScore();
 
+                    if (!mention.getMentionType().equals("PRONOMINAL")) {
+                        String name = PTBTokenizer.ptb2Text(mention.getValue());
                         Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
                         if (match == emptyPair) {
                             match = resolveByNormalizedPhrasesMatch(name);
