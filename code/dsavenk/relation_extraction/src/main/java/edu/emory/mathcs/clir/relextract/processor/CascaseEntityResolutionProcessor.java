@@ -100,18 +100,12 @@ public class CascaseEntityResolutionProcessor extends Processor {
                     mention.clearCandidateEntityId();
                     mention.clearCandidateEntityScore();
 
-                    if (!mention.getMentionType().equals("PRONOMINAL")) {
+                    if (!mention.getMentionType().equals("PRONOMINAL") &&
+                            !mention.getText().toLowerCase().equals("this") &&
+                            !mention.getText().toLowerCase().equals("that")) {
                         String name = PTBTokenizer.ptb2Text(mention.getValue());
-                        Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
-                        if (match == emptyPair) {
-                            match = resolveByNormalizedPhrasesMatch(name);
-                            if (match == emptyPair && !mention.getType().equals("OTHER")) {
-                                match = resolveByEntityNameCached(name);
-                                if (match == emptyPair) {
-                                    match = resolveBySpellcorrectedEntityNameCached(name);
-                                }
-                            }
-                        }
+                        boolean isOtherMention = mention.getType().equals("OTHER");
+                        Pair<String, Float> match = resolveEntity(name, isOtherMention);
 
                         if (match != emptyPair) {
                             mention.setEntityId(match.first);
@@ -169,6 +163,34 @@ public class CascaseEntityResolutionProcessor extends Processor {
             }
         }
         return docBuilder.build();
+    }
+
+    private Pair<String, Float> resolveEntity(String name, boolean isOtherMention) {
+        Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
+        if (match == emptyPair) {
+            match = resolveByNormalizedPhrasesMatch(name);
+            if (match == emptyPair) { // && !isOtherMention) {
+                match = resolveByEntityNameCached(name);
+                if (match == emptyPair) {
+                    match = resolveBySpellcorrectedEntityNameCached(name);
+                }
+            }
+        }
+        // Let's try to remove the first article
+        if (name.toLowerCase().startsWith("the ") ||
+                name.toLowerCase().startsWith("a ")) {
+            Pair<String, Float> match2 = resolveEntity(name.replaceFirst("^(?i)(the |a )", ""), isOtherMention);
+            if (match2 != emptyPair) {
+                if (match == emptyPair) {
+                    match = match2;
+                } else {
+                    if (match.second < match2.second) {
+                        match = match2;
+                    }
+                }
+            }
+        }
+        return match;
     }
 
     private Pair<String, Float> resolveByLinkPhrasesMatch(String name) {
