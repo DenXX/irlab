@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.stanford.nlp.util.Pair;
+import edu.stanford.nlp.util.Triple;
 import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.*;
@@ -40,7 +41,7 @@ public class PrintTextProcessor extends Processor {
             }
         }
 
-        PriorityQueue<Pair<Integer, Integer>> currentMentions = new PriorityQueue<>();
+        PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions = new PriorityQueue<>();
         int prevSentenceIndex = 0;
         for (int tokenIndex = 0;
              tokenIndex < document.getTokenCount(); ++tokenIndex) {
@@ -50,9 +51,9 @@ public class PrintTextProcessor extends Processor {
             }
             if (beginToken2Mention.containsKey(tokenIndex)) {
                 for (Pair<Integer, Integer> mention : beginToken2Mention.get(tokenIndex)) {
-                    currentMentions.add(mention);
                     Document.Span span = document.getSpan(mention.first);
                     Document.Mention spanMention = span.getMention(mention.second);
+                    currentMentions.add(new Triple<>(spanMention.getTokenEndOffset(), mention.first, mention.second));
                     String spanTypeStr = (span.hasEntityId()
                             ? ":" + span.getEntityId()
                             : (span.getType().equals("MEASURE") ? ":" + span.getValue() : ""));
@@ -72,12 +73,11 @@ public class PrintTextProcessor extends Processor {
         return null;
     }
 
-    private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Pair<Integer, Integer>> currentMentions, int tokenIndex) {
+    private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions, int tokenIndex) {
         while (currentMentions.size() != 0) {
-            Pair<Integer, Integer> nextMention = currentMentions.peek();
-            Document.Mention mention = document.getSpan(nextMention.first).getMention(nextMention.second);
-            if (mention.getTokenEndOffset() - 1 <= tokenIndex) {
-                System.out.print(nextMention.first + "> ");
+            Triple<Integer, Integer, Integer> nextMention = currentMentions.peek();
+            if (nextMention.first - 1 <= tokenIndex) {
+                System.out.print(nextMention.second + "> ");
                 currentMentions.poll();
             } else {
                 break;

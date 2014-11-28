@@ -32,7 +32,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
     public static final String WIKILINKS_DICTIONARY_PARAMETER = "wikilinks_dict";
     public static final String WIKILINKS_LNRM_DICTIONARY_PARAMETER = "wikilinks_lnrm_dict";
 
-    private static final double PHRASE_PROBABILITY_THRESHOLD = 0.5;
+    private static final double PHRASE_PROBABILITY_THRESHOLD = 0.8;
 
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
     private final Map<String, Pair<String, Float>> wikilinksDictionary;
@@ -169,7 +169,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         Pair<String, Float> match = resolveByLinkPhrasesMatch(name);
         if (match == emptyPair) {
             match = resolveByNormalizedPhrasesMatch(name);
-            if (match == emptyPair) { // && !isOtherMention) {
+            if (match == emptyPair && !isOtherMention) {
                 match = resolveByEntityNameCached(name);
                 if (match == emptyPair) {
                     match = resolveBySpellcorrectedEntityNameCached(name);
@@ -302,14 +302,16 @@ public class CascaseEntityResolutionProcessor extends Processor {
         float bestScore = -1;
         while ((line = input.readLine()) != null) {
             String[] fields = line.split("\t");
-            if (!fields[0].equals(lastPhrase) && bestEntity != null) {
-                dictionary.put(lastPhrase, new Pair<>(bestEntity, bestScore));
+            if (!fields[0].equals(lastPhrase)) {
+                if (bestEntity != null) {
+                    dictionary.put(lastPhrase, new Pair<>(bestEntity, bestScore));
+                }
                 bestEntity = null;
                 bestScore = -1;
                 lastPhrase = fields[0];
             }
             float score = Float.parseFloat(fields[2]);
-            if (score > PHRASE_PROBABILITY_THRESHOLD && score > bestScore) {
+            if (score >= PHRASE_PROBABILITY_THRESHOLD && score > bestScore) {
                 bestScore = score;
                 bestEntity = fields[1];
             }

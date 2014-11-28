@@ -38,17 +38,10 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        int tokenIndex = 0;
-        while (tokenIndex < document.getTokenCount()) {
-            if (document.getToken(tokenIndex).getBeginCharOffset() >= document.getQuestionLength()) {
-                break;
-            }
-            ++tokenIndex;
+        if (document.getSentence(0).getText().toLowerCase().startsWith("what is the best")) {
+            System.out.println("-----------------------------------------------");
+            System.out.println(document.getText());
         }
-        if (document.getTokenCount() - tokenIndex < 5) {
-            ++count;
-        }
-
 
 //        ++total;
 //

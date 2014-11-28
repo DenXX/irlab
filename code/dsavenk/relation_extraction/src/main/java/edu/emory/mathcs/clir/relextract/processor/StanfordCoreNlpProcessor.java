@@ -49,9 +49,11 @@ public class StanfordCoreNlpProcessor extends Processor {
         // Use much faster shift-reduce parser.
         properties.setProperty("parse.model",
                 "edu/stanford/nlp/models/srparser/englishSR.ser.gz");
+        properties.setProperty("parse.buildgraphs", "false");
         // Do not allow reparsing as it wasn't supported with shift-reduce
         // parser.
         properties.setProperty("dcoref.allowReparsing", "false");
+        //properties.setProperty("dcoref.conll2011", "true");
         // if set, the annotator parses only sentences shorter (in terms of
         // number of tokens) than this number. For longer sentences, the parser
         // creates a flat structure, where every token is assigned to
@@ -68,7 +70,7 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, dcoref";
+        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, dcoref";
     }
 
     @Override
