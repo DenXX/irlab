@@ -60,7 +60,10 @@ public class PrintTextProcessor extends Processor {
                     String mentionTypeStr = (spanMention.hasEntityId()
                             ? ":" + spanMention.getEntityId()
                             : (spanMention.getType().equals("MEASURE") ? ":" + spanMention.getValue() : ""));
-                    System.out.print("<" + mention.first + span.getType().charAt(0) + spanTypeStr + "|" +
+                    String showReprMention = span.getRepresentativeMention() == mention.second
+                            ? "!"
+                            : "";
+                    System.out.print("<" + showReprMention  + mention.first + span.getType().charAt(0) + spanTypeStr + "|" +
                             spanMention.getType().charAt(0) + mentionTypeStr + " - ");
                 }
             }
