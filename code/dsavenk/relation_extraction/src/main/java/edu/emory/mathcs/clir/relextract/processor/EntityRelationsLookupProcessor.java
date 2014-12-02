@@ -22,7 +22,7 @@ public class EntityRelationsLookupProcessor extends Processor {
 
     public static final String CVT_PREDICATES_LIST_PARAMETER = "cvt";
 
-    private final int MAX_ENTITY_IDS_COUNT = 0;
+    private final int MAX_ENTITY_IDS_COUNT = 10;
 
     private final KnowledgeBase kb_;
 
@@ -61,18 +61,11 @@ public class EntityRelationsLookupProcessor extends Processor {
             ++subjSpanIndex;
             if (subjSpan.hasEntityId()) {
                 int subjEntityIdIndex = 0;
-                boolean seenSubjMainMid = false;
                 for (String subjMid :
                         subjSpan.getCandidateEntityIdList()) {
                     subjEntityIdIndex++;
                     if (subjEntityIdIndex > MAX_ENTITY_IDS_COUNT) {
-                        if (seenSubjMainMid) break;
-                        else subjMid = subjSpan.getEntityId();
-                    }
-
-                    // Have we seen the "main" entity id.
-                    if (subjMid.equals(subjSpan.getEntityId())) {
-                        seenSubjMainMid = true;
+                        break;
                     }
 
                     int objSpanIndex = -1;
@@ -81,19 +74,11 @@ public class EntityRelationsLookupProcessor extends Processor {
                         StmtIterator iter = null;
                         if (objSpan.hasEntityId()) {
                             int objEntityIdIndex = 0;
-                            boolean seenObjMainMid = false;
                             for (String objMid : objSpan.getCandidateEntityIdList()) {
                                 ++objEntityIdIndex;
-
                                 if (objEntityIdIndex > MAX_ENTITY_IDS_COUNT) {
-                                    if (seenObjMainMid) break;
-                                    else objMid = objSpan.getEntityId();
+                                    break;
                                 }
-
-                                if (objMid.equals(objSpan.getEntityId())) {
-                                    seenObjMainMid = true;
-                                }
-
                                 if (subjMid.equals(objMid)) continue;
 
                                 // Uncomment this code to search for length 2
@@ -122,15 +107,8 @@ public class EntityRelationsLookupProcessor extends Processor {
                                     relBuilder.setObjectSpan(objSpanIndex);
                                     relBuilder.setSubjectSpan(subjSpanIndex);
                                     relBuilder.setRelation(triple.predicate);
-
-                                    // If current id is the "main" id, we won't set
-                                    // the index so we can later figure this out.
-                                    if (!subjMid.equals(subjSpan.getEntityId())) {
-                                        relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
-                                    }
-                                    if (!objMid.equals(objSpan.getEntityId())) {
-                                        relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
-                                    }
+                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
+                                    relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
                                     docBuilder.addRelation(relBuilder.build());
                                 }
                             }
@@ -151,10 +129,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                                 relBuilder.setObjectSpan(objSpanIndex);
                                 relBuilder.setSubjectSpan(subjSpanIndex);
                                 relBuilder.setRelation(triple.predicate);
-                                if (!subjMid.equals(subjSpan.getEntityId())) {
-                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(
-                                            subjEntityIdIndex);
-                                }
+                                relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
                                 docBuilder.addRelation(relBuilder.build());
                             }
                         }
