@@ -7,6 +7,7 @@ import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
+import org.apache.commons.collections4.map.LRUMap;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -33,7 +34,7 @@ public class KnowledgeBase {
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties_ = new HashSet<>();
     public Model model_;
-    private Map<Pair<String, String>, Set<Triple>> tripleCache_ = new HashMap<>();
+    private LRUMap<Pair<String, String>, List<Triple>> tripleCache_ = new LRUMap<>(1000000);
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -139,10 +140,15 @@ public class KnowledgeBase {
      * @param object  Object (maybe entity or literal).
      * @return Iterator to all the triples between the given arguments.
      */
-    public Set<Triple> getSubjectObjectTriples(String subject, String object, List<Pair<String, String>> cvtPredicates) {
-        Set<Triple> res = new HashSet<>();
+    public List<Triple> getSubjectObjectTriples(String subject, String object, List<Pair<String, String>> cvtPredicates) {
+        Pair<String, String> so = new Pair<>(subject, object);
+        if (tripleCache_.containsKey(so)) {
+            return tripleCache_.get(so);
+        }
+        List<Triple> res = null;
         StmtIterator iter = getSubjectObjectTriples(subject, object);
         while (iter.hasNext()) {
+            if (res == null) res = new ArrayList<>();
             res.add(new Triple(iter.nextStatement()));
         }
 
@@ -155,13 +161,14 @@ public class KnowledgeBase {
                         StmtIterator iter2 = getSubjectObjectTriples(t.getObject().asResource().getLocalName(), object);
                         while (iter2.hasNext()) {
                             Statement t2 = iter2.nextStatement();
+                            if (res == null) res = new ArrayList<>();
                             res.add(new Triple(subject, t.getPredicate().getLocalName() + "|" + t2.getPredicate().getLocalName(), object));
                         }
                     }
                 }
             }
         }
-
+        tripleCache_.put(so, res);
         return res;
     }
 
@@ -220,13 +227,9 @@ public class KnowledgeBase {
      * objects.
      */
     public Set<Triple> getSubjectObjectTriplesCVT(String subject, String object) {
-        Pair<String, String> pair = new Pair<>(subject, object);
-        if (tripleCache_.containsKey(pair))
-            return tripleCache_.get(pair);
         final String subjectUri = convertFreebaseMidRdf(subject);
         final String objectUri = convertFreebaseMidRdf(object);
         Set<Triple> res = new HashSet<>();
-//        tripleCache_.put(pair, res);
         StmtIterator iter = model_.listStatements(
                 model_.getResource(subjectUri), null, (RDFNode) null);
         while (iter.hasNext()) {
@@ -334,10 +337,9 @@ public class KnowledgeBase {
 
     public StmtIterator getSubjectPredicateTriples(String subject,
                                                    String predicate) {
-        return model_.listStatements(new SimpleSelector(
-                model_.getResource(convertFreebaseMidRdf(subject)),
+        return model_.listStatements(model_.getResource(convertFreebaseMidRdf(subject)),
                 model_.getProperty(FREEBASE_RDF_PREFIX, predicate),
-                (RDFNode) null));
+                (RDFNode) null);
     }
 
     public boolean isCVTProperty(String property) {
