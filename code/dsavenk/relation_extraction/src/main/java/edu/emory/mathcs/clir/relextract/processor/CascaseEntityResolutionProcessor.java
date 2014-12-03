@@ -40,6 +40,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private final Map<String, List<Pair<String, Float>>> spellCheckSearchCache_ = new ConcurrentHashMap<>();
     private final SpellChecker spellChecker_;
     private final IndexSearcher searcher_;
+    private List<Pair<String, Float>> emptyList_ = new ArrayList<>();
     // Counters for
     private AtomicInteger total = new AtomicInteger(0);
     private AtomicInteger resolved = new AtomicInteger(0);
@@ -105,15 +106,13 @@ public class CascaseEntityResolutionProcessor extends Processor {
                         boolean isOtherMention = mention.getType().equals("OTHER");
                         List<Pair<String, Float>> matches = resolveEntity(name, isOtherMention);
 
-                        if (matches != null && !matches.isEmpty()) {
+                        if (!matches.isEmpty()) {
                             mention.setEntityId(matches.get(0).first);
 
-                            Map<String, Float> curMap = null;
-                            if ("ENTITY".equals(mention.getType())) {
-                                curMap = namedEntityIdScores;
-                            } else {
-                                curMap = entityIdScores;
-                            }
+                            Map<String, Float> curMap =
+                                    ("ENTITY".equals(mention.getType()))
+                                    ? namedEntityIdScores
+                                    : entityIdScores;
 
                             for (Pair<String, Float> match : matches) {
                                 mention.addCandidateEntityId(match.first);
@@ -173,11 +172,11 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
     private List<Pair<String, Float>> resolveEntity(String name, boolean isOtherMention) {
         List<Pair<String, Float>> match = resolveByLinkPhrasesMatch(name);
-        if (match.size() == 0) {
+        if (match.isEmpty()) {
             match = resolveByNormalizedPhrasesMatch(name);
-            if (match.size() == 0 && !isOtherMention) {
+            if (match.isEmpty() && !isOtherMention) {
                 match = resolveByEntityNameCached(name);
-                if (match.size() == 0) {
+                if (match.isEmpty()) {
                     match = resolveBySpellcorrectedEntityNameCached(name);
                 }
             }
@@ -186,15 +185,16 @@ public class CascaseEntityResolutionProcessor extends Processor {
         if (name.toLowerCase().startsWith("the ") ||
                 name.toLowerCase().startsWith("a ")) {
             List<Pair<String, Float>> match2 = resolveEntity(name.replaceFirst("^(?i)(the |a )", ""), isOtherMention);
-            if (match2 != null) {
-                if (match == null) {
+            if (!match2.isEmpty()) {
+                if (match.isEmpty()) {
                     match = match2;
                 } else {
                     Set<String> has = match.stream().map(
                             e -> e.first).collect(Collectors.toSet());
-                    match.addAll(match2.stream().filter(
-                            e -> has.contains(e.first)).collect(Collectors.toList()));
-                    match.sort((o1, o2) -> o2.second.compareTo(o1.second));
+                    match.addAll(match2.stream()
+                            .filter(e -> has.contains(e.first))
+                            .sorted((o1, o2) -> o2.second.compareTo(o1.second))
+                            .collect(Collectors.toList()));
                 }
             }
         }
@@ -205,7 +205,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         if (wikilinksDictionary.containsKey(name)) {
             return wikilinksDictionary.get(name);
         }
-        return null;
+        return emptyList_;
     }
 
     private List<Pair<String, Float>> resolveByNormalizedPhrasesMatch(String name) {
@@ -213,7 +213,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         if (wikilinksLnrmDictionary.containsKey(normalizedName)) {
             return wikilinksLnrmDictionary.get(normalizedName);
         }
-        return null;
+        return emptyList_;
     }
 
     private List<Pair<String, Float>> resolveByEntityNameCached(String name) {
@@ -230,7 +230,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         ScoreDoc[] docs = new ScoreDoc[0];
         Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
         // This can happen if query doesn't really contain any terms.
-        if (q == null) return null;
+        if (q == null) return emptyList_;
 
         try {
             docs = searcher_.search(q, 100).scoreDocs;
@@ -265,7 +265,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             Collections.sort(res, (o1, o2) -> o2.second.compareTo(o1.second));
             return res;
         }
-        return null;
+        return emptyList_;
     }
 
     private List<Pair<String, Float>> resolveBySpellcorrectedEntityNameCached(String name) {
@@ -282,17 +282,12 @@ public class CascaseEntityResolutionProcessor extends Processor {
         try {
             for (String suggest : spellChecker_.suggestSimilar(name, 10, 0.8f)) {
                 List<Pair<String, Float>> res = resolveByEntityName(suggest, 1, false);
-                if (res != null) {
-                    results.addAll(res.stream().collect(Collectors.toList()));
-                }
+                results.addAll(res.stream().collect(Collectors.toList()));
             }
-            if (results.size() != 0) {
-                Collections.sort(results, (o1, o2) -> o2.second.compareTo(o1.second));
-                return results;
-            }
-            return null;
+            Collections.sort(results, (o1, o2) -> o2.second.compareTo(o1.second));
+            return results;
         } catch (IOException e) {
-            return null;
+            return emptyList_;
         }
     }
 
@@ -306,43 +301,35 @@ public class CascaseEntityResolutionProcessor extends Processor {
                                 new FileInputStream(dictFileName))));
         String line;
         String lastPhrase = "";
-        String bestEntity = null;
-        float bestScore = -1;
         Map<String, Float> scores = new HashMap<>();
         while ((line = input.readLine()) != null) {
             String[] fields = line.split("\t");
             if (!fields[0].equals(lastPhrase)) {
-                if (bestEntity != null) {
-                    dictionary.put(lastPhrase, new ArrayList<>());
-                    dictionary.get(lastPhrase).add(new Pair<>(bestEntity, bestScore));
-                    for (Map.Entry<String, Float> e : scores.entrySet()) {
-                        if (!e.getKey().equals(bestEntity)) {
-                            dictionary.get(lastPhrase).add(new Pair<>(e.getKey(), e.getValue()));
-                        }
-                    }
+                if (!scores.isEmpty()) {
+                    dictionary.put(lastPhrase,
+                            scores.entrySet().stream()
+                                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                                    .map(e -> new Pair<>(e.getKey(), e.getValue()))
+                                    .collect(Collectors.toList()));
                 }
-                bestEntity = null;
-                bestScore = -1;
                 lastPhrase = fields[0];
                 scores.clear();
             }
             float score = Float.parseFloat(fields[2]);
-            if (score >= PHRASE_PROBABILITY_THRESHOLD && score > bestScore) {
-                bestScore = score;
-                bestEntity = fields[1];
+            if (score >= PHRASE_PROBABILITY_THRESHOLD) {
+                float old = scores.containsKey(fields[1])
+                        ? scores.get(fields[1])
+                        : 0.0f;
+                scores.put(fields[1], Math.max(old, score));
             }
-            float old = scores.containsKey(fields[1]) ? scores.get(fields[1]) : 0.0f;
-            scores.put(fields[1], Math.max(old, score));
         }
         // Put the last record to the dictionary.
-        if (bestEntity != null) {
-            dictionary.put(lastPhrase, new ArrayList<>());
-            dictionary.get(lastPhrase).add(new Pair<>(bestEntity, bestScore));
-            for (Map.Entry<String, Float> e : scores.entrySet()) {
-                if (!e.getKey().equals(bestEntity)) {
-                    dictionary.get(lastPhrase).add(new Pair<>(e.getKey(), e.getValue()));
-                }
-            }
+        if (!scores.isEmpty()) {
+            dictionary.put(lastPhrase,
+                    scores.entrySet().stream()
+                            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                            .map(e -> new Pair<>(e.getKey(), e.getValue()))
+                            .collect(Collectors.toList()));
         }
     }
 }
