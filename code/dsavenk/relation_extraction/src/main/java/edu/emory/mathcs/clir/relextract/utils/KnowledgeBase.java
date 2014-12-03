@@ -34,7 +34,8 @@ public class KnowledgeBase {
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties_ = new HashSet<>();
     public Model model_;
-    private LRUMap<Pair<String, String>, List<Triple>> tripleCache_ = new LRUMap<>(1000000);
+    private Map<Pair<String, String>, List<Triple>> tripleCache_ =
+            Collections.synchronizedMap(new LRUMap<>(1000000));
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
