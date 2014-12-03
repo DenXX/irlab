@@ -102,17 +102,19 @@ public class EntityRelationsLookupProcessor extends Processor {
 //                                    docBuilder.addRelation(relBuilder.build());
 //                                }
 
-                                Set<KnowledgeBase.Triple> triples = kb_.getSubjectObjectTriples(subjMid, objMid, cvtProperties_);
-                                // Now iterate over all triples and add them as annotations.
-                                for (KnowledgeBase.Triple triple : triples) {
-                                    Document.Relation.Builder relBuilder =
-                                            Document.Relation.newBuilder();
-                                    relBuilder.setObjectSpan(objSpanIndex);
-                                    relBuilder.setSubjectSpan(subjSpanIndex);
-                                    relBuilder.setRelation(triple.predicate);
-                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
-                                    relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
-                                    docBuilder.addRelation(relBuilder.build());
+                                List<KnowledgeBase.Triple> triples = kb_.getSubjectObjectTriples(subjMid, objMid, cvtProperties_);
+                                if (triples != null) {
+                                    // Now iterate over all triples and add them as annotations.
+                                    for (KnowledgeBase.Triple triple : triples) {
+                                        Document.Relation.Builder relBuilder =
+                                                Document.Relation.newBuilder();
+                                        relBuilder.setObjectSpan(objSpanIndex);
+                                        relBuilder.setSubjectSpan(subjSpanIndex);
+                                        relBuilder.setRelation(triple.predicate);
+                                        relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
+                                        relBuilder.setObjectSpanCandidateEntityIdIndex(objEntityIdIndex);
+                                        docBuilder.addRelation(relBuilder.build());
+                                    }
                                 }
                             }
                         } else if (objSpan.getType().equals("MEASURE") &&
