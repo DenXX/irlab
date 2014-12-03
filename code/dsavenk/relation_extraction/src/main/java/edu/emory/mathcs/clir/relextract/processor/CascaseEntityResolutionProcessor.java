@@ -33,6 +33,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
     private static final double PHRASE_PROBABILITY_THRESHOLD = 0.0;
 
+    private static final int MAX_PHRASE_IDS = 10;
+
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
     private final Map<String, List<Pair<String, Float>>> wikilinksDictionary;
     private final Map<String, List<Pair<String, Float>>> wikilinksLnrmDictionary;
@@ -59,10 +61,13 @@ public class CascaseEntityResolutionProcessor extends Processor {
         wikilinksDictionary = new HashMap<>();
         wikilinksLnrmDictionary = new HashMap<>();
 
+        System.err.println("Starting reading wikilinks dictionary...");
         readDictionary(properties.getProperty(WIKILINKS_DICTIONARY_PARAMETER),
                 wikilinksDictionary);
+        System.err.println("Starting reading normalized wikilinks dictionary...");
         readDictionary(properties.getProperty(WIKILINKS_LNRM_DICTIONARY_PARAMETER),
                 wikilinksLnrmDictionary);
+        System.err.println("Finished reading dictionaries.");
 
         Directory spellIndexDir = FSDirectory.open(
                 new File(properties.getProperty(
@@ -300,36 +305,38 @@ public class CascaseEntityResolutionProcessor extends Processor {
                         new GZIPInputStream(
                                 new FileInputStream(dictFileName))));
         String line;
-        String lastPhrase = "";
-        Map<String, Float> scores = new HashMap<>();
+        String lastPhrase = null;
+        List<Pair<String, Float>> scores = null;
         while ((line = input.readLine()) != null) {
             String[] fields = line.split("\t");
             if (!fields[0].equals(lastPhrase)) {
-                if (!scores.isEmpty()) {
-                    dictionary.put(lastPhrase,
-                            scores.entrySet().stream()
-                                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                                    .map(e -> new Pair<>(e.getKey(), e.getValue()))
-                                    .collect(Collectors.toList()));
+                if (scores != null && !scores.isEmpty()) {
+                    scores.sort((e1, e2) -> e2.second.compareTo(e1.second));
+                    if (scores.size() > MAX_PHRASE_IDS) {
+                        scores.subList(MAX_PHRASE_IDS, scores.size()).clear();
+                    }
+                } else {
+                    dictionary.remove(lastPhrase);
                 }
                 lastPhrase = fields[0];
-                scores.clear();
+                dictionary.put(lastPhrase, new ArrayList<>());
+                scores = dictionary.get(lastPhrase);
             }
             float score = Float.parseFloat(fields[2]);
             if (score >= PHRASE_PROBABILITY_THRESHOLD) {
-                float old = scores.containsKey(fields[1])
-                        ? scores.get(fields[1])
-                        : 0.0f;
-                scores.put(fields[1], Math.max(old, score));
+                scores.add(new Pair<>(fields[1], score));
             }
         }
         // Put the last record to the dictionary.
-        if (!scores.isEmpty()) {
-            dictionary.put(lastPhrase,
-                    scores.entrySet().stream()
-                            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                            .map(e -> new Pair<>(e.getKey(), e.getValue()))
-                            .collect(Collectors.toList()));
+        if (scores != null) {
+            if (scores != null && !scores.isEmpty()) {
+                scores.sort((e1, e2) -> e2.second.compareTo(e1.second));
+                if (scores.size() > MAX_PHRASE_IDS) {
+                    scores.subList(MAX_PHRASE_IDS, scores.size()).clear();
+                }
+            } else {
+                dictionary.remove(lastPhrase);
+            }
         }
     }
 }
