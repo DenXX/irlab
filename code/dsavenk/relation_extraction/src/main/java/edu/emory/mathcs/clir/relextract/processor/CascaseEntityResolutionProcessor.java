@@ -157,13 +157,17 @@ public class CascaseEntityResolutionProcessor extends Processor {
                     span.addCandidateEntityScore(bestScore);
                 }
 
-                for (Map.Entry<String, Float> e : namedEntityIdScores.entrySet()) {
+                List<Map.Entry<String, Float>> ent = new ArrayList<>(namedEntityIdScores.entrySet());
+                ent.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+                for (Map.Entry<String, Float> e : ent) {
                     if (!e.getKey().equals(bestId)) {
                         span.addCandidateEntityId(e.getKey());
                         span.addCandidateEntityScore(e.getValue());
                     }
                 }
-                for (Map.Entry<String, Float> e : entityIdScores.entrySet()) {
+                ent = new ArrayList<>(entityIdScores.entrySet());
+                ent.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+                for (Map.Entry<String, Float> e : ent) {
                     if (!e.getKey().equals(bestId)) {
                         span.addCandidateEntityId(e.getKey());
                         span.addCandidateEntityScore(e.getValue());
@@ -198,8 +202,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
                             e -> e.first).collect(Collectors.toSet());
                     match.addAll(match2.stream()
                             .filter(e -> has.contains(e.first))
-                            .sorted((o1, o2) -> o2.second.compareTo(o1.second))
                             .collect(Collectors.toList()));
+                    match.sort((o1, o2) -> o2.second.compareTo(o1.second));
                 }
             }
         }
@@ -267,7 +271,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             List<Pair<String, Float>> res = counts.entrySet().stream()
                     .map(e -> new Pair<>(e.getKey(), (float) e.getValue()))
                     .collect(Collectors.toList());
-            Collections.sort(res, (o1, o2) -> o2.second.compareTo(o1.second));
+            res.sort((o1, o2) -> o2.second.compareTo(o1.second));
             return res;
         }
         return emptyList_;
@@ -289,7 +293,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 List<Pair<String, Float>> res = resolveByEntityName(suggest, 1, false);
                 results.addAll(res.stream().collect(Collectors.toList()));
             }
-            Collections.sort(results, (o1, o2) -> o2.second.compareTo(o1.second));
+            results.sort((o1, o2) -> o2.second.compareTo(o1.second));
             return results;
         } catch (IOException e) {
             return emptyList_;
