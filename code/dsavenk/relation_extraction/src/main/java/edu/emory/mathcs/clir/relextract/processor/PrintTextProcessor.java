@@ -35,7 +35,7 @@ public class PrintTextProcessor extends Processor {
                 Document.Mention mention = span.getMention(mentionIndex);
                 int firstToken = mention.getTokenBeginOffset();
                 if (!beginToken2Mention.containsKey(firstToken)) {
-                    beginToken2Mention.put(firstToken, new ArrayList<Pair<Integer, Integer>>());
+                    beginToken2Mention.put(firstToken, new ArrayList<>());
                 }
                 beginToken2Mention.get(firstToken).add(new Pair<>(spanIndex, mentionIndex));
             }

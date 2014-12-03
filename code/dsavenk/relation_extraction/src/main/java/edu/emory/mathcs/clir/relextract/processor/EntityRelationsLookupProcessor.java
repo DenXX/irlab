@@ -71,6 +71,9 @@ public class EntityRelationsLookupProcessor extends Processor {
                     int objSpanIndex = -1;
                     for (Document.Span objSpan : document.getSpanList()) {
                         ++objSpanIndex;
+
+                        if (objSpanIndex == subjSpanIndex) continue;
+
                         StmtIterator iter = null;
                         if (objSpan.hasEntityId()) {
                             int objEntityIdIndex = 0;
