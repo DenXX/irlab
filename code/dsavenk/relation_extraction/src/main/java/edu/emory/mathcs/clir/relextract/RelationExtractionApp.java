@@ -92,6 +92,9 @@ public class RelationExtractionApp {
                 case "dumptriples":
                     workflow.addProcessor(new TriplesDumpProcessor(props));
                     break;
+                case "addsoftdaterelations":
+                    workflow.addProcessor(new EntityAddSoftDateRelationsProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");

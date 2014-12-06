@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
+import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.util.Pair;
@@ -85,7 +86,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                                 if (subjMid.equals(objMid)) continue;
 
                                 // Uncomment this code to search for length 2
-                                // paths that go through a CVT.
+                                // paths that go through all possible CVTs.
 //                                Set<KnowledgeBase.Triple> triples = kb_.getSubjectObjectTriplesCVT(subjMid, objMid);
 //                                for (KnowledgeBase.Triple triple : triples) {
 //                                    Document.Relation.Builder relBuilder =
@@ -120,22 +121,22 @@ public class EntityRelationsLookupProcessor extends Processor {
                         } else if (objSpan.getType().equals("MEASURE") &&
                                 (objSpan.getNerType().equals("DATE") ||
                                         objSpan.getNerType().equals("TIME"))) {
-                            // Now process measures.
-                            iter = kb_.getSubjectMeasureTriples(subjMid,
-                                    objSpan.getValue(), objSpan.getNerType());
-                            // TODO(denxx): Do not duplicate this piece of code.
-                            // Now iterate over all triples and add them as annotations.
-                            while (iter != null && iter.hasNext()) {
-                                Statement tripleSt = iter.nextStatement();
-                                KnowledgeBase.Triple triple =
-                                        new KnowledgeBase.Triple(tripleSt);
-                                Document.Relation.Builder relBuilder =
-                                        Document.Relation.newBuilder();
-                                relBuilder.setObjectSpan(objSpanIndex);
-                                relBuilder.setSubjectSpan(subjSpanIndex);
-                                relBuilder.setRelation(triple.predicate);
-                                relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
-                                docBuilder.addRelation(relBuilder.build());
+
+                            List<KnowledgeBase.Triple> triples = objSpan.getNerType().equals("DATE")
+                                ? kb_.getSubjectDateSoftMatchTriples(subjMid, objSpan.getValue())
+                                : kb_.getSubjectMeasureTriples(subjMid, objSpan.getValue(), objSpan.getNerType());
+
+                            // Now add all these triples.
+                            if (triples != null) {
+                                for (KnowledgeBase.Triple triple : triples) {
+                                    Document.Relation.Builder relBuilder =
+                                            Document.Relation.newBuilder();
+                                    relBuilder.setObjectSpan(objSpanIndex);
+                                    relBuilder.setSubjectSpan(subjSpanIndex);
+                                    relBuilder.setRelation(triple.predicate);
+                                    relBuilder.setSubjectSpanCandidateEntityIdIndex(subjEntityIdIndex);
+                                    docBuilder.addRelation(relBuilder.build());
+                                }
                             }
                         }
                     }

@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
+import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.query.*;
@@ -7,7 +8,9 @@ import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
+import jdk.internal.org.xml.sax.SAXParseException;
 import org.apache.commons.collections4.map.LRUMap;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -33,6 +36,7 @@ public class KnowledgeBase {
             "http://rdf.freebase.com/ns/";
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties_ = new HashSet<>();
+    private final Set<String> dateProperties = new HashSet<>();
     public Model model_;
     private Map<Pair<String, String>, List<Triple>> tripleCache_ =
             Collections.synchronizedMap(new LRUMap<>(1000000));
@@ -68,6 +72,13 @@ public class KnowledgeBase {
                     }
                 }
             }
+        }
+
+        iter = model_.listStatements(null,
+                model_.getProperty(FREEBASE_RDF_PREFIX, "type.property.expected_type"),
+                model_.getResource(convertFreebaseMidRdf("type.datetime")));
+        while (iter.hasNext()) {
+            dateProperties.add(iter.nextStatement().getSubject().getURI());
         }
     }
 
@@ -274,7 +285,7 @@ public class KnowledgeBase {
      * @param measureType Type of the object literal.
      * @return Iterator to statements between the given literals.
      */
-    public StmtIterator getSubjectMeasureTriples(String subject, String measure,
+    public List<Triple> getSubjectMeasureTriples(String subject, String measure,
                                                  String measureType) {
         RDFDatatype objectType = XSDDatatype.XSDstring;
         try {
@@ -290,6 +301,31 @@ public class KnowledgeBase {
                     tm = Timex.fromXml(measure);
                     measure = tm.value() != null ? tm.value() : tm.altVal();
                     objectType = XSDDatatype.XSDdate;
+                    if (measure.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
+                        String year = measure.substring(0, 4);
+                        boolean fullYear = !year.contains("X");
+                        String month = measure.length() > 4 ?
+                                measure.substring(5, 7)
+                                : "XX";
+                        boolean fullMonth = !month.contains("X");
+                        String day = measure.length() > 7
+                                ? measure.substring(8)
+                                : "XX";
+                        boolean fullDay = !day.contains("X");
+                        if (fullYear && fullMonth && fullDay) {
+                            objectType = XSDDatatype.XSDdate;
+                        } else if (fullYear && fullMonth) {
+                            objectType = XSDDatatype.XSDgYearMonth;
+                        } else if (fullYear) {
+                            objectType = XSDDatatype.XSDgYear;
+                        } else if (fullMonth && fullDay) {
+                            objectType = XSDDatatype.XSDgMonthDay;
+                        } else if (fullMonth) {
+                            objectType = XSDDatatype.XSDgMonth;
+                        }
+                    } else {
+                        return null;
+                    }
                     break;
                 case "DURATION":
                     // Duration is in a TimeML format and we will just extract
@@ -329,12 +365,98 @@ public class KnowledgeBase {
             // Something went wrong, still try just with a string.
             objectType = XSDDatatype.XSDstring;
         }
-        return model_.listStatements(new SimpleSelector(
+        StmtIterator iter = model_.listStatements(new SimpleSelector(
                 model_.getResource(convertFreebaseMidRdf(subject)),
                 null,
                 model_.createTypedLiteral(measure, objectType)));
+        List<Triple> res = null;
+        while (iter.hasNext()) {
+            if (res == null) res = new ArrayList<>();
+            res.add(new Triple(iter.nextStatement()));
+        }
+        return res;
     }
 
+
+    public List<Triple> getSubjectDateSoftMatchTriples(String subject, String dateMeasure) {
+        Timex tm;
+        String measureStr;
+        try {
+            tm = Timex.fromXml(dateMeasure);
+            measureStr = tm.value() != null ? tm.value() : tm.altVal();
+        } catch (Exception e) {
+            measureStr = dateMeasure;
+        }
+        // Full match
+        if (measureStr.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
+            String year = measureStr.substring(0, 4);
+            boolean fullYear = !year.contains("X");
+            String month = measureStr.length() > 4 ?
+                    measureStr.substring(5, 7)
+                    : "XX";
+            boolean fullMonth = !month.contains("X");
+            String day = measureStr.length() > 7
+                    ? measureStr.substring(8)
+                    : "XX";
+            boolean fullDay = !day.contains("X");
+            if (fullDay && fullMonth && fullYear) {
+                return getSubjectMeasureTriples(subject, dateMeasure, "DATE");
+            } else {
+                List<Triple> res = new ArrayList<>();
+                for (String datePredicate : dateProperties) {
+                    StmtIterator iter = model_.listStatements(model_.getResource(convertFreebaseMidRdf(subject)),
+                            model_.getProperty(datePredicate), (RDFNode)null);
+                    if (iter.hasNext()) {
+                        Statement triple = iter.nextStatement();
+                        try {
+                            XSDDateTime value = (XSDDateTime) triple.getObject().asLiteral().getValue();
+                            boolean valueHasYear = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYear);
+                            boolean valueHasMonth = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonth);
+                            boolean valueHasDay = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
+                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgDay);
+                            boolean eq = true;
+                            if (valueHasYear) {
+                                String valYearStr = Integer.toString(value.getYears());
+                                eq &= compareDatePartsSoft(year, valYearStr);
+                                eq &= year.charAt(2) != 'X' && year.charAt(3) != 'X';
+                            }
+                            if (valueHasMonth) {
+                                String valMonthStr = Integer.toString(value.getMonths());
+                                eq &= compareDatePartsSoft(month, valMonthStr);
+                            }
+                            if (valueHasDay) {
+                                String valDayStr = Integer.toString(value.getDays());
+                                eq &= compareDatePartsSoft(month, valDayStr);
+                            }
+                            if (eq) {
+                                res.add(new Triple(triple));
+                            }
+                        } catch (DatatypeFormatException exc) {} // Skipping format exceptions.
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean compareDatePartsSoft(String value1, String value2) {
+        if (value1.length() != value2.length()) {
+            return false;
+        } else {
+            for (int i = 0; i < value1.length(); ++i) {
+                if (value1.charAt(i) != 'X' && value1.charAt(i) != value2.charAt(i)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     public StmtIterator getSubjectPredicateTriples(String subject,
                                                    String predicate) {
