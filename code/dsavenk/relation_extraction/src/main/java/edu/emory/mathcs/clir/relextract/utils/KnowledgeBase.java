@@ -8,7 +8,6 @@ import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
-import jdk.internal.org.xml.sax.SAXParseException;
 import org.apache.commons.collections4.map.LRUMap;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 

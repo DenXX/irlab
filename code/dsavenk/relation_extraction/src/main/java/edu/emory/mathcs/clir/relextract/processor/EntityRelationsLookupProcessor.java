@@ -22,11 +22,13 @@ import java.util.Set;
 public class EntityRelationsLookupProcessor extends Processor {
 
     public static final String CVT_PREDICATES_LIST_PARAMETER = "cvt";
+    public static final String SOFT_DATE_PARAMETER = "soft_date";
 
     private final int MAX_ENTITY_IDS_COUNT = 10;
 
     private final KnowledgeBase kb_;
 
+    private boolean softDateMatch_ = false;
     private final List<Pair<String, String>> cvtProperties_;
 
     /**
@@ -50,6 +52,10 @@ public class EntityRelationsLookupProcessor extends Processor {
             }
         } else {
             cvtProperties_ = null;
+        }
+
+        if (properties.containsKey(SOFT_DATE_PARAMETER)) {
+            softDateMatch_ = Boolean.parseBoolean(properties.getProperty(SOFT_DATE_PARAMETER));
         }
     }
 
@@ -122,7 +128,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                                 (objSpan.getNerType().equals("DATE") ||
                                         objSpan.getNerType().equals("TIME"))) {
 
-                            List<KnowledgeBase.Triple> triples = objSpan.getNerType().equals("DATE")
+                            List<KnowledgeBase.Triple> triples = objSpan.getNerType().equals("DATE") && softDateMatch_
                                 ? kb_.getSubjectDateSoftMatchTriples(subjMid, objSpan.getValue())
                                 : kb_.getSubjectMeasureTriples(subjMid, objSpan.getValue(), objSpan.getNerType());
 

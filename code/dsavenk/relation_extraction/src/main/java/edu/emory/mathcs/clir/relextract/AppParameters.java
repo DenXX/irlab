@@ -132,6 +132,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.NER_ONLY_PARAMETER)
                 .withDescription("Use only named entity tagged mentions").create(
                         RelationExtractorTrainEvalProcessor.NER_ONLY_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(EntityRelationsLookupProcessor.SOFT_DATE_PARAMETER)
+                .withDescription("Soft matching of dates").create(
+                        EntityRelationsLookupProcessor.SOFT_DATE_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
