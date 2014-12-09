@@ -125,8 +125,7 @@ public class EntityRelationsLookupProcessor extends Processor {
                                 }
                             }
                         } else if (objSpan.getType().equals("MEASURE") &&
-                                (objSpan.getNerType().equals("DATE") ||
-                                        objSpan.getNerType().equals("TIME"))) {
+                                objSpan.getNerType().equals("DATE")) {
 
                             List<KnowledgeBase.Triple> triples = objSpan.getNerType().equals("DATE") && softDateMatch_
                                 ? kb_.getSubjectDateSoftMatchTriples(subjMid, objSpan.getValue())
