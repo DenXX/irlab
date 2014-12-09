@@ -38,12 +38,13 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getSentence(0).getText().toLowerCase().startsWith("what is the best")) {
-            System.out.println("-----------------------------------------------");
-            System.out.println(document.getText());
+        if (document.getSentence(0).getText().toLowerCase().startsWith("how old") ||
+                document.getSentence(0).getText().toLowerCase().contains(" born")) {
+            ++count;
+            System.out.println(document.getSentence(0).getText().replace("\n", " "));
         }
 
-//        ++total;
+        ++total;
 //
 //        int questionSentencesCount = 0;
 //        for (Document.Sentence sent : document.getSentenceList()) {
@@ -89,6 +90,7 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("Simple answer: " + count);
+        System.out.println("Questions answer: " + count);
+        System.out.println("Total: " + total);
     }
 }

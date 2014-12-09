@@ -76,9 +76,11 @@ public class KnowledgeBase {
         iter = model_.listStatements(null,
                 model_.getProperty(FREEBASE_RDF_PREFIX, "type.property.expected_type"),
                 model_.getResource(convertFreebaseMidRdf("type.datetime")));
-        while (iter.hasNext()) {
-            dateProperties.add(iter.nextStatement().getSubject().getURI());
-        }
+        //while (iter.hasNext()) {
+        //    dateProperties.add(iter.nextStatement().getSubject().getURI());
+        //}
+        dateProperties.add(convertFreebaseMidRdf("people.person.date_of_birth"));
+        dateProperties.add(convertFreebaseMidRdf("people.deceased_person.date_of_death"));
     }
 
     /**
@@ -439,19 +441,30 @@ public class KnowledgeBase {
                         } catch (DatatypeFormatException exc) {} // Skipping format exceptions.
                     }
                 }
+                return res;
             }
         }
         return null;
     }
 
     private boolean compareDatePartsSoft(String value1, String value2) {
-        if (value1.length() != value2.length()) {
-            return false;
-        } else {
-            for (int i = 0; i < value1.length(); ++i) {
-                if (value1.charAt(i) != 'X' && value1.charAt(i) != value2.charAt(i)) {
-                    return false;
-                }
+        if (value1.length() < value2.length()) {
+            int d = value2.length() - value1.length();
+            String c;
+            if (value1.contains("X")) c = "X"; else c = "0";
+            for (int i = 0; i < d; ++i)
+                value1 = c + value1;
+        } else if (value2.length() < value1.length()) {
+            int d = value1.length() - value2.length();
+            String c;
+            if (value2.contains("X")) c = "X"; else c = "0";
+            for (int i = 0; i < d; ++i)
+                value2 = c + value2;
+        }
+
+        for (int i = 0; i < value1.length(); ++i) {
+            if (value1.charAt(i) != 'X' && value1.charAt(i) != value2.charAt(i)) {
+                return false;
             }
         }
         return true;
