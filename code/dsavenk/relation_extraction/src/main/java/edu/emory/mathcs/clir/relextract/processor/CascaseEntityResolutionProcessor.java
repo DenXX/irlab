@@ -182,26 +182,26 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private List<Pair<String, Float>> resolveEntity(String name, boolean isOtherMention) {
         Map<String, Float> matches = new HashMap<>();
 
-        // We will try to resolve named entities anyway, no matter
         if (!isOtherMention) {
             addMatches(matches, resolveByEntityNameCached(name));
-            if (matches.isEmpty()) {
-                addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
-            }
         }
 
         addMatches(matches, resolveByLinkPhrasesMatch(name));
         if (matches.isEmpty()) {
             addMatches(matches, resolveByNormalizedPhrasesMatch(name));
+            if (!isOtherMention && matches.isEmpty()) {
+                addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
+            }
         }
 
         // Let's try to remove the/a in front of entity.
-        if (name.toLowerCase().startsWith("the ") ||
+        if (matches.size() < MAX_PHRASE_IDS &&
+                name.toLowerCase().startsWith("the ") ||
                 name.toLowerCase().startsWith("a ")) {
             addMatches(matches, resolveEntity(name.replaceFirst("^(?i)(the |a )", ""), isOtherMention));
         }
         return matches.entrySet().stream()
-                .map((Map.Entry<String, Float> entry) -> new Pair<>(entry.getKey(), entry.getValue()))
+                .map(entry -> new Pair<>(entry.getKey(), entry.getValue()))
                 .sorted((p1, p2) -> p2.second.compareTo(p1.second))
                 .collect(Collectors.toList());
     }
@@ -251,12 +251,12 @@ public class CascaseEntityResolutionProcessor extends Processor {
         if (q == null) return emptyList_;
 
         try {
-            docs = searcher_.search(q, 100).scoreDocs;
+            docs = searcher_.search(q, 50).scoreDocs;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        Map<String, Float> counts = new HashMap<>();
+        List<Pair<String, Float>> counts = new ArrayList<>();
         Long maxCount = 1L;
         for (ScoreDoc doc : docs) {
             try {
@@ -272,20 +272,12 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 long count = Long.parseLong(document.get("triple_count"));
                 maxCount = Math.max(maxCount, count);
                 String id = document.get("id");
-                counts.put(id, 1.0f * count / maxCount);
+                counts.add(new Pair<>(id, 1.0f * count / maxCount));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        if (!counts.isEmpty()) {
-            List<Pair<String, Float>> res = counts.entrySet().stream()
-                    .map(e -> new Pair<>(e.getKey(), (float) e.getValue()))
-                    .collect(Collectors.toList());
-            res.sort((o1, o2) -> o2.second.compareTo(o1.second));
-            return res;
-        }
-        return emptyList_;
+        return counts;
     }
 
     private List<Pair<String, Float>> resolveBySpellcorrectedEntityNameCached(String name) {
