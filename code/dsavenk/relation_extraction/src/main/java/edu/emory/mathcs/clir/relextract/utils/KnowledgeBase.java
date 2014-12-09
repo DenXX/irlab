@@ -38,7 +38,7 @@ public class KnowledgeBase {
     private final Set<String> dateProperties = new HashSet<>();
     public Model model_;
     private Map<Pair<String, String>, List<Triple>> tripleCache_ =
-            Collections.synchronizedMap(new LRUMap<>(1000000));
+            Collections.synchronizedMap(new LRUMap<>(100000000));
 
     /**
      * Private constructor, that initializes a new instance of the knowledge

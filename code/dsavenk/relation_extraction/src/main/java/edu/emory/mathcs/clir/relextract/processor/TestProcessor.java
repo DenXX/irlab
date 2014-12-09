@@ -42,8 +42,8 @@ public class TestProcessor extends Processor {
                 document.getSentence(0).getText().toLowerCase().contains(" born")) {
             ++count;
             System.out.println(document.getSentence(0).getText().replace("\n", " "));
+            return document;
         }
-
         ++total;
 //
 //        int questionSentencesCount = 0;

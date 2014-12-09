@@ -24,7 +24,7 @@ public class EntityRelationsLookupProcessor extends Processor {
     public static final String CVT_PREDICATES_LIST_PARAMETER = "cvt";
     public static final String SOFT_DATE_PARAMETER = "soft_date";
 
-    private final int MAX_ENTITY_IDS_COUNT = 10;
+    private final int MAX_ENTITY_IDS_COUNT = 5;
 
     private final KnowledgeBase kb_;
 
@@ -151,5 +151,4 @@ public class EntityRelationsLookupProcessor extends Processor {
         }
         return docBuilder.build();
     }
-
 }

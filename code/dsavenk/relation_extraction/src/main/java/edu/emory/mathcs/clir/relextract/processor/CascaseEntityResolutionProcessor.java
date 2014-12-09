@@ -33,7 +33,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
     private static final double PHRASE_PROBABILITY_THRESHOLD = 0.0;
 
-    private static final int MAX_PHRASE_IDS = 10;
+    private static final int MAX_PHRASE_IDS = 5;
 
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
     private final Map<String, List<Pair<String, Float>>> wikilinksDictionary;
@@ -180,34 +180,42 @@ public class CascaseEntityResolutionProcessor extends Processor {
     }
 
     private List<Pair<String, Float>> resolveEntity(String name, boolean isOtherMention) {
-        List<Pair<String, Float>> match = resolveByLinkPhrasesMatch(name);
-        if (match.isEmpty()) {
-            match = resolveByNormalizedPhrasesMatch(name);
-            if (match.isEmpty() && !isOtherMention) {
-                match = resolveByEntityNameCached(name);
-                if (match.isEmpty()) {
-                    match = resolveBySpellcorrectedEntityNameCached(name);
-                }
+        Map<String, Float> matches = new HashMap<>();
+
+        // We will try to resolve named entities anyway, no matter
+        if (!isOtherMention) {
+            addMatches(matches, resolveByEntityNameCached(name));
+            if (matches.isEmpty()) {
+                addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
             }
         }
-        // Let's try to remove the first article
+
+        addMatches(matches, resolveByLinkPhrasesMatch(name));
+        if (matches.isEmpty()) {
+            addMatches(matches, resolveByNormalizedPhrasesMatch(name));
+        }
+
+        // Let's try to remove the/a in front of entity.
         if (name.toLowerCase().startsWith("the ") ||
                 name.toLowerCase().startsWith("a ")) {
-            List<Pair<String, Float>> match2 = resolveEntity(name.replaceFirst("^(?i)(the |a )", ""), isOtherMention);
-            if (!match2.isEmpty()) {
-                if (match.isEmpty()) {
-                    match = match2;
-                } else {
-                    Set<String> has = match.stream().map(
-                            e -> e.first).collect(Collectors.toSet());
-                    match.addAll(match2.stream()
-                            .filter(e -> has.contains(e.first))
-                            .collect(Collectors.toList()));
-                    match.sort((o1, o2) -> o2.second.compareTo(o1.second));
-                }
+            addMatches(matches, resolveEntity(name.replaceFirst("^(?i)(the |a )", ""), isOtherMention));
+        }
+        return matches.entrySet().stream()
+                .map((Map.Entry<String, Float> entry) -> new Pair<>(entry.getKey(), entry.getValue()))
+                .sorted((p1, p2) -> p2.second.compareTo(p1.second))
+                .collect(Collectors.toList());
+    }
+
+    private void addMatches(Map<String, Float> matches, List<Pair<String, Float>> foundMatches) {
+        if (foundMatches != null) {
+            for (Pair<String, Float> match : foundMatches) {
+                matches.put(match.first,
+                        Math.max(match.second,
+                                matches.containsKey(match.first)
+                                        ? matches.get(match.first)
+                                        : Float.NEGATIVE_INFINITY));
             }
         }
-        return match;
     }
 
     private List<Pair<String, Float>> resolveByLinkPhrasesMatch(String name) {
@@ -235,7 +243,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
         return res;
     }
 
-    private List<Pair<String, Float>> resolveByEntityName(String name, float stopDocScoreDiff, boolean checkWordsCount) {
+    private List<Pair<String, Float>> resolveByEntityName(
+            String name, float stopDocScoreDiff, boolean checkWordsCount) {
         ScoreDoc[] docs = new ScoreDoc[0];
         Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
         // This can happen if query doesn't really contain any terms.
@@ -247,7 +256,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
             e.printStackTrace();
         }
 
-        Map<String, Long> counts = new HashMap<>();
+        Map<String, Float> counts = new HashMap<>();
+        Long maxCount = 1L;
         for (ScoreDoc doc : docs) {
             try {
                 org.apache.lucene.document.Document document =
@@ -255,19 +265,20 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
                 if (doc.score < docs[0].score * stopDocScoreDiff ||
                         (checkWordsCount &&
-                                document.get("name").split("\\s+").length >
-                                        name.split("\\s+").length + 1)) {
+                                1.0 * document.get("name").split("\\s+").length /
+                                        name.split("\\s+").length < 0.6)) {
                     break;
                 }
                 long count = Long.parseLong(document.get("triple_count"));
+                maxCount = Math.max(maxCount, count);
                 String id = document.get("id");
-                counts.put(id, count);
+                counts.put(id, 1.0f * count / maxCount);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        if (counts.isEmpty()) {
+        if (!counts.isEmpty()) {
             List<Pair<String, Float>> res = counts.entrySet().stream()
                     .map(e -> new Pair<>(e.getKey(), (float) e.getValue()))
                     .collect(Collectors.toList());
