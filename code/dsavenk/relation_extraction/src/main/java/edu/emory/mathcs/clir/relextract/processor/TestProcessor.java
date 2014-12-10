@@ -38,11 +38,18 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getSentence(0).getText().toLowerCase().startsWith("how old") ||
-                document.getSentence(0).getText().toLowerCase().contains(" born")) {
+        int i = 0;
+        while (i < document.getSentenceCount()) {
+            if (document.getToken(document.getSentence(i).getFirstToken()).getBeginCharOffset() >= document.getQuestionLength()) {
+                break;
+            }
+            ++i;
+        }
+        if (i == document.getSentenceCount() - 1 &&
+                document.getSentence(i).getLastToken() - document.getSentence(i).getFirstToken() <= 5) {
+            System.out.println(document.getText());
+            System.out.println(document.getRelationCount());
             ++count;
-            System.out.println(document.getSentence(0).getText().replace("\n", " "));
-            return document;
         }
         ++total;
 //
@@ -90,7 +97,7 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("Questions answer: " + count);
+        System.out.println("Single phrase questions: " + count);
         System.out.println("Total: " + total);
     }
 }

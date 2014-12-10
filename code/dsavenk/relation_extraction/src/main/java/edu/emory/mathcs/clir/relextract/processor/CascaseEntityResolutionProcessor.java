@@ -114,10 +114,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
                         if (!matches.isEmpty()) {
                             mention.setEntityId(matches.get(0).first);
 
-                            Map<String, Float> curMap =
-                                    ("ENTITY".equals(mention.getType()))
-                                    ? namedEntityIdScores
-                                    : entityIdScores;
+                            Map<String, Float> curMap = isOtherEntity
+                                    ? entityIdScores : namedEntityIdScores;
 
                             for (Pair<String, Float> match : matches) {
                                 mention.addCandidateEntityId(match.first);
@@ -257,7 +255,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         }
 
         List<Pair<String, Float>> counts = new ArrayList<>();
-        Long maxCount = 1L;
+        long maxCount = 1;
         for (ScoreDoc doc : docs) {
             try {
                 org.apache.lucene.document.Document document =
@@ -272,10 +270,13 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 long count = Long.parseLong(document.get("triple_count"));
                 maxCount = Math.max(maxCount, count);
                 String id = document.get("id");
-                counts.add(new Pair<>(id, 1.0f * count / maxCount));
+                counts.add(new Pair<>(id, (float)count));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        for (Pair<String, Float> p : counts) {
+            p.second = 1.0f * p.second / maxCount;
         }
         return counts;
     }
