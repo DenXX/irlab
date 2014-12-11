@@ -75,12 +75,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     public static final String NO_RELATIONS_LABEL = "NONE";
 
-    /**
-     * A label that means that we found a relation between the given entities,
-     * but it was not one of the active predicates.
-     */
-    public static final String OTHER_RELATIONS_LABEL = "OTHER";
-
     public static final int TRAIN_SIZE_FROM_100 = 75;
 
     private float negativeSubsampleRate = 0.99f;
@@ -217,9 +211,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
             // Add all possible labels.
             trainDataset_.addLabel(NO_RELATIONS_LABEL);
-            trainDataset_.addLabel(OTHER_RELATIONS_LABEL);
             testDataset_.addLabel(NO_RELATIONS_LABEL);
-            testDataset_.addLabel(OTHER_RELATIONS_LABEL);
 
             // We construct hash map to make sure labels are unique.
             for (String label : new HashSet<>(predicates_)) {
@@ -276,15 +268,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
             // We do not need to store triples that are non-related and
             // classifier predicts the same.
-            if ((curTriple.getPredicate().equals(NO_RELATIONS_LABEL)
-                    || curTriple.getPredicate().equals(OTHER_RELATIONS_LABEL))
-                    && (predictedLabel.first.equals(NO_RELATIONS_LABEL)
-                    || predictedLabel.first.equals(OTHER_RELATIONS_LABEL))) {
+            if (curTriple.getPredicate().equals(NO_RELATIONS_LABEL)
+                    && predictedLabel.first.equals(NO_RELATIONS_LABEL)) {
                 continue;
             }
             if (!triplesLabels_.containsKey(arguments)) {
-                triplesLabels_.put(arguments, new HashSet<String>());
-                extractedTriples_.put(arguments, new HashMap<String, Double>());
+                triplesLabels_.put(arguments, new HashSet<>());
+                extractedTriples_.put(arguments, new HashMap<>());
             }
             triplesLabels_.get(arguments).add(curTriple.getPredicate());
             double prevValue = extractedTriples_.get(arguments).containsKey(predictedLabel.first)
@@ -295,11 +285,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
 
         if (verbose_) {
-            if ((!predictedLabel.first.equals(NO_RELATIONS_LABEL) &&
-                    !predictedLabel.first.equals(OTHER_RELATIONS_LABEL)) ||
-                    (!instance.getLabel(0).equals(NO_RELATIONS_LABEL) &&
-                     !instance.getLabel(0).equals(OTHER_RELATIONS_LABEL))) {
-
+            if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) ||
+                    !instance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
                     System.out.println("-----\nCorrect: " + instance.getLabel(0));
                     System.out.println(instance.getMentionText());
                     for (Dataset.Triple triple : instance.getTripleList()) {
@@ -365,11 +352,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         }
 
                         if (activeLabels.size() == 0) {
-                            if (labels == null) {
-                                activeLabels.add(NO_RELATIONS_LABEL);
-                            } else {
-                                activeLabels.add(OTHER_RELATIONS_LABEL);
-                            }
+                            activeLabels.add(NO_RELATIONS_LABEL);
                         }
 
                         // TODO(denxx): This is not correct,
@@ -518,8 +501,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
 
         if (isInTraining) {
-            boolean hasRel = !activeLabels.get(0).equals(NO_RELATIONS_LABEL) &&
-                    !activeLabels.get(0).equals(OTHER_RELATIONS_LABEL);
+            boolean hasRel = !activeLabels.get(0).equals(NO_RELATIONS_LABEL);
             return subjTypeOk && objTypeOk && (hasRel || rnd_.nextFloat() > negativeSubsampleRate);
         } else {
             return subjTypeOk && objTypeOk;

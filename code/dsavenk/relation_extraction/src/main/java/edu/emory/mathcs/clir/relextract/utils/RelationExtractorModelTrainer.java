@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
+import edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainEvalProcessor;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.LogPrior;
@@ -23,7 +24,7 @@ public class RelationExtractorModelTrainer {
         Map<Integer, List<String>> featAlphabet = new HashMap<>();
         for (Dataset.Feature feat : trainingDataset.getFeatureList()) {
             if (!featAlphabet.containsKey(feat.getId())) {
-                featAlphabet.put(feat.getId(), new ArrayList<String>());
+                featAlphabet.put(feat.getId(), new ArrayList<>());
             }
             featAlphabet.get(feat.getId()).add(feat.getName());
         }
@@ -84,7 +85,7 @@ public class RelationExtractorModelTrainer {
                         count.put(label, 0);
                     }
                     count.put(label, count.get(label) + 1);
-                    if (label.equals("NONE") || label.equals("OTHER")) {
+                    if (label.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)) {
                         res.add(instance.getFeatureIdList(), label, negativeWeights);
                     } else {
                         res.add(instance.getFeatureIdList(), label, 1.0f);
@@ -112,8 +113,8 @@ public class RelationExtractorModelTrainer {
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset = convertDataset(testDataset, true, 1.0f);
         for (Datum<String, Integer> example : dataset) {
             Counter<String> predictions = model.probabilityOf(example);
-            double bestScore = predictions.getCount("NONE");
-            String bestLabel = "NONE";
+            double bestScore = predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
+            String bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
             for (Map.Entry<String, Double> pred : predictions.entrySet()) {
                 if (pred.getValue() > bestScore) {
                     bestScore = pred.getValue();
@@ -129,8 +130,8 @@ public class RelationExtractorModelTrainer {
                                             Dataset.RelationMentionInstance testInstance, boolean verbose) {
         Datum<String, Integer> example = convertTestInstance(testInstance);
         Counter<String> predictions = model.probabilityOf(example);
-        double bestScore = predictions.getCount("NONE");
-        String bestLabel = "NONE";
+        double bestScore = predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
+        String bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
         for (Map.Entry<String, Double> pred : predictions.entrySet()) {
             if (pred.getValue() > bestScore) {
                 bestScore = pred.getValue();
@@ -138,9 +139,8 @@ public class RelationExtractorModelTrainer {
             }
         }
         if (verbose) {
-            if ((!bestLabel.equals("NONE") && !bestLabel.equals("OTHER") ||
-                    (!testInstance.getLabel(0).equals("NONE") &&
-                     !testInstance.getLabel(0).equals("OTHER")))) {
+            if (!bestLabel.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)  &&
+                    !testInstance.getLabel(0).equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)) {
                 System.out.println("\n\n======================================\n"
                         + bestLabel + " = " + bestScore);
                 System.out.println(testInstance.getMentionText());
