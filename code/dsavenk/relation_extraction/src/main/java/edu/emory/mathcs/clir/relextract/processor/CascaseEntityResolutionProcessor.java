@@ -95,7 +95,6 @@ public class CascaseEntityResolutionProcessor extends Processor {
             if (isNamedEntity || isOtherEntity) {
                 total.incrementAndGet();
 
-                Map<String, Float> namedEntityIdScores = new HashMap<>();
                 Map<String, Float> entityIdScores = new HashMap<>();
 
                 // Iterate over all mentions.
@@ -114,34 +113,25 @@ public class CascaseEntityResolutionProcessor extends Processor {
                         if (!matches.isEmpty()) {
                             mention.setEntityId(matches.get(0).first);
 
-                            Map<String, Float> curMap = isOtherEntity
-                                    ? entityIdScores : namedEntityIdScores;
-
                             for (Pair<String, Float> match : matches) {
                                 mention.addCandidateEntityId(match.first);
                                 mention.addCandidateEntityScore(match.second);
 
-                                if (!curMap.containsKey(match.first)) {
-                                    curMap.put(match.first, match.second);
+                                if (!entityIdScores.containsKey(match.first)) {
+                                    entityIdScores.put(match.first, match.second);
                                 } else {
                                     // TODO(denxx): This is bad. We have 2 types of scores: p(entity|phrase) and triple count.
-                                    curMap.put(match.first, Math.max(curMap.get(match.first), match.second));
+                                    entityIdScores.put(match.first,
+                                            Math.max(entityIdScores.get(match.first), match.second));
                                 }
                             }
                         }
                     }
                 }
 
-                Map<String, Float> curMap;
-                if (namedEntityIdScores.size() > 0) {
-                    curMap = namedEntityIdScores;
-                } else {
-                    curMap = entityIdScores;
-                }
-
                 String bestId = "";
                 float bestScore = -1f;
-                for (Map.Entry<String, Float> e : curMap.entrySet()) {
+                for (Map.Entry<String, Float> e : entityIdScores.entrySet()) {
                     if (e.getValue() > bestScore) {
                         bestId = e.getKey();
                         bestScore = e.getValue();
@@ -155,7 +145,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
                     span.addCandidateEntityScore(bestScore);
                 }
 
-                List<Map.Entry<String, Float>> ent = new ArrayList<>(namedEntityIdScores.entrySet());
+                List<Map.Entry<String, Float>> ent = new ArrayList<>(entityIdScores.entrySet());
                 ent.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
                 for (Map.Entry<String, Float> e : ent) {
                     if (!e.getKey().equals(bestId)) {
@@ -163,15 +153,6 @@ public class CascaseEntityResolutionProcessor extends Processor {
                         span.addCandidateEntityScore(e.getValue());
                     }
                 }
-                ent = new ArrayList<>(entityIdScores.entrySet());
-                ent.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
-                for (Map.Entry<String, Float> e : ent) {
-                    if (!e.getKey().equals(bestId)) {
-                        span.addCandidateEntityId(e.getKey());
-                        span.addCandidateEntityScore(e.getValue());
-                    }
-                }
-
             }
         }
         return docBuilder.build();
