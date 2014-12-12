@@ -139,7 +139,7 @@ public class RelationExtractorModelTrainer {
             }
         }
         if (verbose) {
-            if (!bestLabel.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)  &&
+            if (!bestLabel.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)  ||
                     !testInstance.getLabel(0).equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)) {
                 System.out.println("\n\n======================================\n"
                         + bestLabel + " = " + bestScore);
