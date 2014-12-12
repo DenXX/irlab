@@ -136,6 +136,10 @@ public class AppParameters {
                 .withArgName(EntityRelationsLookupProcessor.SOFT_DATE_PARAMETER)
                 .withDescription("Soft matching of dates").create(
                         EntityRelationsLookupProcessor.SOFT_DATE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER)
+                .withDescription("Verbose").create(
+                        RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

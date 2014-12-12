@@ -70,6 +70,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String FEATURE_DICTIONARY_SIZE_PARAMETER = "feats_count";
 
+    public static final String VERBOSE_PARAMETER = "verbose";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -176,6 +178,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         if (properties.containsKey(NER_ONLY_PARAMETER)) {
             nerOnly_ = Boolean.parseBoolean(properties.getProperty(NER_ONLY_PARAMETER));
+        }
+        if (properties.containsKey(VERBOSE_PARAMETER)) {
+            verbose_ = Boolean.parseBoolean(properties.getProperty(VERBOSE_PARAMETER));
         }
     }
 
