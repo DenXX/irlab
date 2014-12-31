@@ -31,15 +31,16 @@ public class CluewebFaccEntityPairsBuilder {
                 while ((line = tgzReader.readLine()) != null) {
                     String[] fields = line.split("\t");
                     String filename = fields[0];
-                    if (yaUrl.contains(filename)) continue;
-                    int beginOffset = Integer.parseInt(fields[3]);
-                    String mid = fields[7];
-                    if (!filename.equals(lastFilename)) {
-                        processEntityPairs(entities);
-                        lastFilename = filename;
-                        entities.clear();
+                    if (yaUrl.contains(filename)) {
+                        int beginOffset = Integer.parseInt(fields[3]);
+                        String mid = fields[7];
+                        if (!filename.equals(lastFilename)) {
+                            processEntityPairs(entities);
+                            lastFilename = filename;
+                            entities.clear();
+                        }
+                        entities.add(new Pair<>(beginOffset, mid));
                     }
-                    entities.add(new Pair<>(beginOffset, mid));
                 }
             }
         }

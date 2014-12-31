@@ -58,6 +58,7 @@ public class EntityAddSoftDateRelationsProcessor extends Processor {
                                         relBuilder.setSubjectSpan(subjSpanIndex);
                                         relBuilder.setRelation(triple.predicate);
                                         relBuilder.setSubjectSpanCandidateEntityIdIndex(i + 1);
+                                        System.err.println("-----------------------------------------------------------------");
                                     }
                                 }
                             }
