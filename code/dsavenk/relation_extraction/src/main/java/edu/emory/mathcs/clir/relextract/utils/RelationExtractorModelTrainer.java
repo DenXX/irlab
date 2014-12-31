@@ -7,7 +7,9 @@ import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.LogPrior;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
+import edu.stanford.nlp.util.Generics;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -18,7 +20,7 @@ import java.util.*;
  * Created by dsavenk on 11/7/14.
  */
 public class RelationExtractorModelTrainer {
-    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg, String optMethod, float negativeWeights)
+    public static LinearClassifier<String, Integer> train(Dataset.RelationMentionsDataset trainingDataset, double reg, String optMethod, float negativeWeights, boolean verbose)
             throws Exception {
 
         Map<Integer, List<String>> featAlphabet = new HashMap<>();
@@ -36,6 +38,10 @@ public class RelationExtractorModelTrainer {
         dataset.applyFeatureCountThreshold(2); //47);
         System.out.println("Now feats: " + dataset.numFeatures());
 
+        // Output counts for all the features if needed.
+        if (verbose) {
+            outputFeatureCounts(dataset, featAlphabet);
+        }
 
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, reg);
@@ -69,6 +75,50 @@ public class RelationExtractorModelTrainer {
         }
 
         return model;
+    }
+
+    private static void outputFeatureCounts(edu.stanford.nlp.classify.Dataset<String, Integer> dataset,
+                                            Map<Integer, List<String>> featAlphabet) {
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-= Feature Counts : Begin -=-=-=-=-=-=-=-=-=-=-=-=");
+        dataset.summaryStatistics();
+
+        Map<Integer, Integer> featureCounts = new HashMap<>();
+        Map<String, Map<Integer, Integer>> labelFeatureCounts = new HashMap<>();
+        for (int i=0; i < dataset.size(); i++)
+        {
+            Datum<String, Integer> e = dataset.getDatum(i);
+            for (Integer feat : Generics.newHashSet(e.asFeatures())) {
+                featureCounts.put(feat, featureCounts.getOrDefault(feat, 0) + 1);
+                for (String label : e.labels()) {
+                    if (!labelFeatureCounts.containsKey(label)) {
+                        labelFeatureCounts.put(label, new HashMap<>());
+                    }
+                    labelFeatureCounts.get(label).put(feat,
+                            labelFeatureCounts.get(label).getOrDefault(feat, 0) + 1);
+                }
+            }
+        }
+
+        System.out.println("--------------\n>>>>> OVERALL: ");
+        List<Map.Entry<Integer, Integer>> featureCountsList =
+                new ArrayList<>(featureCounts.entrySet());
+        printFeatureCounts(featAlphabet, featureCountsList);
+
+        for (String label : labelFeatureCounts.keySet()) {
+            System.out.println("--------------\n>>>>> " + label + ": ");
+            printFeatureCounts(featAlphabet,
+                    new ArrayList<>(labelFeatureCounts.get(label).entrySet()));
+        }
+
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-= Feature Counts : End -=-=-=-=-=-=-=-=-=-=-=-=");
+    }
+
+    private static void printFeatureCounts(Map<Integer, List<String>> featAlphabet, List<Map.Entry<Integer, Integer>> featureCountsList) {
+        featureCountsList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+        for (Map.Entry<Integer, Integer> featureCount : featureCountsList) {
+            System.out.println(featAlphabet.get(
+                    featureCount.getKey()).toString() + "\t" + featureCount.getValue());
+        }
     }
 
     private static edu.stanford.nlp.classify.WeightedDataset<String, Integer>
