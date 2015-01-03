@@ -38,20 +38,30 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        int i = 0;
-        while (i < document.getSentenceCount()) {
-            if (document.getToken(document.getSentence(i).getFirstToken()).getBeginCharOffset() >= document.getQuestionLength()) {
-                break;
-            }
-            ++i;
+        if (document.getText().contains("What is the difference between a cold and the flu")) {
+            return document;
         }
-        if (i == document.getSentenceCount() - 1 &&
-                document.getSentence(i).getLastToken() - document.getSentence(i).getFirstToken() <= 5) {
-            System.out.println(document.getText());
-            System.out.println(document.getRelationCount());
-            ++count;
-        }
-        ++total;
+        return null;
+
+
+//        int i = 0;
+//        ++total;
+//        while (i < document.getSentenceCount()) {
+//            if (document.getToken(document.getSentence(i).getFirstToken()).getBeginCharOffset() >= document.getQuestionLength()) {
+//                break;
+//            }
+//            ++i;
+//        }
+//        if (i == document.getSentenceCount() - 1 &&
+//                document.getSentence(i).getLastToken() - document.getSentence(i).getFirstToken() <= 5) {
+//            System.out.println(document.getText());
+//            System.out.println(document.getRelationCount());
+//            ++count;
+//            return document;
+//        }
+
+        // --------------------
+
 //
 //        int questionSentencesCount = 0;
 //        for (Document.Sentence sent : document.getSentenceList()) {
@@ -92,7 +102,7 @@ public class TestProcessor extends Processor {
 //                }
 //            }
 //        }
-        return null;
+//        return null;
     }
 
     @Override

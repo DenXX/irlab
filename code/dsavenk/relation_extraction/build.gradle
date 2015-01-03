@@ -3,7 +3,7 @@ apply plugin: 'gradleProtobufPlugin'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
-version = '1.5'
+version = '1.6'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.FreebaseLexiconLuceneIndexBuilder'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessWikipedia2Freebase'
@@ -12,21 +12,21 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 
 //applicationDefaultJvmArgs = ["-Xmx30g"]
 
-//applicationDefaultJvmArgs = ["-Xmx200g",
-//                             "-XX:+UseParallelGC",
-//                             "-XX:+UseParallelOldGC",
-//                             "-XX:+UseAdaptiveSizePolicy",
-//                             "-XX:+AggressiveHeap"
-//]
+applicationDefaultJvmArgs = ["-Xmx200g",
+                             "-XX:+UseParallelGC",
+                             "-XX:+UseParallelOldGC",
+                             "-XX:+UseAdaptiveSizePolicy",
+                             "-XX:+AggressiveHeap"
+]
 
 //applicationDefaultJvmArgs = ["-Xmx220g",
 //                             "-XX:+UseParNewGC",
 //                             "-XX:+UseConcMarkSweepGC",
 //                             "-XX:PermSize=20g"]
 
-applicationDefaultJvmArgs = ["-Xmx100g",
-                             "-XX:+UseParNewGC",
-                             "-XX:+UseConcMarkSweepGC"]
+//applicationDefaultJvmArgs = ["-Xmx100g",
+//                             "-XX:+UseParNewGC",
+//                             "-XX:+UseConcMarkSweepGC"]
 
 repositories {
     mavenCentral()

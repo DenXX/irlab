@@ -41,10 +41,16 @@ public class StanfordCoreNlpProcessor extends Processor {
         // Adds custom CoreNLP annotators.
         properties.setProperty("customAnnotatorClass.span",
                 "edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator");
+        properties.setProperty("customAnnotatorClass.moddcoref",
+                "edu.emory.mathcs.clir.relextract.annotators.ModifiedDeterministicCorefAnnotator");
 
 
         // Sets the NLP pipeline and some of the annotator properties.
         properties.put("annotators", getAnnotators());
+        // This seems like the right thing to do, but there is a problem (null
+        // pointer exception, because newline chars are not removed then. Can
+        // fix that, but from the other side, maybe I shouldn't be doing this.
+        //properties.setProperty("ssplit.newlineIsSentenceBreak", "always");
         properties.setProperty("clean.allowflawedxml", "true");
         // Use much faster shift-reduce parser.
         properties.setProperty("parse.model",
@@ -53,7 +59,6 @@ public class StanfordCoreNlpProcessor extends Processor {
         // Do not allow reparsing as it wasn't supported with shift-reduce
         // parser.
         properties.setProperty("dcoref.allowReparsing", "false");
-        //properties.setProperty("dcoref.conll2011", "true");
         // if set, the annotator parses only sentences shorter (in terms of
         // number of tokens) than this number. For longer sentences, the parser
         // creates a flat structure, where every token is assigned to
@@ -70,7 +75,7 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, dcoref";
+        return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, moddcoref";
     }
 
     @Override
@@ -186,6 +191,9 @@ public class StanfordCoreNlpProcessor extends Processor {
         IntervalTree<Integer, Interval<Integer>> mentionIntervals =
                 new IntervalTree<>();
         int corefIndex = 0;
+
+        Map<String, Document.Span.Builder> spans = new HashMap<>();
+
         for (CorefChain corefCluster :
                 annotation.get(CorefCoreAnnotations.CorefChainAnnotation.class)
                         .values()) {
@@ -194,18 +202,25 @@ public class StanfordCoreNlpProcessor extends Processor {
             for (CorefChain.CorefMention mention :
                     corefCluster.getMentionsInTextualOrder()) {
                 // Don't want to keep clusters with only prononinal mentions
-                // and mentions longer than 7 tokens (7 is just my favorite number).
-                if (mention.mentionType != Dictionaries.MentionType.PRONOMINAL
-                        && mention.endIndex - mention.startIndex <= 7) {
+                if (mention.mentionType != Dictionaries.MentionType.PRONOMINAL &&
+                        !mention.mentionSpan.equals("this")) {
                     keep = true;
                 }
             }
             // If this cluster doesn't have any nominal mentions, remove it.
             if (!keep) continue;
 
-            Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
             String spanName = PTBTokenizer.ptb2Text(
                     corefCluster.getRepresentativeMention().mentionSpan);
+
+            Document.Span.Builder spanBuilder;
+            if (spans.containsKey(spanName)) {
+                spanBuilder = spans.get(spanName);
+            } else {
+                spanBuilder = docBuilder.addSpanBuilder();
+                spans.put(spanName, spanBuilder);
+            }
+
             spanBuilder.setText(spanName)
                     .setValue(spanName)
                     .setType("OTHER")
