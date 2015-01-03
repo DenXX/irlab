@@ -192,8 +192,6 @@ public class StanfordCoreNlpProcessor extends Processor {
                 new IntervalTree<>();
         int corefIndex = 0;
 
-        Map<String, Document.Span.Builder> spans = new HashMap<>();
-
         for (CorefChain corefCluster :
                 annotation.get(CorefCoreAnnotations.CorefChainAnnotation.class)
                         .values()) {
@@ -213,13 +211,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             String spanName = PTBTokenizer.ptb2Text(
                     corefCluster.getRepresentativeMention().mentionSpan);
 
-            Document.Span.Builder spanBuilder;
-            if (spans.containsKey(spanName)) {
-                spanBuilder = spans.get(spanName);
-            } else {
-                spanBuilder = docBuilder.addSpanBuilder();
-                spans.put(spanName, spanBuilder);
-            }
+            Document.Span.Builder spanBuilder = docBuilder.addSpanBuilder();
 
             spanBuilder.setText(spanName)
                     .setValue(spanName)
