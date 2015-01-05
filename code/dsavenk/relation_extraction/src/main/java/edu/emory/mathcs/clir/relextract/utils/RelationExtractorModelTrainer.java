@@ -136,9 +136,13 @@ public class RelationExtractorModelTrainer {
                     }
                     count.put(label, count.get(label) + 1);
                     if (label.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)) {
-                        res.add(instance.getFeatureIdList(), label, negativeWeights);
+                        res.add(instance.getFeatureIdList(), label, instance.hasWeight()
+                                ? negativeWeights
+                                : (float)instance.getWeight());
                     } else {
-                        res.add(instance.getFeatureIdList(), label, 1.0f);
+                        res.add(instance.getFeatureIdList(), label, instance.hasWeight()
+                                ? 1.0f
+                                : (float)instance.getWeight());
                     }
                 }
             }

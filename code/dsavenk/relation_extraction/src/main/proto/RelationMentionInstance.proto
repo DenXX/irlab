@@ -25,6 +25,7 @@ message RelationMentionInstance {
     optional uint32 objSpan = 8;
     optional uint32 objMention = 9;
     optional string mentionText = 10;
+    optional double weight = 11;
 
     extensions 10000 to max;
 }

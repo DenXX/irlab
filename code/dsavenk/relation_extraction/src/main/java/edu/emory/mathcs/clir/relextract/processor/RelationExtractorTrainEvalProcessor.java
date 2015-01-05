@@ -317,6 +317,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         Map<Pair<Integer, Integer>, List<Triple<String, String, String>>> spans2Labels =
                 getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
 
+        List<Dataset.RelationMentionInstance.Builder> currentDocInstances = new ArrayList<>();
+
         int subjSpanIndex = -1;
         for (Document.Span subjSpan : document.getSpanList()) {
             ++subjSpanIndex;
@@ -370,8 +372,21 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 continue;
                             }
 
-                            Dataset.RelationMentionInstance.Builder mentionInstance =
-                                    Dataset.RelationMentionInstance.newBuilder();
+                            Dataset.RelationMentionInstance.Builder mentionInstance = null;
+
+                            if (isInTraining) {
+                                synchronized (trainDataset_) {
+                                    mentionInstance = trainDataset_.addInstanceBuilder();
+                                }
+                            } else {
+                                if (model_ == null) {
+                                    synchronized (testDataset_) {
+                                        mentionInstance = testDataset_.addInstanceBuilder();
+                                    }
+                                } else {
+                                    mentionInstance = Dataset.RelationMentionInstance.newBuilder();
+                                }
+                            }
 
                             // Set docid and spans.
                             mentionInstance.setDocId(document.getDocId());
@@ -407,10 +422,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             }
 
                             processRelationMentionInstance(document, isInTraining, mentionInstance);
+                            currentDocInstances.add(mentionInstance);
                         }
                     }
                 }
             }
+        }
+
+        for (Dataset.RelationMentionInstance.Builder mentionInstance : currentDocInstances) {
+            mentionInstance.setWeight(1.0 / currentDocInstances.size());
         }
     }
 
@@ -418,12 +438,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                                 boolean isInTraining,
                                                 Dataset.RelationMentionInstance.Builder mentionInstance) {
         if (isInTraining) {
-            synchronized (trainDataset_) {
-                trainDataset_.addInstance(mentionInstance);
-                if (verbose_) {
-                    if (!mentionInstance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
-                        printMentionInstance(mentionInstance.build());
-                    }
+            if (verbose_) {
+                if (!mentionInstance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
+                    printMentionInstance(mentionInstance);
                 }
             }
         } else {
@@ -432,15 +449,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 Pair<String, Double> prediction =
                         RelationExtractorModelTrainer.eval(model_, mention, verbose_);
                 processPrediction(mention, prediction);
-            } else {
-                synchronized (testDataset_) {
-                    testDataset_.addInstance(mentionInstance);
-                }
             }
         }
     }
 
-    private void printMentionInstance(Dataset.RelationMentionInstance instance) {
+    private void printMentionInstance(Dataset.RelationMentionInstanceOrBuilder instance) {
         System.out.println(instance.getMentionText());
         for (Dataset.Triple triple : instance.getTripleList()) {
             System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
