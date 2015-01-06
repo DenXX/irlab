@@ -38,7 +38,7 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().contains("What is the difference between a cold and the flu")) {
+        if (document.getText().contains("Fredrick Douglas?")) {
             return document;
         }
         return null;
