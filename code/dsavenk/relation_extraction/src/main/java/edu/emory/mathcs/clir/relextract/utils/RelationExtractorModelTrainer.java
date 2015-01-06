@@ -99,25 +99,31 @@ public class RelationExtractorModelTrainer {
             }
         }
 
-        System.out.println("--------------\n>>>>> OVERALL: ");
-        List<Map.Entry<Integer, Integer>> featureCountsList =
-                new ArrayList<>(featureCounts.entrySet());
-        printFeatureCounts(featAlphabet, featureCountsList);
-
         for (String label : labelFeatureCounts.keySet()) {
             System.out.println("--------------\n>>>>> " + label + ": ");
-            printFeatureCounts(featAlphabet,
-                    new ArrayList<>(labelFeatureCounts.get(label).entrySet()));
+            printFeatureCounts(featAlphabet, label, labelFeatureCounts, featureCounts);
         }
 
         System.out.println("-=-=-=-=-=-=-=-=-=-=-=-= Feature Counts : End -=-=-=-=-=-=-=-=-=-=-=-=");
     }
 
-    private static void printFeatureCounts(Map<Integer, List<String>> featAlphabet, List<Map.Entry<Integer, Integer>> featureCountsList) {
+    private static void printFeatureCounts(
+            Map<Integer, List<String>> featAlphabet,
+            String label,
+            Map<String, Map<Integer, Integer>> labelFeatureCountsList,
+            Map<Integer, Integer> overallFeatureCounts) {
+        List<Map.Entry<Integer, Integer>> featureCountsList = new ArrayList<>(labelFeatureCountsList.get(label).entrySet());
         featureCountsList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
         for (Map.Entry<Integer, Integer> featureCount : featureCountsList) {
-            System.out.println(featAlphabet.get(
+            System.out.print(featAlphabet.get(
                     featureCount.getKey()).toString() + "\t" + featureCount.getValue());
+            System.out.print(" < overall: " + overallFeatureCounts.get(featureCount.getKey()) + " (" + 1.0 * featureCount.getValue() / overallFeatureCounts.get(featureCount.getKey()) + ") ");
+            labelFeatureCountsList.keySet().stream().filter(
+                    l -> !l.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)
+                            && !l.equals(label)
+                            && labelFeatureCountsList.get(l).containsKey(featureCount.getKey()))
+                    .forEach(l -> System.out.print(label + ": " + labelFeatureCountsList.get(l).get(featureCount.getKey()) + ", "));
+            System.out.println(">");
         }
     }
 
