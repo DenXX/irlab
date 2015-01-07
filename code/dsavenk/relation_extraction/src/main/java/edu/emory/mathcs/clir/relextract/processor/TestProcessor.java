@@ -38,7 +38,7 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().contains("Fredrick Douglas?")) {
+        if (document.getText().contains("Any suggestions on hotels or B&B's in Carmel?")) {
             return document;
         }
         return null;
