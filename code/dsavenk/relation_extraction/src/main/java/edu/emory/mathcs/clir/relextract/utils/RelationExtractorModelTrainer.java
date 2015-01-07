@@ -115,6 +115,7 @@ public class RelationExtractorModelTrainer {
         List<Map.Entry<Integer, Integer>> featureCountsList = new ArrayList<>(labelFeatureCountsList.get(label).entrySet());
         featureCountsList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
         for (Map.Entry<Integer, Integer> featureCount : featureCountsList) {
+            System.out.print(featureCount.getKey() + " ");
             System.out.print(featAlphabet.get(
                     featureCount.getKey()).toString() + "\t" + featureCount.getValue());
             System.out.print(" < overall: " + overallFeatureCounts.get(featureCount.getKey()) + " (" + 1.0 * featureCount.getValue() / overallFeatureCounts.get(featureCount.getKey()) + ") ");
