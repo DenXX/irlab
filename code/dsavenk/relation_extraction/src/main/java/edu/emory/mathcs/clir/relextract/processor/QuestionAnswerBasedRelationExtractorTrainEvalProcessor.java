@@ -209,32 +209,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
     private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex, Document.Span questionSpan, int questionMention, int answerSentenceIndex,
                                              Document.Span answerSpan, int answerMention, List<String> features, boolean reversed) {
-        StringBuilder template = new StringBuilder();
-        String lastNer = "";
-        for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
-                token < document.getSentence(questionSentenceIndex).getLastToken();
-                ++token) {
-            if (token >= questionSpan.getMention(questionMention).getTokenBeginOffset() &&
-                    token < questionSpan.getMention(questionMention).getTokenEndOffset()) {
-                template.append(" <" + questionSpan.getNerType() + ">");
-                token = questionSpan.getMention(questionMention).getTokenEndOffset() - 1;
-            }
-            else if (!document.getToken(token).getNer().equals("O")) {
-                if (!document.getToken(token).getNer().equals(lastNer)) {
-                    lastNer = document.getToken(token).getNer();
-                    template.append(" [" + lastNer.toUpperCase() + "]");
-                }
-            } else {
-                if (document.getToken(token).getPos().startsWith("W") ||
-                        document.getToken(token).getPos().startsWith("MD")
-                        || (Character.isLetterOrDigit(document.getToken(token).getPos().charAt(0)) &&
-                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(document.getToken(token).getLemma()))) {
-                    lastNer = "";
-                    template.append(" " + document.getToken(token).getLemma().toLowerCase());
-                }
-            }
-
-        }
+        StringBuilder template = NlpUtils.getQuestionTemplate(document, questionSentenceIndex, questionSpan, questionMention);
 
         List<String> window = new ArrayList<>();
         window.add("");
