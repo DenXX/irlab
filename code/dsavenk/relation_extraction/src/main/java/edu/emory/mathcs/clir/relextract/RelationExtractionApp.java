@@ -98,6 +98,9 @@ public class RelationExtractionApp {
                 case "filterunresolvedspans":
                     workflow.addProcessor(new FilterNonResolvedSpans(props));
                     break;
+                case "outputtemplate":
+                    workflow.addProcessor(new OutputQuestionTemplateProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
