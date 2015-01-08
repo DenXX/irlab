@@ -282,21 +282,25 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             private int currentSubjectMention_ = 0;
             private int currentObjectMention_ = -1;
             private int questionTokens_ = 0;
+            private int questionSentencesCount_ = 0;
 
             public QuestionAnswerRelationMentionIterator() {
-                int questionSentencesCount = 0;
-                while (questionSentencesCount < document_.getSentenceCount() &&
+                questionSentencesCount_ = 0;
+                while (questionSentencesCount_ < document_.getSentenceCount() &&
                         document_.getToken(
-                                document_.getSentence(questionSentencesCount)
+                                document_.getSentence(questionSentencesCount_)
                                         .getFirstToken()).getBeginCharOffset()
                                 < document_.getQuestionLength()) {
-                    ++questionSentencesCount;
+                    ++questionSentencesCount_;
                 }
-                questionTokens_ = document_.getSentence(questionSentencesCount - 1).getLastToken();
+                questionTokens_ = document_.getSentence(questionSentencesCount_ - 1).getLastToken();
                 findNextPair();
             }
 
             private boolean findNextPair() {
+                // Skip all question, where answer contains more than one sentence.
+                if (document_.getSentenceCount() - questionSentencesCount_ > 1) return false;
+
                 while (currentSubjectMention_ < subjectSpan_.getMentionCount()) {
                     while (++currentObjectMention_ < objectSpan_.getMentionCount()) {
                         if (isMentionOk())
