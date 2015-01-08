@@ -38,7 +38,7 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().contains("Any suggestions on hotels or B&B's in Carmel?")) {
+        if (document.getText().contains("Who is the founder of the Peace and Freedom Party")) {
             return document;
         }
         return null;
@@ -52,13 +52,13 @@ public class TestProcessor extends Processor {
 //            }
 //            ++i;
 //        }
-//        if (i == document.getSentenceCount() - 1 &&
-//                document.getSentence(i).getLastToken() - document.getSentence(i).getFirstToken() <= 5) {
-//            System.out.println(document.getText());
-//            System.out.println(document.getRelationCount());
+//        if (i == 1 && document.getSentenceCount() == 2) {
 //            ++count;
+//            System.out.println(document.getText());
+//            System.out.println("-------------------------------------------");
 //            return document;
 //        }
+//        return null;
 
         // --------------------
 

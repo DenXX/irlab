@@ -95,6 +95,9 @@ public class RelationExtractionApp {
                 case "addsoftdaterelations":
                     workflow.addProcessor(new EntityAddSoftDateRelationsProcessor(props));
                     break;
+                case "filterunresolvedspans":
+                    workflow.addProcessor(new FilterNonResolvedSpans(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
