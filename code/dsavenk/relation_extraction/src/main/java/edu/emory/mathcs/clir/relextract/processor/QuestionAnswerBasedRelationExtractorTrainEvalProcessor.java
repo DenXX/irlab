@@ -274,7 +274,11 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
             private boolean findNextPair() {
                 // Skip all question, where answer contains more than one sentence.
-                if (document_.getSentenceCount() - questionSentencesCount_ > 1) return false;
+                if (document_.getSentenceCount() - questionSentencesCount_ > 1) {
+                    currentSubjectMention_ = subjectSpan_.getMentionCount();
+                    currentObjectMention_ = objectSpan_.getMentionCount();
+                    return false;
+                }
 
                 while (currentSubjectMention_ < subjectSpan_.getMentionCount()) {
                     while (++currentObjectMention_ < objectSpan_.getMentionCount()) {
