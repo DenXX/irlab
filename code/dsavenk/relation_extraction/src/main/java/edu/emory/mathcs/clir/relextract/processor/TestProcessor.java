@@ -43,7 +43,7 @@ public class TestProcessor extends Processor {
 //        });
 //        ++total;
 //        return null;
-        if (document.getText().contains("I want information about serbia war")) {
+        if (document.getText().contains("What is a Winter Equinox")) {
             ++count;
             return document;
         }

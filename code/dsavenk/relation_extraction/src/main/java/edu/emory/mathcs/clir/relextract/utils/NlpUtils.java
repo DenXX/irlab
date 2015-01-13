@@ -69,9 +69,13 @@ public final class NlpUtils {
     }
 
     public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex, int entityToken) {
+        return getSentencePivot(document, sentenceIndex, entityToken, -1);
+    }
+
+    public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex, int entityToken1, int entityToken2) {
         final int rootTokenIndex = document.getSentence(sentenceIndex).getDependencyRootToken()
                 + document.getSentence(sentenceIndex).getFirstToken() - 1;
-        if (rootTokenIndex > 0 && rootTokenIndex < document.getTokenCount() && rootTokenIndex != entityToken) {
+        if (rootTokenIndex > 0 && rootTokenIndex < document.getTokenCount() && rootTokenIndex != entityToken1 && rootTokenIndex != entityToken2) {
             return NlpUtils.normalizeStringForMatch(document.getToken(rootTokenIndex).getLemma()) + "/" +
                     document.getToken(rootTokenIndex).getPos();
         }

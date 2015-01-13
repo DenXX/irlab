@@ -102,6 +102,12 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         addQuestionTemplateFeatures(document, questionSentenceIndex, questionSpan,  questionMention, answerSentenceIndex, answerSpan, answerMention, features, reversed);
         addQuestionAnswerPathFeatures(document, questionSentenceIndex, answerSentenceIndex, questionSpan, answerSpan, questionEntityToken, answerEntityToken, features, reversed);
 
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("cat")) {
+                features.add("QUESTION_CATEGORY:\t" + attr.getValue());
+            }
+        }
+
         return features;
     }
 

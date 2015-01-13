@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.util.Pair;
 
 import java.io.IOException;
@@ -55,6 +56,17 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 objMentionHeadToken, true, features);
         addSurfaceFeatures(document, subjSpan, subjMention, objSpan, objMention, features);
         addQuestionFeatures(document, true, features);
+
+        String pivot = NlpUtils.getSentencePivot(document, subjSpan.getMention(subjMention).getSentenceIndex(), objMentionHeadToken, subjMentionHeadToken);
+        if (pivot != null) {
+            features.add("PIVOT:\t" + pivot);
+        }
+
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("cat")) {
+                features.add("QUESTION_CATEGORY:\t" + attr.getValue());
+            }
+        }
         return features;
     }
 
