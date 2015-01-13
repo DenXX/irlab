@@ -113,6 +113,11 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             path = "[" + questionSpan.getNerType() + "] => " + path.trim() + " [" + answerSpan.getNerType() + "]";
             features.add("ANSWER_PATH:\t" + (reversed ? "<> " : "") + path);
         }
+
+        String answerPivot = NlpUtils.getSentencePivot(document, answerSentenceIndex, answerEntityToken);
+        if (answerPivot != null) {
+            features.add("ANSWER_PIVOT:\t" + answerPivot);
+        }
     }
 
     private void addQuestionFeatures(Document.NlpDocument document, int questionSentenceIndex, int answerSentenceIndex, Document.Span questionSpan, Document.Span answerSpan, int answerMention, int questionEntityToken, List<String> features, boolean reversed) {
@@ -160,6 +165,10 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                     }
                 }
             }
+        }
+        String questionPivot = NlpUtils.getSentencePivot(document, questionSentenceIndex, questionEntityToken);
+        if (questionPivot != null) {
+            features.add("QUESTION_PIVOT:\t" + questionPivot);
         }
     }
 

@@ -67,4 +67,14 @@ public final class NlpUtils {
         }
         return template;
     }
+
+    public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex, int entityToken) {
+        final int rootTokenIndex = document.getSentence(sentenceIndex).getDependencyRootToken()
+                + document.getSentence(sentenceIndex).getFirstToken() - 1;
+        if (rootTokenIndex > 0 && rootTokenIndex < document.getTokenCount() && rootTokenIndex != entityToken) {
+            return NlpUtils.normalizeStringForMatch(document.getToken(rootTokenIndex).getLemma()) + "/" +
+                    document.getToken(rootTokenIndex).getPos();
+        }
+        return null;
+    }
 }
