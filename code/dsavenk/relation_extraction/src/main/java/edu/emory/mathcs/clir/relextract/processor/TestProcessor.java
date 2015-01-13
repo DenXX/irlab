@@ -38,11 +38,53 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().contains("Who is the founder of the Peace and Freedom Party")) {
+//        document.getSpanList().stream().filter(span -> span.hasEntityId() || (span.hasNerType() && span.getNerType().equals("DATE"))).forEach(span -> {
+//            ++count;
+//        });
+//        ++total;
+//        return null;
+        //if (document.getText().contains("Si un hombre vive en Barcelona")) {
+        String lang = "";
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("qlang")) {
+                lang = attr.getValue();
+            }
+        }
+        ++total;
+        if (lang.equals("en")) {
+            ++count;
             return document;
         }
         return null;
 
+//        if (!lang.equals("en")) return null;
+//        int questionSentencesCount = 0;
+//        while (questionSentencesCount < document.getSentenceCount()) {
+//            if (document.getToken(document.getSentence(questionSentencesCount).getFirstToken()).getBeginCharOffset() >= document.getQuestionLength()) {
+//                break;
+//            }
+//            ++questionSentencesCount;
+//        }
+//        if (questionSentencesCount == 1) {
+//            int inQuestionCount = 0;
+//            for (Document.Span span : document.getSpanList()) {
+//                if (!span.hasEntityId() ||
+//                        span.getType().equals("OTHER")) continue;
+//                boolean inQuestion = false;
+//                for (Document.Mention mention : span.getMentionList()) {
+//                    if (mention.getSentenceIndex() == 0) {
+//                        inQuestion = true;
+//                    }
+//                }
+//                if (inQuestion) ++inQuestionCount;
+//            }
+//            if (inQuestionCount == 1 && Math.random() > 0.95) {
+//                System.out.println(document.getText());
+//                System.out.println("-----------------------------------------");
+//                return document;
+//            }
+//        }
+//        return null;
 
 //        int i = 0;
 //        ++total;
@@ -107,7 +149,7 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("Single phrase questions: " + count);
+        System.out.println("Resolved entities: " + count);
         System.out.println("Total: " + total);
     }
 }
