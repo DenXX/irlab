@@ -43,15 +43,7 @@ public class TestProcessor extends Processor {
 //        });
 //        ++total;
 //        return null;
-        //if (document.getText().contains("Si un hombre vive en Barcelona")) {
-        String lang = "";
-        for (Document.Attribute attr : document.getAttributeList()) {
-            if (attr.getKey().equals("qlang")) {
-                lang = attr.getValue();
-            }
-        }
-        ++total;
-        if (lang.equals("en")) {
+        if (document.getText().contains("I want information about serbia war")) {
             ++count;
             return document;
         }

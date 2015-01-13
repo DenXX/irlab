@@ -31,8 +31,7 @@ public class FilterByLanguageProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         for (Document.Attribute attr : document.getAttributeList()) {
             if (attr.getKey().equals(DOCUMENT_LANGUAGE_ATTRIBUTE)) {
-                if (attr.getKey().equals(lang2keep_)) return document;
-                else return null;
+                if (attr.getValue().equals(lang2keep_)) return document;
             }
         }
         return null;
