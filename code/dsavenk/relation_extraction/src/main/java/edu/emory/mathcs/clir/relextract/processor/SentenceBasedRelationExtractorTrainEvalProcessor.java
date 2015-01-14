@@ -65,6 +65,8 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         for (Document.Attribute attr : document.getAttributeList()) {
             if (attr.getKey().equals("cat")) {
                 features.add("QUESTION_CATEGORY:\t" + attr.getValue());
+            } else if (attr.getKey().equals("subcat")) {
+                features.add("QUESTION_SUBCATEGORY:\t" + attr.getValue());
             }
         }
         return features;
