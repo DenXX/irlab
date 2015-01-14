@@ -140,6 +140,10 @@ public class AppParameters {
                 .withArgName(RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER)
                 .withDescription("Verbose").create(
                         RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(FilterByLanguageProcessor.LANGUAGE_FILTER_PARAMETER)
+                .withDescription("Document language to keep").create(
+                        FilterByLanguageProcessor.LANGUAGE_FILTER_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()

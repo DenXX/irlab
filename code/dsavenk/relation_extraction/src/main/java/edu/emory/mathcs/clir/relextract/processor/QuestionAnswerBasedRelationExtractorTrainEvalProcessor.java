@@ -102,6 +102,14 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         addQuestionTemplateFeatures(document, questionSentenceIndex, questionSpan,  questionMention, answerSentenceIndex, answerSpan, answerMention, features, reversed);
         addQuestionAnswerPathFeatures(document, questionSentenceIndex, answerSentenceIndex, questionSpan, answerSpan, questionEntityToken, answerEntityToken, features, reversed);
 
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("cat")) {
+                features.add("QUESTION_CATEGORY:\t" + attr.getValue());
+            } else if (attr.getKey().equals("subcat")) {
+                features.add("QUESTION_SUBCATEGORY:\t" + attr.getValue());
+            }
+        }
+
         return features;
     }
 
@@ -112,6 +120,11 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         if (path != null) {
             path = "[" + questionSpan.getNerType() + "] => " + path.trim() + " [" + answerSpan.getNerType() + "]";
             features.add("ANSWER_PATH:\t" + (reversed ? "<> " : "") + path);
+        }
+
+        String answerPivot = NlpUtils.getSentencePivot(document, answerSentenceIndex, answerEntityToken);
+        if (answerPivot != null) {
+            features.add("ANSWER_PIVOT:\t" + answerPivot);
         }
     }
 
@@ -161,6 +174,10 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
                 }
             }
         }
+        String questionPivot = NlpUtils.getSentencePivot(document, questionSentenceIndex, questionEntityToken);
+        if (questionPivot != null) {
+            features.add("QUESTION_PIVOT:\t" + questionPivot);
+        }
     }
 
     private void addQuestionAnswerPathFeatures(Document.NlpDocument document, int questionSentenceIndex,
@@ -209,32 +226,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
     private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex, Document.Span questionSpan, int questionMention, int answerSentenceIndex,
                                              Document.Span answerSpan, int answerMention, List<String> features, boolean reversed) {
-        StringBuilder template = new StringBuilder();
-        String lastNer = "";
-        for (int token = document.getSentence(questionSentenceIndex).getFirstToken();
-                token < document.getSentence(questionSentenceIndex).getLastToken();
-                ++token) {
-            if (token >= questionSpan.getMention(questionMention).getTokenBeginOffset() &&
-                    token < questionSpan.getMention(questionMention).getTokenEndOffset()) {
-                template.append(" <" + questionSpan.getNerType() + ">");
-                token = questionSpan.getMention(questionMention).getTokenEndOffset() - 1;
-            }
-            else if (!document.getToken(token).getNer().equals("O")) {
-                if (!document.getToken(token).getNer().equals(lastNer)) {
-                    lastNer = document.getToken(token).getNer();
-                    template.append(" [" + lastNer.toUpperCase() + "]");
-                }
-            } else {
-                if (document.getToken(token).getPos().startsWith("W") ||
-                        document.getToken(token).getPos().startsWith("MD")
-                        || (Character.isLetterOrDigit(document.getToken(token).getPos().charAt(0)) &&
-                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(document.getToken(token).getLemma()))) {
-                    lastNer = "";
-                    template.append(" " + document.getToken(token).getLemma().toLowerCase());
-                }
-            }
-
-        }
+        StringBuilder template = NlpUtils.getQuestionTemplate(document, questionSentenceIndex, questionSpan, questionMention);
 
         List<String> window = new ArrayList<>();
         window.add("");
@@ -282,21 +274,29 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             private int currentSubjectMention_ = 0;
             private int currentObjectMention_ = -1;
             private int questionTokens_ = 0;
+            private int questionSentencesCount_ = 0;
 
             public QuestionAnswerRelationMentionIterator() {
-                int questionSentencesCount = 0;
-                while (questionSentencesCount < document_.getSentenceCount() &&
+                questionSentencesCount_ = 0;
+                while (questionSentencesCount_ < document_.getSentenceCount() &&
                         document_.getToken(
-                                document_.getSentence(questionSentencesCount)
+                                document_.getSentence(questionSentencesCount_)
                                         .getFirstToken()).getBeginCharOffset()
                                 < document_.getQuestionLength()) {
-                    ++questionSentencesCount;
+                    ++questionSentencesCount_;
                 }
-                questionTokens_ = document_.getSentence(questionSentencesCount - 1).getLastToken();
+                questionTokens_ = document_.getSentence(questionSentencesCount_ - 1).getLastToken();
                 findNextPair();
             }
 
             private boolean findNextPair() {
+                // Skip all question, where answer contains more than one sentence.
+                // if (document_.getSentenceCount() - questionSentencesCount_ > 1) {
+                //    currentSubjectMention_ = subjectSpan_.getMentionCount();
+                //    currentObjectMention_ = objectSpan_.getMentionCount();
+                //    return false;
+                //}
+
                 while (currentSubjectMention_ < subjectSpan_.getMentionCount()) {
                     while (++currentObjectMention_ < objectSpan_.getMentionCount()) {
                         if (isMentionOk())

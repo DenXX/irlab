@@ -38,11 +38,45 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().contains("Any suggestions on hotels or B&B's in Carmel?")) {
+//        document.getSpanList().stream().filter(span -> span.hasEntityId() || (span.hasNerType() && span.getNerType().equals("DATE"))).forEach(span -> {
+//            ++count;
+//        });
+//        ++total;
+//        return null;
+        if (document.getText().contains("What is a Winter Equinox")) {
+            ++count;
             return document;
         }
         return null;
 
+//        if (!lang.equals("en")) return null;
+//        int questionSentencesCount = 0;
+//        while (questionSentencesCount < document.getSentenceCount()) {
+//            if (document.getToken(document.getSentence(questionSentencesCount).getFirstToken()).getBeginCharOffset() >= document.getQuestionLength()) {
+//                break;
+//            }
+//            ++questionSentencesCount;
+//        }
+//        if (questionSentencesCount == 1) {
+//            int inQuestionCount = 0;
+//            for (Document.Span span : document.getSpanList()) {
+//                if (!span.hasEntityId() ||
+//                        span.getType().equals("OTHER")) continue;
+//                boolean inQuestion = false;
+//                for (Document.Mention mention : span.getMentionList()) {
+//                    if (mention.getSentenceIndex() == 0) {
+//                        inQuestion = true;
+//                    }
+//                }
+//                if (inQuestion) ++inQuestionCount;
+//            }
+//            if (inQuestionCount == 1 && Math.random() > 0.95) {
+//                System.out.println(document.getText());
+//                System.out.println("-----------------------------------------");
+//                return document;
+//            }
+//        }
+//        return null;
 
 //        int i = 0;
 //        ++total;
@@ -52,13 +86,13 @@ public class TestProcessor extends Processor {
 //            }
 //            ++i;
 //        }
-//        if (i == document.getSentenceCount() - 1 &&
-//                document.getSentence(i).getLastToken() - document.getSentence(i).getFirstToken() <= 5) {
-//            System.out.println(document.getText());
-//            System.out.println(document.getRelationCount());
+//        if (i == 1 && document.getSentenceCount() == 2) {
 //            ++count;
+//            System.out.println(document.getText());
+//            System.out.println("-------------------------------------------");
 //            return document;
 //        }
+//        return null;
 
         // --------------------
 
@@ -107,7 +141,7 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("Single phrase questions: " + count);
+        System.out.println("Resolved entities: " + count);
         System.out.println("Total: " + total);
     }
 }

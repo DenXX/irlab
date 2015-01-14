@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.util.Pair;
 
 import java.io.IOException;
@@ -13,6 +14,8 @@ import java.util.*;
  */
 public class SentenceBasedRelationExtractorTrainEvalProcessor
         extends RelationExtractorTrainEvalProcessor {
+
+    public static final int MAX_TOKEN_GAP = 7;
 
     /**
      * Creates an instance of the SentenceBasedRelationExtractorTrainerProcessor
@@ -55,6 +58,19 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 objMentionHeadToken, true, features);
         addSurfaceFeatures(document, subjSpan, subjMention, objSpan, objMention, features);
         addQuestionFeatures(document, true, features);
+
+        String pivot = NlpUtils.getSentencePivot(document, subjSpan.getMention(subjMention).getSentenceIndex(), objMentionHeadToken, subjMentionHeadToken);
+        if (pivot != null) {
+            features.add("PIVOT:\t" + pivot);
+        }
+
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("cat")) {
+                features.add("QUESTION_CATEGORY:\t" + attr.getValue());
+            } else if (attr.getKey().equals("subcat")) {
+                features.add("QUESTION_SUBCATEGORY:\t" + attr.getValue());
+            }
+        }
         return features;
     }
 
@@ -269,10 +285,11 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
 
             private boolean isMentionOk() {
                 // 2 Lines below can be used to check the distance between mentions, but we will ignore it for now.
-                //int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention).getTokenEndOffset());
-                //int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
+                int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention).getTokenEndOffset());
+                int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention).getTokenBeginOffset());
                 return subjectSpan_.getMention(currentSubjectMention).getSentenceIndex() ==
-                        objectSpan_.getMention(currentObjectMention).getSentenceIndex();
+                        objectSpan_.getMention(currentObjectMention).getSentenceIndex()
+                        && maxBegin - minEnd < SentenceBasedRelationExtractorTrainEvalProcessor.MAX_TOKEN_GAP;
             }
 
             @Override
