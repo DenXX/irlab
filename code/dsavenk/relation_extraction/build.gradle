@@ -3,7 +3,7 @@ apply plugin: 'gradleProtobufPlugin'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
-version = '1.6'
+version = '1.7'
 mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.FreebaseLexiconLuceneIndexBuilder'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessWikipedia2Freebase'
