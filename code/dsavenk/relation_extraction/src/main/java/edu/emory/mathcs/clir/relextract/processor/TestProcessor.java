@@ -43,7 +43,7 @@ public class TestProcessor extends Processor {
 //        });
 //        ++total;
 //        return null;
-        if (document.getText().contains("What is a Winter Equinox")) {
+        if (document.getText().contains("The first one you're looking for may be The Man Who Lost His Head by Claire Huchet Bishop and Robert McCloskey.")) {
             ++count;
             return document;
         }

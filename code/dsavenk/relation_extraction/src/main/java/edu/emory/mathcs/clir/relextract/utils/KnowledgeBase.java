@@ -4,14 +4,17 @@ import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.query.*;
+import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
+import edu.emory.mathcs.clir.relextract.data.*;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +42,8 @@ public class KnowledgeBase {
     public Model model_;
     private Map<Pair<String, String>, List<Triple>> tripleCache_ =
             Collections.synchronizedMap(new LRUMap<>(100000000));
+    private Map<String, Pair<String, String>> domainRangeCache_ =
+            new ConcurrentHashMap<>();
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -50,6 +55,7 @@ public class KnowledgeBase {
         Dataset dataset = TDBFactory.createDataset(location);
         dataset.begin(ReadWrite.READ);
         model_ = dataset.getDefaultModel();
+
         // Load all CVT properties.
         StmtIterator iter = model_.listStatements(null,
                 model_.getProperty(FREEBASE_RDF_PREFIX,
@@ -73,9 +79,9 @@ public class KnowledgeBase {
             }
         }
 
-        iter = model_.listStatements(null,
-                model_.getProperty(FREEBASE_RDF_PREFIX, "type.property.expected_type"),
-                model_.getResource(convertFreebaseMidRdf("type.datetime")));
+//        iter = model_.listStatements(null,
+//                model_.getProperty(FREEBASE_RDF_PREFIX, "type.property.expected_type"),
+//                model_.getResource(convertFreebaseMidRdf("type.datetime")));
         //while (iter.hasNext()) {
         //    dateProperties.add(iter.nextStatement().getSubject().getURI());
         //}
@@ -112,6 +118,20 @@ public class KnowledgeBase {
         return "";
     }
 
+    public List<String> getEntityTypes(String mid) {
+        List<String> types = new ArrayList<>();
+        // TODO(denxx): This is a dirty hack to detect measures vs entities.
+        if (mid.startsWith("/")) {
+            StmtIterator iter = model_.listStatements(model_.getResource(convertFreebaseMidRdf(mid)),
+                    model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.type"), (RDFNode) null);
+            while (iter.hasNext())
+                types.add(iter.nextStatement().getObject().asResource().getURI());
+        } else {
+            types.add("http://rdf.freebase.com/ns/type.datetime");
+        }
+        return types;
+    }
+
     public long getTripleCount(String mid) {
         long count = 0;
         StmtIterator iter = model_.getResource(convertFreebaseMidRdf(mid)).listProperties();
@@ -120,6 +140,58 @@ public class KnowledgeBase {
             ++count;
         }
         return count;
+    }
+
+    public Pair<String, String> getPredicateDomainAndRange(String predicate) {
+        if (domainRangeCache_.containsKey(predicate)) return domainRangeCache_.get(predicate);
+        String domainPredicate = predicate;
+        String rangePredicate = predicate;
+        if (predicate.contains("|")) {
+            String[] parts = predicate.split("|");
+            domainPredicate = parts[0];
+            rangePredicate = parts[1];
+        }
+        Pair<String, String> res = new Pair<>();
+        StmtIterator iter = model_.listStatements(model_.getProperty(FREEBASE_RDF_PREFIX, domainPredicate), model_.getProperty("http://www.w3.org/2000/01/rdf-schema#domain"), (RDFNode)null);
+        if (iter.hasNext()) res.first = iter.nextStatement().getObject().asResource().getURI();
+        iter = model_.listStatements(model_.getProperty(FREEBASE_RDF_PREFIX, rangePredicate), model_.getProperty("http://www.w3.org/2000/01/rdf-schema#range"), (RDFNode)null);
+        if (iter.hasNext()) res.second = iter.nextStatement().getObject().asResource().getURI();
+        domainRangeCache_.put(predicate, res);
+        return res;
+    }
+
+    public boolean isTripleTypeCompatible(Triple triple) {
+        Pair<String, String> domainAndRange = getPredicateDomainAndRange(triple.predicate);
+        boolean isSubjOk = false;
+        for (String type : getEntityTypes(triple.subject)) {
+            if (type.equals(domainAndRange.first)) {
+                isSubjOk = true;
+            }
+        }
+        if (isSubjOk) {
+            for (String type : getEntityTypes(triple.object)) {
+                if (type.equals(domainAndRange.second)) return true;
+            }
+        }
+        return false;
+    }
+
+    public KnowledgeBase.Triple getTypeCompatibleTripleOrNull(Document.NlpDocument document, int subjectSpan, int objectSpan, String predicate, int maxIdsPerEntity) {
+        for (int i = 0; i < Math.min(maxIdsPerEntity, document.getSpan(subjectSpan).getCandidateEntityIdCount()); ++i) {
+            String subjMid = document.getSpan(subjectSpan).getCandidateEntityId(i);
+            if (document.getSpan(objectSpan).getType().equals("MEASURE")) {
+                KnowledgeBase.Triple triple = new KnowledgeBase.Triple(subjMid, predicate, document.getSpan(objectSpan).getValue());
+                if (isTripleTypeCompatible(triple)) return triple;
+            } else {
+                for (int j = 0; j < Math.min(maxIdsPerEntity, document.getSpan(objectSpan).getCandidateEntityIdCount()); ++j) {
+                    String objMid = document.getSpan(objectSpan).getCandidateEntityId(j);
+                    Triple triple = new Triple(subjMid, predicate, objMid);
+                    if (isTripleTypeCompatible(triple))
+                        return triple;
+                }
+            }
+        }
+        return null;
     }
 
     private String convertFreebaseMidRdf(String mid) {

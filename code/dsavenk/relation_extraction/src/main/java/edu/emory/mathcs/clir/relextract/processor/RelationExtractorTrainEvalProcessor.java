@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.RelationExtractorModelTrainer;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.util.Pair;
@@ -113,7 +114,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private LinearClassifier<String, Integer> model_ = null;
     private ConcurrentMap<Pair<String, String>, Map<String, Double>> extractedTriples_ = new ConcurrentHashMap<>();
     private ConcurrentMap<Pair<String, String>, Set<String>> triplesLabels_ = new ConcurrentHashMap<>();
-
+    private final KnowledgeBase kb_;
 
     private Random rnd_ = new Random(42);
 
@@ -183,6 +184,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (properties.containsKey(VERBOSE_PARAMETER)) {
             verbose_ = Boolean.parseBoolean(properties.getProperty(VERBOSE_PARAMETER));
         }
+        kb_ = KnowledgeBase.getInstance(properties);
     }
 
     /**
@@ -250,10 +252,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             preds.getKey().first + "-" + preds.getKey().second + "\t"
                             + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
                 } else {
+                    // TODO(denxx): This is probably incorrect piece of code.
                     for (String label : triplesLabels_.get(preds.getKey())) {
-                        System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
-                                preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+                        if (!preds.getValue().containsKey(label)) {
+                            System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
+                                    preds.getKey().first + "-" + preds.getKey().second + "\t"
+                                    + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+                        }
                     }
                 }
             }
@@ -448,6 +453,21 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 Dataset.RelationMentionInstance mention = mentionInstance.build();
                 Pair<String, Double> prediction =
                         RelationExtractorModelTrainer.eval(model_, mention, verbose_);
+                if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
+                    KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
+                            mentionInstance.getSubjSpan(),
+                            mentionInstance.getObjSpan(),
+                            prediction.first,
+                            EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                    if (triple == null) return;
+                    mentionInstance.getTripleBuilderList().stream()
+                            .filter(tripleBuilder -> tripleBuilder.getPredicate().equals(NO_RELATIONS_LABEL))
+                            .forEach(tripleBuilder -> {
+                                tripleBuilder.setSubject(triple.subject);
+                                tripleBuilder.setObject(triple.object);
+                            });
+                    mention = mentionInstance.build();
+                }
                 processPrediction(mention, prediction);
             }
         }
