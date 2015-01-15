@@ -446,6 +446,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 tripleBuilder.setSubject(triple.subject);
                                 tripleBuilder.setObject(triple.object);
                             });
+                    mention = mentionInstance.build();
                 }
                 processPrediction(mention, prediction);
             } else {
