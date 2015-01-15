@@ -187,10 +187,11 @@ public class RelationExtractorModelTrainer {
                                             Dataset.RelationMentionInstance testInstance, boolean verbose) {
         Datum<String, Integer> example = convertTestInstance(testInstance);
         Counter<String> predictions = model.probabilityOf(example);
-        double bestScore = predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
+        double bestScore = 1.0 / predictions.size(); // predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
         String bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
         for (Map.Entry<String, Double> pred : predictions.entrySet()) {
-            if (pred.getValue() > bestScore) {
+            if (!pred.getKey().equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL) &&
+                    pred.getValue() > bestScore) {
                 bestScore = pred.getValue();
                 bestLabel = pred.getKey();
             }
