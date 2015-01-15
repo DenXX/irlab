@@ -183,7 +183,7 @@ public class KnowledgeBase {
                 KnowledgeBase.Triple triple = new KnowledgeBase.Triple(subjMid, predicate, document.getSpan(objectSpan).getValue());
                 if (isTripleTypeCompatible(triple)) return triple;
             } else {
-                for (int j = 0; j < Math.min(maxIdsPerEntity, document.getSpan(subjectSpan).getCandidateEntityIdCount()); ++j) {
+                for (int j = 0; j < Math.min(maxIdsPerEntity, document.getSpan(objectSpan).getCandidateEntityIdCount()); ++j) {
                     String objMid = document.getSpan(objectSpan).getCandidateEntityId(j);
                     Triple triple = new Triple(subjMid, predicate, objMid);
                     if (isTripleTypeCompatible(triple))
