@@ -147,7 +147,7 @@ public class KnowledgeBase {
         String domainPredicate = predicate;
         String rangePredicate = predicate;
         if (predicate.contains("|")) {
-            String[] parts = predicate.split("|");
+            String[] parts = predicate.split("\\|");
             domainPredicate = parts[0];
             rangePredicate = parts[1];
         }
