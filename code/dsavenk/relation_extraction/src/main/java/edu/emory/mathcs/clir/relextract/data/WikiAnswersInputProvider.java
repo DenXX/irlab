@@ -46,6 +46,7 @@ public class WikiAnswersInputProvider implements Iterable<Document.NlpDocument> 
 
         private boolean readNext() {
             try {
+                documents_.clear();
                 List<String> questions = new ArrayList<>();
                 List<String> answers = new ArrayList<>();
                 while (answers.size() == 0 || questions.size() == 0) {
