@@ -128,6 +128,9 @@ public class RelationExtractionApp {
                 case "yahooxml":
                     docs = new YahooAnswersWebscopeXmlInputProvider(props);
                     break;
+                case "wikianswers":
+                    docs = new WikiAnswersInputProvider(props);
+                    break;
                 default:
                     throw new UnsupportedOperationException("Reader " + reader +
                             " doesn't exist!");
