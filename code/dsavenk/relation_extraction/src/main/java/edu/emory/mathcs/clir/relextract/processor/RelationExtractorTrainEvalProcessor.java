@@ -420,7 +420,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     objSpan, mentionPair.second);
 
                             for (String feature : features) {
-                                if (!includeQFeatures && feature.startsWith("QUESTION_DEP_PATH"))
+                                if (!includeQFeatures && feature.startsWith("QUESTION_"))
                                     continue;
                                 mentionInstance.addFeatureId(
                                         getFeatureId(feature));

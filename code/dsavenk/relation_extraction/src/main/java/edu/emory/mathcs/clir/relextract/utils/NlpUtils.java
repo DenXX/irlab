@@ -4,6 +4,8 @@ import edu.emory.mathcs.clir.relextract.data.Document;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,5 +82,17 @@ public final class NlpUtils {
                     document.getToken(rootTokenIndex).getPos();
         }
         return null;
+    }
+
+    public static List<String> getQuestionWords(Document.NlpDocument document, int questionSentenceIndex) {
+        List<String> res = new ArrayList<>();
+        for (int i = document.getSentence(questionSentenceIndex).getFirstToken();
+             i < document.getSentence(questionSentenceIndex).getLastToken(); ++i) {
+            if (document.getToken(i).getPos().startsWith("W")
+                    || document.getToken(i).getPos().startsWith("MD")) {
+                res.add(NlpUtils.normalizeStringForMatch(document.getToken(i).getLemma()));
+            }
+        }
+        return res;
     }
 }

@@ -19,7 +19,7 @@ public class ModelExaminer {
         Properties props = new Properties();
         props.setProperty("kb", args[0]);
         KnowledgeBase kb = KnowledgeBase.getInstance(props);
-        System.out.println(kb.getPredicateDomainAndRange("people.person.date_of_birth"));
+        System.out.println(kb.getPredicateDomainAndRange("people.person.spouse_s|people.marriage.spouse"));
         boolean f = kb.isTripleTypeCompatible(new KnowledgeBase.Triple("/m/04cbtrw", "people.person.profession", "/m/0kyk"));
         boolean s = kb.isTripleTypeCompatible(new KnowledgeBase.Triple("/m/0254yc", "people.person.date_of_birth", "<DATE>"));
         System.out.println(f + " - " + s);

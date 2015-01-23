@@ -2,9 +2,13 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -12,6 +16,8 @@ import java.util.Properties;
 public class TestProcessor extends Processor {
     private int count = 0;
     private int total = 0;
+
+    private final Random rnd;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -22,6 +28,7 @@ public class TestProcessor extends Processor {
      */
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
+        rnd = new Random(42);
     }
 
     private static String fixName(String name) {
@@ -38,17 +45,73 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        ++total;
+        for (Document.Attribute attr : document.getAttributeList()) {
+            if (attr.getKey().equals("qlang")) {
+                if (!attr.getValue().equals("en")) return null;
+            }
+        }
+        int index = 0;
+        for (Document.Sentence sent : document.getSentenceList()) {
+            System.out.print("<DOC:" + total + ">\t<SENT:" + total + "-" + index++ + ">\t");
+            for (int i = sent.getFirstToken(); i < sent.getLastToken(); ++i) {
+                if (Character.isAlphabetic(document.getToken(i).getPos().charAt(0))) {
+                    System.out.print(document.getToken(i).getLemma().replace("\n", " ").replace("\t", " ") + "\t");
+                }
+            }
+            System.out.println();
+        }
+        return document;
+
+//        if (rnd.nextFloat() < 0.001) {
+//            String category = "";
+//            String subcategory = "";
+//            String content = "";
+//            for (Document.Attribute attr : document.getAttributeList()) {
+//                if (attr.getKey().equals("cat")) {
+//                    category = attr.getValue();
+//                } else if (attr.getKey().equals("subcat")) {
+//                    subcategory = attr.getValue();
+//                } else if (attr.getKey().equals("content")) {
+//                    content = attr.getValue();
+//                }
+//            }
+//            System.out.println("Category: " + category + "; Subcategory: " + subcategory);
+//            System.out.println("Question:");
+//            int sentence = 0;
+//            while (sentence < document.getSentenceCount() &&
+//                    document.getToken(document.getSentence(sentence).getFirstToken()).getBeginCharOffset() < document.getQuestionLength()) {
+//                System.out.println("\t" + document.getSentence(sentence++).getText().replace("\n", "\n\t"));
+//            }
+//            if (!content.isEmpty()) {
+//                System.out.println("Content: ");
+//                System.out.println("\t" + content);
+//            }
+//            System.out.println("Answer:");
+//            while (sentence < document.getSentenceCount()) {
+//                System.out.println("\t" + document.getSentence(sentence++).getText().replace("\n", "\n\t"));
+//            }
+//            System.out.println("--------------------------------------------");
+//            return document;
+//        }
+//        return null;
+
+
 //        document.getSpanList().stream().filter(span -> span.hasEntityId() || (span.hasNerType() && span.getNerType().equals("DATE"))).forEach(span -> {
 //            ++count;
 //        });
 //        ++total;
 //        return null;
-        if (document.getText().contains("The first one you're looking for may be The Man Who Lost His Head by Claire Huchet Bishop and Robert McCloskey.")) {
-            ++count;
-            return document;
-        }
-        return null;
+//        if (document.getText().contains("The first one you're looking for may be The Man Who Lost His Head by Claire Huchet Bishop and Robert McCloskey.")) {
+//            ++count;
+//            return document;
+//        }
+//        return null;
 
+//        String lang = "";
+//        for (Document.Attribute attr : document.getAttributeList()) {
+//            if (attr.getKey().equals("qlang")) lang = attr.getValue();
+//        }
 //        if (!lang.equals("en")) return null;
 //        int questionSentencesCount = 0;
 //        while (questionSentencesCount < document.getSentenceCount()) {
@@ -70,9 +133,23 @@ public class TestProcessor extends Processor {
 //                }
 //                if (inQuestion) ++inQuestionCount;
 //            }
-//            if (inQuestionCount == 1 && Math.random() > 0.95) {
-//                System.out.println(document.getText());
-//                System.out.println("-----------------------------------------");
+//            if (inQuestionCount == 1) {
+//                List<Integer> qWords = new ArrayList<>();
+//                for (int token = document.getSentence(0).getFirstToken();
+//                        token < document.getSentence(0).getLastToken(); ++token) {
+//                    if (document.getToken(token).getPos().startsWith("W")) {
+//                        qWords.add(token);
+//                    }
+//                }
+//                if (qWords.size() > 0) {
+//                    for (int qWord : qWords) {
+//                        int token = document.getSentence(0).getFirstToken() + document.getToken(qWord).getDependencyGovernor() - 1;
+//                        if (token >= 0) {
+//                            System.out.println(document.getSentence(0).getText().replace("\t", " ").replace("\n", " ") + "\t" + NlpUtils.normalizeStringForMatch(document.getToken(qWord).getLemma()) + "\t" + NlpUtils.normalizeStringForMatch(document.getToken(token).getLemma()) + "\t" + document.getToken(qWord).getDependencyType());
+//                        }
+//                    }
+//                }
+//
 //                return document;
 //            }
 //        }

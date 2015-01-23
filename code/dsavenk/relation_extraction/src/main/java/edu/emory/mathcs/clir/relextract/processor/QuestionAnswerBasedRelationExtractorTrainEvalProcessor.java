@@ -178,6 +178,9 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         if (questionPivot != null) {
             features.add("QUESTION_PIVOT:\t" + questionPivot);
         }
+        for (String qword : NlpUtils.getQuestionWords(document, questionSentenceIndex)) {
+            features.add("QUESTION_WORD:\t" + qword);
+        }
     }
 
     private void addQuestionAnswerPathFeatures(Document.NlpDocument document, int questionSentenceIndex,

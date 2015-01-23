@@ -241,6 +241,10 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                         }
                     }
                 }
+
+                for (String qword : NlpUtils.getQuestionWords(document, index)) {
+                    features.add("QUESTION_WORD:\t" + qword);
+                }
             }
         }
     }
