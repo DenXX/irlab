@@ -45,23 +45,27 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        ++total;
-        for (Document.Attribute attr : document.getAttributeList()) {
-            if (attr.getKey().equals("qlang")) {
-                if (!attr.getValue().equals("en")) return null;
-            }
-        }
-        int index = 0;
-        for (Document.Sentence sent : document.getSentenceList()) {
-            System.out.print("<DOC:" + total + ">\t<SENT:" + total + "-" + index++ + ">\t");
-            for (int i = sent.getFirstToken(); i < sent.getLastToken(); ++i) {
-                if (Character.isAlphabetic(document.getToken(i).getPos().charAt(0))) {
-                    System.out.print(document.getToken(i).getLemma().replace("\n", " ").replace("\t", " ") + "\t");
-                }
-            }
-            System.out.println();
+        for (String qword : NlpUtils.getQuestionWords(document, 0)) {
+            System.out.println(qword);
         }
         return document;
+//        ++total;
+//        for (Document.Attribute attr : document.getAttributeList()) {
+//            if (attr.getKey().equals("qlang")) {
+//                if (!attr.getValue().equals("en")) return null;
+//            }
+//        }
+//        int index = 0;
+//        for (Document.Sentence sent : document.getSentenceList()) {
+//            System.out.print("<DOC:" + total + ">\t<SENT:" + total + "-" + index++ + ">\t");
+//            for (int i = sent.getFirstToken(); i < sent.getLastToken(); ++i) {
+//                if (Character.isAlphabetic(document.getToken(i).getPos().charAt(0))) {
+//                    System.out.print(document.getToken(i).getLemma().replace("\n", " ").replace("\t", " ") + "\t");
+//                }
+//            }
+//            System.out.println();
+//        }
+//        return document;
 
 //        if (rnd.nextFloat() < 0.001) {
 //            String category = "";

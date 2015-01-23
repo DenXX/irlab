@@ -90,7 +90,13 @@ public final class NlpUtils {
              i < document.getSentence(questionSentenceIndex).getLastToken(); ++i) {
             if (document.getToken(i).getPos().startsWith("W")
                     || document.getToken(i).getPos().startsWith("MD")) {
-                res.add(NlpUtils.normalizeStringForMatch(document.getToken(i).getLemma()));
+                if (i + 1 < document.getSentence(questionSentenceIndex).getLastToken()
+                        && (document.getToken(i + 1).getPos().startsWith("RB") || document.getToken(i + 1).getPos().startsWith("JJ"))
+                        /*&& document.getToken(i + 1).getDependencyGovernor() == i - document.getSentence(questionSentenceIndex).getFirstToken() + 1*/) {
+                    res.add(NlpUtils.normalizeStringForMatch(document.getToken(i).getLemma()) + " " + NlpUtils.normalizeStringForMatch(document.getToken(i + 1).getLemma()));
+                } else {
+                    res.add(NlpUtils.normalizeStringForMatch(document.getToken(i).getLemma()));
+                }
             }
         }
         return res;
