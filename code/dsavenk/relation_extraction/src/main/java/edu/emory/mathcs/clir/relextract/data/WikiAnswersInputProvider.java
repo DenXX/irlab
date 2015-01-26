@@ -72,10 +72,16 @@ public class WikiAnswersInputProvider implements Iterable<Document.NlpDocument> 
                         String[] line = linestr.split("\t");
                         for (String rec : line) {
                             String[] tp = rec.split(":");
-                            if (tp[0].equals("q")) {
-                                questions.add(tp[1]);
-                            } else {
-                                answers.add(tp[1]);
+                            try {
+                                if (tp[0].equals("q")) {
+                                    questions.add(tp[1]);
+                                } else {
+                                    answers.add(tp[1]);
+                                }
+                            } catch (ArrayIndexOutOfBoundsException exc) {
+                                System.out.println(rec);
+                                answers.clear();
+                                break;
                             }
                         }
                     }

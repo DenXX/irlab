@@ -45,9 +45,9 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        for (String qword : NlpUtils.getQuestionWords(document, 0)) {
-            System.out.println(qword);
-        }
+        //for (String qword : NlpUtils.getQuestionWords(document, 0)) {
+        //    System.out.println(qword);
+        //}
         return document;
 //        ++total;
 //        for (Document.Attribute attr : document.getAttributeList()) {
