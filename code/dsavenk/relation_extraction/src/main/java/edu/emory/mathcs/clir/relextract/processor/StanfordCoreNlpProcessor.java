@@ -64,7 +64,12 @@ public class StanfordCoreNlpProcessor extends Processor {
         // creates a flat structure, where every token is assigned to
         // the non-terminal X. This is useful when parsing noisy web text,
         // which may generate arbitrarily long sentences.
-        //properties.setProperty("parse.maxlen", "50");
+        properties.setProperty("parse.maxlen", "50");
+
+        // Let CoreNLP use single thread inside, we have parallelism on top.
+        properties.setProperty("nthreads", "1");
+        // Default value is 0 if nthreads is not 1, thus no predictions made.
+        properties.setProperty("ner.maxtime", "-1");
         // Load big file with gender and number information.
         properties.setProperty("dcoref.use.big.gender.number", "true");
 

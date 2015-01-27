@@ -45,7 +45,9 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().length() > 1000) return null;
+        if (document.getText().length() > 1000) {
+            return null;
+        }
         //for (String qword : NlpUtils.getQuestionWords(document, 0)) {
         //    System.out.println(qword);
         //}
