@@ -89,24 +89,21 @@ public class ProcessorRunner {
                     ++skipped;
                     System.err.println("Skipped: " + skipped);
                 }
-                threadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (processor_.process(document) == null) {
-                                filtered.incrementAndGet();
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                threadPool.execute(() -> {
+                    try {
+                        if (processor_.process(document) == null) {
+                            filtered.incrementAndGet();
                         }
-                        int processed = counter.incrementAndGet();
-                        if (processed % 1000 == 0) {
-                            long currentTime = System.currentTimeMillis();
-                            System.err.println("Processed: " + processed +
-                                    " (" + (1000.0 * processed /
-                                    (currentTime - startTime)) + " docs/sec)");
-                            System.err.println("Filtered: " + filtered);
-                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    int processed = counter.incrementAndGet();
+                    if (processed % 1000 == 0) {
+                        long currentTime = System.currentTimeMillis();
+                        System.err.println("Processed: " + processed +
+                                " (" + (1000.0 * processed /
+                                (currentTime - startTime)) + " docs/sec)");
+                        System.err.println("Filtered: " + filtered);
                     }
                 });
             }
