@@ -70,6 +70,10 @@ public final class NlpUtils {
         return template;
     }
 
+    public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex) {
+        return getSentencePivot(document, sentenceIndex, -1, -1);
+    }
+
     public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex, int entityToken) {
         return getSentencePivot(document, sentenceIndex, entityToken, -1);
     }

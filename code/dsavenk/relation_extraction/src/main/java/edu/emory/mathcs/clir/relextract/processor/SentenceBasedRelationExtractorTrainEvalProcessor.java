@@ -200,14 +200,9 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
     private void addQuestionFeatures(Document.NlpDocument document,
                                      boolean lexicalized, List<String> features) {
         if (document.hasQuestionLength()) {
-            int sentences = 0;
-            while (sentences < document.getSentenceCount() &&
-                    document.getToken(document.getSentence(
-                            sentences).getFirstToken()).getBeginCharOffset() <
-                            document.getQuestionLength()) {
-                ++sentences;
-            }
-            for (int index = 0; index < sentences; ++index) {
+
+            for (int index = 0; index < document.getSentenceCount() &&
+                    document.getToken(document.getSentence(index).getFirstToken()).getBeginCharOffset() < document.getQuestionLength(); ++index) {
                 int rootToken = document.getSentence(index).getFirstToken() +
                         document.getSentence(index).getDependencyRootToken() - 1;
                 List<Integer> questionWords = new ArrayList<>();
@@ -240,6 +235,11 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                             features.add("QUESTION_DEP_PATH:\t" + qToSubj);
                         }
                     }
+                }
+
+                String questionPivot = NlpUtils.getSentencePivot(document, index);
+                if (questionPivot != null) {
+                    features.add("QUESTION_PIVOT:\t" + questionPivot);
                 }
 
                 for (String qword : NlpUtils.getQuestionWords(document, index)) {
