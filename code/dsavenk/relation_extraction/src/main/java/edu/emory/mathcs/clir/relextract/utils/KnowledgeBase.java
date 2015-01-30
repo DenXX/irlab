@@ -119,11 +119,16 @@ public class KnowledgeBase {
     }
 
     public List<String> getEntityTypes(String mid) {
+        return getEntityTypes(mid, false);
+    }
+
+    public List<String> getEntityTypes(String mid, boolean notable) {
+        String typeProperty = notable ? "common.topic.notable_types" : "type.object.type";
         List<String> types = new ArrayList<>();
         // TODO(denxx): This is a dirty hack to detect measures vs entities.
         if (mid.startsWith("/")) {
             StmtIterator iter = model_.listStatements(model_.getResource(convertFreebaseMidRdf(mid)),
-                    model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.type"), (RDFNode) null);
+                    model_.getProperty(FREEBASE_RDF_PREFIX, typeProperty), (RDFNode) null);
             while (iter.hasNext())
                 types.add(iter.nextStatement().getObject().asResource().getURI());
         } else {

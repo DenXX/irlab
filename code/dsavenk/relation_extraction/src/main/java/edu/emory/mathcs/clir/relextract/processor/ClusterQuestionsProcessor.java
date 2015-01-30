@@ -15,7 +15,6 @@ import java.util.Properties;
 public class ClusterQuestionsProcessor extends Processor {
 
     private KnowledgeBase kb_;
-    private Map<String, List<String>> entityTypes_ = new HashMap<>();
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -32,15 +31,28 @@ public class ClusterQuestionsProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         int questionSentencesCount = DocumentUtils.getQuestionSentenceCount(document);
+        if (questionSentencesCount > 1) return null;
 
+        int spansInQuestion = 0;
         for (Document.Span span : document.getSpanList()) {
-            boolean isResolvedEntity = span.hasEntityId();
-            if (isResolvedEntity) {
+            if (span.hasEntityId()) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentencesCount) {
-                        for (String mid : span.getCandidateEntityIdList().subList(0, Math.min(5, span.getCandidateEntityIdCount()))) {
-                            if (!entityTypes_.containsKey(mid)) entityTypes_.put(mid, kb_.getEntityTypes(mid));
-                            for (String type : entityTypes_.get(mid)) {
+                        ++spansInQuestion;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (spansInQuestion > 2) return null;
+
+        for (Document.Span span : document.getSpanList()) {
+            if (span.hasEntityId()) {
+                for (Document.Mention mention : span.getMentionList()) {
+                    if (mention.getSentenceIndex() < questionSentencesCount) {
+                        for (String type : kb_.getEntityTypes(span.getEntityId())) {
+                            synchronized (this) {
                                 System.out.println(type + "\t" + document.getSentence(mention.getSentenceIndex()).getText().replace("\t", " ").replace("\n", " "));
                             }
                         }
@@ -49,6 +61,6 @@ public class ClusterQuestionsProcessor extends Processor {
             }
         }
 
-        return null;
+        return document;
     }
 }

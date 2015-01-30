@@ -10,14 +10,14 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessCrossWikisDictionary'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.LnrmEntityNameConverter'
 
-//applicationDefaultJvmArgs = ["-Xmx30g"]
+applicationDefaultJvmArgs = ["-Xmx8g"]
 
-applicationDefaultJvmArgs = ["-Xmx200g",
-                             "-XX:+UseParallelGC",
-                             "-XX:+UseParallelOldGC",
-                             "-XX:+UseAdaptiveSizePolicy",
-                             "-XX:+AggressiveHeap"
-]
+//applicationDefaultJvmArgs = ["-Xmx200g",
+//                             "-XX:+UseParallelGC",
+//                             "-XX:+UseParallelOldGC",
+//                             "-XX:+UseAdaptiveSizePolicy",
+//                             "-XX:+AggressiveHeap"
+//]
 
 //applicationDefaultJvmArgs = ["-Xmx220g",
 //                             "-XX:+UseParNewGC",
