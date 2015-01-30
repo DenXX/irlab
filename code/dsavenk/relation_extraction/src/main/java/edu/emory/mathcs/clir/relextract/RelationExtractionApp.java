@@ -104,6 +104,9 @@ public class RelationExtractionApp {
                 case "filterlang":
                     workflow.addProcessor(new FilterByLanguageProcessor(props));
                     break;
+                case "cluster":
+                    workflow.addProcessor(new ClusterQuestionsProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
