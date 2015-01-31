@@ -50,11 +50,13 @@ public class DeserializerBatchInputProvider implements Iterable<Document.NlpDocu
 
         private void readInputObject() {
             try {
-
-                currentObject_ = Document.NlpDocument.parseDelimitedFrom(input_);
-                if (currentObject_ == null) {
-                    if (openNextInputStream()) {
-                        readInputObject();
+                try {
+                    currentObject_ = Document.NlpDocument.parseDelimitedFrom(input_);
+                } finally {
+                    if (currentObject_ == null) {
+                        if (openNextInputStream()) {
+                            readInputObject();
+                        }
                     }
                 }
             } catch (Exception e) {

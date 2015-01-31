@@ -10,7 +10,7 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessCrossWikisDictionary'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.LnrmEntityNameConverter'
 
-applicationDefaultJvmArgs = ["-Xmx8g"]
+//applicationDefaultJvmArgs = ["-Xmx8g"]
 
 //applicationDefaultJvmArgs = ["-Xmx200g",
 //                             "-XX:+UseParallelGC",
@@ -24,9 +24,9 @@ applicationDefaultJvmArgs = ["-Xmx8g"]
 //                             "-XX:+UseConcMarkSweepGC",
 //                             "-XX:PermSize=20g"]
 
-//applicationDefaultJvmArgs = ["-Xmx100g",
-//                             "-XX:+UseParNewGC",
-//                             "-XX:+UseConcMarkSweepGC"]
+applicationDefaultJvmArgs = ["-Xmx8g",
+                             "-XX:+UseParNewGC",
+                             "-XX:+UseConcMarkSweepGC"]
 
 repositories {
     mavenCentral()

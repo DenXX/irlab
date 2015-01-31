@@ -2,7 +2,9 @@ package edu.emory.mathcs.clir.relextract.utils;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by dsavenk on 11/18/14.
@@ -138,5 +140,35 @@ public class DependencyTreeUtils {
         }
         // If we wasn't able to find a head in a normal way, last token is usually head.
         return mention.getTokenEndOffset() - 1;
+    }
+
+    public static String getQuestionDependencyPath(Document.NlpDocument document, int questionSentenceIndex, int targetToken) {
+        List<Integer> questionWords = new ArrayList<>();
+        for (int index = document.getSentence(questionSentenceIndex).getFirstToken();
+             index < document.getSentence(questionSentenceIndex).getLastToken();
+             ++index) {
+            if (document.getToken(index).getPos().startsWith("W")||
+                    document.getToken(index).getPos().startsWith("MD")) {
+                questionWords.add(index);
+            }
+        }
+        if (questionWords.size() > 0) {
+            for (int questionWord : questionWords) {
+                String path = DependencyTreeUtils.getDependencyPath(document, questionWord, targetToken, true, true, false);
+                if (path != null) {
+                    return path;
+                }
+            }
+        } else {
+            int root = document.getSentence(questionSentenceIndex).getDependencyRootToken() +
+                    document.getSentence(questionSentenceIndex).getFirstToken() - 1;
+            if (root >= 0) {
+                String path = DependencyTreeUtils.getDependencyPath(document, root, targetToken, true, true, false);
+                if (path != null) {
+                    return path;
+                }
+            }
+        }
+        return null;
     }
 }
