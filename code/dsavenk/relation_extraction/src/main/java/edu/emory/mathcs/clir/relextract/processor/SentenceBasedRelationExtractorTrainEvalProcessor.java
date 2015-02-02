@@ -63,6 +63,12 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
         if (pivot != null) {
             features.add("PIVOT:\t" + pivot);
         }
+        String pathPivot = DependencyTreeUtils.getDependencyPathPivot(document,
+                subjSpan.getMention(subjMention).getSentenceIndex(),
+                objMentionHeadToken, subjMentionHeadToken);
+        if (pathPivot != null) {
+            features.add("DEP_PATH_PIVOT:\t" + pathPivot);
+        }
 
         for (Document.Attribute attr : document.getAttributeList()) {
             if (attr.getKey().equals("cat")) {

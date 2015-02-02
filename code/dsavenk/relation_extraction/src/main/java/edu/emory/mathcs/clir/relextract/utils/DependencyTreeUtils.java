@@ -171,4 +171,29 @@ public class DependencyTreeUtils {
         }
         return null;
     }
+
+    public static String getDependencyPathPivot(Document.NlpDocument document, int sentenceIndex, int sourceToken, int targetToken) {
+        if (sourceToken == targetToken) return null;
+        int s = sourceToken;
+        int t = targetToken;
+        while (s != t) {
+            int sourceDepth = document.getToken(s).getDependencyTreeNodeDepth();
+            int targetDepth = document.getToken(t).getDependencyTreeNodeDepth();
+
+            // In some cases there are multiple roots and we can get to different :(
+            assert (sourceDepth == 0 || targetDepth != 0);
+
+            if (sourceDepth < targetDepth) {
+                t = document.getToken(t).getDependencyGovernor() +
+                        document.getSentence(sentenceIndex).getFirstToken() - 1;
+            } else {
+                s = document.getToken(s).getDependencyGovernor() +
+                        document.getSentence(sentenceIndex).getFirstToken() - 1;
+            }
+        }
+        if (s != sourceToken && s != targetToken) {
+            return NlpUtils.normalizeStringForMatch(document.getToken(s).getLemma());
+        }
+        return null;
+    }
 }
