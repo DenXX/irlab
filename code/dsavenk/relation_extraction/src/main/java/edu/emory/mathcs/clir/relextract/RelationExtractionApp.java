@@ -107,6 +107,9 @@ public class RelationExtractionApp {
                 case "cluster":
                     workflow.addProcessor(new ClusterQuestionsProcessor(props));
                     break;
+                case "answerdocid":
+                    workflow.addProcessor(new SetAnswerTextAsDocIdProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
