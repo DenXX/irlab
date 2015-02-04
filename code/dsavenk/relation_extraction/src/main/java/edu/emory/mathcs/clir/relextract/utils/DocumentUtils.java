@@ -2,6 +2,9 @@ package edu.emory.mathcs.clir.relextract.utils;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by dsavenk on 1/29/15.
  */
@@ -13,5 +16,16 @@ public class DocumentUtils {
                 return i;
         }
         return document.getSentenceCount();
+    }
+
+    public static List<String> getQuestionLemmas(Document.NlpDocument document) {
+        List<String> questionLemma = new ArrayList<>();
+        for (int i = 0; i < document.getTokenCount(); ++i) {
+            if (document.getToken(i).getBeginCharOffset() >= document.getQuestionLength()) {
+                return questionLemma;
+            }
+            questionLemma.add(NlpUtils.normalizeStringForMatch(document.getToken(i).getLemma()));
+        }
+        return questionLemma;
     }
 }

@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.util.Pair;
@@ -180,6 +181,10 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         }
         for (String qword : NlpUtils.getQuestionWords(document, questionSentenceIndex)) {
             features.add("QUESTION_WORD:\t" + qword);
+        }
+
+        for (String questionLemma : DocumentUtils.getQuestionLemmas(document)) {
+            features.add("QUESTION_LEMMA:\t" + questionLemma);
         }
     }
 

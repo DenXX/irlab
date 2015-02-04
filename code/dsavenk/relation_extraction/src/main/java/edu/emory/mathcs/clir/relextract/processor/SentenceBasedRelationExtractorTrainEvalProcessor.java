@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.util.Pair;
 
@@ -68,6 +69,10 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                 objMentionHeadToken, subjMentionHeadToken);
         if (pathPivot != null) {
             features.add("DEP_PATH_PIVOT:\t" + pathPivot);
+        }
+
+        for (String questionLemma : DocumentUtils.getQuestionLemmas(document)) {
+            features.add("QUESTION_LEMMA:\t" + questionLemma);
         }
 
         for (Document.Attribute attr : document.getAttributeList()) {
