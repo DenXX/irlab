@@ -26,7 +26,7 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
      *                   parameters set.
      */
     public SentenceBasedRelationExtractorTrainEvalProcessor(Properties properties)
-            throws IOException {
+            throws Exception {
         super(properties);
     }
 

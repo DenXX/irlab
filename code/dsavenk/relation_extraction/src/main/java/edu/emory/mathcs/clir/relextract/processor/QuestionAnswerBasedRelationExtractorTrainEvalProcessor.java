@@ -28,7 +28,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
      *                   parameters set.
      */
     public QuestionAnswerBasedRelationExtractorTrainEvalProcessor(Properties properties)
-            throws IOException {
+            throws Exception {
         super(properties);
     }
 

@@ -43,7 +43,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * The name of the parameter that stores the name of a file with model to
      * apply.
      */
-    public static final String MODEL_PARAMETER = "model";
+    public static final String MODEL_ALGO_PARAMETER = "modelalgo";
 
     /**
      * The name of the parameter to specify whether we need to split all
@@ -154,15 +154,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             mentionTypes_ = null;
         }
 
-        if (properties.containsKey(MODEL_PARAMETER)) {
-            useMimlreModel_ = properties.getProperty(MODEL_PARAMETER).equals("MIML");
+        if (properties.containsKey(MODEL_ALGO_PARAMETER)) {
+            useMimlreModel_ = properties.getProperty(MODEL_ALGO_PARAMETER).equals("MIML");
         }
 
-        if (properties.containsKey(MODEL_PARAMETER)) {
+        if (properties.containsKey(MODEL_ALGO_PARAMETER)) {
             if (useMimlreModel_) {
-                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(MODEL_PARAMETER), MimlReModelTrainer.getModelProperties());
+                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(MODEL_ALGO_PARAMETER), MimlReModelTrainer.getModelProperties());
             } else {
-                model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_PARAMETER));
+                model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_ALGO_PARAMETER));
             }
         }
 

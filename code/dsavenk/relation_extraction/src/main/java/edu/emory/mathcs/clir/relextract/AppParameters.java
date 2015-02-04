@@ -101,9 +101,9 @@ public class AppParameters {
                 .withDescription("File with the list of CVT predicates to use.").create(
                         EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER)
                 .withDescription("File with serialized model to apply").create(
-                        RelationExtractorTrainEvalProcessor.MODEL_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER)
                 .withDescription("Whether to include question features or not").create(
@@ -144,6 +144,10 @@ public class AppParameters {
                 .withArgName(FilterByLanguageProcessor.LANGUAGE_FILTER_PARAMETER)
                 .withDescription("Document language to keep").create(
                         FilterByLanguageProcessor.LANGUAGE_FILTER_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER)
+                .withDescription("Relation extraction algorithm to use").create(
+                        RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER));
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
