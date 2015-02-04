@@ -162,7 +162,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (properties.containsKey(TRAINING_PARAMETER)) {
             if (useMimlreModel_) {
                 File modelPath = new File(properties.getProperty(TRAINING_PARAMETER));
-                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(TRAINING_PARAMETER), MimlReModelTrainer.getModelProperties(modelPath.getPath(), modelPath.getName() + "_y"));
+                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(TRAINING_PARAMETER), MimlReModelTrainer.getModelProperties(modelPath.getParent(), modelPath.getName() + "_y"));
             } else {
                 model_ = LinearClassifier.readClassifier(properties.getProperty(TRAINING_PARAMETER));
             }
@@ -248,7 +248,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
             if (useMimlreModel_) {
                 File modelPath = new File(modelFilename_);
-                mimlModel_ = MimlReModelTrainer.train(trainDataset_.build(), modelPath.getPath(), modelPath.getName() + "_y");
+                mimlModel_ = MimlReModelTrainer.train(trainDataset_.build(), modelPath.getParent(), modelPath.getName() + "_y");
                 mimlModel_.save(modelFilename_);
             } else {
                 model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_, negativeWeights_, verbose_);
