@@ -4,10 +4,13 @@ import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
+import edu.emory.mathcs.clir.relextract.utils.MimlReModelTrainer;
 import edu.emory.mathcs.clir.relextract.utils.RelationExtractorModelTrainer;
 import edu.stanford.nlp.classify.LinearClassifier;
+import edu.stanford.nlp.kbp.slotfilling.classify.JointBayesRelationExtractor;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.util.*;
@@ -74,6 +77,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String VERBOSE_PARAMETER = "verbose";
 
+    public static final String TRAINING_PARAMETER = "model";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -97,6 +102,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private boolean nerOnly_ = false;
 
+    private boolean useMimlreModel_ = false;
+
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
     private final String datasetOutFilename_;
@@ -112,6 +119,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private Dataset.RelationMentionsDataset.Builder testDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
     private LinearClassifier<String, Integer> model_ = null;
+    private JointBayesRelationExtractor mimlModel_ = null;
     private ConcurrentMap<Pair<String, String>, Map<String, Double>> extractedTriples_ = new ConcurrentHashMap<>();
     private ConcurrentMap<Pair<String, String>, Set<String>> triplesLabels_ = new ConcurrentHashMap<>();
     private final KnowledgeBase kb_;
@@ -125,7 +133,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public RelationExtractorTrainEvalProcessor(Properties properties) throws IOException {
+    public RelationExtractorTrainEvalProcessor(Properties properties) throws IOException, ClassNotFoundException {
         super(properties);
         predicates_ = new HashSet<>(FileUtils.readLinesFromFile(
                 properties.getProperty(PREDICATES_LIST_PARAMETER)));
@@ -147,7 +155,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
 
         if (properties.containsKey(MODEL_PARAMETER)) {
-            model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_PARAMETER));
+            useMimlreModel_ = properties.getProperty(MODEL_PARAMETER).equals("MIML");
+        }
+
+        if (properties.containsKey(MODEL_PARAMETER)) {
+            if (useMimlreModel_) {
+                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(MODEL_PARAMETER), MimlReModelTrainer.getModelProperties());
+            } else {
+                model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_PARAMETER));
+            }
         }
 
         if (properties.containsKey(QUESTION_FEATS_PARAMETER)) {
@@ -185,6 +201,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             verbose_ = Boolean.parseBoolean(properties.getProperty(VERBOSE_PARAMETER));
         }
         kb_ = KnowledgeBase.getInstance(properties);
+
     }
 
     /**
@@ -209,7 +226,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public void finishProcessing() throws Exception {
         // If model is null, we will predict labels here, otherwise it was
         // done in the main method.
-        if (model_ == null) {
+        if (model_ == null && mimlModel_ == null) {
             for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
                 trainDataset_.addFeatureBuilder().setId(feature.getValue())
                         .setName(feature.getKey());
@@ -227,12 +244,22 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 testDataset_.addLabel(label);
             }
 
-            model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_, negativeWeights_, verbose_);
-            LinearClassifier.writeClassifier(model_, modelFilename_);
+            if (useMimlreModel_) {
+                mimlModel_ = MimlReModelTrainer.train(trainDataset_.build());
+                mimlModel_.save(modelFilename_);
+            } else {
+                model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_, negativeWeights_, verbose_);
+                LinearClassifier.writeClassifier(model_, modelFilename_);
+            }
 
             Dataset.RelationMentionsDataset testDataset = testDataset_.build();
 
-            ArrayList<Pair<String, Double>> predictedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
+            ArrayList<Pair<String, Double>> predictedLabels;
+            if (useMimlreModel_) {
+                throw new NotImplementedException();
+            } else {
+                predictedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
+            }
 
             int index = 0;
             for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
@@ -317,7 +344,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
         // If model is specified we only keep testing instances and vice versa.
-        if ((model_ != null) == isInTraining) return;
+        if ((model_ != null || mimlModel_ != null) == isInTraining) return;
 
         Map<Pair<Integer, Integer>, List<Triple<String, String, String>>> spans2Labels =
                 getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
@@ -384,7 +411,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     mentionInstance = trainDataset_.addInstanceBuilder();
                                 }
                             } else {
-                                if (model_ == null) {
+                                if (model_ == null && mimlModel_ == null) {
                                     synchronized (testDataset_) {
                                         mentionInstance = testDataset_.addInstanceBuilder();
                                     }
@@ -449,10 +476,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 }
             }
         } else {
-            if (model_ != null) {
+            if (model_ != null || mimlModel_ != null) {
                 Dataset.RelationMentionInstance mention = mentionInstance.build();
-                Pair<String, Double> prediction =
-                        RelationExtractorModelTrainer.eval(model_, mention, verbose_);
+                Pair<String, Double> prediction = useMimlreModel_
+                        ? MimlReModelTrainer.eval(mimlModel_, mention, verbose_)
+                        : RelationExtractorModelTrainer.eval(model_, mention, verbose_);
                 if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
                     KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
                             mentionInstance.getSubjSpan(),
