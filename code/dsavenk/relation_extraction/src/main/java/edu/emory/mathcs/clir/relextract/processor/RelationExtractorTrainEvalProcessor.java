@@ -78,7 +78,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String VERBOSE_PARAMETER = "verbose";
 
-    public static final String TRAINING_PARAMETER = "model";
+    public static final String SERIALIZED_MODEL_PARAMETER = "model";
 
     /**
      * A label that means that there is no relations between the given entities.
@@ -159,12 +159,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             useMimlreModel_ = properties.getProperty(MODEL_ALGO_PARAMETER).equals("MIML");
         }
 
-        if (properties.containsKey(TRAINING_PARAMETER)) {
+        if (properties.containsKey(SERIALIZED_MODEL_PARAMETER)) {
             if (useMimlreModel_) {
-                File modelPath = new File(properties.getProperty(TRAINING_PARAMETER));
-                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(TRAINING_PARAMETER), MimlReModelTrainer.getModelProperties(modelPath.getParent(), modelPath.getName() + "_y"));
+                File modelPath = new File(properties.getProperty(SERIALIZED_MODEL_PARAMETER));
+                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(SERIALIZED_MODEL_PARAMETER), MimlReModelTrainer.getModelProperties(modelPath.getParent(), modelPath.getName() + "_y"));
             } else {
-                model_ = LinearClassifier.readClassifier(properties.getProperty(TRAINING_PARAMETER));
+                model_ = LinearClassifier.readClassifier(properties.getProperty(SERIALIZED_MODEL_PARAMETER));
             }
         }
 

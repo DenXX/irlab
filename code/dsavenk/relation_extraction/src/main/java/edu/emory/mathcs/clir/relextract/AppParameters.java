@@ -101,9 +101,9 @@ public class AppParameters {
                 .withDescription("File with the list of CVT predicates to use.").create(
                         EntityRelationsLookupProcessor.CVT_PREDICATES_LIST_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.SERIALIZED_MODEL_PARAMETER)
                 .withDescription("File with serialized model to apply").create(
-                        RelationExtractorTrainEvalProcessor.MODEL_ALGO_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.SERIALIZED_MODEL_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(RelationExtractorTrainEvalProcessor.QUESTION_FEATS_PARAMETER)
                 .withDescription("Whether to include question features or not").create(
