@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * Created by dsavenk on 11/7/14.
  */
 public class MimlReModelTrainer {
-    public static JointBayesRelationExtractor train(Dataset.RelationMentionsDataset trainingDataset)
+    public static JointBayesRelationExtractor train(Dataset.RelationMentionsDataset trainingDataset, String workDir, String model)
             throws Exception {
 
         Map<Integer, List<String>> featAlphabet = new HashMap<>();
@@ -25,23 +25,27 @@ public class MimlReModelTrainer {
             featAlphabet.get(feat.getId()).add(feat.getName());
         }
 
+        System.err.println("Converting dataset...");
         edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset dataset =
                 convertDataset(trainingDataset, false);
+        System.err.println("Done converting dataset...");
 
         System.out.println("Were feats: " + dataset.numFeatures());
         dataset.applyFeatureCountThreshold(2); //47);
         System.out.println("Now feats: " + dataset.numFeatures());
 
-        JointBayesRelationExtractor mimlretrainer = new JointBayesRelationExtractor(getModelProperties());
+        System.err.println("Creating trainer...");
+        JointBayesRelationExtractor mimlretrainer = new JointBayesRelationExtractor(getModelProperties(workDir, model));
+        System.err.println("Start training...");
         mimlretrainer.train(dataset);
+        System.err.println("Done training...");
         return mimlretrainer;
     }
 
-    public static Properties getModelProperties() {
+    public static Properties getModelProperties(String workDir, String model) {
         Properties props = new Properties();
-        // TODO(denxx): FIX THIS!!!
-        props.setProperty("work.dir", "");
-        props.setProperty("serializedRelationExtractorPath", "mimlre_model_path");
+        props.setProperty("work.dir", workDir);
+        props.setProperty("serializedRelationExtractorPath", model);
 
         props.setProperty("trainer.model", "jointbayes");
         props.setProperty("epochs", "15");
