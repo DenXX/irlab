@@ -2,10 +2,11 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.emory.mathcs.clir.relextract.utils.MimlReModelTrainer;
-import edu.emory.mathcs.clir.relextract.utils.RelationExtractorModelTrainer;
+import edu.emory.mathcs.clir.relextract.extraction.MimlReModelTrainer;
+import edu.emory.mathcs.clir.relextract.extraction.RelationExtractorModelTrainer;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.kbp.slotfilling.classify.JointBayesRelationExtractor;
 import edu.stanford.nlp.util.Pair;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Base class for relation extractors, provides functionality to store instances
@@ -123,6 +125,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private JointBayesRelationExtractor mimlModel_ = null;
     private ConcurrentMap<Pair<String, String>, Map<String, Double>> extractedTriples_ = new ConcurrentHashMap<>();
     private ConcurrentMap<Pair<String, String>, Set<String>> triplesLabels_ = new ConcurrentHashMap<>();
+    private ConcurrentMap<Integer, Integer> featureCount_ = new ConcurrentHashMap<>();
     private final KnowledgeBase kb_;
 
     private Random rnd_ = new Random(42);
@@ -246,6 +249,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 testDataset_.addLabel(label);
             }
 
+            // Remove features by count
+            for (Dataset.RelationMentionInstance.Builder instance : trainDataset_.getInstanceBuilderList()) {
+                List<Integer> features = instance.getFeatureIdList().stream().filter(x -> featureCount_.get(x) >= Parameters.MIN_FEATURE_COUNT).collect(Collectors.toList());
+                instance.clearFeatureId().addAllFeatureId(features);
+            }
+
             if (useMimlreModel_) {
                 File modelPath = new File(modelFilename_);
                 mimlModel_ = MimlReModelTrainer.train(trainDataset_.build(), modelPath.getParent(), modelPath.getName() + "_y");
@@ -354,6 +363,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         List<Dataset.RelationMentionInstance.Builder> currentDocInstances = new ArrayList<>();
 
+        Set<Integer> seenFeatures = new HashSet<>();
+
         int subjSpanIndex = -1;
         for (Document.Span subjSpan : document.getSpanList()) {
             ++subjSpanIndex;
@@ -452,8 +463,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             for (String feature : features) {
                                 if (!includeQFeatures && feature.startsWith("QUESTION_"))
                                     continue;
-                                mentionInstance.addFeatureId(
-                                        getFeatureId(feature));
+                                int featureId = getFeatureId(feature);
+                                mentionInstance.addFeatureId(featureId);
+                                seenFeatures.add(featureId);
                             }
 
                             processRelationMentionInstance(document, isInTraining, mentionInstance);
@@ -466,6 +478,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         for (Dataset.RelationMentionInstance.Builder mentionInstance : currentDocInstances) {
             mentionInstance.setWeight(1.0 / currentDocInstances.size());
+        }
+
+        for (int feature : seenFeatures) {
+            featureCount_.put(feature, featureCount_.getOrDefault(feature, 0) + 1);
         }
     }
 

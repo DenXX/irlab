@@ -1,4 +1,4 @@
-package edu.emory.mathcs.clir.relextract.utils;
+package edu.emory.mathcs.clir.relextract.extraction;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainEvalProcessor;
@@ -34,9 +34,10 @@ public class RelationExtractorModelTrainer {
         edu.stanford.nlp.classify.Dataset<String, Integer> dataset =
                 convertDataset(trainingDataset, false, negativeWeights);
 
-        System.out.println("Were feats: " + dataset.numFeatures());
-        dataset.applyFeatureCountThreshold(2); //47);
-        System.out.println("Now feats: " + dataset.numFeatures());
+        System.out.println("Number of features: " + dataset.numFeatures());
+//        dataset.retainFeatures(featuresToKeep);
+//        //dataset.applyFeatureCountThreshold(Parameters.MIN_FEATURE_COUNT);
+//        System.out.println("Now feats: " + dataset.numFeatures());
 
         // Output counts for all the features if needed.
         if (verbose) {

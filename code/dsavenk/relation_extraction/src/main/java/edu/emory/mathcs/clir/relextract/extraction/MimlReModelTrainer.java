@@ -1,4 +1,4 @@
-package edu.emory.mathcs.clir.relextract.utils;
+package edu.emory.mathcs.clir.relextract.extraction;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainEvalProcessor;
@@ -30,9 +30,9 @@ public class MimlReModelTrainer {
                 convertDataset(trainingDataset, false);
         System.err.println("Done converting dataset...");
 
-        System.out.println("Were feats: " + dataset.numFeatures());
-        dataset.applyFeatureCountThreshold(2); //47);
-        System.out.println("Now feats: " + dataset.numFeatures());
+//        System.out.println("Were feats: " + dataset.numFeatures());
+//        dataset.applyFeatureCountThreshold(Parameters.MIN_FEATURE_COUNT);
+//        System.out.println("Now feats: " + dataset.numFeatures());
 
         System.err.println("Creating trainer...");
         JointBayesRelationExtractor mimlretrainer = new JointBayesRelationExtractor(getModelProperties(workDir, model));
