@@ -158,11 +158,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             useMimlreModel_ = properties.getProperty(MODEL_ALGO_PARAMETER).equals("MIML");
         }
 
-        if (properties.containsKey(MODEL_ALGO_PARAMETER)) {
+        if (properties.containsKey(TRAINING_PARAMETER)) {
             if (useMimlreModel_) {
-                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(MODEL_ALGO_PARAMETER), MimlReModelTrainer.getModelProperties());
+                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(TRAINING_PARAMETER), MimlReModelTrainer.getModelProperties());
             } else {
-                model_ = LinearClassifier.readClassifier(properties.getProperty(MODEL_ALGO_PARAMETER));
+                model_ = LinearClassifier.readClassifier(properties.getProperty(TRAINING_PARAMETER));
             }
         }
 
