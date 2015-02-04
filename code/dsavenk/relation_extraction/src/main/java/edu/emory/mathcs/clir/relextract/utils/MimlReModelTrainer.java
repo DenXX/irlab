@@ -64,7 +64,7 @@ public class MimlReModelTrainer {
                 new edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset();
 
         Map<Pair<String, String>, List<Dataset.RelationMentionInstance>> argumentInstances = new HashMap<>();
-
+        
         // Group relation instances by arguments.
         for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
             for (Dataset.Triple triple : instance.getTripleList()) {
@@ -81,7 +81,7 @@ public class MimlReModelTrainer {
         for (List<Dataset.RelationMentionInstance> instances : argumentInstances.values()) {
             Set<String> labels = new HashSet<>();
             List<Collection<String>> features = new ArrayList<>();
-            for (Dataset.RelationMentionInstance instance : dataset.getInstanceList()) {
+            for (Dataset.RelationMentionInstance instance : instances) {
                 for (Dataset.Triple triple : instance.getTripleList()) {
                     if (!count.containsKey(triple.getPredicate())) {
                         count.put(triple.getPredicate(), 0);
