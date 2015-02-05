@@ -30,7 +30,7 @@ public class MimlReModelTrainer {
                 convertDataset(trainingDataset, false);
         System.err.println("Done converting dataset...");
 
-//        System.out.println("Were feats: " + dataset.numFeatures());
+        System.out.println("Number of features: " + dataset.numFeatures());
 //        dataset.applyFeatureCountThreshold(Parameters.MIN_FEATURE_COUNT);
 //        System.out.println("Now feats: " + dataset.numFeatures());
 
@@ -100,7 +100,9 @@ public class MimlReModelTrainer {
             if (ignoreLabels) {
                 res.add(Collections.emptySet(), Collections.emptySet(), features);
             } else {
-                res.add(labels, Collections.emptySet(), features);
+                res.add(labels,
+                        dataset.getLabelList().stream().filter(x -> !labels.contains(x) && !x.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)).collect(Collectors.toSet()),
+                        features);
             }
         }
 
