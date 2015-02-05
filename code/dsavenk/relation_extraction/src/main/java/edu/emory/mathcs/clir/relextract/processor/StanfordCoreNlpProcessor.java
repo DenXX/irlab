@@ -73,6 +73,10 @@ public class StanfordCoreNlpProcessor extends Processor {
         // Load big file with gender and number information.
         properties.setProperty("dcoref.use.big.gender.number", "true");
 
+        // With caseless model we have fewer named entities, so staying with the previous one.
+        //properties.setProperty("ner.model",
+        // "edu/stanford/nlp/models/ner/english.muc.7class.caseless.distsim.crf.ser.gz");
+
         // Post-processing removes singletons, let's keep them in order to get
         // more mentions and hopefully more relations.
         //properties.setProperty("dcoref.postprocessing", "true");
@@ -95,6 +99,8 @@ public class StanfordCoreNlpProcessor extends Processor {
             return null;
         }
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
+        docBuilder.clearRelation();
+        docBuilder.clearSpan();
 
         // Build tokens.
         for (CoreLabel token : annotation.get(

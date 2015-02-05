@@ -5,10 +5,7 @@ import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -43,14 +40,12 @@ public class TestProcessor extends Processor {
                 .replace(" '", "'");
     }
 
+    private Map<String, Integer> entities = new HashMap<>();
+
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getText().length() > 1000) {
-            return null;
-        }
-        //for (String qword : NlpUtils.getQuestionWords(document, 0)) {
-        //    System.out.println(qword);
-        //}
+        ++total;
+
         return document;
 //        ++total;
 //        for (Document.Attribute attr : document.getAttributeList()) {
