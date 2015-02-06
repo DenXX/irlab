@@ -117,10 +117,6 @@ public class AppParameters {
                 .withDescription("L2 regularization parameter").create(
                         RelationExtractorTrainEvalProcessor.REGULARIZATION_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER)
-            .withDescription("Optimization method (CONJ or QN)").create(
-                        RelationExtractorTrainEvalProcessor.OPTIMIZATION_METHOD_PARAMETER));
-        opt.addOption(OptionBuilder.hasArg()
                 .withArgName(RelationExtractorTrainEvalProcessor.NEGATIVE_WEIGHTS_PARAMETER)
                 .withDescription("Weights of negative class instances").create(
                         RelationExtractorTrainEvalProcessor.NEGATIVE_WEIGHTS_PARAMETER));
