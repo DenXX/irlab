@@ -7,42 +7,26 @@ import edu.stanford.nlp.kbp.slotfilling.classify.JointBayesRelationExtractor;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.util.Pair;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Created by dsavenk on 11/7/14.
  */
-public class MimlReModelTrainer {
-    public static JointBayesRelationExtractor train(Dataset.RelationMentionsDataset trainingDataset, String workDir, String model)
-            throws Exception {
+public class MimlReExtractionModel extends ExtractionModel {
 
-        Map<Integer, List<String>> featAlphabet = new HashMap<>();
-        for (Dataset.Feature feat : trainingDataset.getFeatureList()) {
-            if (!featAlphabet.containsKey(feat.getId())) {
-                featAlphabet.put(feat.getId(), new ArrayList<>());
-            }
-            featAlphabet.get(feat.getId()).add(feat.getName());
-        }
+    private JointBayesRelationExtractor model_;
+    private String workDir_;
+    private String modelFile_;
 
-        System.err.println("Converting dataset...");
-        edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset dataset =
-                convertDataset(trainingDataset, false);
-        System.err.println("Done converting dataset...");
-
-        System.out.println("Number of features: " + dataset.numFeatures());
-//        dataset.applyFeatureCountThreshold(Parameters.MIN_FEATURE_COUNT);
-//        System.out.println("Now feats: " + dataset.numFeatures());
-
-        System.err.println("Creating trainer...");
-        JointBayesRelationExtractor mimlretrainer = new JointBayesRelationExtractor(getModelProperties(workDir, model));
-        System.err.println("Start training...");
-        mimlretrainer.train(dataset);
-        System.err.println("Done training...");
-        return mimlretrainer;
+    public MimlReExtractionModel(String workDir, String modelFile) {
+        workDir_ = workDir;
+        modelFile_ = modelFile;
     }
 
-    public static Properties getModelProperties(String workDir, String model) {
+    private Properties getModelProperties(String workDir, String model) {
         Properties props = new Properties();
         props.setProperty("work.dir", workDir);
         props.setProperty("serializedRelationExtractorPath", model);
@@ -58,8 +42,57 @@ public class MimlReModelTrainer {
         return props;
     }
 
+    public static MimlReExtractionModel load(String path) throws IOException, ClassNotFoundException {
+        File modelFile = new File(path);
+        MimlReExtractionModel res = new MimlReExtractionModel(modelFile.getParent(), modelFile.getName() + "_y");
+        res.model_ = (JointBayesRelationExtractor)JointBayesRelationExtractor.load(path, res.getModelProperties(res.workDir_, res.modelFile_));
+        return res;
+    }
 
-    private static edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
+    @Override
+    public void train(Dataset.RelationMentionsDataset dataset) {
+        Map<Integer, List<String>> featAlphabet = new HashMap<>();
+        for (Dataset.Feature feat : dataset.getFeatureList()) {
+            if (!featAlphabet.containsKey(feat.getId())) {
+                featAlphabet.put(feat.getId(), new ArrayList<>());
+            }
+            featAlphabet.get(feat.getId()).add(feat.getName());
+        }
+
+        System.err.println("Converting dataset...");
+        edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset trainingDataset =
+                convertDataset(dataset, false);
+        System.err.println("Done converting dataset...");
+
+        System.out.println("Number of features: " + trainingDataset.numFeatures());
+//        dataset.applyFeatureCountThreshold(Parameters.MIN_FEATURE_COUNT);
+//        System.out.println("Now feats: " + dataset.numFeatures());
+
+        System.err.println("Creating trainer...");
+        model_ = new JointBayesRelationExtractor(
+                getModelProperties(workDir_, modelFile_));
+        System.err.println("Start training...");
+        model_.train(trainingDataset);
+        System.err.println("Done training...");
+    }
+
+    @Override
+    public Map<String, Double> predict(Dataset.RelationMentionInstance instance) {
+        List<Collection<String>> example = new ArrayList<>();
+        example.add(convertTestInstance(instance));
+        Counter<String> predictions = model_.classifyMentions(example);
+
+        return predictions.entrySet().stream().collect(Collectors.toMap(
+                e -> e.getKey().equals(RelationMention.UNRELATED) ? RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL : e.getKey(),
+                Map.Entry::getValue));
+    }
+
+    @Override
+    public void save(String modelPath) throws IOException {
+        model_.save(modelPath);
+    }
+
+    private edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset convertDataset(Dataset.RelationMentionsDataset dataset, boolean ignoreLabels) {
         edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset<String, String> res =
                 new edu.stanford.nlp.kbp.slotfilling.classify.MultiLabelDataset();
 
@@ -113,26 +146,8 @@ public class MimlReModelTrainer {
         return res;
     }
 
-    private static Collection<String> convertTestInstance(
+    private Collection<String> convertTestInstance(
             Dataset.RelationMentionInstance instance) {
         return instance.getFeatureIdList().stream().map((Integer c) -> c.toString()).collect(Collectors.toList());
-    }
-
-    public static Pair<String, Double> eval(JointBayesRelationExtractor model,
-                                            Dataset.RelationMentionInstance testInstance, boolean verbose) {
-        List<Collection<String>> example = new ArrayList<>();
-        example.add(convertTestInstance(testInstance));
-        Counter<String> predictions = model.classifyMentions(example);
-        double bestScore = predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
-        String bestLabel = RelationMention.UNRELATED;
-        for (Map.Entry<String, Double> pred : predictions.entrySet()) {
-            if (pred.getValue() > bestScore) {
-                bestScore = pred.getValue();
-                bestLabel = pred.getKey();
-            }
-        }
-        if (Objects.equals(bestLabel, RelationMention.UNRELATED))
-            bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
-        return new Pair<>(bestLabel, bestScore);
     }
 }

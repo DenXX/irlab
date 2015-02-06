@@ -40,11 +40,15 @@ public class TestProcessor extends Processor {
                 .replace(" '", "'");
     }
 
-    private Map<String, Integer> entities = new HashMap<>();
-
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
+
+        for (Document.Span span : document.getSpanList()) {
+            for (int i = 0; i < Math.min(5, span.getCandidateEntityIdCount()); ++i) {
+                System.out.println(span.getCandidateEntityId(i));
+            }
+        }
 
         return document;
 //        ++total;

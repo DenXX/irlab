@@ -2,19 +2,13 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.extraction.Parameters;
+import edu.emory.mathcs.clir.relextract.extraction.*;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.emory.mathcs.clir.relextract.extraction.MimlReModelTrainer;
-import edu.emory.mathcs.clir.relextract.extraction.RelationExtractorModelTrainer;
-import edu.stanford.nlp.classify.LinearClassifier;
-import edu.stanford.nlp.kbp.slotfilling.classify.JointBayesRelationExtractor;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -72,8 +66,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String REGULARIZATION_PARAMETER = "regularization";
 
-    public static final String OPTIMIZATION_METHOD_PARAMETER = "optimization";
-
     public static final String NEGATIVE_WEIGHTS_PARAMETER = "neg_weight";
 
     public static final String FEATURE_DICTIONARY_SIZE_PARAMETER = "feats_count";
@@ -95,8 +87,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private final boolean includeQFeatures;
 
-    private final String optimizationMethod_;
-
     private float negativeWeights_ = 1.0f;
 
     private int featuresDictionarySize = -1;
@@ -105,7 +95,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private boolean nerOnly_ = false;
 
-    private boolean useMimlreModel_ = false;
+    private String modelType_ = "StanfordL2LogReg";
 
     // The list of predicates to build an extractor model for.
     private final Set<String> predicates_;
@@ -119,10 +109,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             new ConcurrentHashMap<>();
     private Dataset.RelationMentionsDataset.Builder trainDataset_ =
             Dataset.RelationMentionsDataset.newBuilder();
-    private Dataset.RelationMentionsDataset.Builder testDataset_ =
-            Dataset.RelationMentionsDataset.newBuilder();
-    private LinearClassifier<String, Integer> model_ = null;
-    private JointBayesRelationExtractor mimlModel_ = null;
+    private ExtractionModel model_ = null;
+    private boolean isTraining_;
     private ConcurrentMap<Pair<String, String>, Map<String, Double>> extractedTriples_ = new ConcurrentHashMap<>();
     private ConcurrentMap<Pair<String, String>, Set<String>> triplesLabels_ = new ConcurrentHashMap<>();
     private ConcurrentMap<Integer, Integer> featureCount_ = new ConcurrentHashMap<>();
@@ -137,12 +125,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public RelationExtractorTrainEvalProcessor(Properties properties) throws IOException, ClassNotFoundException {
+    public RelationExtractorTrainEvalProcessor(Properties properties) throws Exception {
         super(properties);
         predicates_ = new HashSet<>(FileUtils.readLinesFromFile(
                 properties.getProperty(PREDICATES_LIST_PARAMETER)));
         datasetOutFilename_ = properties.getProperty(DATASET_OUTFILE_PARAMETER);
         modelFilename_ = properties.getProperty(MODEL_OUTFILE_PARAMETER);
+
+        isTraining_ = properties.contains(SERIALIZED_MODEL_PARAMETER);
 
         // Whether to split all triples into 2 sets for training and testing.
         if (properties.containsKey(SPLIT_TRAIN_TEST_TRIPLES_PARAMETER)) {
@@ -159,17 +149,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
 
         if (properties.containsKey(MODEL_ALGO_PARAMETER)) {
-            useMimlreModel_ = properties.getProperty(MODEL_ALGO_PARAMETER).equals("MIML");
+            modelType_ = properties.getProperty(MODEL_ALGO_PARAMETER);
         }
 
-        if (properties.containsKey(SERIALIZED_MODEL_PARAMETER)) {
-            if (useMimlreModel_) {
-                File modelPath = new File(properties.getProperty(SERIALIZED_MODEL_PARAMETER));
-                mimlModel_ = (JointBayesRelationExtractor) JointBayesRelationExtractor.load(properties.getProperty(SERIALIZED_MODEL_PARAMETER), MimlReModelTrainer.getModelProperties(modelPath.getParent(), modelPath.getName() + "_y"));
-            } else {
-                model_ = LinearClassifier.readClassifier(properties.getProperty(SERIALIZED_MODEL_PARAMETER));
-            }
-        }
+        model_ = createExtractionModel(modelType_, properties);
 
         if (properties.containsKey(QUESTION_FEATS_PARAMETER)) {
             includeQFeatures = true;
@@ -183,12 +166,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
         if (properties.containsKey(REGULARIZATION_PARAMETER)) {
             regularization_ = Float.parseFloat(properties.getProperty(REGULARIZATION_PARAMETER));
-        }
-
-        if (properties.containsKey(OPTIMIZATION_METHOD_PARAMETER)) {
-            optimizationMethod_ = properties.getProperty(OPTIMIZATION_METHOD_PARAMETER);
-        } else {
-            optimizationMethod_ = "QN";
         }
 
         if (properties.containsKey(NEGATIVE_WEIGHTS_PARAMETER)) {
@@ -207,6 +184,34 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
         kb_ = KnowledgeBase.getInstance(properties);
 
+    }
+
+    private ExtractionModel createExtractionModel(String modelName, Properties props) throws Exception {
+        if (props.containsKey(SERIALIZED_MODEL_PARAMETER)) {
+            String modelPath = props.getProperty(SERIALIZED_MODEL_PARAMETER);
+            switch (modelName) {
+                case "StanfordL2LogReg":
+                    return CoreNlpL2LogRegressionExtractionModel.load(modelPath);
+                case "LibLinearL1LogReg":
+                    return LibLinearExtractionModel.load(modelPath);
+                case "MIML":
+                    return MimlReExtractionModel.load(modelPath);
+                default:
+                    throw new IllegalArgumentException("Unknown model name " + modelName);
+            }
+        } else {
+            switch (modelName) {
+                case "StanfordL2LogReg":
+                    return new CoreNlpL2LogRegressionExtractionModel(Double.parseDouble(props.getProperty(REGULARIZATION_PARAMETER)), Boolean.parseBoolean(props.getProperty(VERBOSE_PARAMETER)));
+                case "LibLinearL1LogReg":
+                    return new LibLinearExtractionModel();
+                case "MIML":
+                    File path = new File(props.getProperty(MODEL_OUTFILE_PARAMETER));
+                    return new MimlReExtractionModel(path.getParent(), path.getName());
+                default:
+                    throw new IllegalArgumentException("Unknown model name " + modelName);
+            }
+        }
     }
 
     /**
@@ -231,22 +236,18 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     public void finishProcessing() throws Exception {
         // If model is null, we will predict labels here, otherwise it was
         // done in the main method.
-        if (model_ == null && mimlModel_ == null) {
+        if (isTraining_) {
             for (Map.Entry<String, Integer> feature : featureAlphabet_.entrySet()) {
                 trainDataset_.addFeatureBuilder().setId(feature.getValue())
-                        .setName(feature.getKey());
-                testDataset_.addFeatureBuilder().setId(feature.getValue())
                         .setName(feature.getKey());
             }
 
             // Add all possible labels.
             trainDataset_.addLabel(NO_RELATIONS_LABEL);
-            testDataset_.addLabel(NO_RELATIONS_LABEL);
 
             // We construct hash map to make sure labels are unique.
             for (String label : new HashSet<>(predicates_)) {
                 trainDataset_.addLabel(label);
-                testDataset_.addLabel(label);
             }
 
             // Remove features by count
@@ -255,54 +256,31 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 instance.clearFeatureId().addAllFeatureId(features);
             }
 
-            if (useMimlreModel_) {
-                File modelPath = new File(modelFilename_);
-                mimlModel_ = MimlReModelTrainer.train(trainDataset_.build(), modelPath.getParent(), modelPath.getName() + "_y");
-                mimlModel_.save(modelFilename_);
-            } else {
-                model_ = RelationExtractorModelTrainer.train(trainDataset_.build(), regularization_, optimizationMethod_, negativeWeights_, verbose_);
-                LinearClassifier.writeClassifier(model_, modelFilename_);
-            }
-
-            Dataset.RelationMentionsDataset testDataset = testDataset_.build();
-
-            ArrayList<Pair<String, Double>> predictedLabels;
-            if (useMimlreModel_) {
-                throw new NotImplementedException();
-            } else {
-                predictedLabels = RelationExtractorModelTrainer.eval(model_, testDataset);
-            }
-
-            int index = 0;
-            for (Dataset.RelationMentionInstance instance : testDataset.getInstanceList()) {
-                Pair<String, Double> predictedLabel = predictedLabels.get(index);
-                processPrediction(instance, predictedLabel);
-                ++index;
-            }
-        }
-
-        for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples_.entrySet()) {
-            if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
-                preds.getValue().remove("NONE");
-            }
-            for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
-                if (triplesLabels_.get(preds.getKey()).contains(pred.getKey())) {
-                    System.out.println((pred.getKey() + "\t" +
-                            preds.getKey().first + "-" + preds.getKey().second + "\t"
-                            + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
-                } else {
-                    // TODO(denxx): This is probably incorrect piece of code.
-                    for (String label : triplesLabels_.get(preds.getKey())) {
-                        if (!preds.getValue().containsKey(label)) {
-                            System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
-                                    preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                    + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+            model_.train(trainDataset_.build());
+            model_.save(modelFilename_);
+        } else {
+            for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples_.entrySet()) {
+                if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
+                    preds.getValue().remove("NONE");
+                }
+                for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
+                    if (triplesLabels_.get(preds.getKey()).contains(pred.getKey())) {
+                        System.out.println((pred.getKey() + "\t" +
+                                preds.getKey().first + "-" + preds.getKey().second + "\t"
+                                + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+                    } else {
+                        // TODO(denxx): This is probably incorrect piece of code.
+                        for (String label : triplesLabels_.get(preds.getKey())) {
+                            if (!preds.getValue().containsKey(label)) {
+                                System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
+                                        preds.getKey().first + "-" + preds.getKey().second + "\t"
+                                        + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+                            }
                         }
                     }
                 }
             }
         }
-
         // Write dataset to a file.
 //        trainDataset_.build().writeDelimitedTo(
 //                new BufferedOutputStream(
@@ -351,15 +329,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     protected void processSpans(Document.NlpDocument document) {
         // Decide where this document is going to go = training of testing.
-        boolean isInTraining = document.hasDocId()
+        boolean isDocumentInTraining = document.hasDocId()
                 ? (document.getDocId().hashCode() % 100) < TRAIN_SIZE_FROM_100
                 : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
         // If model is specified we only keep testing instances and vice versa.
-        if ((model_ != null || mimlModel_ != null) == isInTraining) return;
+        if (isTraining_ != isDocumentInTraining) return;
 
         Map<Pair<Integer, Integer>, List<Triple<String, String, String>>> spans2Labels =
-                getSpanPairLabels(document, isInTraining, splitTrainTestTriples_);
+                getSpanPairLabels(document, isDocumentInTraining, splitTrainTestTriples_);
 
         List<Dataset.RelationMentionInstance.Builder> currentDocInstances = new ArrayList<>();
 
@@ -414,24 +392,18 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             // removed.
                             if (!keepInstance(subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second,
-                                    activeLabels, isInTraining)) {
+                                    activeLabels, isDocumentInTraining)) {
                                 continue;
                             }
 
                             Dataset.RelationMentionInstance.Builder mentionInstance = null;
 
-                            if (isInTraining) {
+                            if (isTraining_) {
                                 synchronized (trainDataset_) {
                                     mentionInstance = trainDataset_.addInstanceBuilder();
                                 }
                             } else {
-                                if (model_ == null && mimlModel_ == null) {
-                                    synchronized (testDataset_) {
-                                        mentionInstance = testDataset_.addInstanceBuilder();
-                                    }
-                                } else {
-                                    mentionInstance = Dataset.RelationMentionInstance.newBuilder();
-                                }
+                                mentionInstance = Dataset.RelationMentionInstance.newBuilder();
                             }
 
                             // Set docid and spans.
@@ -468,7 +440,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 seenFeatures.add(featureId);
                             }
 
-                            processRelationMentionInstance(document, isInTraining, mentionInstance);
+                            processRelationMentionInstance(document, isDocumentInTraining, mentionInstance);
                             currentDocInstances.add(mentionInstance);
                         }
                     }
@@ -495,11 +467,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 }
             }
         } else {
-            if (model_ != null || mimlModel_ != null) {
+            if (!isInTraining) {
                 Dataset.RelationMentionInstance mention = mentionInstance.build();
-                Pair<String, Double> prediction = useMimlreModel_
-                        ? MimlReModelTrainer.eval(mimlModel_, mention, verbose_)
-                        : RelationExtractorModelTrainer.eval(model_, mention, verbose_);
+                Map<String, Double> scores = model_.predict(mentionInstance.build());
+                Pair<String, Double> prediction = findBest(scores);
                 if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
                     KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
                             mentionInstance.getSubjSpan(),
@@ -518,6 +489,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 processPrediction(mention, prediction);
             }
         }
+    }
+
+    private Pair<String, Double> findBest(Map<String, Double> scores) {
+        Map.Entry<String, Double> e = scores.entrySet().stream().collect(
+                Collectors.maxBy((x, y) -> x.getValue().compareTo(y.getValue()))).get();
+        return new Pair<>(e.getKey(), e.getValue());
     }
 
     private void printMentionInstance(Dataset.RelationMentionInstanceOrBuilder instance) {
