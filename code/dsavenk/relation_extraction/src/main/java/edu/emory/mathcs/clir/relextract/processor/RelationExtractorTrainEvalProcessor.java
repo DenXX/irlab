@@ -68,6 +68,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String NEGATIVE_WEIGHTS_PARAMETER = "neg_weight";
 
+    public static final String MIN_FEATURE_COUNT_PARAMETER = "minfeatcount";
+
     public static final String FEATURE_DICTIONARY_SIZE_PARAMETER = "feats_count";
 
     public static final String VERBOSE_PARAMETER = "verbose";
@@ -181,6 +183,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
         if (properties.containsKey(VERBOSE_PARAMETER)) {
             verbose_ = Boolean.parseBoolean(properties.getProperty(VERBOSE_PARAMETER));
+        }
+        if (properties.containsKey(MIN_FEATURE_COUNT_PARAMETER)) {
+            Parameters.MIN_FEATURE_COUNT = Integer.parseInt(properties.getProperty(MIN_FEATURE_COUNT_PARAMETER));
         }
         kb_ = KnowledgeBase.getInstance(properties);
 

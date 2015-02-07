@@ -32,7 +32,7 @@ public class MimlReExtractionModel extends ExtractionModel {
         props.setProperty("serializedRelationExtractorPath", model);
 
         props.setProperty("trainer.model", "jointbayes");
-        props.setProperty("epochs", "15");
+        props.setProperty("epochs", "5");
         props.setProperty("folds", "5");
         props.setProperty("filter", "all");
         props.setProperty("featureCountThreshold", "1");
