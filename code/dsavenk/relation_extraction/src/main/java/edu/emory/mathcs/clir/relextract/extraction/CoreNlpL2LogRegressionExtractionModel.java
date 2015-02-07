@@ -121,7 +121,7 @@ public class CoreNlpL2LogRegressionExtractionModel extends ExtractionModel {
 
     @Override
     public void save(String modelPath) throws IOException {
-        model_.saveToFilename(modelPath);
+        LinearClassifier.writeClassifier(model_, modelPath);
     }
 
     private edu.stanford.nlp.classify.WeightedDataset<String, Integer>

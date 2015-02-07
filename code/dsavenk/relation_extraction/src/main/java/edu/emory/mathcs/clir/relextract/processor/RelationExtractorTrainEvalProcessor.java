@@ -89,7 +89,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private float negativeWeights_ = 1.0f;
 
-    private int featuresDictionarySize = -1;
+    private int featuresDictionarySize = 10000000;
 
     private boolean verbose_ = false;
 
@@ -132,7 +132,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         datasetOutFilename_ = properties.getProperty(DATASET_OUTFILE_PARAMETER);
         modelFilename_ = properties.getProperty(MODEL_OUTFILE_PARAMETER);
 
-        isTraining_ = properties.contains(SERIALIZED_MODEL_PARAMETER);
+        isTraining_ = !properties.containsKey(SERIALIZED_MODEL_PARAMETER);
 
         // Whether to split all triples into 2 sets for training and testing.
         if (properties.containsKey(SPLIT_TRAIN_TEST_TRIPLES_PARAMETER)) {
@@ -467,27 +467,25 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 }
             }
         } else {
-            if (!isInTraining) {
-                Dataset.RelationMentionInstance mention = mentionInstance.build();
-                Map<String, Double> scores = model_.predict(mentionInstance.build());
-                Pair<String, Double> prediction = findBest(scores);
-                if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
-                    KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
-                            mentionInstance.getSubjSpan(),
-                            mentionInstance.getObjSpan(),
-                            prediction.first,
-                            EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
-                    if (triple == null) return;
-                    mentionInstance.getTripleBuilderList().stream()
-                            .filter(tripleBuilder -> tripleBuilder.getPredicate().equals(NO_RELATIONS_LABEL))
-                            .forEach(tripleBuilder -> {
-                                tripleBuilder.setSubject(triple.subject);
-                                tripleBuilder.setObject(triple.object);
-                            });
-                    mention = mentionInstance.build();
-                }
-                processPrediction(mention, prediction);
+            Dataset.RelationMentionInstance mention = mentionInstance.build();
+            Map<String, Double> scores = model_.predict(mentionInstance.build());
+            Pair<String, Double> prediction = findBest(scores);
+            if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
+                KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
+                        mentionInstance.getSubjSpan(),
+                        mentionInstance.getObjSpan(),
+                        prediction.first,
+                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                if (triple == null) return;
+                mentionInstance.getTripleBuilderList().stream()
+                        .filter(tripleBuilder -> tripleBuilder.getPredicate().equals(NO_RELATIONS_LABEL))
+                        .forEach(tripleBuilder -> {
+                            tripleBuilder.setSubject(triple.subject);
+                            tripleBuilder.setObject(triple.object);
+                        });
+                mention = mentionInstance.build();
             }
+            processPrediction(mention, prediction);
         }
     }
 

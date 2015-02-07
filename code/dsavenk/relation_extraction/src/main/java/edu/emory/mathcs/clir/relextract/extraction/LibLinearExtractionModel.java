@@ -4,6 +4,7 @@ import de.bwaldvogel.liblinear.*;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class LibLinearExtractionModel extends ExtractionModel {
             labelsIndexes_.put(dataset.getLabel(i), i);
         }
         Problem problem = new Problem();
-        problem.n = dataset.getFeatureCount();
+        problem.n = 10000000;
         problem.l = dataset.getInstanceCount();
         problem.y = new double[problem.l];
         problem.x = new Feature[problem.l][];
@@ -82,6 +83,7 @@ public class LibLinearExtractionModel extends ExtractionModel {
         for (int j = 0; j < instance.getFeatureIdCount(); ++j) {
             res[j] = new FeatureNode(instance.getFeatureId(j), 1);
         }
+        Arrays.sort(res, (a, b) -> Integer.compare(a.getIndex(), b.getIndex()));
         return res;
     }
 }
