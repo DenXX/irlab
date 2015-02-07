@@ -201,18 +201,24 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     return LibLinearExtractionModel.load(modelPath);
                 case "MIML":
                     return MimlReExtractionModel.load(modelPath);
+                case "MIML_local":
+                    return MimlReExtractionModel.load(modelPath);
                 default:
                     throw new IllegalArgumentException("Unknown model name " + modelName);
             }
         } else {
+            File path;
             switch (modelName) {
                 case "StanfordL2LogReg":
                     return new CoreNlpL2LogRegressionExtractionModel(Double.parseDouble(props.getProperty(REGULARIZATION_PARAMETER)), Boolean.parseBoolean(props.getProperty(VERBOSE_PARAMETER)));
                 case "LibLinearL1LogReg":
                     return new LibLinearExtractionModel();
                 case "MIML":
-                    File path = new File(props.getProperty(MODEL_OUTFILE_PARAMETER));
-                    return new MimlReExtractionModel(path.getParent(), path.getName());
+                    path = new File(props.getProperty(MODEL_OUTFILE_PARAMETER));
+                    return new MimlReExtractionModel(path.getParent(), path.getName(), false);
+                case "MIML_local":
+                    path = new File(props.getProperty(MODEL_OUTFILE_PARAMETER));
+                    return new MimlReExtractionModel(path.getParent(), path.getName(), true);
                 default:
                     throw new IllegalArgumentException("Unknown model name " + modelName);
             }

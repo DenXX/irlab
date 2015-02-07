@@ -20,10 +20,12 @@ public class MimlReExtractionModel extends ExtractionModel {
     private JointBayesRelationExtractor model_;
     private String workDir_;
     private String modelFile_;
+    private boolean localOnly_;
 
-    public MimlReExtractionModel(String workDir, String modelFile) {
+    public MimlReExtractionModel(String workDir, String modelFile, boolean localOnly) {
         workDir_ = workDir;
         modelFile_ = modelFile;
+        localOnly_ = localOnly;
     }
 
     private Properties getModelProperties(String workDir, String model) {
@@ -44,7 +46,7 @@ public class MimlReExtractionModel extends ExtractionModel {
 
     public static MimlReExtractionModel load(String path) throws IOException, ClassNotFoundException {
         File modelFile = new File(path);
-        MimlReExtractionModel res = new MimlReExtractionModel(modelFile.getParent(), modelFile.getName() + "_y");
+        MimlReExtractionModel res = new MimlReExtractionModel(modelFile.getParent(), modelFile.getName() + "_y", false);
         res.model_ = (JointBayesRelationExtractor)JointBayesRelationExtractor.load(path, res.getModelProperties(res.workDir_, res.modelFile_));
         return res;
     }
@@ -70,7 +72,7 @@ public class MimlReExtractionModel extends ExtractionModel {
 
         System.err.println("Creating trainer...");
         model_ = new JointBayesRelationExtractor(
-                getModelProperties(workDir_, modelFile_));
+                getModelProperties(workDir_, modelFile_), localOnly_);
         System.err.println("Start training...");
         model_.train(trainingDataset);
         System.err.println("Done training...");
