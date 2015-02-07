@@ -81,7 +81,6 @@ public class MimlReExtractionModel extends ExtractionModel {
         List<Collection<String>> example = new ArrayList<>();
         example.add(convertTestInstance(instance));
         Counter<String> predictions = model_.classifyMentions(example);
-
         return predictions.entrySet().stream().collect(Collectors.toMap(
                 e -> e.getKey().equals(RelationMention.UNRELATED) ? RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL : e.getKey(),
                 Map.Entry::getValue));

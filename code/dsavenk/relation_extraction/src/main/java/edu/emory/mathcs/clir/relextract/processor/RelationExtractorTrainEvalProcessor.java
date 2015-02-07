@@ -474,6 +474,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         } else {
             Dataset.RelationMentionInstance mention = mentionInstance.build();
             Map<String, Double> scores = model_.predict(mentionInstance.build());
+            if (scores.isEmpty()) {
+                scores.put(NO_RELATIONS_LABEL, 1.0);
+            }
             Pair<String, Double> prediction = findBest(scores);
             if (!prediction.first.equals(NO_RELATIONS_LABEL)) {
                 KnowledgeBase.Triple triple = kb_.getTypeCompatibleTripleOrNull(document,
