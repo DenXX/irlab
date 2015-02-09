@@ -72,7 +72,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String FEATURE_DICTIONARY_SIZE_PARAMETER = "feats_count";
 
-    public static final String VERBOSE_PARAMETER = "verbose";
+    public static final String DEBUG_PARAMETER = "debug";
 
     public static final String SERIALIZED_MODEL_PARAMETER = "model";
 
@@ -93,7 +93,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     private int featuresDictionarySize = 10000000;
 
-    private boolean verbose_ = false;
+    private boolean debug_ = false;
 
     private boolean nerOnly_ = false;
 
@@ -181,8 +181,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (properties.containsKey(NER_ONLY_PARAMETER)) {
             nerOnly_ = Boolean.parseBoolean(properties.getProperty(NER_ONLY_PARAMETER));
         }
-        if (properties.containsKey(VERBOSE_PARAMETER)) {
-            verbose_ = Boolean.parseBoolean(properties.getProperty(VERBOSE_PARAMETER));
+        if (properties.containsKey(DEBUG_PARAMETER)) {
+            debug_ = Boolean.parseBoolean(properties.getProperty(DEBUG_PARAMETER));
         }
         if (properties.containsKey(MIN_FEATURE_COUNT_PARAMETER)) {
             Parameters.MIN_FEATURE_COUNT = Integer.parseInt(properties.getProperty(MIN_FEATURE_COUNT_PARAMETER));
@@ -210,7 +210,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             File path;
             switch (modelName) {
                 case "StanfordL2LogReg":
-                    return new CoreNlpL2LogRegressionExtractionModel(Double.parseDouble(props.getProperty(REGULARIZATION_PARAMETER)), Boolean.parseBoolean(props.getProperty(VERBOSE_PARAMETER)));
+                    return new CoreNlpL2LogRegressionExtractionModel(Double.parseDouble(props.getProperty(REGULARIZATION_PARAMETER)), Boolean.parseBoolean(props.getProperty(DEBUG_PARAMETER)));
                 case "LibLinearL1LogReg":
                     return new LibLinearExtractionModel();
                 case "MIML":
@@ -323,7 +323,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     Math.max(prevValue, predictedLabel.second));
         }
 
-        if (verbose_) {
+        if (debug_) {
             if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) ||
                     !instance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
                 System.out.println("-----\nCorrect: " + instance.getLabel(0));
@@ -472,7 +472,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                                 boolean isInTraining,
                                                 Dataset.RelationMentionInstance.Builder mentionInstance) {
         if (isInTraining) {
-            if (verbose_) {
+            if (debug_) {
                 if (!mentionInstance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
                     printMentionInstance(mentionInstance);
                 }

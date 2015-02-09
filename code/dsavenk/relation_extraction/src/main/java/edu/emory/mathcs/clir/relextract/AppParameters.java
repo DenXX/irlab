@@ -133,9 +133,9 @@ public class AppParameters {
                 .withDescription("Soft matching of dates").create(
                         EntityRelationsLookupProcessor.SOFT_DATE_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER)
+                .withArgName(RelationExtractorTrainEvalProcessor.DEBUG_PARAMETER)
                 .withDescription("Verbose").create(
-                        RelationExtractorTrainEvalProcessor.VERBOSE_PARAMETER));
+                        RelationExtractorTrainEvalProcessor.DEBUG_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(FilterByLanguageProcessor.LANGUAGE_FILTER_PARAMETER)
                 .withDescription("Document language to keep").create(

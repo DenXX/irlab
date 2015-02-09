@@ -27,6 +27,7 @@ public class CoreNlpL2LogRegressionExtractionModel extends ExtractionModel {
     private float negativeWeights_ = 1.f;
     private LinearClassifier<String, Integer> model_;
     private boolean verbose_ = true;
+    private boolean debug_ = false;
 
     private CoreNlpL2LogRegressionExtractionModel() {}
 
@@ -93,16 +94,16 @@ public class CoreNlpL2LogRegressionExtractionModel extends ExtractionModel {
     public Map<String, Double> predict(Dataset.RelationMentionInstance instance) {
         Datum<String, Integer> example = convertTestInstance(instance);
         Counter<String> predictions = model_.probabilityOf(example);
-        double bestScore = 1.0 / predictions.size(); // predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
-        String bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
-        for (Map.Entry<String, Double> pred : predictions.entrySet()) {
-            if (!pred.getKey().equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL) &&
-                    pred.getValue() > bestScore) {
-                bestScore = pred.getValue();
-                bestLabel = pred.getKey();
+        if (debug_) {
+            double bestScore = 1.0 / predictions.size(); // predictions.getCount(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL);
+            String bestLabel = RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL;
+            for (Map.Entry<String, Double> pred : predictions.entrySet()) {
+                if (!pred.getKey().equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL) &&
+                        pred.getValue() > bestScore) {
+                    bestScore = pred.getValue();
+                    bestLabel = pred.getKey();
+                }
             }
-        }
-        if (verbose_) {
             if (!bestLabel.equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)  ||
                     !instance.getLabel(0).equals(RelationExtractorTrainEvalProcessor.NO_RELATIONS_LABEL)) {
                 System.out.println("\n\n======================================\n"
