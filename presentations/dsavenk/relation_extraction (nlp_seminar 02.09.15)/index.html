@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Relation Extraction for Automatic Knowledge Base Construction</title>
+		<meta name="description" content="Emory NLP Group Meeting presentation on Relation Extraction(February 9, 2015)">
+		<meta name="author" content="Denis Savenkov">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/beige.css" id="theme">
+		<link rel="stylesheet" href="css/slides.css">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Relation Extraction</h1>
+					<h3>Automatic Knowledge Base Construction</h3>
+					<p>
+						<small>Denis Savenkov</small><br />
+						<small>Emory NLP Group Meeting<br />February 9, 2015</small>
+					</p>
+				</section>
+
+				<!-- Knowledge Representation and Structured Data -->
+				<section>
+					<h2>"Scientia Potentia Est"</h2>
+					<ul>
+						<li>Solving difficult problems requires a lot of knowledge</li>
+						<li>Human spend a significant part of their life learning</li>
+						<li>Computers need to have this knowledge as well!</li>
+					</ul>
+					<img src="./img/terminator.png" align="center" />
+				</section>
+
+				<section>
+					<h2>Structured Information</h2>
+					<ul>
+						<li>Most of the information in the world is unstructured:
+							<ul id="example">
+								<li>text</li>
+								<li>images</li>
+								<li>video</li>
+								<li>...</li>
+						</ul></li>
+						<li>Unstructured information is hard to work with</li>
+						<li>We need to add some structure...</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Example: Question answering</h2>
+					<blockquote>Who was the PhD advisor of Prof. Jinho Choi?</blockquote>
+				</section>
+
+				<section>
+					<img src="./img/qa_search.png" align="center" />
+				</section>
+
+				<section>
+					<img src="./img/qa_doc.png" align="center" />
+				</section>
+
+				<section>
+					<h2>What if we had a database with facts?</h2>
+					<div>We could just query the database and get the answer:</div>
+					<hr />
+					<blockquote>Who was the PhD advisor of Prof. Jinho Choi?</blockquote>
+					<pre><code data-trim class="sql">
+SELECT advisor
+FROM phd_advisors
+WHERE student = "Jinho D. Choi"
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>From words to entities</h2>
+					<img src="./img/define_entity.png" align="center" />
+				</section>
+
+				<section>
+					<h2>Entities</h2>
+					<ul>
+						<li>We may use different words to refer to the same thing
+							<ul id="example">
+								<li>Rafa, The King of Clay, Rafael Nadal</li>
+							</ul>
+						</li>
+						<li>Attributes of entities
+							<ul id="example">
+								<li>types: e.g. tennis player</li>
+								<li>characteristics: e.g. height, weight, birth date</li>
+							</ul>
+						</li>
+						<li>Some entities are related
+							<ul id="example"><li>[Tony Nadal] &lt;coach&gt; [Rafael Nadal]</li></ul>
+						</li>
+					</ul>
+					<img src="./img/nadal.png" />
+				</section>
+
+				<section>
+					<h2>Predicates</h2>
+					<ul>
+						<li>Entities are related in different ways:
+							<ul id="example">
+								<li>[Tony Nadal] &lt;coach-of&gt; [Rafael Nadal]</li>
+								<li>[Tony Nadal] &lt;uncle-of&gt; [Rafael Nadal]</li>
+								<li>[Rafael Nadal] &lt;parents&gt; [Sebastián Nadal]</li>
+								<li>[Rafael Nadal] &lt;parents&gt; [Ana María Parera]</li>
+							</ul>
+						</li>
+						<li>Entities with their relations constitute a <strong>knowledge base</strong></li>
+						<li>We can represent a knowledge base as a graph</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Knowledge Base</h2>
+					<img src="./img/kg.png" align="center" height="400px" />
+				</section>
+
+
+				<section>
+					<h2>Knowledge Graphs</h2>
+					<img src="./img/kb.png" align="center" height="400" />
+					<small>* image from KDD'14 "Constructing and Mining Web-scale Knowledge Graphs" workshop slides</small>
+				</section>
+
+				<section>
+					<h2>Some challenges</h2>
+					<ul>
+						<li class="fragment"><strong>Validation</strong>: knowledge graphs are not always correct</li>
+						<li class="fragment"><strong>Interface</strong>: how to make it easier to access the knowledge?</li>
+						<li class="fragment"><strong>Intelligence</strong>: how to create AI fom knowledge graphs?</li>
+						<li class="fragment"><strong>Growth</strong>: knowledge graphs are incomplete
+							<ul>
+								<li>link prediction</li>
+								<li>ontology matching</li>
+								<li style="color: green">knowledge extraction (this presentation)</li>
+							</ul>
+						</li>
+
+					</ul>
+					<br /><hr />
+					<small>from KDD 2014 Tutorial on Constructing and Mining Web-scale Knowledge Graphs, New York, August 24, 2014</small>
+				</section>
+
+				<section>
+					<h2>Applications</h2>
+					<div>Entity summarization</div>
+					<img src="./img/kp.png" height="300px" />
+				</section>
+
+				<section>
+					<h2>Applications</h2>
+					<div>Question Answering</div>
+					<img src="./img/kgqa.png" height="250px" />
+				</section>
+
+				<section>
+					<img src="./img/freebase.png" />
+					<ul>
+						<li>47M entities and 2.5B facts</li>
+						<li>fully structured (entities and relations come from a fixed lexicon rather than free text)</li>
+						<li>constructed by community members</li>
+						<li>Built by MetaWeb and acquired by Google in 2010</li>
+						<li>Data is publicly available</li>
+						<li>Will be shut down in 2015 and data transitioned to WikiData</li>
+						<li>Tuple: [<strong>/m/0jcx, /m/04m8, /m/019xz9</strong>] means Albert Einstein was born in Ulm</li>
+					</ul>
+				</section>
+
+				<!-- Relation extraction -->
+				<section>
+					<h2>Incompleteness</h2>
+					<blockquote>71% of people in Freebase have no information on place of birth and 75% have no known nationality *</blockquote>
+					</ul>
+					<ul>
+						<li>Long-tail distribution: we know a lot about popular entities, but there is a heavy tail of less known entities</li>
+						<li>How to increase coverage?
+							<ul>
+								<li>Ask people: crowdsourcing</li>
+								<li>Merge with other knowledge bases: ontology matching</li>
+								<li>Extract from the available data</li>
+							</ul>
+						</li>
+					</ul>
+					<br /><hr />
+					<small>* from "Knowledge Vault : A Web-Scale Approach to Probabilistic Knowledge Fusion" by X.Dong et al. 2014</small>
+				</section>
+
+				<section>
+					<h2>Web of Data</h2>
+
+					<pre><code class="html">
+<div itemtype ="http://schema.org/Movie">
+<h1 itemprop="name">Avatar</h1>
+<div itemprop="director" itemtype="http://schema.org/Person">
+		Director: <span itemprop="name">James Cameron</span>
+		(born <span itemprop="birthDate">August 16, 1954</span>)
+</div>
+<span itemprop="genre">Science fiction</span>
+<a href="../movies/trailer.html" itemprop="trailer">Trailer</a>
+</div>
+					</code></pre>
+					<small>see <a href="http://schema.org">http://schema.org</a></small>
+				</section>
+
+				<section>
+					<h2>Wrapper Induction</h2>
+					<img src="./img/wrapper.png" height="400px" />
+					<small>"Wrapper Induction for Information Extraction" by N.Kushmerick et al. 1997</small>
+				</section>
+
+				<section>
+					<h2>Tables on the web</h2>
+						<ul>
+							<li>Relational data on the web is often represented as tables and it is possible to extract this data (e.g. [1])</li>
+						</ul>
+						<img src="./img/webtables.png" height="400px" />
+					<small>[1] "WebTables: Exploring the Power of Tables on the Web", M.Cafarella et al. 2008</small>
+				</section>
+
+				<section>
+					<h2>DeepWeb</h2>
+					<ul>
+						<li>Large volumes of data is accessible only through HTML form interfaces</li>
+						<li>We can automatically make queries and extract the hidden knowledge e.g. [1]</li>
+					</ul>
+					<img src="./img/deepweb.png" height="300px" />
+					<hr />
+					<small>[1] "Web-Scale Extraction of Structured Data" by M.Cafarella et al. 2008</small>
+				</section>
+
+				<section>
+					<h2>Relation extraction from text</h2>
+					<blockquote>[Emory College] <em>was founded</em> in [1836] in [Oxford, Georgia] by the [Methodist Episcopal Church].</blockquote>
+					<ul>
+						<li><strong>Focused extraction</strong>: need to find a particular attribute of a particular entity (slot-filling)</li>
+						<li><strong>Unfocused extraction</strong>: process text and extract everything we can</li>
+					</ul>
+					<span><a href="http://trec-kba.org/">TREC KBA (knowledge base acceleration) http://trec-kba.org/</a></span>
+				</section>
+
+				<section>
+					<h2>Focused extraction</h2>
+					<img src="./img/west_qaextraction.png" height="450px" />
+					<small>"Knowledge Base Completion via Search-Based Question Answering" by B.West et al 2014 (WWW)</small>
+				</section>
+
+				<section>
+					<h2>Relation extraction from NL</h2>
+					<ul>
+					<li>Structured extractions (fixed entity/relations lexicon)
+						<ol>
+							<li>Supervised relation extraction</li>
+							<li>Semi-supervised relation extraction</li>
+							<li>Distant supervision for relation extraction</li>
+						</ol>
+					</li>
+					<li>Open information extraction (entities and relations expressed in natural language)</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Relation extraction from NL</h2>
+					<ul>
+						<li>Today, computers can't understant natural language text</li>
+						<li>How do we teach them to extract knowledge then?</li>
+						<li class="fragment">M.Hearst* proposed to extract hyponyms using simple patterns (Hearst patterns)
+							<ul style="font-family: Courier; font-size: 18pt">
+								<li>Bruises, wounds, broken bones or other <em>injuries</em>...</li>
+								<li>temples, treasuries,and other important <em>civic buildings</em></li>
+								<li>All common-law <em>countries</em>, including Canada and England...</li>
+								<li>...</li>
+							</ul>
+						</li>
+					</ul>
+					<hr />
+					<small>* "Automatic Acquisition of Hyponyms from Large Text Corpora" by Marti Hearst, 1992</small>
+				</section>
+
+				<section>
+					<h2>Supervised relation extraction</h2>
+					<ul>
+						<li>Training dataset with sentence-level labels for each relation<small>
+							<ul>
+								<li>Emory College was founded in 1836 (+)</li>
+								<li>Founded in 1836, Emory College ... (+)</li>
+								<li>Emory College opened in 1838 (-)</li>
+							</ul></small>
+						</li>
+						<li class="fragment">Datasets: ACE 2004 (Automatic Content Extraction), MUC-7 (Message Understanding Conference), BioNLP challenges</li>
+						<li class="fragment">Solves relation extraction as <strong>binary classification problem</strong></li>
+						<li class="fragment">Research studied various features* and training methods</li>
+						<hr />
+						<small class="fragment">* "Combining Lexical, Syntactic, and Semantic Features with Maximum Entropy Models for Extracting Relations" by N.Kambhatla 2004
+						</small>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Features</h2>
+					<ul>
+						<li class="fragment">words between entities</li>
+						<li class="fragment">types of entities (person, location, organizaton, etc)</li>
+						<li class="fragment"># of words between entities</li>
+						<li class="fragment">path between entities in a parse tree</li>
+						<li class="fragment">...</li>
+					</ul>
+				</section>
+
+				<section>
+					<img src="./img/feats.png" height="450px" />
+				</section>
+
+				<section>
+					<h2>Kernel-based methods</h2>
+					<div>Alternatively, one can define a kernel (think similarity measure) between text fragments and apply kernel-based ML method (e.g. SVM or anything else)</div>
+					<ul>
+						<li><strong>Parse-tree kernels</strong>: similarity of parse trees of 2 text fragments</li>
+						<li>Each node can have multiple attributes (word, POS, NER type, etc), which are than used to compute the kernel</li>
+					</ul>
+					<hr />
+					<small>
+					<ul>
+						<li>"A shortest path dependency kernel for relation extraction" by R. Bunescu &amp; R. Mooney, 2005</li>
+						<li>"Tree Kernel-based Relation Extraction with Context-Sensitive Structured Parse Tree Information" by GuoDong Zhou et al, 2007</li>
+					</ul>
+					</small>
+				</section>
+
+				<section>
+					<h2>Supervised relation extraction</h2>
+					<ul>
+						<li class="fragment" style="color: red">Cons:
+							<ol>
+								<li class="fragment">Expensive to obtain the data!</li>
+								<li class="fragment">Adding new relation requires labelling</li>
+							</ol>
+						</li>
+						<li class="fragment" style="color: green">Pros:
+							<ol>
+								<li class="fragment">High quality training data</li>
+								<li class="fragment">Explicit negative examples</li>
+							</ol>
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Semi-supervised relation extraction</h2>
+					<ul>
+						<li>Reduce the amount of supervision required</li>
+						<li>Examples: DIPRE, Snowball, KnowItAll</li>
+						<li>Based on bootstrapping (iteratively improving the system)</li>
+					</ul>
+					<img src="./img/snowball.png" height="300px" />
+					<small>From "Snowball: Extracting Relations from Large Plain-Text Collections" by E.Agichtein &amp; L.Gravano, 2000</small>
+				</section>
+
+				<section>
+					<h2>Semi-supervised relation extraction</h2>
+					<ul>
+						<li style="color: green">Pros:
+							<ol>
+								<li class="fragment">Less supervision required</li>
+								<li class="fragment">Can extract more knowledge triples thanks to bootstrapping</li>
+							</ol>
+						</li>
+						<li style="color: red">Cons:
+							<ol>
+								<li class="fragment">Semantic drift: as we iterate the system extracts more and more incorrect patterns/triples</li>
+								<li class="fragment">Extending to new relations still requires seed data</li>
+							</ol>
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Distant supervision</h2>
+					<div>Utilize existing knowledge base to label data and train a model</div>
+					<img src="./img/distant.png" height="300px" />
+					<small>Image from KDD 2014 Tutorial on Constructing and Mining Web-scale Knowledge Graphs, New York, August 24, 2014</small>
+				</section>
+
+				<section>
+					<h2>Distant supervision assumptions</h2>
+					<blockquote>Assume we have a knowledge triple $(e_1, p, e_2)$</blockquote>
+					<ol style="font-size: 20pt">
+						<li class="fragment" data-fragment-index="1">All sentences that mentions $e_1$ and $e_2$ together expresses the predicate p</li>
+						<li class="fragment" data-fragment-index="2">At least one sentence that mentions $e_1$ and $e_2$ together expresses the predicate p (multi-instance setting)</li>
+						<li class="fragment" data-fragment-index="3">A sentence that mentions $e_1$ and $e_2$ together might express the predicate p and a pair of entities can be related with different predicates (multi-instance multi-label setting)</li>
+					</ol>
+					<hr />
+					<small><ol>
+						<li class="fragment" data-fragment-index="1">"Distant supervision for relation extraction without labeled data" by M.Mintz et al 2009</li>
+						<li class="fragment" data-fragment-index="2">"Modeling Relations and Their Mentions without Labeled Text" by S.Riedel et al 2010</li>
+						<li class="fragment" data-fragment-index="3">"Multi-instance Multi-label Learning for Relation Extraction" by M.Surdeanu et al 2012</li>
+					</ol></small>
+				</section>
+
+				<section>
+					<h2>Distant supervision training</h2>
+					<ul>
+						<li>Extract features for all sentences that mention a related pair of entities</li>
+						<li>Randomly sample sentences with non-related entities as negative examples</li>
+						<li>Train a multiclass classification model</li>
+					</ul>
+					<img src="./img/distantfeats.png" height="200px" />
+				</section>
+
+				<section>
+					<h2>Distant supervision</h2>
+					<ul>
+						<li style="color: green">Pros:
+							<ol>
+								<li class="fragment">Scalable!</li>
+								<li class="fragment">Can be applied in different languages</li>
+							</ol>
+						</li>
+						<li style="color: red">Cons:
+							<ol>
+								<li class="fragment">Training data is noisy!</li>
+								<li class="fragment">No explicit negative examples</li>
+							</ol>
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Open Information Extraction</h2>
+					<ul>
+						<li>Introduced in [1]</li>
+						<li>Extracts natural language triples from text:
+							<ul id="example">
+							<li>Apple announced a new iPhone 6. =><br />(Apple, announced, iPhone 6)</li></ul>
+						</li>
+						<li>Extracts noun phrases as entities and verb phrases as predicates</li>
+						<li>A trained classifier is used to predict whether an extraction is good</li>
+					</ul>
+					<span id="example">TextRunner [trained extractor] -> ReVerb [chunking] -> Ollie [dependency tree] -> OpenIE 4 (Srlie + RelNoun) [semantic roles]</span>
+					<hr />
+					<small>[1]. "Open Information Extraction from the Web" by M.Banko et al. 2007</small>
+				</section>
+
+				<section>
+					<h2>Open Information Extraction</h2>
+					<ul>
+						<li style="color: green">Pros:
+							<ol>
+								<li class="fragment">Even more scalable! ($O(N)$ vs $O(N|R|)$)</li>
+								<li class="fragment">Do not require any training data</li>
+							</ol>
+						</li>
+						<li style="color: red">Cons:
+							<ol>
+								<li class="fragment">Lack of structure: need to cluster predicates</li>
+							</ol>
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Link prediction</h2>
+					<ul>
+						<li>Some knowledge can be inferred from already acquired knowledge
+							<ul id="example">
+								<li>[Kyle Korver] plays_for [Atlanta Hawks]<br />
+								+ [Atlanta Hawks] league [NBA] <br />
+								= Means that: [Kyle Korver] is [basketball player]</li>
+							</ul>
+						</li>
+					</ul>
+					<hr />
+					<small>
+						<ol>
+							<li>"Random Walk Inference and Learning in A Large Scale Knowledge Base" by N.Lao et al, 2011</li>
+							<li>"Logistic Tensor Factorization for Multi-Relational Data" by M.Nickel and B.Tresp, 2013</li>
+						</ol>
+					</small>
+				</section>
+
+				<section>
+					<h2>Never Ending Language Learning</h2>
+					<img src="./img/nell.png" height="350px" />
+					<small>"Toward an Architecture for Never-Ending Language Learning" by A. Carlson et al 2010</small>
+				</section>
+
+				<section>
+					<h2>Google Knowledge Vault</h2>
+					<img src="./img/kv.png" height="350px" />
+					<small>"Knowledge Vault: A Web-Scale Approach to Probabilistic Knowledge Fusion" by X.Dong et al 2014</small>
+				</section>
+
+				<section>
+					<h2>Google Knowledge Vault</h2>
+					<img src="./img/kvfusing.png" height="350px" />
+					<small>from KDD 2014 Tutorial on Constructing and Mining Web-scale Knowledge Graphs, New York, August 24, 2014</small>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Computers need data structures</li>
+						<li>Knowledge graphs can be used to structure knowledge: entities and relations (RDF graphs)</li>
+						<li>Knowledge can be effectively acquired from unstructured data, e.g. natural language text</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Thanks!</h1>
+					<span>Questions?</span>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+				slideNumber: true,
+
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+			    math: {
+			        mathjax: 'http://cdn.mathjax.org/mathjax/latest/MathJax.js',
+			        config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+			    },
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/math/math.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
