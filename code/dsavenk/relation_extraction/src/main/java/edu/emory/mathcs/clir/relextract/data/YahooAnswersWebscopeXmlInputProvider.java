@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 public class YahooAnswersWebscopeXmlInputProvider
         implements Iterable<Document.NlpDocument> {
 
+    private int counter_ = 0;
+
     public YahooAnswersWebscopeXmlInputProvider(Properties props) {
         inputFilename_ = props.getProperty(AppParameters.INPUT_PARAMETER);
     }
@@ -148,6 +150,7 @@ public class YahooAnswersWebscopeXmlInputProvider
             for (Pair<String, String> kv : attrs) {
                 docBuilder.addAttributeBuilder().setKey(kv.first).setValue(kv.second);
             }
+            docBuilder.setDocId(Integer.toString(++counter_));
             return docBuilder.build();
         }
 
