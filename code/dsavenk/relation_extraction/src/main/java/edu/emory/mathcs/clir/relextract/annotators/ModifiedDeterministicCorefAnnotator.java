@@ -5,11 +5,13 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.Annotator;
+import edu.stanford.nlp.pipeline.Requirement;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implements the Annotator for the new deterministic coreference resolution system.
@@ -102,8 +104,7 @@ public class ModifiedDeterministicCorefAnnotator implements Annotator {
                 }
             }
 
-            Map<Integer, CorefChain> result = corefSystem.coref(document);
-
+            Map<Integer, CorefChain> result = corefSystem.coref(document).entrySet().stream().filter(x -> x.getValue().getRepresentativeMention().mentionType != Dictionaries.MentionType.PRONOMINAL).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 
             annotation.set(CorefCoreAnnotations.CorefChainAnnotation.class, result);

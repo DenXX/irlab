@@ -204,15 +204,24 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
             int beginIdx = ((CoreLabel)mLeaves.get(0).label()).get(CoreAnnotations.IndexAnnotation.class)-1;
             int endIdx = ((CoreLabel)mLeaves.get(mLeaves.size()-1).label()).get(CoreAnnotations.IndexAnnotation.class);
             if (",".equals(sent.get(endIdx-1).word())) { endIdx--; } // try not to have span that ends with ,
-            IntPair mSpan = new IntPair(beginIdx, endIdx);
-            if(!mentionSpanSet.contains(mSpan) && !insideNE(mSpan, namedEntitySpanSet)) {
-                int dummyMentionId = -1;
-                Mention m = new Mention(dummyMentionId, beginIdx, endIdx, dependency, new ArrayList<CoreLabel>(sent.subList(beginIdx, endIdx)), t);
-                // MODIFICATION: Want to remove best, more, better
-                m = fixComparative(m);
 
-                mentions.add(m);
-                mentionSpanSet.add(mSpan);
+            if (sent.get(beginIdx).word().toLowerCase().matches("and")) {
+                ++beginIdx;
+            }
+            if (beginIdx < sent.size() && sent.get(beginIdx).word().toLowerCase().matches("a|the|no|none|this|that")) {
+                ++beginIdx;
+            }
+            if (beginIdx < sent.size() && sent.get(beginIdx).word().toLowerCase().matches("best|good|better|more|less|great|greater|bad")) {
+                ++beginIdx;
+            }
+            if (beginIdx < endIdx && endIdx - beginIdx < 7) {
+                IntPair mSpan = new IntPair(beginIdx, endIdx);
+                if (!mentionSpanSet.contains(mSpan) && !insideNE(mSpan, namedEntitySpanSet)) {
+                    int dummyMentionId = -1;
+                    Mention m = new Mention(dummyMentionId, beginIdx, endIdx, dependency, new ArrayList<CoreLabel>(sent.subList(beginIdx, endIdx)), t);
+                    mentions.add(m);
+                    mentionSpanSet.add(mSpan);
+                }
             }
         }
     }
@@ -595,11 +604,16 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
                 if (m1==m2 || remove.contains(m1) || remove.contains(m2)) continue;
                 //if (m1.sentNum==m2.sentNum && m1.headWord==m2.headWord && m2.insideIn(m1)) {
                 // MODIFICATION: I WANT TO REMOVE LONG MENTIONS, THEY ARE USUALLY BAD
-                if (m1.sentNum==m2.sentNum && m1.headWord==m2.headWord && m1.insideIn(m2)) {
-                    if (m2.endIndex < sent.size() && (sent.get(m2.endIndex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals(",")
-                            || sent.get(m2.endIndex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("CC"))) {
-                        continue;
+                if (m1.sentNum==m2.sentNum /*&& m1.headWord==m2.headWord*/ && m1.insideIn(m2)) {
+                      // MODIFICATION: Commented out this code, it was for longer mentions, which I removed above
+//                    if (m2.endIndex < sent.size() && (sent.get(m2.endIndex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals(",")
+//                            || sent.get(m2.endIndex).get(CoreAnnotations.PartOfSpeechAnnotation.class).equals("CC"))) {
+//                        continue;
+//                    }
+                    if (m2.originalSpan.stream().anyMatch(x -> x.get(CoreAnnotations.NamedEntityTagAnnotation.class).equals("O"))) {
+                        remove.add(m2);
                     }
+                } else if (m1.sentNum==m2.sentNum /*&& m1.headWord==m2.headWord*/ && m2.insideIn(m1) && !m1.headWord.get(CoreAnnotations.NamedEntityTagAnnotation.class).equals("O")) {
                     remove.add(m2);
                 }
             }
@@ -625,27 +639,6 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
 
         return false;
     }
-
-    // MODIFICATION: Remove best, more, etc from the mention
-    private static Mention fixComparative(Mention m) {
-        String mentionSpan = m.spanToString().toLowerCase(Locale.ENGLISH);
-        if ((mentionSpan.startsWith("the best")
-                || mentionSpan.startsWith("a good"))
-                && m.endIndex - m.startIndex > 2) {
-            return new Mention(m.mentionID, m.startIndex + 2, m.endIndex, m.dependency, m.originalSpan.subList(2, m.originalSpan.size()));
-        }
-        if ((mentionSpan.startsWith("best")
-                || mentionSpan.startsWith("more")
-                || mentionSpan.startsWith("no")
-                || mentionSpan.startsWith("none")
-                || mentionSpan.startsWith("better")
-                || mentionSpan.startsWith("good"))
-                && m.endIndex - m.startIndex > 1) {
-            return new Mention(m.mentionID, m.startIndex + 1, m.endIndex, m.dependency, m.originalSpan.subList(1, m.originalSpan.size()));
-        }
-        return m;
-    }
-
 
     private static boolean partitiveRule(Mention m, List<CoreLabel> sent, Dictionaries dict) {
         return m.startIndex >= 2

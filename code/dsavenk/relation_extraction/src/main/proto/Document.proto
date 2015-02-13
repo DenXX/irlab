@@ -17,6 +17,9 @@ message NlpDocument {
 
     // For Q&A documents.
     optional uint32 questionLength = 100;
+    optional uint32 answerLength = 101;
+    repeated uint32 partsCharOffset = 102;
+    repeated uint32 partsType = 103;
 
     extensions 10000 to max;
 }

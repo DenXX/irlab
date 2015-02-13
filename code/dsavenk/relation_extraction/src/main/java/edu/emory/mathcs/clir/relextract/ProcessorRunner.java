@@ -3,10 +3,10 @@ package edu.emory.mathcs.clir.relextract;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.processor.Processor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -89,7 +89,7 @@ public class ProcessorRunner {
                     ++skipped;
                     System.err.println("Skipped: " + skipped);
                 }
-                threadPool.execute(() -> {
+                threadPool.submit(() -> {
                     try {
                         if (processor_.process(document) == null) {
                             filtered.incrementAndGet();

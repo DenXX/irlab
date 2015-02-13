@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.data;
 
 import edu.emory.mathcs.clir.relextract.AppParameters;
+import edu.stanford.nlp.util.Pair;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -10,10 +11,8 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Input provider, that reads Y!Answers Q&A pairs from WebScope XML format and
@@ -71,8 +70,10 @@ public class YahooAnswersWebscopeXmlInputProvider
         @Override
         public synchronized Document.NlpDocument next() {
             String question = "";
+            String content = "";
             String answer = "";
-            HashMap<String, String> attrs = new HashMap<>();
+            List<String> answers = new ArrayList<>();
+            List<Pair<String, String>> attrs = new ArrayList<>();
             while (reader_.hasNext()) {
                 try {
                     XMLEvent event = reader_.nextEvent();
@@ -80,14 +81,25 @@ public class YahooAnswersWebscopeXmlInputProvider
                         StartElement element = event.asStartElement();
                         switch (element.getName().toString()) {
                             case "subject":
-                                question = getCurrentTagContent();
+                                question = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
+                                break;
+                            case "content":
+                                content = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
                                 break;
                             case "bestanswer":
-                                answer = getCurrentTagContent();
+                                answer = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
+                                break;
+                            case "answer_item":
+                                String txt = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
+                                if (!txt.equals(answer)) {
+                                    answers.add(txt);
+                                }
+                                break;
+                            case "nbestanswers":
                                 break;
                             default:
-                                attrs.put(element.getName().toString(),
-                                        getCurrentTagContent());
+                                attrs.add(new Pair<>(element.getName().toString(),
+                                        getCurrentTagContent()));
                                 break;
                         }
                     } else if (event.isEndElement() &&
@@ -99,14 +111,42 @@ public class YahooAnswersWebscopeXmlInputProvider
                     throw new RuntimeException(e.getMessage());
                 }
             }
+            // Concatenating question and content, let's add question mark
+            // if it is missing between.
+            int titleLength = question.length();
+            if (!question.equals(content)) {
+                question += (question.length() > 0 && Character.isAlphabetic(question.charAt(question.length() - 1))
+                        ? "? " : "  ") + content;
+            }
             if (question.isEmpty()) return null;
             Document.NlpDocument.Builder docBuilder =
                     Document.NlpDocument.newBuilder();
-            docBuilder.setText(question + "\n" + answer);
+            StringBuilder text = new StringBuilder();
+            text.append(question);
+            docBuilder.addPartsCharOffset(0);
+            docBuilder.addPartsType(0);
+            if (Character.isAlphabetic(question.charAt(question.length() - 1))) {
+                text.append("?\n");
+            } else {
+                text.append("\n\n");
+            }
+            docBuilder.addPartsCharOffset(text.length());
+            docBuilder.addPartsType(1);
+            text.append(answer);
+
+            for (String anotherAnswer : answers) {
+                text.append(".\n");
+                docBuilder.addPartsCharOffset(text.length());
+                docBuilder.addPartsType(1);
+                text.append(anotherAnswer);
+            }
+
+            docBuilder.setText(text.toString());
             docBuilder.setQuestionLength(question.length());
-            for (Map.Entry<String, String> kv : attrs.entrySet()) {
-                docBuilder.addAttribute(Document.Attribute.newBuilder().setKey(
-                        kv.getKey()).setValue(kv.getValue()));
+            docBuilder.setAnswerLength(answer.length());
+
+            for (Pair<String, String> kv : attrs) {
+                docBuilder.addAttributeBuilder().setKey(kv.first).setValue(kv.second);
             }
             return docBuilder.build();
         }

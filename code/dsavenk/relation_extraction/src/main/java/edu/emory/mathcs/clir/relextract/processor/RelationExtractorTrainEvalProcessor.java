@@ -197,8 +197,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             switch (modelName) {
                 case "StanfordL2LogReg":
                     return CoreNlpL2LogRegressionExtractionModel.load(modelPath);
-                case "LibLinearL1LogReg":
-                    return LibLinearExtractionModel.load(modelPath);
                 case "MIML":
                     return MimlReExtractionModel.load(modelPath);
                 case "MIML_local":
@@ -211,8 +209,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             switch (modelName) {
                 case "StanfordL2LogReg":
                     return new CoreNlpL2LogRegressionExtractionModel(Double.parseDouble(props.getProperty(REGULARIZATION_PARAMETER)), Boolean.parseBoolean(props.getProperty(DEBUG_PARAMETER)));
-                case "LibLinearL1LogReg":
-                    return new LibLinearExtractionModel();
                 case "MIML":
                     path = new File(props.getProperty(MODEL_OUTFILE_PARAMETER));
                     return new MimlReExtractionModel(path.getParent(), path.getName(), false);
