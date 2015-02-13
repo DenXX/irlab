@@ -93,6 +93,7 @@ public class WikiAnswersAllQuestionsInputProvider implements Iterable<Document.N
                 Document.NlpDocument.Builder doc = Document.NlpDocument.newBuilder();
                 text_.setLength(0);
                 offsets_.clear();
+                types_.clear();
                 for (String question : questions) {
                     if (text_.length() > 0) {
                         text_.append("?\n");
