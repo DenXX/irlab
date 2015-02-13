@@ -135,7 +135,7 @@ public class RelationExtractionApp {
                     docs = new YahooAnswersWebscopeXmlInputProvider(props);
                     break;
                 case "wikianswers":
-                    docs = new WikiAnswersInputProvider(props);
+                    docs = new WikiAnswersAllQuestionsInputProvider(props);
                     break;
                 default:
                     throw new UnsupportedOperationException("Reader " + reader +
