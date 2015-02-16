@@ -149,6 +149,11 @@ public class AppParameters {
                 .withDescription("Minimum number of documents for a feature to appear to be kept for training").create(
                         RelationExtractorTrainEvalProcessor.MIN_FEATURE_COUNT_PARAMETER));
 
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(PrintQuestionsForEntityTypes.ENTITY_TYPES_PARAMETER)
+                .withDescription("File with entity id -> types mapping").create(
+                        PrintQuestionsForEntityTypes.ENTITY_TYPES_PARAMETER));
+
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)

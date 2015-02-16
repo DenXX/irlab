@@ -110,6 +110,9 @@ public class RelationExtractionApp {
                 case "answerdocid":
                     workflow.addProcessor(new SetAnswerTextAsDocIdProcessor(props));
                     break;
+                case "printentitytypequestions":
+                    workflow.addProcessor(new PrintQuestionsForEntityTypes(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");

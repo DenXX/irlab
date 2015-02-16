@@ -84,7 +84,7 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, cleanxml, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
+        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
         //return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, moddcoref";
     }
 
