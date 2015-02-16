@@ -44,13 +44,13 @@ public class PrintQuestionsForEntityTypes extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         int questionSentences = DocumentUtils.getQuestionSentenceCount(document);
         for (Document.Span span : document.getSpanList()) {
-            if (span.hasEntityId()) {
+            if (span.hasNerType() && span.hasEntityId()) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentences) {
-                        String text = document.getSentence(mention.getSentenceIndex()).getText().replace("\n", " ").replace("\t", " ");
                         int count = 0;
                         for (String entityId : span.getCandidateEntityIdList()) {
                             if (count++ >= 5) break;
+                            String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, entityId);
                             if (entityTypes_.containsKey(entityId)) {
                                 for (String type : entityTypes_.get(entityId)) {
                                     System.out.println(type + "\t" + text);

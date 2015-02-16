@@ -28,4 +28,22 @@ public class DocumentUtils {
         }
         return questionLemma;
     }
+
+    public static String getSentenceTextWithEntityBoundary(Document.NlpDocument document, Document.Mention mention, String entityValue) {
+        StringBuilder res = new StringBuilder();
+        for (int token = document.getSentence(mention.getSentenceIndex()).getFirstToken(); token < document.getSentence(mention.getSentenceIndex()).getLastToken(); ++token) {
+            if (token == mention.getTokenEndOffset()) res.append("]");
+
+            if (token != document.getSentence(mention.getSentenceIndex()).getFirstToken()) res.append(" ");
+            if (token == mention.getTokenBeginOffset()) {
+                res.append("[");
+                if (entityValue != null && !entityValue.isEmpty()) {
+                    res.append(entityValue);
+                    res.append(":");
+                }
+            }
+            res.append(document.getToken(token).getText());
+        }
+        return res.toString();
+    }
 }
