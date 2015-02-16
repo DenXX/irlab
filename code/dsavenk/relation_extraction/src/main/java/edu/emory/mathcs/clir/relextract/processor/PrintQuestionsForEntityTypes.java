@@ -46,7 +46,7 @@ public class PrintQuestionsForEntityTypes extends Processor {
         for (Document.Span span : document.getSpanList()) {
             if (!span.getNerType().equals("NONE") && span.hasEntityId()) {
                 for (Document.Mention mention : span.getMentionList()) {
-                    if (mention.getSentenceIndex() < questionSentences) {
+                    if (!mention.getType().equals("OTHER") && mention.getSentenceIndex() < questionSentences) {
                         int count = 0;
                         String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getEntityId());
                         if (entityTypes_.containsKey(span.getEntityId())) {
