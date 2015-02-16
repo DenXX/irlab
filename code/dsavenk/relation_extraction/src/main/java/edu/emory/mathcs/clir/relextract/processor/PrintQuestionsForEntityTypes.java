@@ -48,13 +48,10 @@ public class PrintQuestionsForEntityTypes extends Processor {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentences) {
                         int count = 0;
-                        for (String entityId : span.getCandidateEntityIdList()) {
-                            if (count++ >= 5) break;
-                            String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, entityId);
-                            if (entityTypes_.containsKey(entityId)) {
-                                for (String type : entityTypes_.get(entityId)) {
-                                    System.out.println(type + "\t" + text);
-                                }
+                        String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getEntityId());
+                        if (entityTypes_.containsKey(span.getEntityId())) {
+                            for (String type : entityTypes_.get(span.getEntityId())) {
+                                System.out.println(type + "\t" + text);
                             }
                         }
                     }
