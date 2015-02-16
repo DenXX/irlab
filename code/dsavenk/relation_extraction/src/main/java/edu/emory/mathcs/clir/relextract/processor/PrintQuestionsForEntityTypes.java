@@ -44,7 +44,7 @@ public class PrintQuestionsForEntityTypes extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         int questionSentences = DocumentUtils.getQuestionSentenceCount(document);
         for (Document.Span span : document.getSpanList()) {
-            if (span.hasNerType() && span.hasEntityId()) {
+            if (!span.getNerType().equals("NONE") && span.hasEntityId()) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentences) {
                         int count = 0;
