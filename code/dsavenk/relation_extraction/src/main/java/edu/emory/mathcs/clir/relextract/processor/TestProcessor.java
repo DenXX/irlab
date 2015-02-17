@@ -43,13 +43,12 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-        if (document.getText().contains("Trans")) return document;
-        return null;
-//        for (Document.Span span : document.getSpanList()) {
-//            for (int i = 0; i < Math.min(5, span.getCandidateEntityIdCount()); ++i) {
-//                System.out.println(span.getCandidateEntityId(i));
-//            }
-//        }
+        for (Document.Span span : document.getSpanList()) {
+            if (!span.getNerType().equals("OTHER") && !span.getNerType().equals("NONE")) {
+                System.out.println(span.getNerType());
+            }
+        }
+        return document;
 //
 //        return document;
 //        ++total;

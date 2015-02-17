@@ -517,7 +517,9 @@ public class KnowledgeBase {
                             if (eq) {
                                 res.add(new Triple(triple));
                             }
-                        } catch (DatatypeFormatException exc) {} // Skipping format exceptions.
+                        } catch (DatatypeFormatException exc) {
+                            exc.printStackTrace();
+                        } // Skipping format exceptions.
                     }
                 }
                 return res;

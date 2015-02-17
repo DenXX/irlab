@@ -14,6 +14,8 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
+import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.trees.GrammaticalRelation;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.Interval;
@@ -84,7 +86,8 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
+        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, depparse";
+        //return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
         //return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, moddcoref";
     }
 
@@ -194,6 +197,15 @@ public class StanfordCoreNlpProcessor extends Processor {
                     }
                 }
             }
+
+            // Saving the full graph
+            if (sentence.has(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class)) {
+                SemanticGraph graph = sentence.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
+                for (SemanticGraphEdge edge : graph.edgeIterable()) {
+                    sentBuilder.addDependencyEdgeBuilder().setSource(
+                            edge.getSource().index()).setTarget(edge.getTarget().index()).setLabel(edge.getRelation().getShortName());
+                }
+            }
         }
 
         // Process spans and coreference clusters.
@@ -277,7 +289,7 @@ public class StanfordCoreNlpProcessor extends Processor {
                 final String ner = span.get(
                         CoreAnnotations.NamedEntityTagAnnotation.class);
                 String type;
-                if (ner.matches("QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET")) {
+                if (ner.matches("QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET|NUMBER|ORDINAL")) {
                     type = "MEASURE";
                 } else {
                     type = "ENTITY";

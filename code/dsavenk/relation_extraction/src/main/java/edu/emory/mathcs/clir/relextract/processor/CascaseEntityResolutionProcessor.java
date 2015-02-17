@@ -8,9 +8,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.*;
 import org.apache.lucene.search.spell.SpellChecker;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -48,6 +46,8 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private AtomicInteger resolved = new AtomicInteger(0);
     private QueryBuilder queryBuilder_ = new QueryBuilder(
             new StandardAnalyzer(new CharArraySet(0, true)));
+    private Sort sort_ = new Sort(SortField.FIELD_SCORE,
+            new SortField("triple_count", SortField.Type.LONG, true));
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -90,6 +90,11 @@ public class CascaseEntityResolutionProcessor extends Processor {
             span.clearCandidateEntityScore();
             span.clearEntityId();
             // Do not try resolve measures.
+            if (span.getNerType().equals("NUMBER") ||
+                    span.getNerType().equals("ORDINAL")) {
+                span.setType("MEASURE");
+            }
+
             boolean isNamedEntity = "ENTITY".equals(span.getType());
             boolean isOtherEntity = "OTHER".equals(span.getType());
             if (isNamedEntity || isOtherEntity) {
@@ -229,26 +234,30 @@ public class CascaseEntityResolutionProcessor extends Processor {
         // This can happen if query doesn't really contain any terms.
         if (q == null) return emptyList_;
 
+        TopDocs topDocs = null;
         try {
-            docs = searcher_.search(q, 50).scoreDocs;
+            topDocs = searcher_.search(q, MAX_PHRASE_IDS, sort_);
+            docs = topDocs.scoreDocs;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         List<Pair<String, Float>> counts = new ArrayList<>();
         long maxCount = 1;
+        float maxScore = (docs.length > 0) ? (float)((FieldDoc)docs[0]).fields[0] : 0;
         for (ScoreDoc doc : docs) {
             try {
                 org.apache.lucene.document.Document document =
                         searcher_.doc(doc.doc);
 
-                if (doc.score < docs[0].score * stopDocScoreDiff ||
+                float score = (float)((FieldDoc)doc).fields[0];
+                if (score < maxScore * stopDocScoreDiff ||
                         (checkWordsCount &&
                                 1.0 * document.get("name").split("\\s+").length /
                                         name.split("\\s+").length < 0.6)) {
                     break;
                 }
-                long count = Long.parseLong(document.get("triple_count"));
+                long count = (long)((FieldDoc)doc).fields[1];
                 maxCount = Math.max(maxCount, count);
                 String id = document.get("id");
                 counts.add(new Pair<>(id, (float)count));
