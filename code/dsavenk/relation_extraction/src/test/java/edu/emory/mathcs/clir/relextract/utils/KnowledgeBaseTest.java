@@ -1,6 +1,9 @@
 package edu.emory.mathcs.clir.relextract.utils;
 
+import org.junit.Assert;
+
 import java.util.Properties;
+import java.util.Set;
 
 public class KnowledgeBaseTest {
 
@@ -62,12 +65,12 @@ public class KnowledgeBaseTest {
 //
 //    }
 
-//    @org.junit.Test
-//    public void testGetSubjectTriples2() throws Exception {
-//        Set<KnowledgeBase.Triple> triples =
-//                kb_.getSubjectObjectTriplesCVT("/m/09b6zr", "/m/04g8d");
-//        Assert.assertTrue(triples.isEmpty());
-//    }
+    @org.junit.Test
+    public void testGetSubjectTriples2() throws Exception {
+        Set<KnowledgeBase.Triple> triples =
+                kb_.getSubjectObjectTriplesCVT("/m/09b6zr", "/m/04g8d");
+        Assert.assertTrue(triples.isEmpty());
+    }
 
 //    @Test
 //    public void testSpellCheck() throws IOException, ParseException {

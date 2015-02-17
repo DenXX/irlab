@@ -38,30 +38,36 @@ public class DeserializerBatchInputProvider implements Iterable<Document.NlpDocu
                 readInputObject();
         }
 
-        private boolean openNextInputStream() throws IOException {
-            if (input_ != null) input_.close();
-            String nextBatchName = inputName_ + "_" + currentBatch_;
-            if (!new File(nextBatchName).exists()) return false;
-            input_ = new BufferedInputStream(
-                    new GZIPInputStream(new FileInputStream(nextBatchName)));
-            ++currentBatch_;
+        private boolean openNextInputStream() {
+            try {
+                if (input_ != null) {
+                    input_.close();
+                }
+                String nextBatchName = inputName_ + "_" + currentBatch_;
+                if (!new File(nextBatchName).exists()) return false;
+                input_ = new BufferedInputStream(
+                        new GZIPInputStream(new FileInputStream(nextBatchName)));
+                ++currentBatch_;
+            } catch (IOException e) {
+                return false;
+            }
             return true;
         }
 
         private void readInputObject() {
             try {
-                try {
-                    currentObject_ = Document.NlpDocument.parseDelimitedFrom(input_);
-                } finally {
-                    if (currentObject_ == null) {
-                        if (openNextInputStream()) {
-                            readInputObject();
-                        }
+                currentObject_ = Document.NlpDocument.parseDelimitedFrom(input_);
+            } catch (Exception ex) {
+                currentObject_ = null;
+            }
+            finally {
+                if (currentObject_ == null) {
+                    if (openNextInputStream()) {
+                        readInputObject();
+                    } else {
+                        currentObject_ = null;
                     }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                currentObject_ = null;
             }
         }
 

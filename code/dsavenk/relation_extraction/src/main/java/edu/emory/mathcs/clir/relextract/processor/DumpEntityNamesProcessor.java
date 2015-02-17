@@ -31,7 +31,9 @@ public class DumpEntityNamesProcessor extends Processor {
                 .forEach(span -> {
                     System.out.println(PTBTokenizer.ptb2Text(span.getText()));
                     for (Document.Mention mention : span.getMentionList()) {
-                        System.out.println(PTBTokenizer.ptb2Text(mention.getText()));
+                        synchronized (this) {
+                            System.out.println(PTBTokenizer.ptb2Text(mention.getText()));
+                        }
                     }
                 });
         return null;

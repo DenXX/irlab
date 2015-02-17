@@ -52,6 +52,8 @@ public class KnowledgeBase {
      * @param location Location of the Apache Jena model of the KB.
      */
     private KnowledgeBase(String location) {
+
+//        Dataset dataset = new virtuoso.jena.driver.VirtDataset("jdbc:virtuoso://localhost:3093", "dba", "dba");
         Dataset dataset = TDBFactory.createDataset(location);
         dataset.begin(ReadWrite.READ);
         model_ = dataset.getDefaultModel();

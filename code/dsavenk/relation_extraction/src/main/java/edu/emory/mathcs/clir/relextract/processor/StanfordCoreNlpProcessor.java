@@ -99,6 +99,7 @@ public class StanfordCoreNlpProcessor extends Processor {
             System.err.println(exc);
             return null;
         }
+
         Document.NlpDocument.Builder docBuilder = document.toBuilder();
         docBuilder.clearRelation();
         docBuilder.clearSpan();
