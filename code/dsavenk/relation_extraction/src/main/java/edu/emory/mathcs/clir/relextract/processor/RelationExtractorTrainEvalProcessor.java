@@ -496,6 +496,16 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         });
                 mention = mentionInstance.build();
             }
+            /* Print prediction scores */
+            synchronized (this) {
+                for (Dataset.Triple triple : mentionInstance.getTripleList()) {
+                    System.out.print(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject().replace("\t", " ").replace("\n", " "));
+                    for (Map.Entry<String, Double> e : scores.entrySet()) {
+                        System.out.print("\t" + e.getKey() + ":" + e.getValue());
+                    }
+                    System.out.println();
+                }
+            }
             processPrediction(mention, prediction);
         }
     }
