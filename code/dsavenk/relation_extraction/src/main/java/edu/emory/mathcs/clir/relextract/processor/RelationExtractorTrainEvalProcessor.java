@@ -8,7 +8,7 @@ import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -118,6 +118,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private ConcurrentMap<Integer, Integer> featureCount_ = new ConcurrentHashMap<>();
     private final KnowledgeBase kb_;
 
+
     private Random rnd_ = new Random(42);
 
     /**
@@ -187,8 +188,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (properties.containsKey(MIN_FEATURE_COUNT_PARAMETER)) {
             Parameters.MIN_FEATURE_COUNT = Integer.parseInt(properties.getProperty(MIN_FEATURE_COUNT_PARAMETER));
         }
-        kb_ = KnowledgeBase.getInstance(properties);
 
+        kb_ = KnowledgeBase.getInstance(properties);
     }
 
     private ExtractionModel createExtractionModel(String modelName, Properties props) throws Exception {

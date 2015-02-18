@@ -13,6 +13,10 @@ import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -30,6 +34,8 @@ public class KnowledgeBase {
 
     public static final String CVT_PREDICATE_LIST_PARAMETER = "cvt";
 
+    public static final String ENTITY_TYPES_PARAMETER = "entity_types";
+
     /**
      * Prefix of Freebase RDF.
      */
@@ -44,6 +50,7 @@ public class KnowledgeBase {
             Collections.synchronizedMap(new LRUMap<>(100000000));
     private Map<String, Pair<String, String>> domainRangeCache_ =
             new ConcurrentHashMap<>();
+    private Map<String, List<String>> entityTypes_ = new HashMap<>();
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -103,7 +110,26 @@ public class KnowledgeBase {
         if (kb_ == null) {
             kb_ = new KnowledgeBase(props.getProperty(KB_PROPERTY));
         }
+        if (props.containsKey(ENTITY_TYPES_PARAMETER)) {
+            try {
+                kb_.readEntityTypes(props.getProperty(ENTITY_TYPES_PARAMETER));
+            } catch (Exception ex) {
+                System.err.println("Cannot read entity types file");
+                kb_.entityTypes_ = null;
+            }
+        }
+
         return kb_;
+    }
+
+    private void readEntityTypes(String entityTypesFilePath) throws IOException {
+        BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(entityTypesFilePath)));
+        String line;
+        while ((line = input.readLine()) != null) {
+            String[] fields = line.split("\t");
+            entityTypes_.put(fields[0], Arrays.asList(fields).subList(1, fields.length));
+        }
+        input.close();
     }
 
     private String getEntityName(String mid) {
@@ -125,6 +151,9 @@ public class KnowledgeBase {
     }
 
     public List<String> getEntityTypes(String mid, boolean notable) {
+        if (!notable && entityTypes_ != null && entityTypes_.containsKey(mid)) {
+            return entityTypes_.get(mid);
+        }
         String typeProperty = notable ? "common.topic.notable_types" : "type.object.type";
         List<String> types = new ArrayList<>();
         // TODO(denxx): This is a dirty hack to detect measures vs entities.

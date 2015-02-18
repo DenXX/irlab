@@ -154,6 +154,11 @@ public class AppParameters {
                 .withDescription("File with entity id -> types mapping").create(
                         PrintQuestionsForEntityTypes.ENTITY_TYPES_PARAMETER));
 
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(KnowledgeBase.ENTITY_TYPES_PARAMETER)
+                .withDescription("File with entity id -> types mapping").create(
+                        KnowledgeBase.ENTITY_TYPES_PARAMETER));
+
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)
