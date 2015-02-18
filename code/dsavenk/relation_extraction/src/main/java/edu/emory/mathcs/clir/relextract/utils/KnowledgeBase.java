@@ -146,9 +146,9 @@ public class KnowledgeBase {
         return "";
     }
 
-    public List<String> getAllPossibleSpanTypes(Document.Span span, int idsToTry) {
+    public Set<String> getAllPossibleSpanTypes(Document.Span span, int idsToTry) {
         int count = 0;
-        List<String> res = new ArrayList<>();
+        Set<String> res = new HashSet<>();
         for (String mid : span.getCandidateEntityIdList()) {
             if (count++ > idsToTry) break;
             res.addAll(getEntityTypes(mid));

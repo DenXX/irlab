@@ -440,8 +440,14 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
 
-                            List<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
-                            List<String> objTypes = objSpan.getType().equals("MEASURE") ? Arrays.asList(new String[] {objSpan.getNerType()}) : kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                            Set<String> objTypes = null;
+                            if (objSpan.getType().equals("MEASURE")) {
+                                objTypes = new HashSet<>();
+                                objTypes.add(objSpan.getNerType());
+                            } else {
+                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                            }
                             for (String subjType : subjTypes) {
                                 for (String objType : objTypes) {
                                     features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
