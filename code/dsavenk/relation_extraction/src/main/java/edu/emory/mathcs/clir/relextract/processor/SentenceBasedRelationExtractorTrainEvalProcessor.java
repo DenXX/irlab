@@ -71,8 +71,12 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
             features.add("DEP_PATH_PIVOT:\t" + pathPivot);
         }
 
-        for (String questionLemma : DocumentUtils.getQuestionLemmas(document)) {
-            features.add("QUESTION_LEMMA:\t" + questionLemma);
+        for (int questionSentenceIndex = 0; questionSentenceIndex < document.getSentenceCount()
+                && document.getToken(document.getSentence(questionSentenceIndex).getFirstToken()).getBeginCharOffset() < document.getQuestionLength(); questionSentenceIndex++) {
+            String questionPivot = NlpUtils.getSentencePivot(document, questionSentenceIndex);
+            if (questionPivot != null) {
+                features.add("QUESTION_PIVOT:\t" + questionPivot);
+            }
         }
 
         for (Document.Attribute attr : document.getAttributeList()) {

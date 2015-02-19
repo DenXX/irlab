@@ -83,6 +83,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final int TRAIN_SIZE_FROM_100 = 75;
 
+    private final Set<String> typesOfInterest_;
+
     private float negativeSubsampleRate = 0.99f;
 
     private float regularization_ = 0.5f;
@@ -190,6 +192,12 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
 
         kb_ = KnowledgeBase.getInstance(properties);
+
+        typesOfInterest_ = new HashSet<>();
+        for (String pred : predicates_) {
+            typesOfInterest_.add(kb_.getPredicateDomainAndRange(pred).first);
+            typesOfInterest_.add(kb_.getPredicateDomainAndRange(pred).second);
+        }
     }
 
     private ExtractionModel createExtractionModel(String modelName, Properties props) throws Exception {
@@ -297,10 +305,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     }
 
     private void processPrediction(Dataset.RelationMentionInstance instance,
-                                   Pair<String, Double> predictedLabel) {
+                                   Pair<String, Double> predictedLabel, Map<String, Double> scores) {
         for (Dataset.Triple curTriple : instance.getTripleList()) {
-            Pair<String, String> arguments = new Pair<>(
-                    curTriple.getSubject(), curTriple.getObject());
+//            Pair<String, String> arguments = new Pair<>(
+//                    curTriple.getSubject(), curTriple.getObject());
 
             // We do not need to store triples that are non-related and
             // classifier predicts the same.
@@ -308,16 +316,29 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     && predictedLabel.first.equals(NO_RELATIONS_LABEL)) {
                 continue;
             }
-            if (!triplesLabels_.containsKey(arguments)) {
-                triplesLabels_.put(arguments, new HashSet<>());
-                extractedTriples_.put(arguments, new HashMap<>());
+
+            /* Print prediction scores */
+            synchronized (this) {
+                for (Dataset.Triple triple : instance.getTripleList()) {
+                    System.out.print(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject().replace("\t", " ").replace("\n", " "));
+                    System.out.print("\t" + predictedLabel.first + "\t" + predictedLabel.second);
+                    for (Map.Entry<String, Double> e : scores.entrySet()) {
+                        System.out.print("\t" + e.getKey() + ":" + e.getValue());
+                    }
+                    System.out.println();
+                }
             }
-            triplesLabels_.get(arguments).add(curTriple.getPredicate());
-            double prevValue = extractedTriples_.get(arguments).containsKey(predictedLabel.first)
-                    ? extractedTriples_.get(arguments).get(predictedLabel.first)
-                    : Double.NEGATIVE_INFINITY;
-            extractedTriples_.get(arguments).put(predictedLabel.first,
-                    Math.max(prevValue, predictedLabel.second));
+
+//            if (!triplesLabels_.containsKey(arguments)) {
+//                triplesLabels_.put(arguments, new HashSet<>());
+//                extractedTriples_.put(arguments, new HashMap<>());
+//            }
+//            triplesLabels_.get(arguments).add(curTriple.getPredicate());
+//            double prevValue = extractedTriples_.get(arguments).containsKey(predictedLabel.first)
+//                    ? extractedTriples_.get(arguments).get(predictedLabel.first)
+//                    : Double.NEGATIVE_INFINITY;
+//            extractedTriples_.get(arguments).put(predictedLabel.first,
+//                    Math.max(prevValue, predictedLabel.second));
         }
 
         if (debug_) {
@@ -440,14 +461,19 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
 
-                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+                                    .stream()
+                                    .filter(typesOfInterest_::contains).collect(Collectors.toSet());
                             Set<String> objTypes = null;
                             if (objSpan.getType().equals("MEASURE")) {
                                 objTypes = new HashSet<>();
-                                objTypes.add(objSpan.getNerType());
+                                objTypes.add("http://rdf.freebase.com/ns/type.datetime");
                             } else {
-                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT);
+                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+                                        .stream()
+                                        .filter(typesOfInterest_::contains).collect(Collectors.toSet());
                             }
+
                             for (String subjType : subjTypes) {
                                 for (String objType : objTypes) {
                                     features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
@@ -510,17 +536,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         });
                 mention = mentionInstance.build();
             }
-            /* Print prediction scores */
-            synchronized (this) {
-                for (Dataset.Triple triple : mentionInstance.getTripleList()) {
-                    System.out.print(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject().replace("\t", " ").replace("\n", " "));
-                    for (Map.Entry<String, Double> e : scores.entrySet()) {
-                        System.out.print("\t" + e.getKey() + ":" + e.getValue());
-                    }
-                    System.out.println();
-                }
-            }
-            processPrediction(mention, prediction);
+
+            processPrediction(mention, prediction, scores);
         }
     }
 
@@ -695,11 +712,19 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     protected boolean continueWithObjectSpan(Document.Span subjSpan,
                                              Document.Span objSpan) {
-        return (objSpan.hasEntityId() &&
+        if ((objSpan.hasEntityId() &&
                 !objSpan.getEntityId().equals(subjSpan.getEntityId())
                 && objSpan.getCandidateEntityScore(0) > 0.05)
                 || (objSpan.getType().equals("MEASURE")
                     && (objSpan.getNerType().equals("DATE")
-                    || objSpan.getNerType().equals("TIME")));
+                    || objSpan.getNerType().equals("TIME")))) {
+            for (String pred : predicates_) {
+                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
+                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

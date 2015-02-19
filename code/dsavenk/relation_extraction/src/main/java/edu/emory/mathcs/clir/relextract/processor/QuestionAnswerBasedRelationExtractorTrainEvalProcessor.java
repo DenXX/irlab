@@ -180,12 +180,13 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             features.add("QUESTION_PIVOT:\t" + questionPivot);
         }
         for (String qword : NlpUtils.getQuestionWords(document, questionSentenceIndex)) {
-            features.add("QUESTION_WORD:\t" + qword);
+//            features.add("QUESTION_WORD:\t" + qword);
+            features.add("QUESTION_WORD_PIVOT:\t" + qword + "_" + questionPivot);
         }
 
-        for (String questionLemma : DocumentUtils.getQuestionLemmas(document)) {
-            features.add("QUESTION_LEMMA:\t" + questionLemma);
-        }
+//        for (String questionLemma : DocumentUtils.getQuestionLemmas(document)) {
+//            features.add("QUESTION_LEMMA:\t" + questionLemma);
+//        }
     }
 
     private void addQuestionAnswerPathFeatures(Document.NlpDocument document, int questionSentenceIndex,

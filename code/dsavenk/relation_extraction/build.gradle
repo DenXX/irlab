@@ -4,12 +4,12 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.8
 version = '2.0'
-mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
+//mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.FreebaseLexiconLuceneIndexBuilder'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessWikipedia2Freebase'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.ProcessCrossWikisDictionary'
 //mainClassName = 'edu.emory.mathcs.clir.relextract.tools.LnrmEntityNameConverter'
-//mainClassName = 'edu.emory.mathcs.clir.relextract.tools.EntityTypeLookupApp'
+mainClassName = 'edu.emory.mathcs.clir.relextract.tools.EntityTypeLookupApp'
 
 //applicationDefaultJvmArgs = ["-Xmx8g"]
 
@@ -66,9 +66,6 @@ buildscript {
 }
 
 dependencies {
-    // Including MIML-RE
-    compile name: 'mimlre-2012-11-27'
-
     compile name: 'stanford-srparser-2014-10-23-models'
     compile name: 'stanford-corenlp-caseless-2014-02-25-models'
     compile name: 'virt_jena2'
@@ -92,6 +89,9 @@ dependencies {
     compile group: 'org.apache.jena', name: 'apache-jena-libs', version: '2.12.0'
     // Added because of java.lang.NoClassDefFoundError: org/w3c/dom/ElementTraversal
     compile group: 'org.apache.xmlgraphics', name: 'batik-ext', version: '1.7'
+
+    // Including MIML-RE
+    compile name: 'mimlre-2012-11-27'
 
 
     testCompile group: 'junit', name: 'junit', version: '4.11'

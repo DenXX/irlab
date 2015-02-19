@@ -206,6 +206,7 @@ public class KnowledgeBase {
         return res;
     }
 
+    @Deprecated
     public boolean isTripleTypeCompatible(Triple triple) {
         Pair<String, String> domainAndRange = getPredicateDomainAndRange(triple.predicate);
         boolean isSubjOk = false;
@@ -222,22 +223,55 @@ public class KnowledgeBase {
         return false;
     }
 
+    public boolean isTripleTypeCompatible(String subj, String predicate, String obj) {
+        Pair<String, String> domainAndRange = getPredicateDomainAndRange(predicate);
+        boolean isSubjOk = false;
+        for (String type : getEntityTypes(subj)) {
+            if (type.equals(domainAndRange.first)) {
+                isSubjOk = true;
+            }
+        }
+        if (isSubjOk) {
+            for (String type : getEntityTypes(obj)) {
+                if (type.equals(domainAndRange.second)) return true;
+            }
+        }
+        return false;
+    }
+
     public KnowledgeBase.Triple getTypeCompatibleTripleOrNull(Document.NlpDocument document, int subjectSpan, int objectSpan, String predicate, int maxIdsPerEntity) {
-        for (int i = 0; i < Math.min(maxIdsPerEntity, document.getSpan(subjectSpan).getCandidateEntityIdCount()); ++i) {
-            String subjMid = document.getSpan(subjectSpan).getCandidateEntityId(i);
-            if (document.getSpan(objectSpan).getType().equals("MEASURE")) {
-                KnowledgeBase.Triple triple = new KnowledgeBase.Triple(subjMid, predicate, document.getSpan(objectSpan).getValue());
-                if (isTripleTypeCompatible(triple)) return triple;
+        return getTypeCompatibleTripleOrNull(document.getSpan(subjectSpan), document.getSpan(objectSpan), predicate, maxIdsPerEntity);
+    }
+
+    public KnowledgeBase.Triple getTypeCompatibleTripleOrNull(Document.Span subjectSpan, Document.Span objectSpan, String predicate, int maxIdsPerEntity) {
+        for (int i = 0; i < Math.min(maxIdsPerEntity, subjectSpan.getCandidateEntityIdCount()); ++i) {
+            String subjMid = subjectSpan.getCandidateEntityId(i);
+            if (objectSpan.getType().equals("MEASURE")) {
+                if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getValue())) return new KnowledgeBase.Triple(subjMid, predicate, objectSpan.getValue());;
             } else {
-                for (int j = 0; j < Math.min(maxIdsPerEntity, document.getSpan(objectSpan).getCandidateEntityIdCount()); ++j) {
-                    String objMid = document.getSpan(objectSpan).getCandidateEntityId(j);
-                    Triple triple = new Triple(subjMid, predicate, objMid);
-                    if (isTripleTypeCompatible(triple))
-                        return triple;
+                for (int j = 0; j < Math.min(maxIdsPerEntity, objectSpan.getCandidateEntityIdCount()); ++j) {
+                    String objMid = objectSpan.getCandidateEntityId(j);
+                    if (isTripleTypeCompatible(subjMid, predicate, objMid))
+                        return new Triple(subjMid, predicate, objMid);
                 }
             }
         }
         return null;
+    }
+
+    public boolean hasTypeCompatibleTriple(Document.Span subjectSpan, Document.Span objectSpan, String predicate, int maxIdsPerEntity) {
+        for (int i = 0; i < Math.min(maxIdsPerEntity, subjectSpan.getCandidateEntityIdCount()); ++i) {
+            String subjMid = subjectSpan.getCandidateEntityId(i);
+            if (objectSpan.getType().equals("MEASURE")) {
+                if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getValue())) return true;
+            } else {
+                for (int j = 0; j < Math.min(maxIdsPerEntity, objectSpan.getCandidateEntityIdCount()); ++j) {
+                    if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getCandidateEntityId(j)))
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     private String convertFreebaseMidRdf(String mid) {
