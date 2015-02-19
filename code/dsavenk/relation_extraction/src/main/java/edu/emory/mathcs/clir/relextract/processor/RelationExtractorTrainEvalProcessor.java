@@ -717,7 +717,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     objSpan.getType().equals("OTHER"))) {
                 return false;
             }
-
+            return true;
 
             // Commenting this out for now...
 //            for (String pred : predicates_) {
