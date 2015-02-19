@@ -275,27 +275,28 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
             model_.train(trainDataset_.build());
             model_.save(modelFilename_);
         } else {
-            for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples_.entrySet()) {
-                if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
-                    preds.getValue().remove("NONE");
-                }
-                for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
-                    if (triplesLabels_.get(preds.getKey()).contains(pred.getKey())) {
-                        System.out.println((pred.getKey() + "\t" +
-                                preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
-                    } else {
-                        // TODO(denxx): This is probably incorrect piece of code.
-                        for (String label : triplesLabels_.get(preds.getKey())) {
-                            if (!preds.getValue().containsKey(label)) {
-                                System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
-                                        preds.getKey().first + "-" + preds.getKey().second + "\t"
-                                        + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
-                            }
-                        }
-                    }
-                }
-            }
+            // We are just dumping all predictions and reading them later.
+//            for (Map.Entry<Pair<String, String>, Map<String, Double>> preds : extractedTriples_.entrySet()) {
+//                if (preds.getValue().size() > 1 && preds.getValue().containsKey("NONE")) {
+//                    preds.getValue().remove("NONE");
+//                }
+//                for (Map.Entry<String, Double> pred : preds.getValue().entrySet()) {
+//                    if (triplesLabels_.get(preds.getKey()).contains(pred.getKey())) {
+//                        System.out.println((pred.getKey() + "\t" +
+//                                preds.getKey().first + "-" + preds.getKey().second + "\t"
+//                                + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+//                    } else {
+//                        // TODO(denxx): This is probably incorrect piece of code.
+//                        for (String label : triplesLabels_.get(preds.getKey())) {
+//                            if (!preds.getValue().containsKey(label)) {
+//                                System.out.println(((label.isEmpty() ? "NONE" : label) + "\t" +
+//                                        preds.getKey().first + "-" + preds.getKey().second + "\t"
+//                                        + pred.getKey() + "\t" + pred.getValue()).replace("\n", " "));
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
         // Write dataset to a file.
 //        trainDataset_.build().writeDelimitedTo(
@@ -715,9 +716,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if ((objSpan.hasEntityId() &&
                 !objSpan.getEntityId().equals(subjSpan.getEntityId())
                 && objSpan.getCandidateEntityScore(0) > 0.05)
-                || (objSpan.getType().equals("MEASURE")
-                    && (objSpan.getNerType().equals("DATE")
-                    || objSpan.getNerType().equals("TIME")))) {
+                || ("MEASURE".equals(objSpan.getType())
+                    && ("DATE".equals(objSpan.getNerType())
+                    || "TIME".equals(objSpan.getNerType())))) {
             for (String pred : predicates_) {
                 if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
                         EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
