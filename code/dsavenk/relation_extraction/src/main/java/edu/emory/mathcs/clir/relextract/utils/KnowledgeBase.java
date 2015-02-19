@@ -217,7 +217,7 @@ public class KnowledgeBase {
             }
         }
         if (isSubjOk) {
-            types = getEntityTypes(triple.subject);
+            types = getEntityTypes(triple.object);
             for (int i = 0; i < types.size(); ++i) {
                 if (types.get(i).equals(domainAndRange.second)) return true;
             }
@@ -228,14 +228,16 @@ public class KnowledgeBase {
     public boolean isTripleTypeCompatible(String subj, String predicate, String obj) {
         Pair<String, String> domainAndRange = getPredicateDomainAndRange(predicate);
         boolean isSubjOk = false;
-        for (String type : getEntityTypes(subj)) {
-            if (type.equals(domainAndRange.first)) {
+        List<String> types = getEntityTypes(subj);
+        for (int i = 0; i < types.size(); ++i) {
+            if (types.get(i).equals(domainAndRange.first)) {
                 isSubjOk = true;
             }
         }
         if (isSubjOk) {
-            for (String type : getEntityTypes(obj)) {
-                if (type.equals(domainAndRange.second)) return true;
+            types = getEntityTypes(obj);
+            for (int i = 0; i < types.size(); ++i) {
+                if (types.get(i).equals(domainAndRange.second)) return true;
             }
         }
         return false;
