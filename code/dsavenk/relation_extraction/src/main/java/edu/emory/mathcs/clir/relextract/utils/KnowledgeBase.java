@@ -210,14 +210,16 @@ public class KnowledgeBase {
     public boolean isTripleTypeCompatible(Triple triple) {
         Pair<String, String> domainAndRange = getPredicateDomainAndRange(triple.predicate);
         boolean isSubjOk = false;
-        for (String type : getEntityTypes(triple.subject)) {
-            if (type.equals(domainAndRange.first)) {
+        List<String> types = getEntityTypes(triple.subject);
+        for (int i = 0; i < types.size(); ++i) {
+            if (types.get(i).equals(domainAndRange.first)) {
                 isSubjOk = true;
             }
         }
         if (isSubjOk) {
-            for (String type : getEntityTypes(triple.object)) {
-                if (type.equals(domainAndRange.second)) return true;
+            types = getEntityTypes(triple.subject);
+            for (int i = 0; i < types.size(); ++i) {
+                if (types.get(i).equals(domainAndRange.second)) return true;
             }
         }
         return false;
