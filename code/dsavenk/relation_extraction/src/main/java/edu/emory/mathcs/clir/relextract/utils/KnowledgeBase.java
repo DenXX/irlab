@@ -167,7 +167,7 @@ public class KnowledgeBase {
         String typeProperty = notable ? "common.topic.notable_types" : "type.object.type";
         List<String> types = new ArrayList<>();
         // TODO(denxx): This is a dirty hack to detect measures vs entities.
-        if (mid.startsWith("/")) {
+        if (mid.charAt(0) == '/') {
             StmtIterator iter = model_.listStatements(model_.getResource(convertFreebaseMidRdf(mid)),
                     model_.getProperty(FREEBASE_RDF_PREFIX, typeProperty), (RDFNode) null);
             while (iter.hasNext())
@@ -261,12 +261,11 @@ public class KnowledgeBase {
 
     public boolean hasTypeCompatibleTriple(Document.Span subjectSpan, Document.Span objectSpan, String predicate, int maxIdsPerEntity) {
         for (int i = 0; i < Math.min(maxIdsPerEntity, subjectSpan.getCandidateEntityIdCount()); ++i) {
-            String subjMid = subjectSpan.getCandidateEntityId(i);
-            if (objectSpan.getType().equals("MEASURE")) {
-                if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getValue())) return true;
+            if ("MEASURE".equals(objectSpan.getType())) {
+                if (isTripleTypeCompatible(subjectSpan.getCandidateEntityId(i), predicate, objectSpan.getValue())) return true;
             } else {
                 for (int j = 0; j < Math.min(maxIdsPerEntity, objectSpan.getCandidateEntityIdCount()); ++j) {
-                    if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getCandidateEntityId(j)))
+                    if (isTripleTypeCompatible(subjectSpan.getCandidateEntityId(i), predicate, objectSpan.getCandidateEntityId(j)))
                         return true;
                 }
             }
@@ -275,7 +274,7 @@ public class KnowledgeBase {
     }
 
     private String convertFreebaseMidRdf(String mid) {
-        if (mid.startsWith("/")) mid = mid.substring(1);
+        if (mid.charAt(0) == '/') mid = mid.substring(1);
         return FREEBASE_RDF_PREFIX + mid.replace("/", ".");
     }
 
