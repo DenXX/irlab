@@ -159,6 +159,11 @@ public class AppParameters {
                 .withDescription("File with entity id -> types mapping").create(
                         KnowledgeBase.ENTITY_TYPES_PARAMETER));
 
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.NOSPLIT_DATASET_PARAMETER)
+                        .withDescription("Split dataset for training and testing").create(
+                                RelationExtractorTrainEvalProcessor.NOSPLIT_DATASET_PARAMETER));
+
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)

@@ -76,6 +76,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String SERIALIZED_MODEL_PARAMETER = "model";
 
+    public static final String NOSPLIT_DATASET_PARAMETER = "dataset_nosplit";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -98,6 +100,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private boolean debug_ = false;
 
     private boolean nerOnly_ = false;
+
+    private boolean splitDataset_ = true;
 
     private String modelType_ = "StanfordL2LogReg";
 
@@ -189,6 +193,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
         if (properties.containsKey(MIN_FEATURE_COUNT_PARAMETER)) {
             Parameters.MIN_FEATURE_COUNT = Integer.parseInt(properties.getProperty(MIN_FEATURE_COUNT_PARAMETER));
+        }
+        if (properties.containsKey(NOSPLIT_DATASET_PARAMETER)) {
+            splitDataset_ = false;
         }
 
         kb_ = KnowledgeBase.getInstance(properties);
@@ -364,10 +371,10 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 : (document.getText().hashCode() % 100) < TRAIN_SIZE_FROM_100;
 
         // If model is specified we only keep testing instances and vice versa.
-        if (isTraining_ != isDocumentInTraining) return;
+        if (isTraining_ != isDocumentInTraining && splitDataset_) return;
 
         Map<Pair<Integer, Integer>, List<Triple<String, String, String>>> spans2Labels =
-                getSpanPairLabels(document, isDocumentInTraining, splitTrainTestTriples_);
+                getSpanPairLabels(document, isTraining_, splitTrainTestTriples_);
 
         List<Dataset.RelationMentionInstance.Builder> currentDocInstances = new ArrayList<>();
 
