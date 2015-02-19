@@ -607,13 +607,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         String subjMentionType = subjSpan.getMention(subjMention).getMentionType();
         String objMentionType = objSpan.getMention(objMention).getMentionType();
 
-        // Should we only keep NER mentions.
-        boolean subjIsNer = !subjSpan.getMention(subjMention).getType().equals("OTHER");
-        boolean objIsNer = !objSpan.getMention(objMention).getType().equals("OTHER");
-        if (nerOnly_ && (!subjIsNer || !objIsNer)) {
-            return false;
-        }
-
         boolean subjTypeOk = mentionTypes_ == null;
         boolean objTypeOk = mentionTypes_ == null;
         if (mentionTypes_ != null) {
@@ -719,12 +712,20 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                 || ("MEASURE".equals(objSpan.getType())
                     && ("DATE".equals(objSpan.getNerType())
                     || "TIME".equals(objSpan.getNerType())))) {
-            for (String pred : predicates_) {
-                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
-                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
-                    return true;
-                }
+
+            if (nerOnly_ && (subjSpan.getType().equals("OTHER") ||
+                    objSpan.getType().equals("OTHER"))) {
+                return false;
             }
+
+
+            // Commenting this out for now...
+//            for (String pred : predicates_) {
+//                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
+//                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
+//                    return true;
+//                }
+//            }
         }
         return false;
     }
