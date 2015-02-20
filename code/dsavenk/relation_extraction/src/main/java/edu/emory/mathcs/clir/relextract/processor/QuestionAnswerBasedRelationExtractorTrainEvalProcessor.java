@@ -20,6 +20,8 @@ import java.util.*;
 public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         extends RelationExtractorTrainEvalProcessor {
 
+    private static final int MAX_TOKEN_GAP = 100;
+
     /**
      * Creates an instance of the SentenceBasedRelationExtractorTrainerProcessor
      * class.
@@ -320,8 +322,11 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
             private boolean isMentionOk() {
                 // One of the spans should be in the question and the other in
                 // the answer.
+                int minEnd = Math.min(subjectSpan_.getMention(currentSubjectMention_).getTokenEndOffset(), objectSpan_.getMention(currentObjectMention_).getTokenEndOffset());
+                int maxBegin = Math.max(subjectSpan_.getMention(currentSubjectMention_).getTokenBeginOffset(), objectSpan_.getMention(currentObjectMention_).getTokenBeginOffset());
                 return (subjectSpan_.getMention(currentSubjectMention_).getTokenBeginOffset() < questionTokens_)
-                        != (objectSpan_.getMention(currentObjectMention_).getTokenBeginOffset() < questionTokens_);
+                        != (objectSpan_.getMention(currentObjectMention_).getTokenBeginOffset() < questionTokens_)
+                        && maxBegin - minEnd < QuestionAnswerBasedRelationExtractorTrainEvalProcessor.MAX_TOKEN_GAP;
             }
 
             @Override

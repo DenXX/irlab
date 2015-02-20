@@ -16,7 +16,7 @@ import java.util.*;
 public class SentenceBasedRelationExtractorTrainEvalProcessor
         extends RelationExtractorTrainEvalProcessor {
 
-    public static final int MAX_TOKEN_GAP = 7;
+    public static final int MAX_TOKEN_GAP = 15;
 
     /**
      * Creates an instance of the SentenceBasedRelationExtractorTrainerProcessor
