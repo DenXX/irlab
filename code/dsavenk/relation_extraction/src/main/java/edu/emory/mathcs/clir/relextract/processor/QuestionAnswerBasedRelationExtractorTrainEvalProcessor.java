@@ -20,7 +20,7 @@ import java.util.*;
 public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         extends RelationExtractorTrainEvalProcessor {
 
-    private static final int MAX_TOKEN_GAP = Integer.MAX_VALUE;//100;
+    private static final int MAX_TOKEN_GAP = 100;
 
     /**
      * Creates an instance of the SentenceBasedRelationExtractorTrainerProcessor

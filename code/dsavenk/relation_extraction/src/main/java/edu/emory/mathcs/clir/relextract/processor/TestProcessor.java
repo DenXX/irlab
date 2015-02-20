@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.IOException;
@@ -43,12 +44,11 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-        for (Document.Span span : document.getSpanList()) {
-            if (!span.getNerType().equals("OTHER") && !span.getNerType().equals("NONE")) {
-                System.out.println(span.getNerType());
-            }
+        int questionSentences = DocumentUtils.getQuestionSentenceCount(document);
+        if (document.getSentence(0).getText().toLowerCase().startsWith("when was") && document.getSentenceCount() - questionSentences == 1 && document.getRelationCount() > 0) {
+            return document;
         }
-        return document;
+        return null;
 //
 //        return document;
 //        ++total;
