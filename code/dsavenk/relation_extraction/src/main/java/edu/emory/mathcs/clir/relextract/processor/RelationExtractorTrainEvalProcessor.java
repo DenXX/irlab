@@ -327,6 +327,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
             /* Print prediction scores */
             synchronized (this) {
+                if (debug_) {
+                    System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+                }
                 for (Dataset.Triple triple : instance.getTripleList()) {
                     System.out.print(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject().replace("\t", " ").replace("\n", " "));
                     System.out.print("\t" + predictedLabel.first + "\t" + predictedLabel.second);
@@ -334,6 +337,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         System.out.print("\t" + e.getKey() + ":" + e.getValue());
                     }
                     System.out.println();
+                }
+                if (debug_) {
+                    System.out.println(instance.getMentionText());
                 }
             }
 
@@ -347,14 +353,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 //                    : Double.NEGATIVE_INFINITY;
 //            extractedTriples_.get(arguments).put(predictedLabel.first,
 //                    Math.max(prevValue, predictedLabel.second));
-        }
-
-        if (debug_) {
-            if (!predictedLabel.first.equals(NO_RELATIONS_LABEL) ||
-                    !instance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
-                System.out.println("-----\nCorrect: " + instance.getLabel(0));
-                printMentionInstance(instance);
-            }
         }
     }
 
@@ -519,7 +517,13 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         if (isInTraining) {
             if (debug_) {
                 if (!mentionInstance.getLabel(0).equals(NO_RELATIONS_LABEL)) {
-                    printMentionInstance(mentionInstance);
+                    synchronized (this) {
+                        System.out.println("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+                        System.out.println(mentionInstance.getMentionText());
+                        for (Dataset.Triple triple : mentionInstance.getTripleList()) {
+                            System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
+                        }
+                    }
                 }
             }
         } else {

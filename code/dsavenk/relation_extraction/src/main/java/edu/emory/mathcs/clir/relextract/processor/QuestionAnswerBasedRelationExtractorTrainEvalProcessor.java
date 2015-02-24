@@ -35,17 +35,46 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         super(properties);
     }
 
+    private String getSentenceTextForMention(Document.NlpDocument document,
+                                             Document.Span span,
+                                             Integer mention,
+                                             boolean isSubj) {
+        StringBuilder str = new StringBuilder();
+        int sentenceIndex = span.getMention(mention).getSentenceIndex();
+        int tokenIndex = document.getSentence(sentenceIndex).getFirstToken();
+        while (tokenIndex < document.getSentence(sentenceIndex).getLastToken()) {
+            if (span.getMention(mention).getTokenEndOffset() == tokenIndex) {
+                str.append(">");
+            }
+
+            str.append(" ");
+            if (span.getMention(mention).getTokenBeginOffset() == tokenIndex) {
+                str.append("<");
+                if (isSubj) str.append("s:");
+                else str.append("o:");
+            }
+            str.append(document.getToken(tokenIndex).getText().replace("\n", " "));
+            ++tokenIndex;
+        }
+        if (span.getMention(mention).getTokenEndOffset() == tokenIndex) {
+            str.append(">");
+        }
+        return str.toString();
+    }
+
     @Override
     protected String getMentionText(Document.NlpDocument document,
                                     Document.Span subjSpan,
                                     Integer subjMention, Document.Span objSpan,
                                     Integer objMention) {
-        Document.Sentence subjSent = document.getSentence(subjSpan.getMention(subjMention).getSentenceIndex());
-        Document.Sentence objSent = document.getSentence(objSpan.getMention(objMention).getSentenceIndex());
-        if (subjSent.getFirstToken() < objSent.getFirstToken()) {
-            return subjSent.getText() + "\n" + objSent.getText();
+        int subjSent = subjSpan.getMention(subjMention).getSentenceIndex();
+        int objSent = objSpan.getMention(objMention).getSentenceIndex();
+        String subjMentionText = getSentenceTextForMention(document, subjSpan, subjMention, true);
+        String objMentionText = getSentenceTextForMention(document, objSpan, objMention, false);
+        if (subjSent < objSent) {
+            return subjMentionText + "\n" + objMentionText;
         } else {
-            return objSent.getText() + "\n" + subjSent.getText();
+            return objMentionText + "\n" + subjMentionText;
         }
     }
 

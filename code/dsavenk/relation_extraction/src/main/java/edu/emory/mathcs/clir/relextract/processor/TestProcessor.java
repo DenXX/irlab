@@ -13,6 +13,7 @@ import java.util.*;
  */
 public class TestProcessor extends Processor {
     private int count = 0;
+    private int count2 = 0;
     private int total = 0;
 
     private final Random rnd;
@@ -44,10 +45,33 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-        int questionSentences = DocumentUtils.getQuestionSentenceCount(document);
-        if (document.getSentence(0).getText().toLowerCase().startsWith("when was") && document.getSentenceCount() - questionSentences == 1 && document.getRelationCount() > 0) {
-            return document;
-        }
+//        document.getSpanList().stream().filter(span -> span.hasEntityId()).forEach(span -> ++count);
+
+//        if (document.getSentence(0).getText().contains("When was") && document.getSentence(0).getText().contains("born"))
+//            return document;
+
+        count += document.getQuestionLength();
+        count2 += (document.getRelationCount() > 0) ? 1 : 0;
+
+//        int questionSents = DocumentUtils.getQuestionSentenceCount(document);
+//        if (document.getSentence(0).getText().contains("Who won"))
+//            return document;
+//        int questionSents = DocumentUtils.getQuestionSentenceCount(document);
+//        if (questionSents > 0 && document.getSentenceCount() - questionSents > 0) {
+//            boolean verbs = false;
+//            for (int i = questionSents; i < document.getSentenceCount(); ++i) {
+//                for (int token = document.getSentence(i).getFirstToken(); token < document.getSentence(i).getLastToken(); ++token) {
+//                    if (document.getToken(token).getPos().startsWith("V"))
+//                        verbs = true;
+//                }
+//            }
+//
+//            if (!verbs) {
+//                ++count;
+//                return document;
+//            }
+//        }
+
         return null;
 //
 //        return document;
@@ -226,5 +250,7 @@ public class TestProcessor extends Processor {
     public void finishProcessing() {
         System.out.println("Resolved entities: " + count);
         System.out.println("Total: " + total);
+        System.out.println("Entities per document: " + 1.0 * count / total);
+        System.out.println("Documents with relations: " + count2);
     }
 }

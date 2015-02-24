@@ -36,8 +36,39 @@ public class SentenceBasedRelationExtractorTrainEvalProcessor
                                     Document.Span subjSpan,
                                     Integer subjMention, Document.Span objSpan,
                                     Integer objMention) {
-        return document.getSentence(
-                subjSpan.getMention(subjMention).getSentenceIndex()).getText();
+        StringBuilder str = new StringBuilder();
+        int questionSentenceCount = DocumentUtils.getQuestionSentenceCount(document);
+
+        for (int sentenceIndex = 0; sentenceIndex < questionSentenceCount; ++sentenceIndex) {
+            str.append(" " + document.getSentence(sentenceIndex).getText().replace("\n", " "));
+        }
+
+        str.append("\n");
+
+        int sentenceIndex = subjSpan.getMention(subjMention).getSentenceIndex();
+        int tokenIndex = document.getSentence(sentenceIndex).getFirstToken();
+        while (tokenIndex < document.getSentence(sentenceIndex).getLastToken()) {
+            if (subjSpan.getMention(subjMention).getTokenEndOffset() == tokenIndex
+                    || objSpan.getMention(objMention).getTokenEndOffset() == tokenIndex) {
+                str.append(">");
+            }
+
+            str.append(" ");
+            if (subjSpan.getMention(subjMention).getTokenBeginOffset() == tokenIndex) {
+                str.append("<s:");
+            }
+            if (objSpan.getMention(objMention).getTokenBeginOffset() == tokenIndex) {
+                str.append("<o:");
+            }
+            str.append(document.getToken(tokenIndex).getText().replace("\n", " "));
+            ++tokenIndex;
+        }
+        if (subjSpan.getMention(subjMention).getTokenEndOffset() == tokenIndex
+                || objSpan.getMention(objMention).getTokenEndOffset() == tokenIndex) {
+            str.append(">");
+        }
+
+        return str.toString();
     }
 
     @Override
