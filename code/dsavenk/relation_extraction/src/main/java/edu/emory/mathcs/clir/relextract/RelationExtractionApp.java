@@ -113,6 +113,9 @@ public class RelationExtractionApp {
                 case "printentitytypequestions":
                     workflow.addProcessor(new PrintQuestionsForEntityTypes(props));
                     break;
+                case "keeprepresentativeids":
+                    workflow.addProcessor(new KeepRepresentativeMentionEntityIdProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");

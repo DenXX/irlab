@@ -50,8 +50,17 @@ public class TestProcessor extends Processor {
 //        if (document.getSentence(0).getText().contains("When was") && document.getSentence(0).getText().contains("born"))
 //            return document;
 
-        if (document.getText().contains("diana ross"))
+        if (document.getSentence(0).getText().contains("born")) {
             return document;
+        }
+        return null;
+
+//        for (Document.Span span : document.getSpanList()) {
+//            if ("ENTITY".equals(span.getType())) {
+//                if (span.getMention(span.getRepresentativeMention()).getType().equals("OTHER"))
+//                    return null;
+//            }
+//        }
 
 
 //        count += document.getQuestionLength();
@@ -76,7 +85,7 @@ public class TestProcessor extends Processor {
 //            }
 //        }
 
-        return null;
+        //return null;
 //
 //        return document;
 //        ++total;
