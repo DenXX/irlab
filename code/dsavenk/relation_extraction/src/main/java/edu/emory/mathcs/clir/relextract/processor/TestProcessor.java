@@ -50,8 +50,12 @@ public class TestProcessor extends Processor {
 //        if (document.getSentence(0).getText().contains("When was") && document.getSentence(0).getText().contains("born"))
 //            return document;
 
-        count += document.getQuestionLength();
-        count2 += (document.getRelationCount() > 0) ? 1 : 0;
+        if (document.getText().contains("diana ross"))
+            return document;
+
+
+//        count += document.getQuestionLength();
+//        count2 += (document.getRelationCount() > 0) ? 1 : 0;
 
 //        int questionSents = DocumentUtils.getQuestionSentenceCount(document);
 //        if (document.getSentence(0).getText().contains("Who won"))

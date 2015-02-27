@@ -1,10 +1,12 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.extraction.*;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
+import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -703,7 +705,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      * relation.
      */
     protected boolean continueWithSubjectSpan(Document.Span span) {
-        return span.hasEntityId() && span.getCandidateEntityScore(0) > 0.05;
+        return span.hasEntityId()
+                && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE
+                && (!nerOnly_ || !span.getType().equals("OTHER"));
     }
 
     /**
@@ -719,10 +723,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                              Document.Span objSpan) {
         if ((objSpan.hasEntityId() &&
                 !objSpan.getEntityId().equals(subjSpan.getEntityId())
-                && objSpan.getCandidateEntityScore(0) > 0.05)
-                || ("MEASURE".equals(objSpan.getType())
-                    && ("DATE".equals(objSpan.getNerType())
-                    || "TIME".equals(objSpan.getNerType())))) {
+                && objSpan.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE)
+                || ("MEASURE".equals(objSpan.getType()) &&
+                continueWithMeasure(objSpan))) {
 
             if (nerOnly_ && (subjSpan.getType().equals("OTHER") ||
                     objSpan.getType().equals("OTHER"))) {
@@ -737,6 +740,15 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 //                    return true;
 //                }
 //            }
+        }
+        return false;
+    }
+
+    private boolean continueWithMeasure(Document.Span span) {
+        if ("DATE".equals(span.getNerType())
+                || "TIME".equals(span.getNerType())) {
+            Timex tm = Timex.fromXml(span.getValue());
+            return (tm.value() != null ? tm.value() : tm.altVal()).matches("[X0-9]{4}(-[X0-9]{2}){0,2}");
         }
         return false;
     }
