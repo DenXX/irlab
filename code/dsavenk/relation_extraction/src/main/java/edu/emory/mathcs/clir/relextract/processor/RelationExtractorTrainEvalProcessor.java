@@ -706,7 +706,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
      */
     protected boolean continueWithSubjectSpan(Document.Span span) {
         return span.hasEntityId()
-                && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE
+                && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE
                 && (!nerOnly_ || !span.getType().equals("OTHER"));
     }
 
@@ -723,7 +723,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                              Document.Span objSpan) {
         if ((objSpan.hasEntityId() &&
                 !objSpan.getEntityId().equals(subjSpan.getEntityId())
-                && objSpan.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE)
+                && objSpan.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE)
                 || ("MEASURE".equals(objSpan.getType()) &&
                 continueWithMeasure(objSpan))) {
 

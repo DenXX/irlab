@@ -8,6 +8,7 @@ import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.emory.mathcs.clir.relextract.data.*;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
@@ -249,11 +250,13 @@ public class KnowledgeBase {
 
     public KnowledgeBase.Triple getTypeCompatibleTripleOrNull(Document.Span subjectSpan, Document.Span objectSpan, String predicate, int maxIdsPerEntity) {
         for (int i = 0; i < Math.min(maxIdsPerEntity, subjectSpan.getCandidateEntityIdCount()); ++i) {
+            if (subjectSpan.getCandidateEntityScore(i) < Parameters.MIN_ENTITYID_SCORE) break;
             String subjMid = subjectSpan.getCandidateEntityId(i);
             if (objectSpan.getType().equals("MEASURE")) {
                 if (isTripleTypeCompatible(subjMid, predicate, objectSpan.getValue())) return new KnowledgeBase.Triple(subjMid, predicate, objectSpan.getValue());;
             } else {
                 for (int j = 0; j < Math.min(maxIdsPerEntity, objectSpan.getCandidateEntityIdCount()); ++j) {
+                    if (objectSpan.getCandidateEntityScore(j) < Parameters.MIN_ENTITYID_SCORE) break;
                     String objMid = objectSpan.getCandidateEntityId(j);
                     if (isTripleTypeCompatible(subjMid, predicate, objMid))
                         return new Triple(subjMid, predicate, objMid);
