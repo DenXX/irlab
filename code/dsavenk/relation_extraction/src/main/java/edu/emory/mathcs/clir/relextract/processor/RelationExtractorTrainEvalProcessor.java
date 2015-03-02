@@ -747,8 +747,19 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
     private boolean continueWithMeasure(Document.Span span) {
         if ("DATE".equals(span.getNerType())
                 || "TIME".equals(span.getNerType())) {
-            Timex tm = Timex.fromXml(span.getValue());
-            return (tm.value() != null ? tm.value() : tm.altVal()).matches("[X0-9]{4}(-[X0-9]{2}){0,2}");
+            int pos1 = span.getValue().indexOf("value=");
+            if (pos1 == -1) {
+                pos1 = span.getValue().indexOf("altVal=");
+            }
+            pos1 = span.getValue().indexOf("\"", pos1);
+            int pos2 = span.getValue().indexOf("\"", pos1 + 2);
+            for (int i = pos1 + 1; i < pos2; ++i) {
+                if (!Character.isDigit(span.getValue().charAt(i)) &&
+                        span.getValue().charAt(i) != '-' && span.getValue().charAt(i) != 'X') {
+                    return false;
+                }
+            }
+            return true;
         }
         return false;
     }
