@@ -1,12 +1,10 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import edu.emory.mathcs.clir.relextract.data.Dataset;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.extraction.*;
 import edu.emory.mathcs.clir.relextract.utils.FileUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -397,7 +395,7 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         boolean shouldSkip = false;
                         if (labels != null) {
                             for (Triple<String, String, String> label : labels) {
-                                if (label.second.equals("SKIP")) {
+                                if ("SKIP".equals(label.second)) {
                                     shouldSkip = true;
                                     break;
                                 }
@@ -406,9 +404,21 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                 }
                             }
                         }
+
+                        if (!shouldSkip && (!isTraining_ || activeLabels.size() == 0)) {
+                            for (String pred : predicates_) {
+                                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
+                                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
+                                    shouldSkip = true;
+                                    break;
+                                }
+                            }
+                        }
+
                         // This is example of a triple that we trained on,
                         // we don't want to treat it as negative, let's just
                         // remove it.
+                        // Or it is type incompatible.
                         if (shouldSkip) {
                             continue;
                         }
@@ -469,24 +479,24 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
 
-                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
-                                    .stream()
-                                    .filter(typesOfInterest_::contains).collect(Collectors.toSet());
-                            Set<String> objTypes = null;
-                            if (objSpan.getType().equals("MEASURE")) {
-                                objTypes = new HashSet<>();
-                                objTypes.add("http://rdf.freebase.com/ns/type.datetime");
-                            } else {
-                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
-                                        .stream()
-                                        .filter(typesOfInterest_::contains).collect(Collectors.toSet());
-                            }
-
-                            for (String subjType : subjTypes) {
-                                for (String objType : objTypes) {
-                                    features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
-                                }
-                            }
+//                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+//                                    .stream()
+//                                    .filter(typesOfInterest_::contains).collect(Collectors.toSet());
+//                            Set<String> objTypes = null;
+//                            if (objSpan.getType().equals("MEASURE")) {
+//                                objTypes = new HashSet<>();
+//                                objTypes.add("http://rdf.freebase.com/ns/type.datetime");
+//                            } else {
+//                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+//                                        .stream()
+//                                        .filter(typesOfInterest_::contains).collect(Collectors.toSet());
+//                            }
+//
+//                            for (String subjType : subjTypes) {
+//                                for (String objType : objTypes) {
+//                                    features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
+//                                }
+//                            }
 
                             for (String feature : features) {
                                 if (!includeQFeatures && feature.startsWith("QUESTION_"))
@@ -731,15 +741,6 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     objSpan.getType().equals("OTHER"))) {
                 return false;
             }
-            return true;
-
-            // Commenting this out for now...
-//            for (String pred : predicates_) {
-//                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
-//                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
-//                    return true;
-//                }
-//            }
         }
         return false;
     }
