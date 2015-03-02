@@ -23,6 +23,8 @@ public class ProcessorRunner {
     private final Processor processor_;
     private final int numThreads_;
 
+    public static int MAX_ATTEMPTS = 5;
+
     /**
      * Creates a new concurrent processing runner object, which encapsulates
      * a Processor and runs it in parallel over a collection of documents
@@ -76,7 +78,21 @@ public class ProcessorRunner {
             }
             processor_.finishProcessing();
         } else {
-            ExecutorService threadPool = Executors.newFixedThreadPool(numThreads_);
+            BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(numThreads_ * 1000);
+
+            ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads_,
+                    numThreads_, 0L, TimeUnit.MILLISECONDS,
+                    blockingQueue); //Executors.newFixedThreadPool(numThreads_);
+
+            threadPool.setRejectedExecutionHandler((r, executor) -> {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                executor.execute(r);
+            });
+
             final AtomicInteger counter = new AtomicInteger(0);
             final AtomicInteger filtered = new AtomicInteger(0);
             int skipped = 0;
