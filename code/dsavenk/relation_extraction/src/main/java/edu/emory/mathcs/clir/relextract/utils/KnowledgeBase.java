@@ -176,6 +176,7 @@ public class KnowledgeBase {
         } else {
             types.add("http://rdf.freebase.com/ns/type.datetime");
         }
+        entityTypes_.put(mid, types);
         return types;
     }
 
