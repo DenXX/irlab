@@ -405,22 +405,23 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                             }
                         }
 
-                        if (!shouldSkip && (!isTraining_ || activeLabels.size() == 0)) {
-                            for (String pred : predicates_) {
-                                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
-                                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
-                                    shouldSkip = true;
-                                    break;
-                                }
-                            }
-                        }
-
                         // This is example of a triple that we trained on,
                         // we don't want to treat it as negative, let's just
                         // remove it.
-                        // Or it is type incompatible.
                         if (shouldSkip) {
                             continue;
+                        }
+
+                        if (!isTraining_ || activeLabels.size() == 0) {
+                            boolean typesOk = false;
+                            for (String pred : predicates_) {
+                                if (kb_.hasTypeCompatibleTriple(subjSpan, objSpan, pred,
+                                        EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)) {
+                                    typesOk = true;
+                                    break;
+                                }
+                            }
+                            if (!typesOk) continue;
                         }
 
                         if (activeLabels.size() == 0) {
