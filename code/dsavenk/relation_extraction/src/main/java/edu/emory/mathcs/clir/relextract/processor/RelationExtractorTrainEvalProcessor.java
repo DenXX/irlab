@@ -742,6 +742,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                     objSpan.getType().equals("OTHER"))) {
                 return false;
             }
+
+            return true;
         }
         return false;
     }
