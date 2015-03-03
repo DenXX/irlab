@@ -78,6 +78,8 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
 
     public static final String NOSPLIT_DATASET_PARAMETER = "dataset_nosplit";
 
+    public static final String ENTITY_ID_MIN_SCORE = "entityidminscore";
+
     /**
      * A label that means that there is no relations between the given entities.
      */
@@ -196,6 +198,9 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
         }
         if (properties.containsKey(NOSPLIT_DATASET_PARAMETER)) {
             splitDataset_ = false;
+        }
+        if (properties.containsKey(ENTITY_ID_MIN_SCORE)) {
+            Parameters.MIN_ENTITYID_SCORE = Float.parseFloat(properties.getProperty(ENTITY_ID_MIN_SCORE));
         }
 
         kb_ = KnowledgeBase.getInstance(properties);
