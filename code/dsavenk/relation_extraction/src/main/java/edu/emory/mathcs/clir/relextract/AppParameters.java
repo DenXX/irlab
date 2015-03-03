@@ -164,6 +164,11 @@ public class AppParameters {
                         .withDescription("Split dataset for training and testing").create(
                                 RelationExtractorTrainEvalProcessor.NOSPLIT_DATASET_PARAMETER));
 
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(RelationExtractorTrainEvalProcessor.ENTITY_ID_MIN_SCORE)
+                .withDescription("Minimum entity id score").create(
+                        RelationExtractorTrainEvalProcessor.ENTITY_ID_MIN_SCORE));
+
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)
