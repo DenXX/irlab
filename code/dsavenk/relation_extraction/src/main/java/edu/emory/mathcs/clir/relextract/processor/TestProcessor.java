@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
@@ -30,30 +31,27 @@ public class TestProcessor extends Processor {
         rnd = new Random(42);
     }
 
-    private static String fixName(String name) {
-        return name.replace("-LRB- ", "(")
-                .replace(" -RRB-", ")")
-                .replace(" ,", ",")
-                .replace(" .", ".")
-                .replace(" !", "!")
-                .replace(" ?", "?")
-                .replace(" :", ":")
-                .replace("` ", "`")
-                .replace(" '", "'");
-    }
-
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-//        document.getSpanList().stream().filter(span -> span.hasEntityId()).forEach(span -> ++count);
+        document.getSpanList().stream().filter(span -> span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE).forEach(span -> ++count);
 
-//        if (document.getSentence(0).getText().contains("When was") && document.getSentence(0).getText().contains("born"))
-//            return document;
-
-        if (document.getSentence(0).getText().contains("born")) {
-            return document;
+        int questionLengthSents = DocumentUtils.getQuestionSentenceCount(document);
+        boolean verb = false;
+        if (document.getSentenceCount() > questionLengthSents) {
+            for (int i = document.getSentence(questionLengthSents).getFirstToken();
+                 i < document.getSentence(document.getSentenceCount() - 1).getLastToken(); ++i) {
+                if (document.getToken(i).getPos().startsWith("V") || document.getToken(i).getPos().startsWith("MD")) {
+                    verb = true;
+                    break;
+                }
+            }
+            if (!verb) {
+                ++count2;
+            }
         }
-        return null;
+
+        return document;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {
@@ -264,6 +262,6 @@ public class TestProcessor extends Processor {
         System.out.println("Resolved entities: " + count);
         System.out.println("Total: " + total);
         System.out.println("Entities per document: " + 1.0 * count / total);
-        System.out.println("Documents with relations: " + count2);
+        System.out.println("QnA with answer without verbs: " + count2);
     }
 }

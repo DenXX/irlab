@@ -441,6 +441,11 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                         for (Pair<Integer, Integer> mentionPair :
                                 getRelationMentionsIterator(document, subjSpan, objSpan)) {
 
+                            if (nerOnly_ && (subjSpan.getMention(mentionPair.first).getType().equals("OTHER")
+                                    || objSpan.getMention(mentionPair.second).getType().equals("OTHER")))
+                                continue;
+
+
                             // Do we want to keep this instance, or it should be
                             // removed.
                             if (!keepInstance(subjSpan, mentionPair.first,
@@ -485,24 +490,24 @@ public abstract class RelationExtractorTrainEvalProcessor extends Processor {
                                     subjSpan, mentionPair.first,
                                     objSpan, mentionPair.second);
 
-//                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
-//                                    .stream()
-//                                    .filter(typesOfInterest_::contains).collect(Collectors.toSet());
-//                            Set<String> objTypes = null;
-//                            if (objSpan.getType().equals("MEASURE")) {
-//                                objTypes = new HashSet<>();
-//                                objTypes.add("http://rdf.freebase.com/ns/type.datetime");
-//                            } else {
-//                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
-//                                        .stream()
-//                                        .filter(typesOfInterest_::contains).collect(Collectors.toSet());
-//                            }
-//
-//                            for (String subjType : subjTypes) {
-//                                for (String objType : objTypes) {
-//                                    features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
-//                                }
-//                            }
+                            Set<String> subjTypes = kb_.getAllPossibleSpanTypes(subjSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+                                    .stream()
+                                    .filter(typesOfInterest_::contains).collect(Collectors.toSet());
+                            Set<String> objTypes = null;
+                            if (objSpan.getType().equals("MEASURE")) {
+                                objTypes = new HashSet<>();
+                                objTypes.add("http://rdf.freebase.com/ns/type.datetime");
+                            } else {
+                                objTypes = kb_.getAllPossibleSpanTypes(objSpan, EntityRelationsLookupProcessor.MAX_ENTITY_IDS_COUNT)
+                                        .stream()
+                                        .filter(typesOfInterest_::contains).collect(Collectors.toSet());
+                            }
+
+                            for (String subjType : subjTypes) {
+                                for (String objType : objTypes) {
+                                    features.add("ARGUMENTS_FINE_TYPES:\t" + subjType + " - " + objType);
+                                }
+                            }
 
                             for (String feature : features) {
                                 if (!includeQFeatures && feature.startsWith("QUESTION_"))

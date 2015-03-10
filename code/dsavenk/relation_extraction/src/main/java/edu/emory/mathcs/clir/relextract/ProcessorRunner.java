@@ -86,7 +86,7 @@ public class ProcessorRunner {
 
             threadPool.setRejectedExecutionHandler((r, executor) -> {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(42);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

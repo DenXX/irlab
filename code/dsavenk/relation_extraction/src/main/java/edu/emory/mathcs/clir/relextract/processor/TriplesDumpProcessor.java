@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 
 import java.util.Properties;
 
@@ -30,21 +31,29 @@ public class TriplesDumpProcessor extends Processor {
         }
 
         for (Document.Relation rel : document.getRelationList()) {
-            String subject = document.getSpan(rel.getSubjectSpan()).getEntityId();
-            String object = document.getSpan(rel.getObjectSpan()).hasEntityId()
-                    ? document.getSpan(rel.getObjectSpan()).getEntityId()
-                    : document.getSpan(rel.getObjectSpan()).getValue().replaceAll("\n", " ").replace("\t", " ");
-            for (Document.Mention subjMention : document.getSpan(rel.getSubjectSpan()).getMentionList()) {
-                for (Document.Mention objMention : document.getSpan(rel.getObjectSpan()).getMentionList()) {
-                    boolean subjectInQuestion = subjMention.getTokenBeginOffset() < questionTokens;
-                    boolean objectInQuestion = objMention.getTokenBeginOffset() < questionTokens;
-                    if (subjectInQuestion && objectInQuestion &&
-                            subjMention.getSentenceIndex() == objMention.getSentenceIndex()) {
-                        System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tQ");
-                    } else if (subjectInQuestion != objectInQuestion) {
-                        System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tQA");
-                    } else if (!subjectInQuestion && !objectInQuestion && subjMention.getSentenceIndex() == objMention.getSentenceIndex()) {
-                        System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tA");
+            int subjIdIndex = rel.getSubjectSpanCandidateEntityIdIndex();
+            int objIdIndex = rel.getObjectSpanCandidateEntityIdIndex();
+
+            if (document.getSpan(rel.getSubjectSpan()).getCandidateEntityScore(subjIdIndex - 1) >= Parameters.MIN_ENTITYID_SCORE &&
+                    (!document.getSpan(rel.getObjectSpan()).hasEntityId()
+                            || document.getSpan(rel.getObjectSpan()).getCandidateEntityScore(objIdIndex - 1) >= Parameters.MIN_ENTITYID_SCORE)) {
+
+                String subject = document.getSpan(rel.getSubjectSpan()).getCandidateEntityId(subjIdIndex - 1);
+                String object = document.getSpan(rel.getObjectSpan()).hasEntityId()
+                        ? document.getSpan(rel.getObjectSpan()).getCandidateEntityId(objIdIndex - 1)
+                        : document.getSpan(rel.getObjectSpan()).getValue().replaceAll("\n", " ").replace("\t", " ");
+                for (Document.Mention subjMention : document.getSpan(rel.getSubjectSpan()).getMentionList()) {
+                    for (Document.Mention objMention : document.getSpan(rel.getObjectSpan()).getMentionList()) {
+                        boolean subjectInQuestion = subjMention.getTokenBeginOffset() < questionTokens;
+                        boolean objectInQuestion = objMention.getTokenBeginOffset() < questionTokens;
+                        if (subjectInQuestion && objectInQuestion &&
+                                subjMention.getSentenceIndex() == objMention.getSentenceIndex()) {
+                            System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tQ");
+                        } else if (subjectInQuestion != objectInQuestion) {
+                            System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tQA");
+                        } else if (!subjectInQuestion && !objectInQuestion && subjMention.getSentenceIndex() == objMention.getSentenceIndex()) {
+                            System.out.println(subject + "\t" + rel.getRelation() + "\t" + object + "\t" + document.getDocId() + "\tA");
+                        }
                     }
                 }
             }
