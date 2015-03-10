@@ -1,0 +1,166 @@
+% =============================================================================
+% New commands
+% -----------------------------------------------------------------------------
+
+\newcommand{\eg}{\emph{e.g.}\@\xspace}
+\newcommand{\ie}{\emph{i.e.}\@\xspace}
+
+\makeatletter
+\newcommand{\etc}{%
+    \@ifnextchar{.}%
+        {\emph{etc}}%
+        {\emph{etc.}\@\xspace}%
+}
+\newcommand{\etal}{%
+    \@ifnextchar{.}%
+        {\emph{et al}}%
+        {\emph{et al.}\@\xspace}%
+}
+\makeatother
+
+
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\argmax}[1]{\underset{#1}{arg\,max}\,\,}
+\newcommand{\argmin}[1]{\underset{#1}{arg\,min}\,\,}
+\newcommand{\expect}[1]{\langle #1 \rangle}
+\newcommand{\normone}[1]{\| #1 \|_1}
+\newcommand{\meanvar}[2]{#1\,{\scriptsize (#2)}}
+\newcommand{\bigspace}[0]{\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\,}
+\newcommand{\naive}{na\"ive }
+\newcommand{\refeq}[1]{Eq.~(\ref{#1})}
+\newcommand{\reffig}[1]{Figure \ref{#1}}
+\newcommand{\what}[1]{\widehat{#1}}
+
+
+% Mathmatics (from Kevin Murphy)
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+
+\newcommand{\myvec}[1]{\mbox{$\mathbf{#1}$}}
+\newcommand{\myvecsym}[1]{\mbox{$\boldsymbol{#1}$}}
+
+\newcommand{\vzero}{\mbox{$\myvecsym{0}$}}
+\newcommand{\vone}{\mbox{$\myvecsym{1}$}}
+
+\newcommand{\valpha}{\mbox{$\myvecsym{\alpha}$}}
+\newcommand{\vbeta}{\mbox{$\myvecsym{\beta}$}}
+\newcommand{\vdelta}{\mbox{$\myvecsym{\delta}$}}
+\newcommand{\vepsilon}{\mbox{$\myvecsym{\epsilon}$}}
+\newcommand{\veta}{\mbox{$\myvecsym{\eta}$}}
+\newcommand{\vgamma}{\mbox{$\myvecsym{\gamma}$}}
+\newcommand{\vmu}{\mbox{$\myvecsym{\mu}$}}
+\newcommand{\vlambda}{\mbox{$\myvecsym{\lambda}$}}
+\newcommand{\vLambda}{\mbox{$\myvecsym{\Lambda}$}}
+\newcommand{\vphi}{\mbox{$\myvecsym{\phi}$}}
+\newcommand{\vPhi}{\mbox{$\myvecsym{\Phi}$}}
+\newcommand{\vpi}{\mbox{$\myvecsym{\pi}$}}
+\newcommand{\vPsi}{\mbox{$\myvecsym{\Psi}$}}
+\newcommand{\vtheta}{\mbox{$\myvecsym{\theta}$}}
+\newcommand{\vTheta}{\mbox{$\myvecsym{\Theta}$}}
+\newcommand{\vsigma}{\mbox{$\myvecsym{\sigma}$}}
+\newcommand{\vSigma}{\mbox{$\myvecsym{\Sigma}$}}
+\newcommand{\vtau}{\mbox{$\myvecsym{\tau}$}}
+\newcommand{\vxi}{\mbox{$\myvecsym{\xi}$}}
+
+\newcommand{\va}{\mbox{$\myvec{a}$}}
+\newcommand{\vb}{\mbox{$\myvec{b}$}}
+\newcommand{\vc}{\mbox{$\myvec{c}$}}
+\newcommand{\vd}{\mbox{$\myvec{d}$}}
+\newcommand{\ve}{\mbox{$\myvec{e}$}}
+\newcommand{\vf}{\mbox{$\myvec{f}$}}
+\newcommand{\vg}{\mbox{$\myvec{g}$}}
+\newcommand{\vh}{\mbox{$\myvec{h}$}}
+\newcommand{\vj}{\mbox{$\myvec{j}$}}
+\newcommand{\vk}{\mbox{$\myvec{k}$}}
+\newcommand{\vm}{\mbox{$\myvec{m}$}}
+\newcommand{\vn}{\mbox{$\myvec{n}$}}
+\newcommand{\vp}{\mbox{$\myvec{p}$}}
+\newcommand{\vq}{\mbox{$\myvec{q}$}}
+\newcommand{\vr}{\mbox{$\myvec{r}$}}
+\newcommand{\vs}{\mbox{$\myvec{s}$}}
+\newcommand{\vt}{\mbox{$\myvec{t}$}}
+\newcommand{\vu}{\mbox{$\myvec{u}$}}
+\newcommand{\vv}{\mbox{$\myvec{v}$}}
+\newcommand{\vw}{\mbox{$\myvec{w}$}}
+\newcommand{\vx}{\mbox{$\myvec{x}$}}
+\newcommand{\vxt}{\mbox{$\myvec{\tilde{x}}$}}
+\newcommand{\vy}{\mbox{$\myvec{y}$}}
+\newcommand{\vyt}{\mbox{$\myvec{\tilde{y}}$}}
+\newcommand{\vz}{\mbox{$\myvec{z}$}}
+
+\newcommand{\vA}{\mbox{$\myvec{A}$}}
+\newcommand{\vB}{\mbox{$\myvec{B}$}}
+\newcommand{\vC}{\mbox{$\myvec{C}$}}
+\newcommand{\vD}{\mbox{$\myvec{D}$}}
+\newcommand{\vE}{\mbox{$\myvec{E}$}}
+\newcommand{\vF}{\mbox{$\myvec{F}$}}
+\newcommand{\vG}{\mbox{$\myvec{G}$}}
+\newcommand{\vH}{\mbox{$\myvec{H}$}}
+\newcommand{\vI}{\mbox{$\myvec{I}$}}
+\newcommand{\vJ}{\mbox{$\myvec{J}$}}
+\newcommand{\vK}{\mbox{$\myvec{K}$}}
+\newcommand{\vL}{\mbox{$\myvec{L}$}}
+\newcommand{\vM}{\mbox{$\myvec{M}$}}
+\newcommand{\vN}{\mbox{$\myvec{N}$}}
+\newcommand{\vO}{\mbox{$\myvec{O}$}}
+\newcommand{\vP}{\mbox{$\myvec{P}$}}
+\newcommand{\vQ}{\mbox{$\myvec{Q}$}}
+\newcommand{\vR}{\mbox{$\myvec{R}$}}
+\newcommand{\vS}{\mbox{$\myvec{S}$}}
+\newcommand{\vT}{\mbox{$\myvec{T}$}}
+\newcommand{\vU}{\mbox{$\myvec{U}$}}
+\newcommand{\vV}{\mbox{$\myvec{V}$}}
+\newcommand{\vW}{\mbox{$\myvec{W}$}}
+\newcommand{\vX}{\mbox{$\myvec{X}$}}
+\newcommand{\vY}{\mbox{$\myvec{Y}$}}
+\newcommand{\vZ}{\mbox{$\myvec{Z}$}}
+
+% bar
+\newcommand{\vgbar}{\mbox{$\overline{\vg}$}}
+\newcommand{\vxbar}{\mbox{$\overline{\vx}$}}
+\newcommand{\vybar}{\mbox{$\overline{\vy}$}}
+\newcommand{\vzbar}{\mbox{$\overline{\vz}$}}
+\newcommand{\vpbar}{\mbox{$\overline{\vp}$}}
+\newcommand{\vbbar}{\mbox{$\overline{\vb}$}}
+
+% displacement
+\newcommand{\dvc}{\mbox{$\delta\vc$}}
+
+% partial derivative
+\newcommand{\pvr}{\mbox{$\partial\vr$}}
+\newcommand{\pvc}{\mbox{$\partial\vc$}}
+
+% probability distributions
+\newcommand{\betadist}{\mbox{Beta}}
+\newcommand{\bernoulli}{\mbox{Ber}}
+\newcommand{\Ber}{\mbox{Ber}}
+\newcommand{\Binom}{\mbox{Bin}}
+\newcommand{\binomdist}{\mbox{Bin}}
+\newcommand{\Dir}{\mbox{Dir}}
+\newcommand{\discrete}{\mbox{discrete}}
+\newcommand{\Discrete}{\mbox{Discrete}}
+\newcommand{\expdist}{\mbox{Exp}}
+\newcommand{\gammadist}{\mbox{Ga}}
+\newcommand{\Ga}{\mbox{Ga}}
+\newcommand{\gauss}{\mbox{${\cal N}$}}
+\newcommand{\IG}{\mbox{IG}}
+\newcommand{\Mu}{\mbox{Mu}}
+\newcommand{\Multi}{\mbox{Mu}}
+\newcommand{\NIX}{\mbox{$NI\chi^2$}}
+\newcommand{\NIG}{\mbox{NIG}}
+\newcommand{\NGdist}{\mbox{NG}}
+\newcommand{\prob}{\mbox{$p$}}
+\newcommand{\Poi}{\mbox{Poi}}
+\newcommand{\Student}{\mbox{${\cal T}$}}
+\newcommand{\student}{\mbox{${\cal T}$}}
+\newcommand{\Wishart}{\mbox{Wi}}
+\newcommand{\Wi}{\mbox{Wi}}
+
+% =============================================================================
+
+% =============================================================================
+% Renew commands
+% -----------------------------------------------------------------------------
+\renewcommand{\min}[1]{\underset{#1}{min}\,\,}
+\renewcommand{\max}[1]{\underset{#1}{max}\,\,}
+% =============================================================================

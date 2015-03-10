@@ -1,4 +1,0 @@
-- Y!Answers dataset characteristics and examples\\
-- ROC curves for sentence-based extractions with and without question features\\
-- Examples of question-based features that were useful for extractions\\
-- [The same experiments on WikiAnswers dataset]

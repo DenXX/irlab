@@ -1,1 +1,0 @@
-Describe works on different sources of extractions: sentences, web tables, semi-structured pages, crowdsourcing, (anything else?)
