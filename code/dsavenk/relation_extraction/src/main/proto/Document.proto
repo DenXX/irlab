@@ -44,6 +44,7 @@ message Sentence {
     optional uint32 dependencyRootToken = 4;
     optional string dependencyTree = 5;
     repeated DependencyEdge dependencyEdge = 6;
+    optional string parseTree = 7;
 
     extensions 10000 to max;
 }

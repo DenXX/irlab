@@ -73,7 +73,7 @@ public class PrintTextProcessor extends Processor {
         printMentionEnds(document, currentMentions, document.getTokenCount());
 
         System.out.println("\n------------------------------------------------------------------------");
-        return null;
+        return document;
     }
 
     private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions, int tokenIndex) {

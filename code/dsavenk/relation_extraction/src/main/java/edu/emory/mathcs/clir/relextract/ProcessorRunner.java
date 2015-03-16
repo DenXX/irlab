@@ -3,9 +3,7 @@ package edu.emory.mathcs.clir.relextract;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.processor.Processor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,7 +21,8 @@ public class ProcessorRunner {
     private final Processor processor_;
     private final int numThreads_;
 
-    public static int MAX_ATTEMPTS = 5;
+    public static final int TASK_TIMEOUT_SEC = 30;
+    public static final int PROGRESS_EVERY = 1000;
 
     /**
      * Creates a new concurrent processing runner object, which encapsulates
@@ -79,9 +78,10 @@ public class ProcessorRunner {
             processor_.finishProcessing();
         } else {
             BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(numThreads_ * 1000);
+            Queue<Future<?>> futures = new LinkedBlockingQueue<>();
 
-            ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads_,
-                    numThreads_, 0L, TimeUnit.MILLISECONDS,
+            ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads_ + 1,
+                    numThreads_ + 1, 0L, TimeUnit.MILLISECONDS,
                     blockingQueue); //Executors.newFixedThreadPool(numThreads_);
 
             threadPool.setRejectedExecutionHandler((r, executor) -> {
@@ -91,6 +91,34 @@ public class ProcessorRunner {
                     e.printStackTrace();
                 }
                 executor.execute(r);
+            });
+
+            final AtomicInteger cancelled = new AtomicInteger(0);
+
+            threadPool.execute(() -> {
+                while (true) {
+                    if (!futures.isEmpty()) {
+                        Future<?> f = futures.poll();
+                        try {
+                            if (!f.isDone()) {
+                                f.get(TASK_TIMEOUT_SEC, TimeUnit.SECONDS);
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (TimeoutException e) {
+                            f.cancel(false);
+                            cancelled.incrementAndGet();
+                        }
+                    } else {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             });
 
             final AtomicInteger counter = new AtomicInteger(0);
@@ -105,7 +133,7 @@ public class ProcessorRunner {
                     ++skipped;
                     System.err.println("Skipped: " + skipped);
                 }
-                threadPool.submit(() -> {
+                futures.add(threadPool.submit(() -> {
                     try {
                         if (processor_.process(document) == null) {
                             filtered.incrementAndGet();
@@ -114,14 +142,15 @@ public class ProcessorRunner {
                         e.printStackTrace();
                     }
                     int processed = counter.incrementAndGet();
-                    if (processed % 1000 == 0) {
+                    if (processed % PROGRESS_EVERY == 0) {
                         long currentTime = System.currentTimeMillis();
                         System.err.println("Processed: " + processed +
-                                " (" + (1000.0 * processed /
+                                " (" + (PROGRESS_EVERY * 1.0 * processed /
                                 (currentTime - startTime)) + " docs/sec)");
                         System.err.println("Filtered: " + filtered);
+                        System.err.println("Cancelled: " + cancelled);
                     }
-                });
+                }));
             }
             threadPool.shutdown();
             threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
