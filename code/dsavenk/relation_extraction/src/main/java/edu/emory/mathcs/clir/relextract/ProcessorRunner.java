@@ -95,7 +95,7 @@ public class ProcessorRunner {
 
             final AtomicInteger cancelled = new AtomicInteger(0);
 
-            threadPool.execute(() -> {
+            Future<?> terminatorFuture = threadPool.submit(() -> {
                 while (true) {
                     if (!futures.isEmpty()) {
                         Future<?> f = futures.poll();
@@ -152,8 +152,12 @@ public class ProcessorRunner {
                     }
                 }));
             }
+            System.out.println("All tasks read, shutting down the pool...");
             threadPool.shutdown();
-            threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            terminatorFuture.cancel(false);
+            System.out.println("Task timeout terminator is cancelled, waiting for other tasks to finish...");
+            threadPool.awaitTermination(blockingQueue.size() * TASK_TIMEOUT_SEC * 10, TimeUnit.SECONDS);
+            System.out.println("All clear!");
             processor_.finishProcessing();
         }
     }
