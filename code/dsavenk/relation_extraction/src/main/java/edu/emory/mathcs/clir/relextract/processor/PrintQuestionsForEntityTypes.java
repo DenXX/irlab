@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.io.*;
 import java.util.*;
@@ -14,7 +15,7 @@ public class PrintQuestionsForEntityTypes extends Processor {
 
     public static final String ENTITY_TYPES_PARAMETER = "entity_types_file";
 
-    private Map<String, List<String>> entityTypes_ = new HashMap<>();
+    private KnowledgeBase kb_ = null;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -25,20 +26,7 @@ public class PrintQuestionsForEntityTypes extends Processor {
      */
     public PrintQuestionsForEntityTypes(Properties properties) throws IOException {
         super(properties);
-        String entityTypes = properties.getProperty(ENTITY_TYPES_PARAMETER);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(entityTypes)));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] fields = line.split("\t");
-            if (fields.length > 1) {
-                List<String> types = new ArrayList<>();
-                for (int i = 1; i < fields.length; ++i) {
-                    types.add(fields[i]);
-                }
-                entityTypes_.put(fields[0], types);
-            }
-        }
-        reader.close();
+        kb_ = KnowledgeBase.getInstance(properties);
     }
 
     @Override
@@ -49,10 +37,8 @@ public class PrintQuestionsForEntityTypes extends Processor {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (!mention.getType().equals("OTHER") && mention.getSentenceIndex() < questionSentences) {
                         String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getEntityId());
-                        if (entityTypes_.containsKey(span.getEntityId())) {
-                            for (String type : entityTypes_.get(span.getCandidateEntityId(0))) {
-                                System.out.println(type + "\t" + text);
-                            }
+                        for (String type : kb_.getEntityTypes(span.getCandidateEntityId(0))) {
+                            System.out.println(type + "\t" + text);
                         }
                     }
                 }
