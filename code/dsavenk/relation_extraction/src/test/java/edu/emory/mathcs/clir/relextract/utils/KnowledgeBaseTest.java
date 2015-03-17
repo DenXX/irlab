@@ -107,5 +107,13 @@ public class KnowledgeBaseTest {
 //
 //
 //
-//    }
+        @org.junit.Test
+        public void testSPARQL() throws Exception {
+            Set<KnowledgeBase.Triple> res =
+                    kb_.getSubjectObjectPath("/m/02mjmr", "/m/025s5v9");
+            Assert.assertTrue(!res.isEmpty());
+            for (KnowledgeBase.Triple triple : res) {
+                System.out.println(triple.predicate);
+            }
+        }
 }

@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 
 import java.io.*;
@@ -44,13 +45,12 @@ public class PrintQuestionsForEntityTypes extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         int questionSentences = DocumentUtils.getQuestionSentenceCount(document);
         for (Document.Span span : document.getSpanList()) {
-            if (!span.getNerType().equals("NONE") && span.hasEntityId()) {
+            if (!span.getNerType().equals("NONE") && span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (!mention.getType().equals("OTHER") && mention.getSentenceIndex() < questionSentences) {
-                        int count = 0;
                         String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getEntityId());
                         if (entityTypes_.containsKey(span.getEntityId())) {
-                            for (String type : entityTypes_.get(span.getEntityId())) {
+                            for (String type : entityTypes_.get(span.getCandidateEntityId(0))) {
                                 System.out.println(type + "\t" + text);
                             }
                         }

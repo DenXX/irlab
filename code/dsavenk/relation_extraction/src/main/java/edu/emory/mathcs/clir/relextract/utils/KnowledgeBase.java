@@ -388,6 +388,39 @@ public class KnowledgeBase {
         return res;
     }
 
+    public Set<Triple> getSubjectObjectPath(String subject, String object) {
+        String queryString = String.format(
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+                        "PREFIX fb: <http://rdf.freebase.com/ns/> " +
+                        "SELECT * {{ " +
+                        "   fb:%s ?pred1 fb:%s . " +
+                        "} UNION {" +
+                        "   fb:%s ?pred1 ?o1 . " +
+                        "   ?o1 ?pred2 fb:%s . " +
+                        "} UNION {" +
+                        "   fb:%s ?pred1 ?o1 . " +
+                        "   ?o1 ?pred2 ?o2 . " +
+                        "   ?o2 ?pred3 fb:%s . " +
+                        "}}",
+                subject.replace("/", ".").substring(1),
+                object.replace("/", ".").substring(1),
+                subject.replace("/", ".").substring(1),
+                object.replace("/", ".").substring(1),
+                subject.replace("/", ".").substring(1),
+                object.replace("/", ".").substring(1));
+
+        System.out.println(queryString);
+        Query query = QueryFactory.create(queryString, Syntax.syntaxARQ);
+        QueryExecution qexec = QueryExecutionFactory.create(query, model_);
+        ResultSet results = qexec.execSelect();
+        Set<Triple> res = new HashSet<>();
+        while (results.hasNext()) {
+            QuerySolution soln = results.nextSolution();
+            System.out.println(soln);
+        }
+        return res;
+    }
+
     /**
      * Returns a set of triples, that connects a pair of entities, including
      * thouse paths that go through a CVT node.
