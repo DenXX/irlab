@@ -21,7 +21,6 @@ public class ProcessorRunner {
     private final Processor processor_;
     private final int numThreads_;
 
-    public static final int TASK_TIMEOUT_SEC = 30;
     public static final int PROGRESS_EVERY = 1000;
 
     /**
@@ -78,8 +77,6 @@ public class ProcessorRunner {
             processor_.finishProcessing();
         } else {
             BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(numThreads_ * 1000);
-            Queue<Future<?>> futures = new LinkedBlockingQueue<>();
-
             ThreadPoolExecutor threadPool = new ThreadPoolExecutor(numThreads_ + 1,
                     numThreads_ + 1, 0L, TimeUnit.MILLISECONDS,
                     blockingQueue); //Executors.newFixedThreadPool(numThreads_);
@@ -91,34 +88,6 @@ public class ProcessorRunner {
                     e.printStackTrace();
                 }
                 executor.execute(r);
-            });
-
-            final AtomicInteger cancelled = new AtomicInteger(0);
-
-            Future<?> terminatorFuture = threadPool.submit(() -> {
-                while (true) {
-                    if (!futures.isEmpty()) {
-                        Future<?> f = futures.poll();
-                        try {
-                            if (!f.isDone()) {
-                                f.get(TASK_TIMEOUT_SEC, TimeUnit.SECONDS);
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (TimeoutException e) {
-                            f.cancel(false);
-                            cancelled.incrementAndGet();
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
             });
 
             final AtomicInteger counter = new AtomicInteger(0);
@@ -133,7 +102,7 @@ public class ProcessorRunner {
                     ++skipped;
                     System.err.println("Skipped: " + skipped);
                 }
-                futures.add(threadPool.submit(() -> {
+                threadPool.submit(() -> {
                     try {
                         if (processor_.process(document) == null) {
                             filtered.incrementAndGet();
@@ -148,16 +117,13 @@ public class ProcessorRunner {
                                 " (" + (PROGRESS_EVERY * 1.0 * processed /
                                 (currentTime - startTime)) + " docs/sec)");
                         System.err.println("Filtered: " + filtered);
-                        System.err.println("Cancelled: " + cancelled);
                     }
-                }));
+                });
             }
-            System.out.println("All tasks read, shutting down the pool...");
+            System.err.println("All tasks read, shutting down the pool...");
             threadPool.shutdown();
-            terminatorFuture.cancel(false);
-            System.out.println("Task timeout terminator is cancelled, waiting for other tasks to finish...");
-            threadPool.awaitTermination(blockingQueue.size() * TASK_TIMEOUT_SEC * 10, TimeUnit.SECONDS);
-            System.out.println("All clear!");
+            threadPool.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
+            System.err.println("All clear!");
             processor_.finishProcessing();
         }
     }
