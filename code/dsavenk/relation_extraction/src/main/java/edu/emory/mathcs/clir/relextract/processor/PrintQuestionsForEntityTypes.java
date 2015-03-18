@@ -36,9 +36,32 @@ public class PrintQuestionsForEntityTypes extends Processor {
             if (!span.getNerType().equals("NONE") && span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (!mention.getType().equals("OTHER") && mention.getSentenceIndex() < questionSentences) {
-                        String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getEntityId());
-                        for (String type : kb_.getEntityTypes(span.getCandidateEntityId(0))) {
-                            System.out.println(type + "\t" + text);
+                        for (int i = 0; i < Math.min(1, span.getCandidateEntityIdCount()); ++i) {
+                            if (span.getCandidateEntityScore(i) < Parameters.MIN_ENTITYID_SCORE) break;
+                            String text = DocumentUtils.getSentenceTextWithEntityBoundary(document, mention, span.getCandidateEntityId(i)).replace("\n", " ").replace("\t", " ");
+
+                            StringBuilder qwords = new StringBuilder();
+                            StringBuilder verbs = new StringBuilder();
+                            StringBuilder nouns = new StringBuilder();
+                            for (int j = document.getSentence(mention.getSentenceIndex()).getFirstToken();
+                                 j < document.getSentence(mention.getSentenceIndex()).getLastToken(); ++j) {
+                                if (j < mention.getTokenBeginOffset() || j >= mention.getTokenEndOffset()) {
+                                    if (document.getToken(j).getPos().startsWith("W")) {
+                                        qwords.append(document.getToken(j).getLemma() + ",");
+                                    } else if (document.getToken(j).getPos().startsWith("V")) {
+                                        verbs.append(document.getToken(j).getLemma() + ",");
+                                    } else if (document.getToken(j).getPos().startsWith("N")) {
+                                        nouns.append(document.getToken(j).getLemma() + ",");
+                                    }
+                                }
+                            }
+                            if (qwords.length() == 0) {
+                                qwords.append(document.getToken(document.getSentence(mention.getSentenceIndex()).getFirstToken()).getLemma() + ",");
+                            }
+
+                            for (String type : kb_.getEntityTypes(span.getCandidateEntityId(0))) {
+                                System.out.println(type + "\t" + text + "\t" + qwords.toString() + "\t" + verbs.toString() + "\t" + nouns.toString());
+                            }
                         }
                     }
                 }
