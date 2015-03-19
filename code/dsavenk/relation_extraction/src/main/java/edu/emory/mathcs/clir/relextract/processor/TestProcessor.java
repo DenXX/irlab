@@ -37,24 +37,22 @@ public class TestProcessor extends Processor {
         ++total;
         int questionLengthSents = DocumentUtils.getQuestionSentenceCount(document);
         if (questionLengthSents > 0) {
-            boolean inQ = false;
-            boolean inAOnly = false;
             for (Document.Span span : document.getSpanList()) {
-                boolean inA = false;
-                if (span.getType().equals("MEASURE") || (span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE)) {
+                boolean ok = true;
+                if (span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE) {
                     for (Document.Mention mention : span.getMentionList()) {
                         if (mention.getSentenceIndex() < questionLengthSents) {
-                            inQ = true;
-                        } else {
-                            inA = true;
+                            ok = true;
+                            break;
                         }
                     }
                 }
-                if (inA && !inQ) inAOnly = true;
-            }
-            if (inAOnly && inQ) {
-                ++count;
-                return document;
+                if (ok) {
+                    for (int i = 0; i < span.getCandidateEntityIdCount()
+                            && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
+                        System.out.println(span.getCandidateEntityId(i));
+                    }
+                }
             }
         }
         return null;

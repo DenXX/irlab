@@ -103,7 +103,8 @@ public class QAModelTrainerProcessor extends Processor {
     }
 
     private void cacheTopicTriples(String id) {
-        if (!sop.containsKey(id)) {
+        System.out.println(id);
+        if (false && !sop.containsKey(id)) {
             Map<String, Set<Statement>> op = new HashMap<>();
             List<Statement> triples = kb_.getSubjectTriplesCvt(id);
             for (Statement st : triples) {
