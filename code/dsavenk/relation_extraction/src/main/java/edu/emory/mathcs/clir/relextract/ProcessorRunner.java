@@ -21,7 +21,7 @@ public class ProcessorRunner {
     private final Processor processor_;
     private final int numThreads_;
 
-    public static final int PROGRESS_EVERY = 1000;
+    public static final int PROGRESS_EVERY = 10;
 
     /**
      * Creates a new concurrent processing runner object, which encapsulates

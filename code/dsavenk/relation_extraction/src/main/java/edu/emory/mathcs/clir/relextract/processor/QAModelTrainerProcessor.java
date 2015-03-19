@@ -1,12 +1,15 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import com.hp.hpl.jena.datatypes.RDFDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.rdf.model.Literal;
+import com.hp.hpl.jena.rdf.model.Statement;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 /**
  * Created by dsavenk on 3/18/15.
@@ -30,7 +33,7 @@ public class QAModelTrainerProcessor extends Processor {
     }
 
     private final KnowledgeBase kb_;
-    private Map<String, Map<String, Set<String>>> sop = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, Map<String, Set<Statement>>> sop = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -46,81 +49,91 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        Document.NlpDocument.Builder docBuilder = null;
         DocumentWrapper doc = new DocumentWrapper(document);
         int questionSentencesCount = doc.getQuestionSentenceCount();
 
-        Set<Integer> questionSpans = new HashSet<>();
-        Set<Integer> answerSpans = new HashSet<>();
+        Set<String> questionSpanIds = new HashSet<>();
+        Set<String> answerSpanIds = new HashSet<>();
 
-        processSpanMentions(doc, (mention, spanIndex) -> {
-            if (mention.getSentenceIndex() < questionSentencesCount) {
-                questionSpans.add(spanIndex);
-            }
-            return null;
-        });
-        if (!questionSpans.isEmpty()) {
-            processSpanMentions(doc, (mention, spanIndex) -> {
-                if (mention.getSentenceIndex() >= questionSentencesCount
-                        && !questionSpans.contains(spanIndex)) {
-                    answerSpans.add(spanIndex);
+        for (Document.Span span : document.getSpanList()) {
+            Set<String> entityIds = new HashSet<>();
+            if ("MEASURE".equals(span.getType())) {
+                entityIds.add(span.getValue());
+            } else {
+                for (int i = 0; i < span.getCandidateEntityIdCount()
+                        && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
+                    entityIds.add(span.getCandidateEntityId(i));
                 }
-                return null;
-            });
+            }
 
-            if (!answerSpans.isEmpty()) {
-                for (int questionSpan : questionSpans) {
-                    for (int answerSpan : answerSpans) {
-                        Set<String> relations = getSpansRelations(doc, questionSpan, answerSpan);
+            if (!entityIds.isEmpty()) {
+                for (Document.Mention mention : span.getMentionList()) {
+                    if (mention.getSentenceIndex() < questionSentencesCount
+                            && !"MEASURE".equals(span.getType())) {
+                        questionSpanIds.addAll(entityIds);
+                        break;
+                    } else {
+                        answerSpanIds.addAll(entityIds);
                     }
                 }
-                return document;
             }
+        }
+        answerSpanIds.removeAll(questionSpanIds);
+        if (!answerSpanIds.isEmpty() && !questionSpanIds.isEmpty()) {
+            questionSpanIds.stream().forEach(this::cacheTopicTriples);
+
+            docBuilder = document.toBuilder();
+
+            for (String id : questionSpanIds) {
+                for (String relatedId : sop.get(id).keySet()) {
+                    for (Statement st : sop.get(id).get(relatedId)) {
+                        docBuilder.addQaInstanceBuilder()
+                                .setIsPositive(answerSpanIds.contains(relatedId))
+                                .setSubject(id)
+                                .setPredicate(st.getPredicate().getLocalName())
+                                .setObject(st.getObject().asNode().toString(null, true));
+                    }
+                }
+            }
+            return docBuilder.build();
         }
 
         return null;
     }
 
-    private Set<String> getSpansRelations(DocumentWrapper doc, int questionSpan, int answerSpan) {
-        Set<String> res = new HashSet<>();
-        Document.Span qSpan = doc.document().getSpan(questionSpan);
-        Document.Span aSpan = doc.document().getSpan(answerSpan);
-        if (qSpan.hasEntityId()) {
-            cacheTopicTriples(qSpan);
-        }
-        if (aSpan.hasEntityId()) {
-            cacheTopicTriples(aSpan);
-        }
-
-        return res;
-    }
-
-    private void cacheTopicTriples(Document.Span span) {
-        for (int i = 0; i < span.getCandidateEntityIdCount()
-                && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
-            System.out.println(span.getCandidateEntityId(i));
-//            if (!sop.containsKey(qSpan.getCandidateEntityId(i))) {
-//                Map<String, Set<String>> op = new HashMap<>();
-//                List<KnowledgeBase.Triple> triples = kb_.getSubjectTriplesCvt(qSpan.getCandidateEntityId(i));
-//                for (KnowledgeBase.Triple t : triples) {
-//                    if (!op.containsKey(t.object))
-//                        op.put(t.object, new HashSet<>());
-//                    op.get(t.object).add(t.predicate);
-//                }
-//                sop.put(qSpan.getCandidateEntityId(i), op);
-//            }
-        }
-    }
-
-    private void processSpanMentions(DocumentWrapper doc, BiFunction<Document.Mention, Integer, Void> func) {
-        int spanIndex = 0;
-        for (Document.Span span : doc.document().getSpanList()) {
-            if ("MEASURE".equals(span.getType()) ||
-                    (span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE)) {
-                for (Document.Mention mention : span.getMentionList()) {
-                    func.apply(mention, spanIndex);
+    private void cacheTopicTriples(String id) {
+        if (!sop.containsKey(id)) {
+            Map<String, Set<Statement>> op = new HashMap<>();
+            List<Statement> triples = kb_.getSubjectTriplesCvt(id);
+            for (Statement st : triples) {
+                if (st.getObject().isResource()) {
+                    if (st.getObject().asResource().getLocalName().startsWith("m.")) {
+                        String objectMid = "/" + st.getObject().asResource().getLocalName().replace(".", "/");
+                        if (!op.containsKey(objectMid))
+                            op.put(objectMid, new HashSet<>());
+                        op.get(objectMid).add(st);
+                    }
+                } else {
+                    String lang = st.getObject().asLiteral().getLanguage();
+                    RDFDatatype type = st.getObject().asLiteral().getDatatype();
+                    if (type != null) {
+                        String val = getStringRepresentation(st.getObject().asLiteral());
+                        if (!op.containsKey(val)) op.put(val, new HashSet<>());
+                        op.get(val).add(st);
+                    }
                 }
             }
-            ++spanIndex;
+            sop.put(id, op);
+        }
+    }
+
+    private String getStringRepresentation(Literal literal) {
+        RDFDatatype type = literal.getDatatype();
+        if (type == null) {
+            return literal.getString();
+        } else {
+            return literal.getString();
         }
     }
 }
