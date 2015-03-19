@@ -1,6 +1,8 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Statement;
 import edu.emory.mathcs.clir.relextract.data.Document;
@@ -17,6 +19,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     private final KnowledgeBase kb_;
     private Map<String, Map<String, Set<Statement>>> sop = Collections.synchronizedMap(new HashMap<>());
+    private Set<RDFDatatype> dateTypes_ = new HashSet<>();
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -28,6 +31,13 @@ public class QAModelTrainerProcessor extends Processor {
     public QAModelTrainerProcessor(Properties properties) {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
+
+        dateTypes_.add(XSDDatatype.XSDdate);
+        dateTypes_.add(XSDDatatype.XSDgYear);
+        dateTypes_.add(XSDDatatype.XSDgYearMonth);
+        dateTypes_.add(XSDDatatype.XSDgMonthDay);
+        dateTypes_.add(XSDDatatype.XSDgMonth);
+        dateTypes_.add(XSDDatatype.XSDgDay);
     }
 
     @Override
@@ -38,11 +48,40 @@ public class QAModelTrainerProcessor extends Processor {
 
         Set<String> questionSpanIds = new HashSet<>();
         Set<String> answerSpanIds = new HashSet<>();
+        Set<String> answerDates = new HashSet<>();
 
         for (Document.Span span : document.getSpanList()) {
             Set<String> entityIds = new HashSet<>();
             if ("MEASURE".equals(span.getType())) {
-                entityIds.add(span.getValue());
+                if (span.getNerType().equals("DATE")) {
+                    boolean skip = false;
+                    int pos1 = span.getValue().indexOf("value=");
+                    if (pos1 == -1) {
+                        pos1 = span.getValue().indexOf("altVal=");
+                    }
+                    if (pos1 != -1) {
+                        pos1 = span.getValue().indexOf("\"", pos1);
+                        int pos2 = span.getValue().indexOf("\"", pos1 + 2);
+                        if (pos2 != -1) {
+                            String value = span.getValue().substring(pos1 + 1, pos2);
+                            for (int i = 0; i < value.length(); ++i) {
+                                if (!Character.isDigit(value.charAt(i)) &&
+                                        value.charAt(i) != '-' && value.charAt(i) != 'X') {
+                                    skip = true;
+                                }
+                            }
+                            if (!skip) {
+                                answerDates.add(value);
+                            }
+                        } else {
+                            answerDates.add(span.getValue());
+                        }
+                    } else {
+                        answerDates.add(span.getValue());
+                    }
+                } else {
+                    entityIds.add(span.getValue());
+                }
             } else {
                 for (int i = 0; i < span.getCandidateEntityIdCount()
                         && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
@@ -71,11 +110,29 @@ public class QAModelTrainerProcessor extends Processor {
             for (String id : questionSpanIds) {
                 for (String relatedId : sop.get(id).keySet()) {
                     for (Statement st : sop.get(id).get(relatedId)) {
-                        docBuilder.addQaInstanceBuilder()
-                                .setIsPositive(answerSpanIds.contains(relatedId))
+                        Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
                                 .setSubject(id)
                                 .setPredicate(st.getPredicate().getLocalName())
                                 .setObject(st.getObject().asNode().toString(null, true));
+
+                        if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
+                            for (String date : answerDates) {
+                                if (date.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
+                                    String year = date.substring(0, 4);
+                                    String month = date.length() > 4 ?
+                                            date.substring(5, 7)
+                                            : "XX";
+                                    String day = date.length() > 7
+                                            ? date.substring(8)
+                                            : "XX";
+                                    qaInstance.setIsPositive(kb_.matchDatesSoft(year, month, day, (XSDDateTime)st.getObject().asLiteral().getValue()));
+                                } else {
+                                    qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                                }
+                            }
+                        } else {
+                            qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                        }
                     }
                 }
             }
@@ -88,7 +145,7 @@ public class QAModelTrainerProcessor extends Processor {
     private void cacheTopicTriples(String id) {
         if (!sop.containsKey(id)) {
             Map<String, Set<Statement>> op = new HashMap<>();
-            List<Statement> triples = kb_.getSubjectTriplesCvt(id);
+            List<Statement> triples = kb_.getSubjectTriplesCvt(id); // Collections.emptyList();
             for (Statement st : triples) {
                 if (st.getObject().isResource()) {
                     if (st.getObject().asResource().getLocalName().startsWith("m.")) {

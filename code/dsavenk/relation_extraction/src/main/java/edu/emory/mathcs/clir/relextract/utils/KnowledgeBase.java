@@ -628,31 +628,7 @@ public class KnowledgeBase {
                         Statement triple = iter.nextStatement();
                         try {
                             XSDDateTime value = (XSDDateTime) triple.getObject().asLiteral().getValue();
-                            boolean valueHasYear = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYear);
-                            boolean valueHasMonth = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonth);
-                            boolean valueHasDay = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
-                                    || (value.getNarrowedDatatype() == XSDDatatype.XSDgDay);
-                            boolean eq = true;
-                            if (valueHasYear) {
-                                String valYearStr = Integer.toString(value.getYears());
-                                eq &= compareDatePartsSoft(year, valYearStr);
-                                eq &= year.charAt(2) != 'X' && year.charAt(3) != 'X';
-                            }
-                            if (valueHasMonth) {
-                                String valMonthStr = Integer.toString(value.getMonths());
-                                eq &= compareDatePartsSoft(month, valMonthStr);
-                            }
-                            if (valueHasDay) {
-                                String valDayStr = Integer.toString(value.getDays());
-                                eq &= compareDatePartsSoft(month, valDayStr);
-                            }
-                            if (eq) {
+                            if (matchDatesSoft(year, month, day, value)) {
                                 res.add(new Triple(triple));
                             }
                         } catch (DatatypeFormatException exc) {
@@ -664,6 +640,34 @@ public class KnowledgeBase {
             }
         }
         return null;
+    }
+
+    public boolean matchDatesSoft(String year, String month, String day, XSDDateTime value) {
+        boolean valueHasYear = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgYear);
+        boolean valueHasMonth = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgYearMonth)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonth);
+        boolean valueHasDay = (value.getNarrowedDatatype() == XSDDatatype.XSDdate)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgMonthDay)
+                || (value.getNarrowedDatatype() == XSDDatatype.XSDgDay);
+        boolean eq = true;
+        if (valueHasYear) {
+            String valYearStr = Integer.toString(value.getYears());
+            eq &= compareDatePartsSoft(year, valYearStr);
+            eq &= year.charAt(2) != 'X' && year.charAt(3) != 'X';
+        }
+        if (valueHasMonth) {
+            String valMonthStr = Integer.toString(value.getMonths());
+            eq &= compareDatePartsSoft(month, valMonthStr);
+        }
+        if (valueHasDay) {
+            String valDayStr = Integer.toString(value.getDays());
+            eq &= compareDatePartsSoft(day, valDayStr);
+        }
+        return eq;
     }
 
     private boolean compareDatePartsSoft(String value1, String value2) {
