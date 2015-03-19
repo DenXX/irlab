@@ -5,10 +5,15 @@ import edu.emory.mathcs.clir.relextract.processor.RelationExtractorTrainEvalProc
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.LogPrior;
+import edu.stanford.nlp.classify.LogisticClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.optimization.DiffFunction;
+import edu.stanford.nlp.optimization.Minimizer;
+import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
+import edu.stanford.nlp.util.Factory;
 import edu.stanford.nlp.util.Generics;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
@@ -62,11 +67,14 @@ public class CoreNlpL2LogRegressionExtractionModel extends ExtractionModel {
 //        if (verbose) {
 //            outputFeatureCounts(trainingDataset, featAlphabet);
 //        }
-
         LinearClassifierFactory<String, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, reg_);
         //classifierFactory_.setTuneSigmaHeldOut();
-        classifierFactory_.useQuasiNewton();
+        classifierFactory_.setMinimizerCreator(() -> {
+            QNMinimizer min = new QNMinimizer(15);
+            min.useOWLQN(true, reg_);
+            return min;
+        });
         classifierFactory_.setVerbose(true);
 
         model_ = classifierFactory_.trainClassifier(trainingDataset);

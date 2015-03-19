@@ -21,7 +21,7 @@ public class ProcessorRunner {
     private final Processor processor_;
     private final int numThreads_;
 
-    public static final int PROGRESS_EVERY = 1000;
+    public static final int PROGRESS_EVERY = 10;
 
     /**
      * Creates a new concurrent processing runner object, which encapsulates
@@ -66,10 +66,10 @@ public class ProcessorRunner {
                 if (processor_.process(document) == null) {
                     ++filtered;
                 }
-                if (++counter % 1000 == 0) {
+                if (++counter % PROGRESS_EVERY == 0) {
                     long currentTime = System.currentTimeMillis();
                     System.err.println("Processed: " + counter +
-                            " (" + (1000.0 * counter /
+                            " (" + (PROGRESS_EVERY * 1.0 * counter /
                             (currentTime - startTime)) + " docs/sec)");
                     System.err.println("Filtered: " + filtered);
                 }

@@ -7,6 +7,7 @@ import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 /**
@@ -34,24 +35,29 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-        document.getSpanList().stream().filter(span -> span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE).forEach(span -> ++count);
-
         int questionLengthSents = DocumentUtils.getQuestionSentenceCount(document);
-        boolean verb = false;
-        if (document.getSentenceCount() > questionLengthSents) {
-            for (int i = document.getSentence(questionLengthSents).getFirstToken();
-                 i < document.getSentence(document.getSentenceCount() - 1).getLastToken(); ++i) {
-                if (document.getToken(i).getPos().startsWith("V") || document.getToken(i).getPos().startsWith("MD")) {
-                    verb = true;
-                    break;
+        if (questionLengthSents > 0) {
+            boolean inQ = false;
+            boolean inAOnly = false;
+            for (Document.Span span : document.getSpanList()) {
+                boolean inA = false;
+                if (span.getType().equals("MEASURE") || (span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE)) {
+                    for (Document.Mention mention : span.getMentionList()) {
+                        if (mention.getSentenceIndex() < questionLengthSents) {
+                            inQ = true;
+                        } else {
+                            inA = true;
+                        }
+                    }
                 }
+                if (inA && !inQ) inAOnly = true;
             }
-            if (!verb) {
-                ++count2;
+            if (inAOnly && inQ) {
+                ++count;
+                return document;
             }
         }
-
-        return document;
+        return null;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {

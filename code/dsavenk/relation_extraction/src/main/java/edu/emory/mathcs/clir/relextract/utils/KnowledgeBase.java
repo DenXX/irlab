@@ -53,6 +53,8 @@ public class KnowledgeBase {
             new ConcurrentHashMap<>();
     private Map<String, List<String>> entityTypes_ = new HashMap<>();
 
+    private Map<String, List<Triple>> topicCache_ = Collections.synchronizedMap(new HashMap<>());
+
     /**
      * Private constructor, that initializes a new instance of the knowledge
      * base.
@@ -83,7 +85,7 @@ public class KnowledgeBase {
                             model_.getProperty(FREEBASE_RDF_PREFIX, "type.object.id"),
                             (RDFNode) null);
                     while (iter3.hasNext()) {
-                        cvtProperties_.add(iter3.nextStatement().getObject().asLiteral().toString());
+                        cvtProperties_.add(iter3.nextStatement().getObject().asLiteral().toString().substring(1).replace("/", "."));
                     }
                 }
             }
@@ -290,6 +292,31 @@ public class KnowledgeBase {
         return model_.listStatements(new SimpleSelector(
                 model_.getResource(convertFreebaseMidRdf(subject)),
                 null, (RDFNode) null));
+    }
+
+    public List<Triple> getSubjectTriplesCvt(String subject) {
+        if (topicCache_.containsKey(subject)) return topicCache_.get(subject);
+        List<Triple> res = new ArrayList<>();
+
+        StmtIterator iter1 = model_.getResource(convertFreebaseMidRdf(subject)).listProperties();
+        while (iter1.hasNext()) {
+            Statement st = iter1.nextStatement();
+            if (cvtProperties_.contains(st.getPredicate().getLocalName())) {
+                StmtIterator iter2 = st.getObject().asResource().listProperties();
+                while (iter2.hasNext()) {
+                    Statement st2 = iter2.nextStatement();
+                    if (st2.getObject().isLiteral()) {
+                        res.add(new Triple("/" + st.getSubject().getLocalName().replace(".", "/"), st.getPredicate() + "|" + st2.getPredicate(), st2.getObject().asLiteral().getString()));
+                    } else if (st2.getObject().isResource()) {
+                        res.add(new Triple("/" + st.getSubject().getLocalName().replace(".", "/"), st.getPredicate() + "|" + st2.getPredicate(), "/" + st2.getObject().asResource().getLocalName().replace(".", "/")));
+                    }
+                }
+            } else {
+                res.add(new Triple(st));
+            }
+        }
+        topicCache_.put(subject, res);
+        return res;
     }
 
     /**
