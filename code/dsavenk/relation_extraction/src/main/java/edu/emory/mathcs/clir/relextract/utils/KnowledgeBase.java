@@ -6,6 +6,8 @@ import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
+import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.emory.mathcs.clir.relextract.data.*;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
@@ -53,7 +55,7 @@ public class KnowledgeBase {
             new ConcurrentHashMap<>();
     private Map<String, List<String>> entityTypes_ = new HashMap<>();
 
-    private Map<String, List<Triple>> topicCache_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, List<Statement>> topicCache_ = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Private constructor, that initializes a new instance of the knowledge
@@ -294,9 +296,9 @@ public class KnowledgeBase {
                 null, (RDFNode) null));
     }
 
-    public List<Triple> getSubjectTriplesCvt(String subject) {
+    public List<Statement> getSubjectTriplesCvt(String subject) {
         if (topicCache_.containsKey(subject)) return topicCache_.get(subject);
-        List<Triple> res = new ArrayList<>();
+        List<Statement> res = new ArrayList<>();
 
         StmtIterator iter1 = model_.getResource(convertFreebaseMidRdf(subject)).listProperties();
         while (iter1.hasNext()) {
@@ -305,14 +307,10 @@ public class KnowledgeBase {
                 StmtIterator iter2 = st.getObject().asResource().listProperties();
                 while (iter2.hasNext()) {
                     Statement st2 = iter2.nextStatement();
-                    if (st2.getObject().isLiteral()) {
-                        res.add(new Triple("/" + st.getSubject().getLocalName().replace(".", "/"), st.getPredicate() + "|" + st2.getPredicate(), st2.getObject().asLiteral().getString()));
-                    } else if (st2.getObject().isResource()) {
-                        res.add(new Triple("/" + st.getSubject().getLocalName().replace(".", "/"), st.getPredicate() + "|" + st2.getPredicate(), "/" + st2.getObject().asResource().getLocalName().replace(".", "/")));
-                    }
+                    res.add(new StatementImpl(st.getSubject(), new PropertyImpl(st.getPredicate() + "|" + st2.getPredicate()), st2.getObject()));
                 }
             } else {
-                res.add(new Triple(st));
+                res.add(st);
             }
         }
         topicCache_.put(subject, res);
