@@ -83,20 +83,20 @@ public class QAModelTrainerProcessor extends Processor {
         if (!answerSpanIds.isEmpty() && !questionSpanIds.isEmpty()) {
             questionSpanIds.stream().forEach(this::cacheTopicTriples);
 
-            docBuilder = document.toBuilder();
-
-            for (String id : questionSpanIds) {
-                for (String relatedId : sop.get(id).keySet()) {
-                    for (Statement st : sop.get(id).get(relatedId)) {
-                        docBuilder.addQaInstanceBuilder()
-                                .setIsPositive(answerSpanIds.contains(relatedId))
-                                .setSubject(id)
-                                .setPredicate(st.getPredicate().getLocalName())
-                                .setObject(st.getObject().asNode().toString(null, true));
-                    }
-                }
-            }
-            return docBuilder.build();
+//            docBuilder = document.toBuilder();
+//
+//            for (String id : questionSpanIds) {
+//                for (String relatedId : sop.get(id).keySet()) {
+//                    for (Statement st : sop.get(id).get(relatedId)) {
+//                        docBuilder.addQaInstanceBuilder()
+//                                .setIsPositive(answerSpanIds.contains(relatedId))
+//                                .setSubject(id)
+//                                .setPredicate(st.getPredicate().getLocalName())
+//                                .setObject(st.getObject().asNode().toString(null, true));
+//                    }
+//                }
+//            }
+//            return docBuilder.build();
         }
 
         return null;
