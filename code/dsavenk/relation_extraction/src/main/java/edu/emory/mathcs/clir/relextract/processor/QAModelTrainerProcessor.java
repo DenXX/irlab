@@ -1,7 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Statement;
 import edu.emory.mathcs.clir.relextract.data.Document;
@@ -15,22 +14,6 @@ import java.util.*;
  * Created by dsavenk on 3/18/15.
  */
 public class QAModelTrainerProcessor extends Processor {
-
-    private static class QAPair {
-        Document.NlpDocument document;
-        int questionSentence;
-        int answerSpan;
-        String relation;
-        boolean correct;
-
-        QAPair(Document.NlpDocument doc, int qSentence, int aSpan, String rel, boolean isCorrect) {
-            document = doc;
-            questionSentence = qSentence;
-            answerSpan = aSpan;
-            relation = rel;
-            correct = isCorrect;
-        }
-    }
 
     private final KnowledgeBase kb_;
     private Map<String, Map<String, Set<Statement>>> sop = Collections.synchronizedMap(new HashMap<>());
@@ -83,28 +66,27 @@ public class QAModelTrainerProcessor extends Processor {
         if (!answerSpanIds.isEmpty() && !questionSpanIds.isEmpty()) {
             questionSpanIds.stream().forEach(this::cacheTopicTriples);
 
-//            docBuilder = document.toBuilder();
-//
-//            for (String id : questionSpanIds) {
-//                for (String relatedId : sop.get(id).keySet()) {
-//                    for (Statement st : sop.get(id).get(relatedId)) {
-//                        docBuilder.addQaInstanceBuilder()
-//                                .setIsPositive(answerSpanIds.contains(relatedId))
-//                                .setSubject(id)
-//                                .setPredicate(st.getPredicate().getLocalName())
-//                                .setObject(st.getObject().asNode().toString(null, true));
-//                    }
-//                }
-//            }
-//            return docBuilder.build();
+            docBuilder = document.toBuilder();
+
+            for (String id : questionSpanIds) {
+                for (String relatedId : sop.get(id).keySet()) {
+                    for (Statement st : sop.get(id).get(relatedId)) {
+                        docBuilder.addQaInstanceBuilder()
+                                .setIsPositive(answerSpanIds.contains(relatedId))
+                                .setSubject(id)
+                                .setPredicate(st.getPredicate().getLocalName())
+                                .setObject(st.getObject().asNode().toString(null, true));
+                    }
+                }
+            }
+            return docBuilder.build();
         }
 
         return null;
     }
 
     private void cacheTopicTriples(String id) {
-        System.out.println(id);
-        if (false && !sop.containsKey(id)) {
+        if (!sop.containsKey(id)) {
             Map<String, Set<Statement>> op = new HashMap<>();
             List<Statement> triples = kb_.getSubjectTriplesCvt(id);
             for (Statement st : triples) {
