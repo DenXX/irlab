@@ -56,7 +56,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        
+
     }
 
     private void generateFeatures(DocumentWrapper document,

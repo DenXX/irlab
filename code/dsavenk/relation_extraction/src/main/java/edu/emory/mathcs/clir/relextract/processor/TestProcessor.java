@@ -35,24 +35,10 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
-        int questionLengthSents = DocumentUtils.getQuestionSentenceCount(document);
-        if (questionLengthSents > 0) {
-            for (Document.Span span : document.getSpanList()) {
-                boolean ok = true;
-                if (span.hasEntityId() && span.getCandidateEntityScore(0) >= Parameters.MIN_ENTITYID_SCORE) {
-                    for (Document.Mention mention : span.getMentionList()) {
-                        if (mention.getSentenceIndex() < questionLengthSents) {
-                            ok = true;
-                            break;
-                        }
-                    }
-                }
-                if (ok) {
-                    for (int i = 0; i < span.getCandidateEntityIdCount()
-                            && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
-                        System.out.println(span.getCandidateEntityId(i));
-                    }
-                }
+        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
+            System.out.println(triple.getSubject());
+            if (triple.getObject().startsWith("http:")) {
+                System.out.println(triple.getObject());
             }
         }
         return null;
