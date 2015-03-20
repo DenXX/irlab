@@ -40,9 +40,9 @@ public class TestProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            out_.write(triple.getSubject() + "\n");
+            String res = triple.getSubject() + "\n";
             if (triple.getObject().startsWith("http:")) {
-                out_.write(triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/") + "\n");
+                res = triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/") + "\n";
             }
         }
         return null;
