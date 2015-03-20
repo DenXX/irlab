@@ -38,7 +38,7 @@ public class TestProcessor extends Processor {
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
             System.out.println(triple.getSubject());
             if (triple.getObject().startsWith("http:")) {
-                System.out.println(triple.getObject());
+                System.out.println(triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/"));
             }
         }
         return null;
