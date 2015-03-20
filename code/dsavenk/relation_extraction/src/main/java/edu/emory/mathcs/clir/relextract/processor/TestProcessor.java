@@ -6,7 +6,9 @@ import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
@@ -19,6 +21,8 @@ public class TestProcessor extends Processor {
     private int total = 0;
 
     private final Random rnd;
+
+    BufferedWriter out_ = new BufferedWriter(new OutputStreamWriter(System.out));
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -36,9 +40,11 @@ public class TestProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            System.out.println(triple.getSubject());
-            if (triple.getObject().startsWith("http:")) {
-                System.out.println(triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/"));
+            synchronized (out_) {
+                out_.write(triple.getSubject() + "\n");
+                if (triple.getObject().startsWith("http:")) {
+                    out_.write(triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/") + "\n");
+                }
             }
         }
         return null;
