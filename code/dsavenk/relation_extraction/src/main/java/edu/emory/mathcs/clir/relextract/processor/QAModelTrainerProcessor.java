@@ -27,6 +27,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     private final Dataset<Boolean, String> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
+    private Random rnd_ = new Random(42);
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -69,6 +70,9 @@ public class QAModelTrainerProcessor extends Processor {
 
         Set<String> features = new HashSet<>();
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
+            if (!instance.getIsPositive() & rnd_.nextInt(100) > 10) {
+                continue;
+            }
             features.clear();
             generateFeatures(documentWrapper, instance, qDepPaths, features);
             synchronized (dataset_) {
