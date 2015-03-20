@@ -8,9 +8,13 @@ import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
+import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.classify.Dataset;
+import edu.stanford.nlp.util.Interval;
+import edu.stanford.nlp.util.IntervalTree;
 import org.apache.xerces.impl.dv.XSSimpleType;
 
 import java.util.*;
@@ -42,10 +46,30 @@ public class QAModelTrainerProcessor extends Processor {
             return null;
         }
 
+        DocumentWrapper documentWrapper = new DocumentWrapper(document);
+
+//        int[] tokenMentions = new int[documentWrapper.getQuestionSentenceCount() < document.getSentenceCount()
+//                ? document.getSentence(documentWrapper.getQuestionSentenceCount()).getFirstToken()
+//                : document.getTokenCount()];
+//        Arrays.fill(tokenMentions, -1);
+
+        Set<String> qDepPaths = new HashSet<>();
+
+        for (Document.Span span : document.getSpanList()) {
+            if (span.hasEntityId() && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE) {
+                for (Document.Mention mention : span.getMentionList()) {
+                    if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
+                        int mentionHead = DependencyTreeUtils.getMentionHeadToken(document, mention);
+                        qDepPaths.add(DependencyTreeUtils.getQuestionDependencyPath(document, mention.getSentenceIndex(), mentionHead));
+                    }
+                }
+            }
+        }
+
         Set<String> features = new HashSet<>();
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             features.clear();
-            generateFeatures(new DocumentWrapper(document), instance, features);
+            generateFeatures(documentWrapper, instance, qDepPaths, features);
             synchronized (dataset_) {
                 dataset_.add(features, instance.getIsPositive());
             }
@@ -61,25 +85,23 @@ public class QAModelTrainerProcessor extends Processor {
 
     private void generateFeatures(DocumentWrapper document,
                                   Document.QaRelationInstance instance,
+                                  Set<String> qDepPaths,
                                   Set<String> features) {
         List<String> questionEntityTypes = kb_.getEntityTypes(instance.getSubject(), false)
                 .stream()
                 .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-                .filter(x -> x.contains("common.topic"))
+                .filter(x -> !x.contains("common.topic"))
                 .collect(Collectors.toList());
-        List<String> answerEntityTypes = kb_.getEntityTypes(instance.getObject(), false)
-                .stream()
-                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-                .filter(x -> x.contains("common.topic"))
-                .collect(Collectors.toList());
+        List<String> answerEntityTypes = Collections.emptyList();
+//            kb_.getEntityTypes(instance.getObject(), false)
+//                .stream()
+//                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
+//                .filter(x -> x.contains("common.topic"))
+//                .collect(Collectors.toList());
 
         Set<String> qWords = document.getQuestionWords();
         Set<String> qVerbs = document.getQuestionVerbs();
         Set<String> qFocuses = document.getQuestionFocus();
-
-        for (Document.Span span : document.document().getSpanList()) {
-//            for ()
-        }
 
         for (String qWord : qWords) {
             features.add(String.format("qword=%s|arelation=%s", qWord, instance.getPredicate()));
@@ -126,6 +148,30 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
         }
+
+        for (String depPath : qDepPaths) {
+            for (String questionEntityType : questionEntityTypes) {
+                features.add(String.format("qdeppath=%s%s|arelation=%s", depPath, questionEntityType, instance.getPredicate()));
+            }
+        }
+
+//        Set<String> edges = new HashSet<>();
+//        for (int sentence = 0; sentence < document.getQuestionSentenceCount(); ++sentence) {
+//            for (int token = document.document().getSentence(sentence).getFirstToken();
+//                 token < document.document().getSentence(sentence).getLastToken(); ++token) {
+//                if (tokenMentions[token] == -1 || tokenMentions[token] == token) {
+//                    StringBuilder edge = new StringBuilder();
+//                    edge.append(document.document().getToken(token).getDependencyType());
+//                    edge.append("(");
+//                    int gov = document.document().getToken(token).getDependencyGovernor();
+//                    if (gov > 0) {
+//                        gov = document.document().getSentence(sentence).getFirstToken() + gov - 1;
+//                    } else {
+//
+//                    }
+//                }
+//            }
+//        }
     }
 }
 
