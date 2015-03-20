@@ -42,7 +42,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getQaInstanceCount() == 0) {
+        if (document.getQaInstanceCount() == 0 || document.getQaInstanceList().stream().noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
 
@@ -59,8 +59,9 @@ public class QAModelTrainerProcessor extends Processor {
             if (span.hasEntityId() && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
-                        int mentionHead = DependencyTreeUtils.getMentionHeadToken(document, mention);
-                        qDepPaths.add(DependencyTreeUtils.getQuestionDependencyPath(document, mention.getSentenceIndex(), mentionHead));
+                        qDepPaths.add(DependencyTreeUtils.getQuestionDependencyPath(document,
+                                mention.getSentenceIndex(),
+                                DependencyTreeUtils.getMentionHeadToken(document, mention)));
                     }
                 }
             }
@@ -93,6 +94,7 @@ public class QAModelTrainerProcessor extends Processor {
                 .filter(x -> !x.contains("common.topic"))
                 .collect(Collectors.toList());
         List<String> answerEntityTypes = Collections.emptyList();
+        // TODO(denxx): Include answer entity types and some other info
 //            kb_.getEntityTypes(instance.getObject(), false)
 //                .stream()
 //                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
