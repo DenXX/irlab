@@ -100,7 +100,7 @@ public class QAModelTrainerProcessor extends Processor {
 
         Set<String> features = new HashSet<>();
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
-            if (!instance.getIsPositive() & rnd_.nextInt(1000) > 5) {
+            if (!instance.getIsPositive() & rnd_.nextInt(1000) > 2) {
                 continue;
             }
 //            for (String str : features) {
