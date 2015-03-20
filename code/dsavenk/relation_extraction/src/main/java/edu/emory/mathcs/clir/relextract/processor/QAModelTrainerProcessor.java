@@ -6,6 +6,7 @@ import com.hp.hpl.jena.graph.NodeFactory;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
+import edu.emory.mathcs.clir.relextract.AppParameters;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
@@ -13,9 +14,13 @@ import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.classify.Dataset;
+import edu.stanford.nlp.classify.LinearClassifier;
+import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.util.Interval;
 import edu.stanford.nlp.util.IntervalTree;
+import edu.stanford.nlp.util.Triple;
 import org.apache.xerces.impl.dv.XSSimpleType;
 
 import java.util.*;
@@ -29,6 +34,9 @@ public class QAModelTrainerProcessor extends Processor {
     private final Dataset<Boolean, String> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
+    private String modelFile;
+
+    public static final String QA_MODEL_PARAMETER = "qa_model_path";
 
     String[] feat1 = {"qword", "arelation"};
     String[] feat2 = {"qword", "atopic"};
@@ -57,6 +65,7 @@ public class QAModelTrainerProcessor extends Processor {
     public QAModelTrainerProcessor(Properties properties) {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
+        modelFile = properties.getProperty(QA_MODEL_PARAMETER);
     }
 
     @Override
@@ -94,7 +103,9 @@ public class QAModelTrainerProcessor extends Processor {
             features.clear();
             generateFeatures(documentWrapper, instance, qDepPaths, features);
             synchronized (dataset_) {
+                System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
                 dataset_.add(features, instance.getIsPositive());
+
             }
         }
 
@@ -103,7 +114,18 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
+        LinearClassifierFactory<Boolean, String> classifierFactory_ =
+                new LinearClassifierFactory<>(1e-4, false, 0.0);
+        //classifierFactory_.setTuneSigmaHeldOut();
+        classifierFactory_.setMinimizerCreator(() -> {
+            QNMinimizer min = new QNMinimizer(15);
+            min.useOWLQN(true, 1.0);
+            return min;
+        });
+        classifierFactory_.setVerbose(true);
 
+        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
+        model_.saveToFilename(modelFile);
     }
 
     private void generateFeatures(DocumentWrapper document,

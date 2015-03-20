@@ -178,6 +178,10 @@ public class AppParameters {
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER)
                 .withDescription("Wikilinks normalized dictionary file").create(
                         CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_MODEL_PARAMETER)
+                .withDescription("QA model file").create(
+                        QAModelTrainerProcessor.QA_MODEL_PARAMETER));
 
         return opt;
     }
