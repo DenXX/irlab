@@ -116,6 +116,9 @@ public class RelationExtractionApp {
                 case "keeprepresentativeids":
                     workflow.addProcessor(new KeepRepresentativeMentionEntityIdProcessor(props));
                     break;
+                case "qainstancebuilder":
+                    workflow.addProcessor(new QAExamplesBuilderProcessor(props));
+                    break;
                 case "qa":
                     workflow.addProcessor(new QAModelTrainerProcessor(props));
                     break;

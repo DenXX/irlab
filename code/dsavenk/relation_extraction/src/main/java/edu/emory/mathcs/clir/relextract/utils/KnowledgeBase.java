@@ -3,11 +3,14 @@ package edu.emory.mathcs.clir.relextract.utils;
 import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.rdf.model.impl.LiteralImpl;
 import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
 import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
+import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import com.hp.hpl.jena.tdb.TDBFactory;
 import edu.emory.mathcs.clir.relextract.data.*;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
@@ -15,6 +18,7 @@ import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
 import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import org.apache.xerces.impl.dv.XSSimpleType;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -120,7 +124,7 @@ public class KnowledgeBase {
                 kb_.readEntityTypes(props.getProperty(ENTITY_TYPES_PARAMETER));
             } catch (Exception ex) {
                 System.err.println("Cannot read entity types file");
-                kb_.entityTypes_ = null;
+                kb_.entityTypes_.clear();
             }
         }
 
@@ -165,23 +169,29 @@ public class KnowledgeBase {
         return getEntityTypes(mid, false);
     }
 
-    public List<String> getEntityTypes(String mid, boolean notable) {
+    public List<String> getEntityTypes(String entityStr, boolean notable) {
+        if (entityStr.charAt(0) == '/' || entityStr.startsWith("http")) {
+            return getEntityTypes(model_.getResource(convertFreebaseMidRdf(entityStr)), notable);
+        }
+        XSSimpleType type = (XSSimpleType)NodeFactoryExtra.parseNode(entityStr.replace("^^", "^^<") + ">").getLiteralDatatype().extendedTypeDefinition();
+        return Arrays.asList(type.getName().startsWith("g") ? "date" : type.getName());
+    }
+
+    public List<String> getEntityTypes(Resource entity, boolean notable) {
+        String mid = "/" + entity.getLocalName().replace(".", "/");
         if (!notable && entityTypes_ != null && entityTypes_.containsKey(mid)) {
             return entityTypes_.get(mid);
         }
+
+        List<String> res = new ArrayList<>();
         String typeProperty = notable ? "common.topic.notable_types" : "type.object.type";
-        List<String> types = new ArrayList<>();
-        // TODO(denxx): This is a dirty hack to detect measures vs entities.
-        if (mid.charAt(0) == '/') {
-            StmtIterator iter = model_.listStatements(model_.getResource(convertFreebaseMidRdf(mid)),
-                    model_.getProperty(FREEBASE_RDF_PREFIX, typeProperty), (RDFNode) null);
-            while (iter.hasNext())
-                types.add(iter.nextStatement().getObject().asResource().getURI());
-        } else {
-            types.add("http://rdf.freebase.com/ns/type.datetime");
+        StmtIterator iter = entity.listProperties(model_.getProperty(FREEBASE_RDF_PREFIX, typeProperty));
+        while (iter.hasNext())
+            res.add(iter.nextStatement().getObject().asResource().getURI());
+        if (entityTypes_ != null) {
+            entityTypes_.put(mid, res);
         }
-        entityTypes_.put(mid, types);
-        return types;
+        return res;
     }
 
     public long getTripleCount(String mid) {
@@ -286,6 +296,8 @@ public class KnowledgeBase {
     }
 
     private String convertFreebaseMidRdf(String mid) {
+        if (mid.startsWith("http://")) return mid;
+
         if (mid.charAt(0) == '/') mid = mid.substring(1);
         return FREEBASE_RDF_PREFIX + mid.replace("/", ".");
     }

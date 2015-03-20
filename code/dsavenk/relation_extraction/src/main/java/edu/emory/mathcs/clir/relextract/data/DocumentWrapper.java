@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.data;
 
+import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
 import edu.stanford.nlp.dcoref.Dictionaries;
@@ -18,10 +19,8 @@ import edu.stanford.nlp.util.Interval;
 import edu.stanford.nlp.util.IntervalTree;
 import edu.stanford.nlp.util.Pair;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by dsavenk on 3/16/15.
@@ -30,6 +29,10 @@ public class DocumentWrapper {
 
     private final Document.NlpDocument document_;
     private int questionSentsCount_ = -1;
+    private Set<Integer> qWords_ = null;
+    private Set<Integer> qVerbs_ = null;
+    private Set<Integer> qFocus_ = null;
+    private Set<String> qDepPaths_ = null;
 
     /**
      * Create document wrapper for the given document.
@@ -67,6 +70,55 @@ public class DocumentWrapper {
         return questionSentsCount_ = document_.getSentenceCount();
     }
 
+
+    public Set<String> getQuestionWords() {
+        if (qWords_ == null) {
+            findQWords();
+        }
+        return qWords_.stream().map(i -> document().getToken(i).getLemma().toLowerCase()).collect(Collectors.toSet());
+    }
+
+    public Set<String> getQuestionVerbs() {
+        if (qVerbs_ == null) {
+            findQVerbs();
+        }
+        return qVerbs_.stream().map(i -> document().getToken(i).getLemma().toLowerCase()).collect(Collectors.toSet());
+    }
+
+    public Set<String> getQuestionFocus() {
+        if (qFocus_ == null) {
+            qFocus_ = new HashSet<>();
+            findQWords();
+
+            qFocus_.addAll(qWords_.stream().filter(qWord -> document_.getToken(qWord).getDependencyGovernor() > 0).map(qWord -> document_.getSentence(document_.getToken(qWord).getSentenceIndex()).getFirstToken() + document_.getToken(qWord).getDependencyGovernor() - 1).collect(Collectors.toList()));
+
+            for (int sentence = 0; sentence < getQuestionSentenceCount(); ++sentence) {
+                for (int token = document_.getSentence(sentence).getFirstToken();
+                     token < document_.getSentence(sentence).getLastToken(); ++token) {
+                    int gov = document_.getSentence(sentence).getFirstToken() + document_.getToken(token).getDependencyGovernor() - 1;
+                    if (document_.getToken(token).getPos().startsWith("N") && qWords_.contains(gov)) {
+                        qFocus_.add(token);
+                    }
+                }
+            }
+        }
+        return qFocus_.stream().map(i -> document().getToken(i).getLemma().toLowerCase()).collect(Collectors.toSet());
+    }
+
+    public Set<String> getQuestionDependencyPath(int targetToken) {
+        if (qDepPaths_.isEmpty()) {
+            findQWords();
+            findQVerbs();
+            Set<Integer> roots = qWords_.isEmpty() ? qVerbs_ : qWords_;
+            for (int token : roots) {
+                String path = DependencyTreeUtils.getDependencyPath(document_, token, targetToken, true, true, false);
+                if (path != null) {
+                    qDepPaths_.add(path);
+                }
+            }
+        }
+        return qDepPaths_;
+    }
 
     /**
      * Converts Stanford CoreNlp annotation object to the proto format and stores it in the wrapper.
@@ -333,4 +385,34 @@ public class DocumentWrapper {
 
         return docBuilder.build();
     }
+
+    private void findQWords() {
+        qWords_ = new HashSet<>();
+        for (int sentence = 0; sentence < getQuestionSentenceCount(); ++sentence) {
+            for (int i = document_.getSentence(sentence).getFirstToken();
+                 i < document_.getSentence(sentence).getLastToken(); ++i) {
+                if (document_.getToken(i).getPos().startsWith("W")) {
+                    qWords_.add(i);
+                }
+            }
+            // We really want to include this early. Later sentences are unlikely to contain question words.
+            if (qWords_.isEmpty()) {
+                qWords_.add(document_.getSentence(sentence).getFirstToken());
+            }
+        }
+    }
+
+    private void findQVerbs() {
+        qVerbs_ = new HashSet<>();
+        for (int sentence = 0; sentence < getQuestionSentenceCount(); ++sentence) {
+            for (int i = document_.getSentence(sentence).getFirstToken();
+                 i < document_.getSentence(sentence).getLastToken(); ++i) {
+                if (document_.getToken(i).getPos().startsWith("V") ||
+                        document_.getToken(i).getPos().startsWith("MD")) {
+                    qVerbs_.add(i);
+                }
+            }
+        }
+    }
+
 }
