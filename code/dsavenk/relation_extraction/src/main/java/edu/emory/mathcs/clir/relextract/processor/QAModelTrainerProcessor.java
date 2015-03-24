@@ -10,10 +10,7 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.optimization.QNMinimizer;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,6 +30,8 @@ public class QAModelTrainerProcessor extends Processor {
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
+
+    BufferedWriter out;
 
     String[] feat1 = {"qword", "arelation"};
     String[] feat2 = {"qword", "atopic"};
@@ -72,6 +71,7 @@ public class QAModelTrainerProcessor extends Processor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
 
     @Override
@@ -108,22 +108,29 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-            if (instance.getIsPositive()) {
-                if (rnd_.nextInt(100) > 30) continue;
-            } else {
-                if (rnd_.nextInt(1000) > 10) continue;
-            }
+//            if (instance.getIsPositive()) {
+//                if (rnd_.nextInt(100) > 30) continue;
+//            } else {
+//                if (rnd_.nextInt(1000) > 10) continue;
+//            }
 
 //            for (String str : features) {
 //                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize);
 //            }
             features.clear();
             generateFeatures(documentWrapper, instance, qDepPaths, features);
-            synchronized (dataset_) {
-                //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
-                dataset_.add(features, instance.getIsPositive());
+            synchronized (out) {
+                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
+                for (String feat : features) {
+                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_"));
+                }
+                out.write("\n");
             }
+//            synchronized (dataset_) {
+//                //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
+//                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
+//                dataset_.add(features, instance.getIsPositive());
+//            }
         }
 
         return document;
@@ -131,19 +138,19 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        dataset_.summaryStatistics();
-        LinearClassifierFactory<Boolean, String> classifierFactory_ =
-                new LinearClassifierFactory<>(1e-4, false, 0.0);
-        //classifierFactory_.setTuneSigmaHeldOut();
-        classifierFactory_.setMinimizerCreator(() -> {
-            QNMinimizer min = new QNMinimizer(15);
-            min.useOWLQN(true, 1.0);
-            return min;
-        });
-        classifierFactory_.setVerbose(true);
-
-        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
-        model_.saveToFilename(modelFile);
+//        dataset_.summaryStatistics();
+//        LinearClassifierFactory<Boolean, String> classifierFactory_ =
+//                new LinearClassifierFactory<>(1e-4, false, 0.0);
+//        //classifierFactory_.setTuneSigmaHeldOut();
+//        classifierFactory_.setMinimizerCreator(() -> {
+//            QNMinimizer min = new QNMinimizer(15);
+//            min.useOWLQN(true, 1.0);
+//            return min;
+//        });
+//        classifierFactory_.setVerbose(true);
+//
+//        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
+//        model_.saveToFilename(modelFile);
     }
 
     private void generateFeatures(DocumentWrapper document,
