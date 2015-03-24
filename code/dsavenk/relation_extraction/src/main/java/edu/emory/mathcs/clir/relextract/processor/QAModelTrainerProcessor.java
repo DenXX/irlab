@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  */
 public class QAModelTrainerProcessor extends Processor {
 
-    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
+    private final Dataset<Boolean, String> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
     private String modelFile;
@@ -108,11 +108,11 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-//            if (instance.getIsPositive()) {
-//                if (rnd_.nextInt(100) > 10) continue;
-//            } else {
-//                if (rnd_.nextInt(10000) > 5) continue;
-//            }
+            if (instance.getIsPositive()) {
+                if (rnd_.nextInt(100) > 10) continue;
+            } else {
+                if (rnd_.nextInt(100) > 10) continue;
+            }
 
 //            for (String str : features) {
 //                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize);
@@ -121,8 +121,8 @@ public class QAModelTrainerProcessor extends Processor {
             generateFeatures(documentWrapper, instance, qDepPaths, features);
             synchronized (dataset_) {
                 //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
-                //dataset_.add(features, instance.getIsPositive());
+                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
+                dataset_.add(features, instance.getIsPositive());
             }
         }
 
@@ -132,7 +132,7 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     public void finishProcessing() {
         dataset_.summaryStatistics();
-        LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
+        LinearClassifierFactory<Boolean, String> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, 0.0);
         //classifierFactory_.setTuneSigmaHeldOut();
         classifierFactory_.setMinimizerCreator(() -> {
@@ -142,7 +142,7 @@ public class QAModelTrainerProcessor extends Processor {
         });
         classifierFactory_.setVerbose(true);
 
-        LinearClassifier<Boolean, Integer> model_ = classifierFactory_.trainClassifier(dataset_);
+        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
         model_.saveToFilename(modelFile);
     }
 
