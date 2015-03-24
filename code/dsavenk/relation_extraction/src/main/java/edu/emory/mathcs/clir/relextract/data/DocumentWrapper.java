@@ -14,12 +14,10 @@ import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
-import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.util.Interval;
-import edu.stanford.nlp.util.IntervalTree;
-import edu.stanford.nlp.util.Pair;
+import edu.stanford.nlp.util.*;
 
 import java.util.*;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
 /**
@@ -118,6 +116,67 @@ public class DocumentWrapper {
             }
         }
         return qDepPaths_;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder res = new StringBuilder();
+        Map<Integer, List<Pair<Integer, Integer>>> beginToken2Mention = new HashMap<>();
+        for (int spanIndex = 0; spanIndex < document_.getSpanCount(); ++spanIndex) {
+            Document.Span span = document_.getSpan(spanIndex);
+            for (int mentionIndex = 0; mentionIndex < span.getMentionCount(); ++mentionIndex) {
+                Document.Mention mention = span.getMention(mentionIndex);
+                int firstToken = mention.getTokenBeginOffset();
+                if (!beginToken2Mention.containsKey(firstToken)) {
+                    beginToken2Mention.put(firstToken, new ArrayList<>());
+                }
+                beginToken2Mention.get(firstToken).add(new Pair<>(spanIndex, mentionIndex));
+            }
+        }
+
+        PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions = new PriorityQueue<>();
+        int prevSentenceIndex = 0;
+        for (int tokenIndex = 0;
+             tokenIndex < document_.getTokenCount(); ++tokenIndex) {
+            if (document_.getToken(tokenIndex).getSentenceIndex() != prevSentenceIndex) {
+                res.append("\n");
+                prevSentenceIndex = document_.getToken(tokenIndex).getSentenceIndex();
+            }
+            if (beginToken2Mention.containsKey(tokenIndex)) {
+                for (Pair<Integer, Integer> mention : beginToken2Mention.get(tokenIndex)) {
+                    Document.Span span = document_.getSpan(mention.first);
+                    Document.Mention spanMention = span.getMention(mention.second);
+                    currentMentions.add(new Triple<>(spanMention.getTokenEndOffset(), mention.first, mention.second));
+                    String spanTypeStr = (span.hasEntityId()
+                            ? ":" + span.getEntityId()
+                            : (span.getType().equals("MEASURE") ? ":" + span.getValue() : ""));
+                    String mentionTypeStr = (spanMention.hasEntityId()
+                            ? ":" + spanMention.getEntityId()
+                            : (spanMention.getType().equals("MEASURE") ? ":" + spanMention.getValue() : ""));
+                    String showReprMention = span.getRepresentativeMention() == mention.second
+                            ? "!"
+                            : "";
+                    res.append("<" + showReprMention + mention.first + span.getType().charAt(0) + spanTypeStr + "|" +
+                            spanMention.getType().charAt(0) + mentionTypeStr + " - ");
+                }
+            }
+            res.append(document_.getToken(tokenIndex).getText() + " ");
+            printMentionEnds(document_, currentMentions, tokenIndex, res);
+        }
+        printMentionEnds(document_, currentMentions, document_.getTokenCount(), res);
+        return res.toString();
+    }
+
+    private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions, int tokenIndex, StringBuilder res) {
+        while (currentMentions.size() != 0) {
+            Triple<Integer, Integer, Integer> nextMention = currentMentions.peek();
+            if (nextMention.first - 1 <= tokenIndex) {
+                res.append(nextMention.second + "> ");
+                currentMentions.poll();
+            } else {
+                break;
+            }
+        }
     }
 
     /**

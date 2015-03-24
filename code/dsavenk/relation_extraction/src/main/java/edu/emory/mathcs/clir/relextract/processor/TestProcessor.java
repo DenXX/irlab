@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
@@ -39,11 +40,18 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
+        boolean first = true;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            String res = triple.getSubject() + "\n";
-            if (triple.getObject().startsWith("http:")) {
-                res = triple.getObject().substring(triple.getObject().lastIndexOf("/")).replace(".", "/") + "\n";
+            if (triple.getIsPositive()) {
+                if (first) {
+                    System.out.println(new DocumentWrapper(document).toString());
+                    first = false;
+                }
+                System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
             }
+        }
+        if (!first) {
+            System.out.println("------------------------------------------------");
         }
         return null;
 

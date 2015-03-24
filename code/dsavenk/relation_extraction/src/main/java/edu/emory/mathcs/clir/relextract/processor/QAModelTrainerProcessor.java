@@ -1,28 +1,19 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
-import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
-import edu.emory.mathcs.clir.relextract.AppParameters;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
-import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
-import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.optimization.QNMinimizer;
-import edu.stanford.nlp.util.Interval;
-import edu.stanford.nlp.util.IntervalTree;
-import edu.stanford.nlp.util.Triple;
-import org.apache.xerces.impl.dv.XSSimpleType;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,8 +29,10 @@ public class QAModelTrainerProcessor extends Processor {
 
     private int alphabetSize = 10000000;
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
+    private Set<String> predicates_ = new HashSet<>();
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
+    public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
 
     String[] feat1 = {"qword", "arelation"};
     String[] feat2 = {"qword", "atopic"};
@@ -69,11 +62,22 @@ public class QAModelTrainerProcessor extends Processor {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
         modelFile = properties.getProperty(QA_MODEL_PARAMETER);
+        try {
+            BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
+            String line;
+            while ((line = input.readLine()) != null) {
+                predicates_.add(line);
+            }
+            input.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        if (document.getQaInstanceCount() == 0 || document.getQaInstanceList().stream().noneMatch(Document.QaRelationInstance::getIsPositive)) {
+        if (document.getQaInstanceCount() == 0
+                || document.getQaInstanceList().stream().filter(x -> predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
 
@@ -100,9 +104,16 @@ public class QAModelTrainerProcessor extends Processor {
 
         Set<String> features = new HashSet<>();
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
-            if (!instance.getIsPositive() & rnd_.nextInt(1000) > 2) {
+            if (!predicates_.contains(instance.getPredicate())) {
                 continue;
             }
+
+//            if (instance.getIsPositive()) {
+//                if (rnd_.nextInt(100) > 10) continue;
+//            } else {
+//                if (rnd_.nextInt(10000) > 5) continue;
+//            }
+
 //            for (String str : features) {
 //                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize);
 //            }
@@ -120,6 +131,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
+        dataset_.summaryStatistics();
         LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, 0.0);
         //classifierFactory_.setTuneSigmaHeldOut();
