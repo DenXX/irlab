@@ -122,7 +122,7 @@ public class QAModelTrainerProcessor extends Processor {
             synchronized (out) {
                 out.write(instance.getIsPositive() ? "1" : "-1" + " |");
                 for (String feat : features) {
-                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_"));
+                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
                 }
                 out.write("\n");
             }
