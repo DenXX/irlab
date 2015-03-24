@@ -109,9 +109,9 @@ public class QAModelTrainerProcessor extends Processor {
             }
 
             if (instance.getIsPositive()) {
-                if (rnd_.nextInt(100) > 10) continue;
+                if (rnd_.nextInt(100) > 30) continue;
             } else {
-                if (rnd_.nextInt(100) > 10) continue;
+                if (rnd_.nextInt(1000) > 10) continue;
             }
 
 //            for (String str : features) {
