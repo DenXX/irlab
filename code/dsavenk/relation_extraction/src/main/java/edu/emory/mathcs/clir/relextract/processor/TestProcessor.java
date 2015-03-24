@@ -42,7 +42,7 @@ public class TestProcessor extends Processor {
         ++total;
         boolean first = true;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if (triple.getIsPositive()) {
+            if (triple.getIsPositive() && triple.getPredicate().startsWith("people.")) {
                 if (first) {
                     System.out.println(new DocumentWrapper(document).toString());
                     first = false;

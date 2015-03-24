@@ -319,7 +319,7 @@ public class KnowledgeBase {
                 StmtIterator iter2 = st.getObject().asResource().listProperties();
                 while (iter2.hasNext()) {
                     Statement st2 = iter2.nextStatement();
-                    res.add(new StatementImpl(st.getSubject(), new PropertyImpl(st.getPredicate() + "|" + st2.getPredicate()), st2.getObject()));
+                    res.add(new StatementImpl(st.getSubject(), new PropertyImpl(st.getPredicate() + ".cvt." + st2.getPredicate().getLocalName()), st2.getObject()));
                 }
             } else {
                 res.add(st);
