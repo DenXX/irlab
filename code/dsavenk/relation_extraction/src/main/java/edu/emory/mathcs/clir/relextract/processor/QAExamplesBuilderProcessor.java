@@ -9,6 +9,7 @@ import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
+import edu.stanford.nlp.util.Pair;
 
 import java.util.*;
 
@@ -49,7 +50,10 @@ public class QAExamplesBuilderProcessor extends Processor {
         Set<String> questionSpanIds = new HashSet<>();
         Set<String> answerSpanIds = new HashSet<>();
         Set<String> answerDates = new HashSet<>();
+        Map<String, List<Integer>> entityLocation = new HashMap<>();
+        Set<String> added = new HashSet<>();
 
+        int spanIndex = 0;
         for (Document.Span span : document.getSpanList()) {
             Set<String> entityIds = new HashSet<>();
             if ("MEASURE".equals(span.getType())) {
@@ -99,7 +103,15 @@ public class QAExamplesBuilderProcessor extends Processor {
                         answerSpanIds.addAll(entityIds);
                     }
                 }
+
+                for (String id : entityIds) {
+                    if (!entityLocation.containsKey(id)) {
+                        entityLocation.put(id, new ArrayList<>());
+                    }
+                    entityLocation.get(id).add(spanIndex);
+                }
             }
+            ++spanIndex;
         }
         answerSpanIds.removeAll(questionSpanIds);
         if (!answerSpanIds.isEmpty() && !questionSpanIds.isEmpty()) {
@@ -110,28 +122,38 @@ public class QAExamplesBuilderProcessor extends Processor {
             for (String id : questionSpanIds) {
                 for (String relatedId : sop.get(id).keySet()) {
                     for (Statement st : sop.get(id).get(relatedId)) {
-                        Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
-                                .setSubject(id)
-                                .setPredicate(st.getPredicate().getLocalName())
-                                .setObject(st.getObject().asNode().toString(null, true));
+                        if (!added.contains(st.toString())) {
+                            Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
+                                    .setSubject(id)
+                                    .addAllObjSpanIndex(entityLocation.get(id))
+                                    .setPredicate(st.getPredicate().getLocalName())
+                                    .setObject(st.getObject().asNode().toString(null, true));
 
-                        if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
-                            for (String date : answerDates) {
-                                if (date.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
-                                    String year = date.substring(0, 4);
-                                    String month = date.length() > 4 ?
-                                            date.substring(5, 7)
-                                            : "XX";
-                                    String day = date.length() > 7
-                                            ? date.substring(8)
-                                            : "XX";
-                                    qaInstance.setIsPositive(kb_.matchDatesSoft(year, month, day, (XSDDateTime)st.getObject().asLiteral().getValue()));
-                                } else {
-                                    qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                            if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
+                                for (String date : answerDates) {
+                                    if (date.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
+                                        String year = date.substring(0, 4);
+                                        String month = date.length() > 4 ?
+                                                date.substring(5, 7)
+                                                : "XX";
+                                        String day = date.length() > 7
+                                                ? date.substring(8)
+                                                : "XX";
+                                        qaInstance.setIsPositive(kb_.matchDatesSoft(year, month, day, (XSDDateTime) st.getObject().asLiteral().getValue()));
+                                    } else {
+                                        qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                                        if (answerSpanIds.contains(relatedId)) {
+                                            qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
+                                        }
+                                    }
+                                }
+                            } else {
+                                qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                                if (answerSpanIds.contains(relatedId)) {
+                                    qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
                                 }
                             }
-                        } else {
-                            qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                            added.add(st.toString());
                         }
                     }
                 }

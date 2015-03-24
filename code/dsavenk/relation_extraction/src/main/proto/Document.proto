@@ -116,4 +116,6 @@ message QaRelationInstance {
     optional string predicate = 2;
     optional string object = 3;
     optional bool isPositive = 4;
+    repeated uint32 subjSpanIndex = 5;
+    repeated uint32 objSpanIndex = 6;
 }

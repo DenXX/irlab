@@ -242,8 +242,9 @@ public class QAModelTrainerProcessor extends Processor {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < parts.length; ++i) {
             res.append(parts[i]);
-            res.append("|");
+            res.append(":");
             res.append(valParts[i]);
+            res.append("|");
         }
         return res.toString();
     }
