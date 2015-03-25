@@ -33,12 +33,16 @@ public class QAModelTrainerProcessor extends Processor {
     private int alphabetSize_ = 10000000;
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
     private Set<String> predicates_ = new HashSet<>();
+    private double subsampleRate_ = 10;
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
     public static final String QA_TEST_PARAMETER = "qa_test";
+    public static final String QA_SUBSAMPLE_PARAMETER = "qa_subsample";
     public static final String SPLIT_DATASET_PARAMETER = "qa_split_data";
+
+
 
     BufferedWriter out;
 
@@ -75,6 +79,9 @@ public class QAModelTrainerProcessor extends Processor {
         }
         if (properties.containsKey(SPLIT_DATASET_PARAMETER)) {
             split_ = true;
+        }
+        if (properties.containsKey(QA_SUBSAMPLE_PARAMETER)) {
+            subsampleRate_ = Double.parseDouble(properties.getProperty(QA_SUBSAMPLE_PARAMETER));
         }
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         if (properties.containsKey(QA_PREDICATES_PARAMETER)) {
@@ -137,7 +144,7 @@ public class QAModelTrainerProcessor extends Processor {
 
             if (isInTraining) {
                 if (!instance.getIsPositive()) {
-                    if (rnd_.nextInt(1000) > 10) continue;
+                    if (rnd_.nextInt(1000) > subsampleRate_) continue;
                 }
             }
 

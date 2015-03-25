@@ -208,6 +208,10 @@ public class AppParameters {
                 .withArgName(StanfordCoreNlpProcessor.CASELESS_MODELS_PARAMETER)
                 .withDescription("Use caseless models").create(
                         StanfordCoreNlpProcessor.CASELESS_MODELS_PARAMETER));
+        opt.addOption(OptionBuilder.hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_SUBSAMPLE_PARAMETER)
+                .withDescription("QA subsampling rate").create(
+                        QAModelTrainerProcessor.QA_SUBSAMPLE_PARAMETER));
 
         return opt;
     }
