@@ -8,28 +8,30 @@ import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
-import edu.stanford.nlp.optimization.QNMinimizer;
-import edu.stanford.nlp.optimization.SQNMinimizer;
+import edu.stanford.nlp.ling.Datum;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by dsavenk on 3/20/15.
  */
 public class QAModelTrainerProcessor extends Processor {
 
-    private final Dataset<Boolean, String> dataset_ = new Dataset<>();
+    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
-    private String modelFile;
+    private String modelFile_;
+    private String datasetFile_;
 
-    private int alphabetSize = 10000000;
+    private int alphabetSize_ = 10000000;
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
     private Set<String> predicates_ = new HashSet<>();
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
+    public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
 
     BufferedWriter out;
@@ -61,7 +63,8 @@ public class QAModelTrainerProcessor extends Processor {
     public QAModelTrainerProcessor(Properties properties) {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
-        modelFile = properties.getProperty(QA_MODEL_PARAMETER);
+        modelFile_ = properties.getProperty(QA_MODEL_PARAMETER);
+        datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         try {
             BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
             String line;
@@ -81,8 +84,9 @@ public class QAModelTrainerProcessor extends Processor {
                 || document.getQaInstanceList().stream().filter(x -> predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
-        if (dataset_.size() > 10000)
-            return null;
+
+        boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
+        if (!isInTraining) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -113,14 +117,14 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-            if (instance.getIsPositive()) {
-                if (rnd_.nextInt(100) > 100) continue;
-            } else {
-                if (rnd_.nextInt(10000) > 10) continue;
+            if (isInTraining) {
+                if (!instance.getIsPositive()) {
+                    if (rnd_.nextInt(1000) > 10) continue;
+                }
             }
 
 //            for (String str : features) {
-//                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize);
+//                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize_);
 //            }
             features.clear();
             generateFeatures(documentWrapper, instance, qDepPaths, features);
@@ -131,10 +135,12 @@ public class QAModelTrainerProcessor extends Processor {
 //                }
 //                out.write("\n");
 //            }
-            synchronized (dataset_) {
-                //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
-                dataset_.add(features, instance.getIsPositive());
+            if (isInTraining) {
+                synchronized (dataset_) {
+                    //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
+                    dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet()), instance.getIsPositive());
+                    //dataset_.add(features, instance.getIsPositive());
+                }
             }
         }
 
@@ -144,7 +150,18 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     public void finishProcessing() {
         dataset_.summaryStatistics();
-        LinearClassifierFactory<Boolean, String> classifierFactory_ =
+
+        try {
+            PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
+            for (Datum<Boolean, Integer> d : dataset_) {
+                out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                 new LinearClassifierFactory<>(1e-4, false, 0.0);
         //classifierFactory_.setTuneSigmaHeldOut();
         classifierFactory_.useInPlaceStochasticGradientDescent();
@@ -155,8 +172,8 @@ public class QAModelTrainerProcessor extends Processor {
 //            return min;
 //        });
         classifierFactory_.setVerbose(true);
-        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
-        model_.saveToFilename(modelFile);
+        LinearClassifier<Boolean, Integer> model_ = classifierFactory_.trainClassifier(dataset_);
+        model_.saveToFilename(modelFile_);
     }
 
     private void generateFeatures(DocumentWrapper document,
@@ -174,7 +191,7 @@ public class QAModelTrainerProcessor extends Processor {
 //                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
 //                .filter(x -> !x.contains("common.topic"))
 //                .collect(Collectors.toList());
-        
+
         Set<String> qWords = document.getQuestionWords();
         Set<String> qVerbs = document.getQuestionVerbs();
         Set<String> qFocuses = document.getQuestionFocus();

@@ -183,6 +183,11 @@ public class AppParameters {
                 .withDescription("QA model file").create(
                         QAModelTrainerProcessor.QA_MODEL_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_DATASET_PARAMETER)
+                .withDescription("QA dataset file").create(
+                        QAModelTrainerProcessor.QA_DATASET_PARAMETER));
+
+        opt.addOption(OptionBuilder.hasArg()
                 .withArgName(QAModelTrainerProcessor.QA_PREDICATES_PARAMETER)
                 .withDescription("QA predicates").create(
                         QAModelTrainerProcessor.QA_PREDICATES_PARAMETER));
