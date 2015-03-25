@@ -77,18 +77,20 @@ public class QAModelTrainerProcessor extends Processor {
             split_ = true;
         }
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
-        try {
-            BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
-            String line;
-            while ((line = input.readLine()) != null) {
-                String[] countPred = line.trim().split(" ");
-                if (Integer.parseInt(countPred[0]) > 100 && !(countPred[1].startsWith("base.") || countPred[1].startsWith("user."))) {
-                    predicates_.add(countPred[1]);
+        if (properties.containsKey(QA_PREDICATES_PARAMETER)) {
+            try {
+                BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
+                String line;
+                while ((line = input.readLine()) != null) {
+                    String[] countPred = line.trim().split(" ");
+                    if (Integer.parseInt(countPred[0]) > 100 && !(countPred[1].startsWith("base.") || countPred[1].startsWith("user."))) {
+                        predicates_.add(countPred[1]);
+                    }
                 }
+                input.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            input.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
