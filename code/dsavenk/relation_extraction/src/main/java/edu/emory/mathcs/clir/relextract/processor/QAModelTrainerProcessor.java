@@ -8,7 +8,9 @@ import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.stats.Counter;
 
 import java.io.*;
 import java.util.*;
@@ -24,6 +26,7 @@ public class QAModelTrainerProcessor extends Processor {
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
     private String modelFile_;
+    private LinearClassifier<Boolean, Integer> model_ = null;
     private String datasetFile_;
 
     private int alphabetSize_ = 10000000;
@@ -33,6 +36,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
+    public static final String QA_TEST_PARAMETER = "qa_test";
 
     BufferedWriter out;
 
@@ -64,12 +68,18 @@ public class QAModelTrainerProcessor extends Processor {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
         modelFile_ = properties.getProperty(QA_MODEL_PARAMETER);
+        if (properties.containsKey(QA_TEST_PARAMETER)) {
+            model_ = LinearClassifier.readClassifier(modelFile_);
+        }
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         try {
             BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
             String line;
             while ((line = input.readLine()) != null) {
-                predicates_.add(line);
+                String[] countPred = line.trim().split(" ");
+                if (Integer.parseInt(countPred[0]) > 100 && !(countPred[1].startsWith("base.") || countPred[1].startsWith("user."))) {
+                    predicates_.add(countPred[1]);
+                }
             }
             input.close();
         } catch (IOException e) {
@@ -86,7 +96,7 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
-        if (!isInTraining) return null;
+        if (isInTraining != (model_ == null)) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -112,6 +122,7 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         Set<String> features = new HashSet<>();
+        TreeMap<Double, Document.QaRelationInstance> scores = new TreeMap<>((Comparator) (o1, o2) -> ((Comparable)o2).compareTo(o1));
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             if (!predicates_.contains(instance.getPredicate())) {
                 continue;
@@ -135,12 +146,29 @@ public class QAModelTrainerProcessor extends Processor {
 //                }
 //                out.write("\n");
 //            }
+            Set<Integer> feats = features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet());
             if (isInTraining) {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                    dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet()), instance.getIsPositive());
+                    dataset_.add(feats, instance.getIsPositive());
                     //dataset_.add(features, instance.getIsPositive());
                 }
+            } else {
+                scores.put(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance);
+            }
+        }
+
+        boolean first = true;
+        for (Map.Entry<Double, Document.QaRelationInstance> e : scores.entrySet().stream().filter(x -> x.getKey() > 0.5 || x.getValue().getIsPositive()).collect(Collectors.toList())) {
+            Document.QaRelationInstance instance = e.getValue();
+            if (first) {
+                System.out.println("---------\n" + document.getSentence(0).getText());
+                first = false;
+            }
+            if (e.getValue().getObject().startsWith("http:")) {
+                System.out.println(instance.getIsPositive() + "\t" + e.getKey() + "\t" + kb_.getEntityName(instance.getSubject()) + "\t" + instance.getPredicate() + "\t" + kb_.getEntityName(instance.getObject()));
+            } else {
+                System.out.println(instance.getIsPositive() + "\t" + e.getKey() + "\t" + kb_.getEntityName(instance.getSubject()) + "\t" + instance.getPredicate() + "\t" + instance.getObject());
             }
         }
 
@@ -149,31 +177,33 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        dataset_.summaryStatistics();
+        if (model_ == null) {
+            dataset_.summaryStatistics();
 
-        try {
-            PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-            for (Datum<Boolean, Integer> d : dataset_) {
-                out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
+            try {
+                PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
+                for (Datum<Boolean, Integer> d : dataset_) {
+                    out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
+                }
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
-                new LinearClassifierFactory<>(1e-4, false, 0.0);
-        //classifierFactory_.setTuneSigmaHeldOut();
-        classifierFactory_.useInPlaceStochasticGradientDescent();
+            LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
+                    new LinearClassifierFactory<>(1e-4, false, 0.0);
+            //classifierFactory_.setTuneSigmaHeldOut();
+            classifierFactory_.useInPlaceStochasticGradientDescent();
 
 //        classifierFactory_.setMinimizerCreator(() -> {
 //            QNMinimizer min = new QNMinimizer(15);
 //            min.useOWLQN(true, 1.0);
 //            return min;
 //        });
-        classifierFactory_.setVerbose(true);
-        LinearClassifier<Boolean, Integer> model_ = classifierFactory_.trainClassifier(dataset_);
-        model_.saveToFilename(modelFile_);
+            classifierFactory_.setVerbose(true);
+            model_ = classifierFactory_.trainClassifier(dataset_);
+            LinearClassifier.writeClassifier(model_, modelFile_);
+        }
     }
 
     private void generateFeatures(DocumentWrapper document,

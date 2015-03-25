@@ -141,7 +141,7 @@ public class KnowledgeBase {
         input.close();
     }
 
-    private String getEntityName(String mid) {
+    public String getEntityName(String mid) {
         StmtIterator iter = model_.listStatements(
                 model_.getResource(convertFreebaseMidRdf(mid)),
                 model_.getProperty(FREEBASE_RDF_PREFIX,

@@ -70,6 +70,7 @@ dependencies {
     compile name: 'stanford-corenlp-caseless-2014-02-25-models'
     compile name: 'virt_jena2'
     compile name: 'virtjdbc4'
+    compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     compile group: 'org.apache.lucene', name: 'lucene-core', version: '4.10.1'
     compile group: 'org.apache.lucene', name: 'lucene-analyzers-common', version: '4.10.1'
     compile group: 'org.apache.lucene', name: 'lucene-suggest', version: '4.10.1'
