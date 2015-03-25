@@ -9,6 +9,7 @@ import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.optimization.QNMinimizer;
+import edu.stanford.nlp.optimization.SQNMinimizer;
 
 import java.io.*;
 import java.util.*;
@@ -71,7 +72,7 @@ public class QAModelTrainerProcessor extends Processor {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        out = new BufferedWriter(new OutputStreamWriter(System.out));
+//        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
 
     @Override
@@ -80,6 +81,8 @@ public class QAModelTrainerProcessor extends Processor {
                 || document.getQaInstanceList().stream().filter(x -> predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
+        if (dataset_.size() > 10000)
+            return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -94,9 +97,11 @@ public class QAModelTrainerProcessor extends Processor {
             if (span.hasEntityId() && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
-                        qDepPaths.add(DependencyTreeUtils.getQuestionDependencyPath(document,
+                        String path = DependencyTreeUtils.getQuestionDependencyPath(document,
                                 mention.getSentenceIndex(),
-                                DependencyTreeUtils.getMentionHeadToken(document, mention)));
+                                DependencyTreeUtils.getMentionHeadToken(document, mention));
+                        if (path != null)
+                            qDepPaths.add(path);
                     }
                 }
             }
@@ -108,29 +113,29 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-//            if (instance.getIsPositive()) {
-//                if (rnd_.nextInt(100) > 30) continue;
-//            } else {
-//                if (rnd_.nextInt(1000) > 10) continue;
-//            }
+            if (instance.getIsPositive()) {
+                if (rnd_.nextInt(100) > 100) continue;
+            } else {
+                if (rnd_.nextInt(10000) > 10) continue;
+            }
 
 //            for (String str : features) {
 //                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize);
 //            }
             features.clear();
             generateFeatures(documentWrapper, instance, qDepPaths, features);
-            synchronized (out) {
-                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
-                for (String feat : features) {
-                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
-                }
-                out.write("\n");
-            }
-//            synchronized (dataset_) {
-//                //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-//                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
-//                dataset_.add(features, instance.getIsPositive());
+//            synchronized (out) {
+//                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
+//                for (String feat : features) {
+//                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
+//                }
+//                out.write("\n");
 //            }
+            synchronized (dataset_) {
+                //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
+                //dataset_.add(features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize).collect(Collectors.toSet()), instance.getIsPositive());
+                dataset_.add(features, instance.getIsPositive());
+            }
         }
 
         return document;
@@ -138,19 +143,20 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-//        dataset_.summaryStatistics();
-//        LinearClassifierFactory<Boolean, String> classifierFactory_ =
-//                new LinearClassifierFactory<>(1e-4, false, 0.0);
-//        //classifierFactory_.setTuneSigmaHeldOut();
+        dataset_.summaryStatistics();
+        LinearClassifierFactory<Boolean, String> classifierFactory_ =
+                new LinearClassifierFactory<>(1e-4, false, 0.0);
+        //classifierFactory_.setTuneSigmaHeldOut();
+        classifierFactory_.useInPlaceStochasticGradientDescent();
+
 //        classifierFactory_.setMinimizerCreator(() -> {
 //            QNMinimizer min = new QNMinimizer(15);
 //            min.useOWLQN(true, 1.0);
 //            return min;
 //        });
-//        classifierFactory_.setVerbose(true);
-//
-//        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
-//        model_.saveToFilename(modelFile);
+        classifierFactory_.setVerbose(true);
+        LinearClassifier<Boolean, String> model_ = classifierFactory_.trainClassifier(dataset_);
+        model_.saveToFilename(modelFile);
     }
 
     private void generateFeatures(DocumentWrapper document,
@@ -163,13 +169,12 @@ public class QAModelTrainerProcessor extends Processor {
                 .filter(x -> !x.contains("common.topic"))
                 .collect(Collectors.toList());
         List<String> answerEntityTypes = Collections.emptyList();
-        // TODO(denxx): Include answer entity types and some other info
 //            kb_.getEntityTypes(instance.getObject(), false)
 //                .stream()
 //                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-//                .filter(x -> x.contains("common.topic"))
+//                .filter(x -> !x.contains("common.topic"))
 //                .collect(Collectors.toList());
-
+        
         Set<String> qWords = document.getQuestionWords();
         Set<String> qVerbs = document.getQuestionVerbs();
         Set<String> qFocuses = document.getQuestionFocus();

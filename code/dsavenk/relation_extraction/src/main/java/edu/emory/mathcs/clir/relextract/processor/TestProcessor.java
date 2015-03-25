@@ -39,20 +39,18 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        ++total;
-        boolean first = true;
-        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if (triple.getIsPositive() && triple.getPredicate().startsWith("people.")) {
-                if (first) {
-                    System.out.println(new DocumentWrapper(document).toString());
-                    first = false;
-                }
-                System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
-            }
-        }
-        if (!first) {
-            System.out.println("------------------------------------------------");
-        }
+        document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
+//            if (triple.getIsPositive() && triple.getPredicate().startsWith("people.")) {
+//                if (first) {
+//                    System.out.println(new DocumentWrapper(document).toString());
+//                    first = false;
+//                }
+//                System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
+//            }
+//        }
+//        if (!first) {
+//            System.out.println("------------------------------------------------");
+//        }
         return null;
 
 //        for (Document.Span span : document.getSpanList()) {
