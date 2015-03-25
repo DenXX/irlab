@@ -70,7 +70,7 @@ public class WebQuestionsInputProvider implements Iterable<Document.NlpDocument>
                 int par = answerLisp.indexOf(")", pos);
                 int beg = quote > 0 && quote < par ? quote : space;
                 int end = quote > 0 && quote < par ? answerLisp.indexOf("\"", quote + 1) : par;
-                res.append(answerLisp.substring(beg + 1, end) + ",\n");
+                res.append("\"" + answerLisp.substring(beg + 1, end) + "\",\n");
                 pos = end;
             }
             return res.toString();
