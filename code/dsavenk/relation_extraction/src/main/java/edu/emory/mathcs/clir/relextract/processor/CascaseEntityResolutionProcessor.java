@@ -29,6 +29,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
 
     public static final String WIKILINKS_DICTIONARY_PARAMETER = "wikilinks_dict";
     public static final String WIKILINKS_LNRM_DICTIONARY_PARAMETER = "wikilinks_lnrm_dict";
+    public static final String ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER = "entityres_alwaysfreebasedict";
 
     private static final int MAX_PHRASE_IDS = 5;
 
@@ -47,7 +48,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             new StandardAnalyzer(new CharArraySet(0, true)));
     private Sort sort_ = new Sort(SortField.FIELD_SCORE,
             new SortField("triple_count", SortField.Type.LONG, true));
-    private boolean alwaysLookupName = true;
+    private boolean alwaysLookupName = false;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -78,6 +79,9 @@ public class CascaseEntityResolutionProcessor extends Processor {
         IndexReader searchIndexReader = DirectoryReader.open(searchIndexDir);
         spellChecker_ = new SpellChecker(spellIndexDir);
         searcher_ = new IndexSearcher(searchIndexReader);
+        if (properties.containsKey(ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER)) {
+            alwaysLookupName = true;
+        }
     }
 
     @Override

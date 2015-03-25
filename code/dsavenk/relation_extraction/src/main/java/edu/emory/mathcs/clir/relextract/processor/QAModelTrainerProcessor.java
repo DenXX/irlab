@@ -28,6 +28,7 @@ public class QAModelTrainerProcessor extends Processor {
     private String modelFile_;
     private LinearClassifier<Boolean, Integer> model_ = null;
     private String datasetFile_;
+    private boolean split_ = false;
 
     private int alphabetSize_ = 10000000;
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
@@ -37,6 +38,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
     public static final String QA_TEST_PARAMETER = "qa_test";
+    public static final String SPLIT_DATASET_PARAMETER = "qa_split_data";
 
     BufferedWriter out;
 
@@ -71,6 +73,9 @@ public class QAModelTrainerProcessor extends Processor {
         if (properties.containsKey(QA_TEST_PARAMETER)) {
             model_ = LinearClassifier.readClassifier(modelFile_);
         }
+        if (properties.containsKey(SPLIT_DATASET_PARAMETER)) {
+            split_ = true;
+        }
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         try {
             BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
@@ -96,7 +101,7 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
-        if (isInTraining != (model_ == null)) return null;
+        if (split_ && (isInTraining != (model_ == null))) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 

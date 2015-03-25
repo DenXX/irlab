@@ -178,6 +178,10 @@ public class AppParameters {
                 .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER)
                 .withDescription("Wikilinks normalized dictionary file").create(
                         CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER));
+        opt.addOption(OptionBuilder
+                .withArgName(CascaseEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER)
+                .withDescription("Always use Freebase entity names dictionary first").create(
+                        CascaseEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(QAModelTrainerProcessor.QA_MODEL_PARAMETER)
                 .withDescription("QA model file").create(
@@ -195,6 +199,10 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_TEST_PARAMETER)
                 .withDescription("QA testing").create(
                         QAModelTrainerProcessor.QA_TEST_PARAMETER));
+        opt.addOption(OptionBuilder
+                .withArgName(QAModelTrainerProcessor.SPLIT_DATASET_PARAMETER)
+                .withDescription("Split dataset for train and test?").create(
+                        QAModelTrainerProcessor.SPLIT_DATASET_PARAMETER));
 
         opt.addOption(OptionBuilder
                 .withArgName(StanfordCoreNlpProcessor.CASELESS_MODELS_PARAMETER)
