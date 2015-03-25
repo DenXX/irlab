@@ -131,7 +131,7 @@ public class QAModelTrainerProcessor extends Processor {
         Set<String> features = new HashSet<>();
         TreeMap<Double, Document.QaRelationInstance> scores = new TreeMap<>((Comparator) (o1, o2) -> ((Comparable)o2).compareTo(o1));
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
-            if (!predicates_.contains(instance.getPredicate())) {
+            if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
                 continue;
             }
 
