@@ -98,7 +98,7 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         if (document.getQaInstanceCount() == 0
-                || document.getQaInstanceList().stream().filter(x -> predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
+                || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
 
