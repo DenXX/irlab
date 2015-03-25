@@ -27,7 +27,7 @@ public class RelationExtractionApp {
     private static Properties getProperties(CommandLine cmdline) {
         Properties props = new Properties();
         for (Option option : cmdline.getOptions()) {
-            props.put(option.getArgName(), option.getValue());
+            props.put(option.getArgName(), option.hasArg() ? option.getValue() : "");
         }
 
         return props;
@@ -149,6 +149,10 @@ public class RelationExtractionApp {
                 case "wikianswers":
                     docs = new WikiAnswersAllQuestionsInputProvider(props);
                     break;
+                case "webquestions":
+                    docs = new WebQuestionsInputProvider(props);
+                    break;
+
                 default:
                     throw new UnsupportedOperationException("Reader " + reader +
                             " doesn't exist!");

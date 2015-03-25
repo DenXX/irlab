@@ -29,6 +29,7 @@ public class PrintTextProcessor extends Processor {
     protected Document.NlpDocument doProcess(
             Document.NlpDocument document) throws Exception {
 
+        System.out.println("---------------------------------------------");
         System.out.println(new DocumentWrapper(document).toString());
         return document;
     }

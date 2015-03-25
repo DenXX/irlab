@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.util.Pair;
@@ -29,8 +30,6 @@ public class CascaseEntityResolutionProcessor extends Processor {
     public static final String WIKILINKS_DICTIONARY_PARAMETER = "wikilinks_dict";
     public static final String WIKILINKS_LNRM_DICTIONARY_PARAMETER = "wikilinks_lnrm_dict";
 
-    private static final double PHRASE_PROBABILITY_THRESHOLD = 0.0;
-
     private static final int MAX_PHRASE_IDS = 5;
 
     // TODO(denxx): Two more parameters are defined in the Lucene-based linker.
@@ -48,6 +47,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             new StandardAnalyzer(new CharArraySet(0, true)));
     private Sort sort_ = new Sort(SortField.FIELD_SCORE,
             new SortField("triple_count", SortField.Type.LONG, true));
+    private boolean alwaysLookupName = true;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -166,7 +166,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private List<Pair<String, Float>> resolveEntity(String name, boolean isOtherMention) {
         Map<String, Float> matches = new HashMap<>();
 
-        if (!isOtherMention) {
+        if (!isOtherMention || alwaysLookupName) {
             addMatches(matches, resolveByEntityNameCached(name));
         }
 
@@ -321,7 +321,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 scores = dictionary.get(lastPhrase);
             }
             float score = Float.parseFloat(fields[2]);
-            if (score >= PHRASE_PROBABILITY_THRESHOLD) {
+            if (score >= Parameters.MIN_ENTITYID_SCORE) {
                 scores.add(new Pair<>(fields[1], score));
             }
         }

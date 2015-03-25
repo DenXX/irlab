@@ -31,6 +31,8 @@ import java.util.*;
 public class StanfordCoreNlpProcessor extends Processor {
     private final StanfordCoreNLP nlpPipeline_;
 
+    public static final String CASELESS_MODELS_PARAMETER = "caselessnlp";
+
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -76,8 +78,10 @@ public class StanfordCoreNlpProcessor extends Processor {
         properties.setProperty("dcoref.use.big.gender.number", "true");
 
         // With caseless model we have fewer named entities, so staying with the previous one.
-        //properties.setProperty("ner.model",
-        // "edu/stanford/nlp/models/ner/english.muc.7class.caseless.distsim.crf.ser.gz");
+        if (properties.containsKey(CASELESS_MODELS_PARAMETER)) {
+            properties.setProperty("ner.model",
+                    "edu/stanford/nlp/models/ner/english.muc.7class.caseless.distsim.crf.ser.gz");
+        }
 
         // Post-processing removes singletons, let's keep them in order to get
         // more mentions and hopefully more relations.

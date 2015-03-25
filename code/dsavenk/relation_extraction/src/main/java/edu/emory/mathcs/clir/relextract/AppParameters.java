@@ -196,6 +196,11 @@ public class AppParameters {
                 .withDescription("QA testing").create(
                         QAModelTrainerProcessor.QA_TEST_PARAMETER));
 
+        opt.addOption(OptionBuilder
+                .withArgName(StanfordCoreNlpProcessor.CASELESS_MODELS_PARAMETER)
+                .withDescription("Use caseless models").create(
+                        StanfordCoreNlpProcessor.CASELESS_MODELS_PARAMETER));
+
         return opt;
     }
 }
