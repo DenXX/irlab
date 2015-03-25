@@ -154,7 +154,7 @@ public class QAModelTrainerProcessor extends Processor {
 //                out.write("\n");
 //            }
             Set<Integer> feats = features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet());
-            if (isInTraining) {
+            if (model_ == null) {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
                     dataset_.add(feats, instance.getIsPositive());
