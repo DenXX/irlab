@@ -295,7 +295,7 @@ public class KnowledgeBase {
         return false;
     }
 
-    private String convertFreebaseMidRdf(String mid) {
+    public String convertFreebaseMidRdf(String mid) {
         if (mid.startsWith("http://")) return mid;
 
         if (mid.charAt(0) == '/') mid = mid.substring(1);

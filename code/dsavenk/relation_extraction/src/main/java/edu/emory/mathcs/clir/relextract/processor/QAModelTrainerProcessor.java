@@ -11,6 +11,7 @@ import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.stats.Counter;
+import edu.stanford.nlp.util.Pair;
 
 import java.io.*;
 import java.util.*;
@@ -140,11 +141,15 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         Set<String> features = new HashSet<>();
-        TreeMap<Double, Document.QaRelationInstance> scores = new TreeMap<>((Comparator) (o1, o2) -> ((Comparable)o2).compareTo(o1));
+        PriorityQueue<Pair<Double, Document.QaRelationInstance>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
                 continue;
             }
+
+            // Ignore self-triples
+            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject())))
+                continue;
 
             if (isTraining) {
                 if (!instance.getIsPositive()) {
@@ -172,7 +177,7 @@ public class QAModelTrainerProcessor extends Processor {
                     //dataset_.add(features, instance.getIsPositive());
                 }
             } else {
-                scores.put(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance);
+                scores.add(new Pair<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance));
             }
         }
 
@@ -190,10 +195,16 @@ public class QAModelTrainerProcessor extends Processor {
             StringBuilder prediction = new StringBuilder();
             prediction.append("[");
             if (!scores.isEmpty()) {
-                Document.QaRelationInstance firstEntry = scores.firstEntry().getValue();
-                prediction.append("\"");
-                prediction.append(kb_.getEntityName(firstEntry.getObject()));
-                prediction.append("\"");
+                double bestScore = scores.peek().first;
+                boolean first = true;
+                while (!scores.isEmpty() && scores.peek().first == bestScore) {
+                    Document.QaRelationInstance e = scores.poll().second;
+                    if (!first) prediction.append(",");
+                    prediction.append("\"");
+                    prediction.append(kb_.getEntityName(e.getObject()));
+                    prediction.append("\"");
+                    first = false;
+                }
             }
             prediction.append("]");
             System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
