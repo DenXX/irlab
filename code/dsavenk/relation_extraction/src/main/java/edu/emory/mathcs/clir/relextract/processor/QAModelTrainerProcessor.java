@@ -207,7 +207,9 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
             prediction.append("]");
-            System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
+            synchronized (this) {
+                System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
+            }
         }
 
         return document;
@@ -253,7 +255,7 @@ public class QAModelTrainerProcessor extends Processor {
                 .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
                 .filter(x -> !x.contains("common.topic"))
                 .collect(Collectors.toList());
-        List<String> answerEntityTypes = 
+        List<String> answerEntityTypes =
             kb_.getEntityTypes(instance.getObject(), false)
                 .stream()
                 .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
