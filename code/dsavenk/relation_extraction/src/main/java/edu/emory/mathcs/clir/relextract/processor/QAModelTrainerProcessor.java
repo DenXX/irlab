@@ -104,13 +104,15 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        boolean isTraining = model_ == null;
+
         if (document.getQaInstanceCount() == 0
                 || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
             return null;
         }
 
         boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
-        if (split_ && (isInTraining != (model_ == null))) return null;
+        if (split_ && (isInTraining != isTraining)) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -142,7 +144,7 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-            if (isInTraining) {
+            if (isTraining) {
                 if (!instance.getIsPositive()) {
                     if (rnd_.nextInt(1000) > subsampleRate_) continue;
                 }
@@ -161,7 +163,7 @@ public class QAModelTrainerProcessor extends Processor {
 //                out.write("\n");
 //            }
             Set<Integer> feats = features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet());
-            if (model_ == null) {
+            if (isTraining) {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
                     dataset_.add(feats, instance.getIsPositive());
@@ -172,18 +174,27 @@ public class QAModelTrainerProcessor extends Processor {
             }
         }
 
-        boolean first = true;
-        for (Map.Entry<Double, Document.QaRelationInstance> e : scores.entrySet().stream().filter(x -> x.getKey() > 0.5 || x.getValue().getIsPositive()).collect(Collectors.toList())) {
-            Document.QaRelationInstance instance = e.getValue();
-            if (first) {
-                System.out.println("---------\n" + document.getSentence(0).getText());
-                first = false;
+        if (!isTraining) {
+            String[] fields = document.getText().split("\n");
+            String utterance = fields[0];
+            StringBuilder answers = new StringBuilder();
+            answers.append("[");
+            for (int i = 1; i < fields.length; ++i) {
+                answers.append(fields[i].replace(",", ""));
+                if (i < fields.length - 1) answers.append(",");
             }
-            if (e.getValue().getObject().startsWith("http:")) {
-                System.out.println(instance.getIsPositive() + "\t" + e.getKey() + "\t" + kb_.getEntityName(instance.getSubject()) + "\t" + instance.getPredicate() + "\t" + kb_.getEntityName(instance.getObject()));
-            } else {
-                System.out.println(instance.getIsPositive() + "\t" + e.getKey() + "\t" + kb_.getEntityName(instance.getSubject()) + "\t" + instance.getPredicate() + "\t" + instance.getObject());
+            answers.append("]");
+
+            StringBuilder prediction = new StringBuilder();
+            prediction.append("[");
+            if (!scores.isEmpty()) {
+                Document.QaRelationInstance firstEntry = scores.firstEntry().getValue();
+                prediction.append("\"");
+                prediction.append(kb_.getEntityName(firstEntry.getObject()));
+                prediction.append("\"");
             }
+            prediction.append("]");
+            System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
         }
 
         return document;
