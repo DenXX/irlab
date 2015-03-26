@@ -106,9 +106,11 @@ public class QAModelTrainerProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         boolean isTraining = model_ == null;
 
-        if (document.getQaInstanceCount() == 0
-                || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
-            return null;
+        if (isTraining) {
+            if (document.getQaInstanceCount() == 0
+                    || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
+                return null;
+            }
         }
 
         boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
