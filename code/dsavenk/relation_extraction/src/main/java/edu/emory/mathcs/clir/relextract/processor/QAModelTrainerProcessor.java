@@ -253,12 +253,12 @@ public class QAModelTrainerProcessor extends Processor {
                 .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
                 .filter(x -> !x.contains("common.topic"))
                 .collect(Collectors.toList());
-        List<String> answerEntityTypes = Collections.emptyList();
-//            kb_.getEntityTypes(instance.getObject(), false)
-//                .stream()
-//                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-//                .filter(x -> !x.contains("common.topic"))
-//                .collect(Collectors.toList());
+        List<String> answerEntityTypes = 
+            kb_.getEntityTypes(instance.getObject(), false)
+                .stream()
+                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
+                .filter(x -> !x.contains("common.topic"))
+                .collect(Collectors.toList());
 
         Set<String> qWords = document.getQuestionWords();
         Set<String> qVerbs = document.getQuestionVerbs();
