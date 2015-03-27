@@ -201,7 +201,20 @@ public class QAModelTrainerProcessor extends Processor {
                     Document.QaRelationInstance e = scores.poll().second;
                     if (!first) prediction.append(",");
                     prediction.append("\"");
-                    prediction.append(kb_.getEntityName(e.getObject()));
+                    if (e.getObject().startsWith("http://")) {
+                        prediction.append(kb_.getEntityName(e.getObject()));
+                    } else {
+                        String value = e.getObject();
+                        if (e.getObject().contains("^^")) {
+                            value = e.getObject().split("\\^\\^")[0].replace("\"", "");
+                            // Reformat dates
+                            if (value.contains("-")) {
+                                String[] parts = value.split("\\-");
+                                value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
+                            }
+                        }
+                        prediction.append(value);
+                    }
                     prediction.append("\"");
                     first = false;
                 }

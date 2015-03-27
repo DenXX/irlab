@@ -1,5 +1,11 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.impl.LiteralImpl;
+import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
@@ -42,6 +48,17 @@ public class TestProcessor extends Processor {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
         boolean first = true;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
+            if (!triple.getObject().startsWith("http://")) {
+                String value = triple.getObject();
+                if (triple.getObject().contains("^^")) {
+                    value = triple.getObject().split("\\^\\^")[0].replace("\"", "");
+                    if (value.contains("-")) {
+                        String[] parts = value.split("\\-");
+                        value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
+                    }
+                }
+                System.out.println(value);
+            }
             if (triple.getIsPositive()) {
                 if (first) {
                     System.out.println(new DocumentWrapper(document).toString());
