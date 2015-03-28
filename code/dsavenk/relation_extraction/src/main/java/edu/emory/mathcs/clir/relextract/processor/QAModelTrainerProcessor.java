@@ -10,7 +10,6 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
-import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.util.Pair;
 
 import java.io.*;
@@ -140,7 +139,11 @@ public class QAModelTrainerProcessor extends Processor {
             }
         }
 
-        Set<String> features = new HashSet<>();
+        List<String> questionFeatures = new ArrayList<>();
+        for (int sentence = 0; sentence < document.getSentenceCount() && sentence < documentWrapper.getQuestionSentenceCount(); ++sentence) {
+            questionFeatures.addAll(new QuestionGraph(documentWrapper, sentence).getEdgeFeatures());
+        }
+
         PriorityQueue<Pair<Double, Document.QaRelationInstance>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
@@ -160,8 +163,8 @@ public class QAModelTrainerProcessor extends Processor {
 //            for (String str : features) {
 //                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize_);
 //            }
-            features.clear();
-            generateFeatures(documentWrapper, instance, qDepPaths, features);
+            List<String> answerFeatures = generateAnswerFeatures(instance);
+            //generateFeatures(documentWrapper, instance, qDepPaths, features);
 //            synchronized (out) {
 //                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
 //                for (String feat : features) {
@@ -169,7 +172,20 @@ public class QAModelTrainerProcessor extends Processor {
 //                }
 //                out.write("\n");
 //            }
-            Set<Integer> feats = features.stream().map(x -> (x.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toSet());
+            Set<Integer> feats = new HashSet<>();
+            for (String qFeature : questionFeatures) {
+                for (String aFeature : answerFeatures) {
+                    feats.add(((qFeature + "||" + aFeature).hashCode() & 0x7FFFFFFF) % alphabetSize_);
+                }
+            }
+
+            // TODO(dsavenk): Move this to question features
+            for (String qFeature : qDepPaths) {
+                for (String aFeature : answerFeatures) {
+                    feats.add(((qFeature + "||" + aFeature).hashCode() & 0x7FFFFFFF) % alphabetSize_);
+                }
+            }
+
             if (isTraining) {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
@@ -194,6 +210,7 @@ public class QAModelTrainerProcessor extends Processor {
 
             StringBuilder prediction = new StringBuilder();
             prediction.append("[");
+            Set<String> predictionsSet = new HashSet<>();
             if (!scores.isEmpty()) {
                 double bestScore = scores.peek().first;
                 boolean first = true;
@@ -213,7 +230,10 @@ public class QAModelTrainerProcessor extends Processor {
                                 value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
                             }
                         }
-                        prediction.append(value);
+                        if (!predictionsSet.contains(value)) {
+                            prediction.append(value);
+                            predictionsSet.add(value);
+                        }
                     }
                     prediction.append("\"");
                     first = false;
@@ -226,6 +246,10 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         return document;
+    }
+
+    private List<String> generateAnswerFeatures(Document.QaRelationInstance instance) {
+        return Arrays.asList(instance.getPredicate());
     }
 
     @Override
@@ -359,6 +383,114 @@ public class QAModelTrainerProcessor extends Processor {
             res.append("|");
         }
         return res.toString();
+    }
+
+
+    static class QuestionGraph {
+        enum NodeType {
+            REGULAR,
+            QWORD,
+            QFOCUS,
+            QTOPIC,
+            QVERB
+        }
+
+        static class Node {
+            public List<Pair<Integer, String>> parent = new ArrayList<>();
+            public NodeType type = NodeType.REGULAR;
+            public String value = "";
+            public boolean significant = true;
+
+            @Override
+            public String toString() {
+                return type != NodeType.REGULAR ? type + "=" + value : value;
+            }
+        }
+
+        private List<Node> nodes_ = new ArrayList<>();
+
+        QuestionGraph(DocumentWrapper document, int sentence) {
+            for (int token = document.document().getSentence(sentence).getFirstToken();
+                    token < document.document().getSentence(sentence).getLastToken();
+                    ++token) {
+
+
+                int mentionHead = document.getTokenMentionHead(token);
+                Node node = null;
+                if (Character.isAlphabetic(document.document().getToken(token).getPos().charAt(0))) {
+                    if (mentionHead != -1) {
+                        if (mentionHead == token) {
+                            node = new Node();
+                            node.type = NodeType.QTOPIC;
+                            node.value = document.document().getToken(token).getNer().equals("O")
+                                    ? document.document().getToken(token).getLemma()
+                                    : document.document().getToken(token).getNer();
+                        }
+                    } else {
+                        if (!document.document().getToken(token).getPos().startsWith("D")
+                                && !document.document().getToken(token).getPos().startsWith("PD")) {
+                            node = new Node();
+                            node.value = document.document().getToken(token).getLemma();
+                            if (document.document().getToken(token).getPos().startsWith("W")) {
+                                node.type = NodeType.QWORD;
+                            } else if (document.document().getToken(token).getPos().startsWith("V") || document.document().getToken(token).getPos().startsWith("MD")) {
+                                node.type = NodeType.QVERB;
+                            } else {
+                                node.type = NodeType.REGULAR;
+                            }
+                            if (document.document().getToken(token).getPos().startsWith("IN")) {
+                                node.significant = false;
+                            }
+                        }
+                    }
+                }
+
+
+                if (node != null) {
+                    int parent = document.document().getToken(token).getDependencyGovernor();
+                    if (parent != 0) {
+                        parent += document.document().getSentence(document.document().getToken(token).getSentenceIndex()).getFirstToken() - 1;
+                        if (document.document().getToken(parent).getPos().startsWith("W")) {
+                            node.type = NodeType.QFOCUS;
+                        }
+                        node.parent.add(new Pair<>(parent, document.document().getToken(token).getDependencyType()));
+                    }
+                }
+                nodes_.add(node);
+            }
+        }
+
+        List<String> getEdgeFeatures() {
+            List<String> res = new ArrayList<>();
+            for (Node node : nodes_) {
+                if (node != null) {
+                    String nodeStr = node.toString();
+                    if (node.significant) {
+                        res.add(nodeStr);
+                    }
+                    for (Pair<Integer, String> parent : node.parent) {
+                        String parentNode = nodes_.get(parent.first).toString();
+                        res.add(nodeStr + "->" + parentNode);
+                        res.add(nodeStr + "-" + parent.second + "->" + parentNode);
+                    }
+                }
+            }
+            return res;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder res = new StringBuilder();
+            for (Node node : nodes_) {
+                if (node != null) {
+                    res.append(node.type);
+                    res.append("\t");
+                    res.append(node.value);
+                    res.append("\n");
+                }
+            }
+            return res.toString();
+        }
     }
 }
 

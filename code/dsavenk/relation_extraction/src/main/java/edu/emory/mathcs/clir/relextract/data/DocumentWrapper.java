@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.data;
 
+import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
@@ -32,6 +33,8 @@ public class DocumentWrapper {
     private Set<Integer> qFocus_ = null;
     private Set<String> qDepPaths_ = null;
 
+    private int[] mentionHead = null;
+
     /**
      * Create document wrapper for the given document.
      * @param document NlpDocument proto containing the document.
@@ -57,6 +60,26 @@ public class DocumentWrapper {
         return document_;
     }
 
+    public int getTokenMentionHead(int token) {
+        if (mentionHead == null) {
+            mentionHead = new int[document().getTokenCount()];
+            Arrays.fill(mentionHead, -1);
+
+            for (Document.Span span : document().getSpanList()) {
+                if ("MEASURE".equals(span.getType())
+                        || (span.hasEntityId()
+                            && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE)) {
+                    for (Document.Mention mention : span.getMentionList()) {
+                        int head = DependencyTreeUtils.getMentionHeadToken(document(), mention);
+                        for (int j = mention.getTokenBeginOffset(); j < mention.getTokenEndOffset(); ++j) {
+                            mentionHead[j] = head;
+                        }
+                    }
+                }
+            }
+        }
+        return mentionHead[token];
+    }
 
     public int getQuestionSentenceCount() {
         if (questionSentsCount_ != -1) return questionSentsCount_;
