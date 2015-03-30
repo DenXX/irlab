@@ -260,15 +260,16 @@ public class QAModelTrainerProcessor extends Processor {
         if (model_ == null) {
             dataset_.summaryStatistics();
 
-            try {
-                PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-                for (Datum<Boolean, Integer> d : dataset_) {
-                    out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
-                }
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            // TODO(dsavenk): Comment this out for now.
+//            try {
+//                PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
+//                for (Datum<Boolean, Integer> d : dataset_) {
+//                    out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
+//                }
+//                out.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, 0.0);
