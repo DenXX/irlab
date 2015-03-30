@@ -469,9 +469,11 @@ public class QAModelTrainerProcessor extends Processor {
                         res.add(nodeStr);
                     }
                     for (Pair<Integer, String> parent : node.parent) {
-                        String parentNode = nodes_.get(parent.first).toString();
-                        res.add(nodeStr + "->" + parentNode);
-                        res.add(nodeStr + "-" + parent.second + "->" + parentNode);
+                        if (nodes_.get(parent.first) != null && parent.first < nodes_.size()) {
+                            String parentNode = nodes_.get(parent.first).toString();
+                            res.add(nodeStr + "->" + parentNode);
+                            res.add(nodeStr + "-" + parent.second + "->" + parentNode);
+                        }
                     }
                 }
             }
