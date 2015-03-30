@@ -218,10 +218,11 @@ public class QAModelTrainerProcessor extends Processor {
                     Document.QaRelationInstance e = scores.poll().second;
                     if (!first) prediction.append(",");
                     prediction.append("\"");
+                    String value;
                     if (e.getObject().startsWith("http://")) {
-                        prediction.append(kb_.getEntityName(e.getObject()));
+                        value = kb_.getEntityName(e.getObject());
                     } else {
-                        String value = e.getObject();
+                        value = e.getObject();
                         if (e.getObject().contains("^^")) {
                             value = e.getObject().split("\\^\\^")[0].replace("\"", "");
                             // Reformat dates
@@ -233,10 +234,13 @@ public class QAModelTrainerProcessor extends Processor {
                                     value = String.format("%s/%s", parts[1], parts[0]);
                             }
                         }
-                        if (!predictionsSet.contains(value)) {
-                            prediction.append(value.replace("\"", "\\\""));
-                            predictionsSet.add(value);
-                        }
+                    }
+                    if (value.contains("\"")) {
+                        value = value.replace("\"", "\\\"");
+                    }
+                    if (!predictionsSet.contains(value)) {
+                        prediction.append(value);
+                        predictionsSet.add(value);
                     }
                     prediction.append("\"");
                     first = false;
@@ -415,12 +419,10 @@ public class QAModelTrainerProcessor extends Processor {
 
         QuestionGraph(DocumentWrapper document, int sentence) {
             int firstToken = document.document().getSentence(sentence).getFirstToken();
-            int[] tokenToNodeIndex = new int[document.document().getSentence(sentence).getLastToken() - firstToken];
+            int lastToken = document.document().getSentence(sentence).getLastToken();
+            int[] tokenToNodeIndex = new int[lastToken - firstToken];
             Arrays.fill(tokenToNodeIndex, -1);
-            for (int token = firstToken;
-                    token < document.document().getSentence(sentence).getLastToken();
-                    ++token) {
-
+            for (int token = firstToken; token < lastToken; ++token) {
                 int mentionHead = document.getTokenMentionHead(token);
                 Node node = null;
                 if (Character.isAlphabetic(document.document().getToken(token).getPos().charAt(0))) {
@@ -457,9 +459,7 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
 
-            for (int token = firstToken;
-                 token < document.document().getSentence(sentence).getLastToken();
-                 ++token) {
+            for (int token = firstToken; token < lastToken; ++token) {
                 if (tokenToNodeIndex[token] != -1) {
                     Node node = nodes_.get(tokenToNodeIndex[token]);
                     int parent = document.document().getToken(token).getDependencyGovernor();
