@@ -227,7 +227,10 @@ public class QAModelTrainerProcessor extends Processor {
                             // Reformat dates
                             if (value.contains("-")) {
                                 String[] parts = value.split("\\-");
-                                value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
+                                if (parts.length == 3)
+                                    value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
+                                else if (parts.length == 2)
+                                    value = String.format("%s/%s", parts[1], parts[0]);
                             }
                         }
                         if (!predictionsSet.contains(value)) {
