@@ -234,7 +234,7 @@ public class QAModelTrainerProcessor extends Processor {
                             }
                         }
                         if (!predictionsSet.contains(value)) {
-                            prediction.append(value);
+                            prediction.append(value.replace("\"", "\\\""));
                             predictionsSet.add(value);
                         }
                     }
@@ -395,28 +395,30 @@ public class QAModelTrainerProcessor extends Processor {
             QWORD,
             QFOCUS,
             QTOPIC,
-            QVERB
+            QVERB,
+            PREPOSITION
         }
 
         static class Node {
             public List<Pair<Integer, String>> parent = new ArrayList<>();
             public NodeType type = NodeType.REGULAR;
             public String value = "";
-            public boolean significant = true;
 
             @Override
             public String toString() {
-                return type != NodeType.REGULAR ? type + "=" + value : value;
+                return type != NodeType.REGULAR && type != NodeType.PREPOSITION ? type + "=" + value : value;
             }
         }
 
         private List<Node> nodes_ = new ArrayList<>();
 
         QuestionGraph(DocumentWrapper document, int sentence) {
-            for (int token = document.document().getSentence(sentence).getFirstToken();
+            int firstToken = document.document().getSentence(sentence).getFirstToken();
+            int[] tokenToNodeIndex = new int[document.document().getSentence(sentence).getLastToken() - firstToken];
+            Arrays.fill(tokenToNodeIndex, -1);
+            for (int token = firstToken;
                     token < document.document().getSentence(sentence).getLastToken();
                     ++token) {
-
 
                 int mentionHead = document.getTokenMentionHead(token);
                 Node node = null;
@@ -439,27 +441,37 @@ public class QAModelTrainerProcessor extends Processor {
                             } else if (document.document().getToken(token).getPos().startsWith("V") || document.document().getToken(token).getPos().startsWith("MD")) {
                                 node.type = NodeType.QVERB;
                             } else {
-                                node.type = NodeType.REGULAR;
-                            }
-                            if (document.document().getToken(token).getPos().startsWith("IN")) {
-                                node.significant = false;
+                                if (document.document().getToken(token).getPos().startsWith("IN")) {
+                                    node.type = NodeType.PREPOSITION;
+                                } else {
+                                    node.type = NodeType.REGULAR;
+                                }
                             }
                         }
                     }
                 }
-
-
                 if (node != null) {
+                    tokenToNodeIndex[token - firstToken] = nodes_.size();
+                    nodes_.add(node);
+                }
+            }
+
+            for (int token = firstToken;
+                 token < document.document().getSentence(sentence).getLastToken();
+                 ++token) {
+                if (tokenToNodeIndex[token] != -1) {
+                    Node node = nodes_.get(tokenToNodeIndex[token]);
                     int parent = document.document().getToken(token).getDependencyGovernor();
                     if (parent != 0) {
-                        parent += document.document().getSentence(document.document().getToken(token).getSentenceIndex()).getFirstToken() - 1;
-                        if (document.document().getToken(parent).getPos().startsWith("W")) {
+                        --parent;
+                        if (document.document().getToken(firstToken + parent).getPos().startsWith("W")) {
                             node.type = NodeType.QFOCUS;
                         }
-                        node.parent.add(new Pair<>(parent, document.document().getToken(token).getDependencyType()));
+                        if (tokenToNodeIndex[parent] != -1) {
+                            node.parent.add(new Pair<>(tokenToNodeIndex[parent], document.document().getToken(token).getDependencyType()));
+                        }
                     }
                 }
-                nodes_.add(node);
             }
         }
 
@@ -468,15 +480,13 @@ public class QAModelTrainerProcessor extends Processor {
             for (Node node : nodes_) {
                 if (node != null) {
                     String nodeStr = node.toString();
-                    if (node.significant) {
+                    if (node.type != NodeType.PREPOSITION) {
                         res.add(nodeStr);
                     }
                     for (Pair<Integer, String> parent : node.parent) {
-                        if (nodes_.get(parent.first) != null && parent.first < nodes_.size()) {
-                            String parentNode = nodes_.get(parent.first).toString();
-                            res.add(nodeStr + "->" + parentNode);
-                            res.add(nodeStr + "-" + parent.second + "->" + parentNode);
-                        }
+                        String parentNode = nodes_.get(parent.first).toString();
+                        res.add(nodeStr + "->" + parentNode);
+                        res.add(nodeStr + "-" + parent.second + "->" + parentNode);
                     }
                 }
             }
