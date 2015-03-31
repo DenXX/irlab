@@ -33,6 +33,8 @@ public class DocumentWrapper {
     private Set<Integer> qFocus_ = null;
     private Set<String> qDepPaths_ = null;
 
+    private static final String MEASURE_REGEX = "QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET|NUMBER|ORDINAL";
+
     private int[] mentionHead = null;
     IntervalTree<Integer, Interval<Integer>> mentionIntervals_ =
             new IntervalTree<>();
@@ -200,6 +202,10 @@ public class DocumentWrapper {
         }
         printMentionEnds(document_, currentMentions, document_.getTokenCount(), res);
         return res.toString();
+    }
+
+    public boolean isTokenMeasure(int token) {
+        return document().getToken(token).getNer().matches(MEASURE_REGEX);
     }
 
     private void printMentionEnds(Document.NlpDocument document, PriorityQueue<Triple<Integer, Integer, Integer>> currentMentions, int tokenIndex, StringBuilder res) {
@@ -406,7 +412,7 @@ public class DocumentWrapper {
                 final String ner = span.get(
                         CoreAnnotations.NamedEntityTagAnnotation.class);
                 String type;
-                if (ner.matches("QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET|NUMBER|ORDINAL")) {
+                if (ner.matches(MEASURE_REGEX)) {
                     type = "MEASURE";
                 } else {
                     type = "ENTITY";

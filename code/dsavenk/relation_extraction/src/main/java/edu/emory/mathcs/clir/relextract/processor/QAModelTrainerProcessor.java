@@ -47,26 +47,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_USE_FREEBASE_TYPESFEATURES = "qa_finetypes_features";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
 
-
-
     BufferedWriter out;
-
-    String[] feat1 = {"qword", "arelation"};
-    String[] feat2 = {"qword", "atopic"};
-    String[] feat3 = {"qword", "atopic", "arelation"};
-    String[] feat4 = {"qverb", "arelation"};
-    String[] feat5 = {"qverb", "atopic"};
-    String[] feat6 = {"qverb", "atopic", "arelation"};
-    String[] feat7 = {"qfocus", "arelation"};
-    String[] feat8 = {"qfocus", "atopic"};
-    String[] feat9 = {"qfocus", "atopic", "arelation"};
-    String[] feat10 = {"qtopic", "arelation"};
-    String[] feat11 = {"qtopic", "atopic"};
-    String[] feat12 = {"qtopic", "atopic", "arelation"};
-    String[] feat13 = {"qword", "qverb", "qfocus", "qtopic", "arelation"};
-    String[] feat14 = {"qword", "qverb", "qfocus", "qtopic", "atopic"};
-    String[] feat15 = {"qword", "qverb", "qfocus", "qtopic", "atopic", "arelation"};
-    String[] feat16 = {"qdeppath", "arelation"};
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -237,8 +218,12 @@ public class QAModelTrainerProcessor extends Processor {
             StringBuilder debugInfo = debug_ ? new StringBuilder() : null;
             if (!scores.isEmpty()) {
                 double bestScore = scores.peek().first;
+                String bestSubject = scores.peek().second.getSubject();
+                String bestPredicate = scores.peek().second.getPredicate();
                 boolean first = true;
-                while (!scores.isEmpty() && scores.peek().first == bestScore && bestScore > 0.5) {
+                while (bestScore > 0.5 && !scores.isEmpty()
+                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
                     if (!first) prediction.append(",");
@@ -326,97 +311,6 @@ public class QAModelTrainerProcessor extends Processor {
         }
     }
 
-    private void generateFeatures(DocumentWrapper document,
-                                  Document.QaRelationInstance instance,
-                                  Set<String> qDepPaths,
-                                  Set<String> features) {
-        List<String> questionEntityTypes = kb_.getEntityTypes(instance.getSubject(), false)
-                .stream()
-                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-                .filter(x -> !x.contains("common.topic"))
-                .collect(Collectors.toList());
-        List<String> answerEntityTypes =
-            kb_.getEntityTypes(instance.getObject(), false)
-                .stream()
-                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
-                .filter(x -> !x.contains("common.topic"))
-                .collect(Collectors.toList());
-
-        Set<String> qWords = document.getQuestionWords();
-        Set<String> qVerbs = document.getQuestionVerbs();
-        Set<String> qFocuses = document.getQuestionFocus();
-
-        for (String qWord : qWords) {
-            features.add(getFeature(feat1, qWord, instance.getPredicate()));
-            for (String answerEntityType : answerEntityTypes) {
-                features.add(getFeature(feat2, qWord, answerEntityType));
-                features.add(getFeature(feat3, qWord, answerEntityType, instance.getPredicate()));
-            }
-        }
-
-        for (String qVerb : qVerbs) {
-            features.add(getFeature(feat4, qVerb, instance.getPredicate()));
-            for (String answerEntityType : answerEntityTypes) {
-                features.add(getFeature(feat5, qVerb, answerEntityType));
-                features.add(getFeature(feat6, qVerb, answerEntityType, instance.getPredicate()));
-            }
-        }
-
-        for (String qFocus : qFocuses) {
-            features.add(getFeature(feat7, qFocus, instance.getPredicate()));
-            for (String answerEntityType : answerEntityTypes) {
-                features.add(getFeature(feat8, qFocus, answerEntityType));
-                features.add(getFeature(feat9, qFocus, answerEntityType, instance.getPredicate()));
-            }
-        }
-
-        for (String questionEntityType : questionEntityTypes) {
-            features.add(getFeature(feat10, questionEntityType, instance.getPredicate()));
-            for (String answerEntityType : answerEntityTypes) {
-                features.add(getFeature(feat11, questionEntityType, answerEntityType));
-                features.add(getFeature(feat12, questionEntityType, answerEntityType, instance.getPredicate()));
-            }
-        }
-
-        for (String qWord : qWords) {
-            for (String qVerb : qVerbs) {
-                for (String qFocus : qFocuses) {
-                    for (String questionEntityType : questionEntityTypes) {
-                        features.add(getFeature(feat13, qWord, qVerb, qFocus, questionEntityType, instance.getPredicate()));
-                        for (String answerEntityType : answerEntityTypes) {
-                            features.add(getFeature(feat14, qWord, qVerb, qFocus, questionEntityType, answerEntityType));
-                            features.add(getFeature(feat15, qWord, qVerb, qFocus, questionEntityType, answerEntityType, instance.getPredicate()));
-                        }
-                    }
-                }
-            }
-        }
-
-        for (String depPath : qDepPaths) {
-            for (String questionEntityType : questionEntityTypes) {
-                features.add(getFeature(feat16, depPath, questionEntityType, instance.getPredicate()));
-            }
-        }
-
-//        Set<String> edges = new HashSet<>();
-//        for (int sentence = 0; sentence < document.getQuestionSentenceCount(); ++sentence) {
-//            for (int token = document.document().getSentence(sentence).getFirstToken();
-//                 token < document.document().getSentence(sentence).getLastToken(); ++token) {
-//                if (tokenMentions[token] == -1 || tokenMentions[token] == token) {
-//                    StringBuilder edge = new StringBuilder();
-//                    edge.append(document.document().getToken(token).getDependencyType());
-//                    edge.append("(");
-//                    int gov = document.document().getToken(token).getDependencyGovernor();
-//                    if (gov > 0) {
-//                        gov = document.document().getSentence(sentence).getFirstToken() + gov - 1;
-//                    } else {
-//
-//                    }
-//                }
-//            }
-//        }
-    }
-
     private String getFeature(String[] parts, String... valParts) {
         StringBuilder res = new StringBuilder();
         for (int i = 0; i < parts.length; ++i) {
@@ -473,15 +367,12 @@ public class QAModelTrainerProcessor extends Processor {
                     if (mentionHead != -1) {
                         if (mentionHead == token) {
                             node = new Node();
-                            node.type = NodeType.QTOPIC;
-                            if (useFreebaseTypes) {
+                            boolean measure = document.isTokenMeasure(token);
+                            node.type = measure ? NodeType.REGULAR : NodeType.QTOPIC;
+                            if (!measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
-                                    if (span.hasEntityId()) {
-                                        for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
-                                            node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream().filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user.")).collect(Collectors.toList()));
-                                        }
-                                    } else if (span.getType().equals("MEASURE")) {
-                                        node.values.add(span.getNerType());
+                                    for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
+                                        node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream().filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user.")).collect(Collectors.toList()));
                                     }
                                 }
                             } else {
