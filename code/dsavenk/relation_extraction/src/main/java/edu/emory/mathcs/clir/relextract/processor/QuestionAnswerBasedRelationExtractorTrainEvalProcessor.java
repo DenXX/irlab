@@ -266,7 +266,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
 
     private void addQuestionTemplateFeatures(Document.NlpDocument document, int questionSentenceIndex, Document.Span questionSpan, int questionMention, int answerSentenceIndex,
                                              Document.Span answerSpan, int answerMention, List<String> features, boolean reversed) {
-        StringBuilder template = NlpUtils.getQuestionTemplate(document, questionSentenceIndex, questionSpan, questionMention);
+        String template = NlpUtils.getQuestionTemplate(document, questionSentenceIndex, questionSpan, questionMention);
 
         List<String> window = new ArrayList<>();
         window.add("");
@@ -280,7 +280,7 @@ public class QuestionAnswerBasedRelationExtractorTrainEvalProcessor
         for (String windowStr : window) {
             if (windowStrAcc.length() != 0) windowStrAcc.insert(0, " ");
             windowStrAcc.insert(0, windowStr);
-            features.add("QUESTION_TEMPLATE:\t"+ (reversed ? "<> " : "") + template.toString().trim() + " => |" + windowStrAcc + "| [" + answerSpan.getNerType() + "]");
+            features.add("QUESTION_TEMPLATE:\t"+ (reversed ? "<> " : "") + template.trim() + " => |" + windowStrAcc + "| [" + answerSpan.getNerType() + "]");
         }
     }
 
