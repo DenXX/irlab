@@ -37,7 +37,7 @@ public final class NlpUtils {
                 .toLowerCase();
     }
 
-    public static StringBuilder getQuestionTemplate(Document.NlpDocument document,
+    public static String getQuestionTemplate(Document.NlpDocument document,
                                                     int questionSentenceIndex,
                                                     Document.Span questionSpan,
                                                     int questionMention) {
@@ -67,7 +67,7 @@ public final class NlpUtils {
             }
 
         }
-        return template;
+        return template.toString();
     }
 
     public static String getSentencePivot(Document.NlpDocument document, int sentenceIndex) {

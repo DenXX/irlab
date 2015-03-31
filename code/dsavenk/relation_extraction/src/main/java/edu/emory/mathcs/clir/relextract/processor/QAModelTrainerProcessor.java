@@ -5,6 +5,7 @@ import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
+import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
@@ -116,28 +117,28 @@ public class QAModelTrainerProcessor extends Processor {
 //                : document.getTokenCount()];
 //        Arrays.fill(tokenMentions, -1);
 
-        Set<String> qDepPaths = new HashSet<>();
+        Set<String> questionFeatures = new HashSet<>();
 
         for (Document.Span span : document.getSpanList()) {
             if (span.hasEntityId() && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE) {
+                int mentionIndex = 0;
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
                         String path = DependencyTreeUtils.getQuestionDependencyPath(document,
                                 mention.getSentenceIndex(),
                                 DependencyTreeUtils.getMentionHeadToken(document, mention));
                         if (path != null)
-                            qDepPaths.add(path);
+                            questionFeatures.add(path);
+                        questionFeatures.add(NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex));
+                        ++mentionIndex;
                     }
                 }
             }
         }
 
-        List<String> questionFeatures = new ArrayList<>();
         for (int sentence = 0; sentence < document.getSentenceCount() && sentence < documentWrapper.getQuestionSentenceCount(); ++sentence) {
             questionFeatures.addAll(new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_).getEdgeFeatures());
         }
-
-        questionFeatures.addAll(qDepPaths);
 
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         StringWriter strWriter = debug_ ? new StringWriter() : null;
