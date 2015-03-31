@@ -317,13 +317,13 @@ public class QAModelTrainerProcessor extends Processor {
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, 1.0);
             //classifierFactory_.setTuneSigmaHeldOut();
-            //classifierFactory_.useInPlaceStochasticGradientDescent();
+            classifierFactory_.useInPlaceStochasticGradientDescent();
 
-        classifierFactory_.setMinimizerCreator(() -> {
-            QNMinimizer min = new QNMinimizer(15);
-            min.useOWLQN(true, 1.0);
-            return min;
-        });
+//        classifierFactory_.setMinimizerCreator(() -> {
+//            QNMinimizer min = new QNMinimizer(15);
+//            min.useOWLQN(true, 1.0);
+//            return min;
+//        });
             classifierFactory_.setVerbose(true);
             model_ = classifierFactory_.trainClassifier(dataset_);
             LinearClassifier.writeClassifier(model_, modelFile_);
