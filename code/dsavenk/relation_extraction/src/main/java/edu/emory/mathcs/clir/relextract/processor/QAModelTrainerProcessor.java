@@ -240,10 +240,13 @@ public class QAModelTrainerProcessor extends Processor {
                             // Reformat dates
                             if (value.contains("-")) {
                                 String[] parts = value.split("\\-");
+                                String year = parts[0];
+                                String month = parts[1].startsWith("0") ? parts[1].substring(1) : parts[1];
+                                String day = parts[2].startsWith("0") ? parts[2].substring(1) : parts[2];
                                 if (parts.length == 3)
-                                    value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
+                                    value = String.format("%s/%s/%s", month, day, year);
                                 else if (parts.length == 2)
-                                    value = String.format("%s/%s", parts[1], parts[0]);
+                                    value = String.format("%s/%s", month, year);
                             }
                         }
                     }
@@ -429,11 +432,11 @@ public class QAModelTrainerProcessor extends Processor {
             List<String> res = new ArrayList<>();
             for (Node node : nodes_) {
                 if (node != null) {
-//                    if (node.type != NodeType.PREPOSITION) {
-//                        for (String feat : node.getValues()) {
-//                            res.add(feat);
-//                        }
-//                    }
+                    if (node.type != NodeType.PREPOSITION) {
+                        for (String feat : node.getValues()) {
+                            res.add(feat);
+                        }
+                    }
 
                     for (Pair<Integer, String> parent : node.parent) {
                         for (String nodeStr : node.getValues()) {
