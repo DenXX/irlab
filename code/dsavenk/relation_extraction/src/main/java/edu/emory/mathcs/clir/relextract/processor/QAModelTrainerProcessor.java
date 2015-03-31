@@ -297,7 +297,7 @@ public class QAModelTrainerProcessor extends Processor {
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, 1.0);
-            //classifierFactory_.setTuneSigmaHeldOut();
+            classifierFactory_.setTuneSigmaHeldOut();
             classifierFactory_.useInPlaceStochasticGradientDescent();
 
 //        classifierFactory_.setMinimizerCreator(() -> {
