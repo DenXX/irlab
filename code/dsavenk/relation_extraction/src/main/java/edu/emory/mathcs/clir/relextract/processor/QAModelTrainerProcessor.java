@@ -14,6 +14,7 @@ import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
+import org.apache.avro.generic.GenericData;
 
 import java.io.*;
 import java.util.*;
@@ -283,7 +284,15 @@ public class QAModelTrainerProcessor extends Processor {
     }
 
     private List<String> generateAnswerFeatures(Document.QaRelationInstance instance) {
-        return Arrays.asList(instance.getPredicate());
+        List<String> res = new ArrayList<>();
+        res.add(instance.getPredicate());
+        if (useFineTypes_) {
+            res.addAll(kb_.getEntityTypes(instance.getObject(), false).stream()
+                    .filter(x -> !x.startsWith("common.")
+                            && !x.startsWith("base.")
+                            && !x.startsWith("user.")).collect(Collectors.toList()));
+        }
+        return res;
     }
 
     @Override
@@ -376,7 +385,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node = new Node();
                             boolean measure = document.isTokenMeasure(token);
                             node.type = measure ? NodeType.REGULAR : NodeType.QTOPIC;
-                            if (!measure && useFreebaseTypes) {
+                            if (false && !measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
                                     for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
                                         node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream().filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user.")).collect(Collectors.toList()));
