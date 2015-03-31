@@ -427,32 +427,13 @@ public class QAModelTrainerProcessor extends Processor {
 
         List<String> getEdgeFeatures() {
             List<String> res = new ArrayList<>();
-            List<String> qwords = new ArrayList<>();
-            List<String> qfocus = new ArrayList<>(); qfocus.add("");
-            List<String> qverb = new ArrayList<>();
-            List<String> qtopic = new ArrayList<>();
             for (Node node : nodes_) {
                 if (node != null) {
-                    switch (node.type) {
-                        case QVERB:
-                            qverb.addAll(Arrays.asList(node.getValues()));
-                            break;
-                        case QWORD:
-                            qwords.addAll(Arrays.asList(node.getValues()));
-                            break;
-                        case QTOPIC:
-                            qtopic.addAll(Arrays.asList(node.getValues()));
-                            break;
-                        case QFOCUS:
-                            qfocus.addAll(Arrays.asList(node.getValues()));
-                            break;
-                    }
-
-                    if (node.type != NodeType.PREPOSITION) {
-                        for (String feat : node.getValues()) {
-                            res.add(feat);
-                        }
-                    }
+//                    if (node.type != NodeType.PREPOSITION) {
+//                        for (String feat : node.getValues()) {
+//                            res.add(feat);
+//                        }
+//                    }
 
                     for (Pair<Integer, String> parent : node.parent) {
                         for (String nodeStr : node.getValues()) {
@@ -460,16 +441,6 @@ public class QAModelTrainerProcessor extends Processor {
                                 res.add(nodeStr + "->" + parentNodeStr);
                                 res.add(nodeStr + "-" + parent.second + "->" + parentNodeStr);
                             }
-                        }
-                    }
-                }
-            }
-
-            for (String qwordnode : qwords) {
-                for (String qfocusnode : qfocus) {
-                    for (String qverbnode : qverb) {
-                        for (String qtopicnode : qtopic) {
-                            res.add(qwordnode + "|" + qfocusnode + "|" + qverbnode + "|" + qtopicnode);
                         }
                     }
                 }
