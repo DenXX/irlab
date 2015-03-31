@@ -10,6 +10,7 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -297,14 +298,14 @@ public class QAModelTrainerProcessor extends Processor {
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, 1.0);
-            classifierFactory_.setTuneSigmaHeldOut();
-            classifierFactory_.useInPlaceStochasticGradientDescent();
+            //classifierFactory_.setTuneSigmaHeldOut();
+            //classifierFactory_.useInPlaceStochasticGradientDescent();
 
-//        classifierFactory_.setMinimizerCreator(() -> {
-//            QNMinimizer min = new QNMinimizer(15);
-//            min.useOWLQN(true, 1.0);
-//            return min;
-//        });
+        classifierFactory_.setMinimizerCreator(() -> {
+            QNMinimizer min = new QNMinimizer(15);
+            min.useOWLQN(true, 1.0);
+            return min;
+        });
             classifierFactory_.setVerbose(true);
             model_ = classifierFactory_.trainClassifier(dataset_);
             LinearClassifier.writeClassifier(model_, modelFile_);
