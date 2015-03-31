@@ -427,7 +427,7 @@ public class QAModelTrainerProcessor extends Processor {
         List<String> getEdgeFeatures() {
             List<String> res = new ArrayList<>();
             List<String> qwords = new ArrayList<>();
-            List<String> qfocus = Arrays.asList("");
+            List<String> qfocus = new ArrayList<>(); qfocus.add("");
             List<String> qverb = new ArrayList<>();
             List<String> qtopic = new ArrayList<>();
             for (Node node : nodes_) {
