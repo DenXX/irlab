@@ -160,24 +160,28 @@ public class KnowledgeBase {
         Set<String> res = new HashSet<>();
         for (String mid : span.getCandidateEntityIdList()) {
             if (count++ > idsToTry) break;
-            res.addAll(getEntityTypes(mid));
+            res.addAll(getEntityTypes(mid, true));
         }
         return res;
     }
 
     public List<String> getEntityTypes(String mid) {
-        return getEntityTypes(mid, false);
+        return getEntityTypes(mid, false, false);
     }
 
-    public List<String> getEntityTypes(String entityStr, boolean notable) {
+    public List<String> getEntityTypes(String mid, boolean fullURI) {
+        return getEntityTypes(mid, false, fullURI);
+    }
+
+    public List<String> getEntityTypes(String entityStr, boolean notable, boolean fullURI) {
         if (entityStr.charAt(0) == '/' || entityStr.startsWith("http")) {
-            return getEntityTypes(model_.getResource(convertFreebaseMidRdf(entityStr)), notable);
+            return getEntityTypes(model_.getResource(convertFreebaseMidRdf(entityStr)), notable, fullURI);
         }
         XSSimpleType type = (XSSimpleType)NodeFactoryExtra.parseNode(entityStr.replace("^^", "^^<") + ">").getLiteralDatatype().extendedTypeDefinition();
         return Arrays.asList(type.getName().startsWith("g") ? "date" : type.getName());
     }
 
-    public List<String> getEntityTypes(Resource entity, boolean notable) {
+    public List<String> getEntityTypes(Resource entity, boolean notable, boolean fullURI) {
         String mid = "/" + entity.getLocalName().replace(".", "/");
         if (!notable && entityTypes_ != null && entityTypes_.containsKey(mid)) {
             return entityTypes_.get(mid);
@@ -187,7 +191,7 @@ public class KnowledgeBase {
         String typeProperty = notable ? "common.topic.notable_types" : "type.object.type";
         StmtIterator iter = entity.listProperties(model_.getProperty(FREEBASE_RDF_PREFIX, typeProperty));
         while (iter.hasNext())
-            res.add(iter.nextStatement().getObject().asResource().getURI());
+            res.add(fullURI ? iter.nextStatement().getObject().asResource().getURI() : iter.nextStatement().getObject().asResource().getLocalName());
         if (entityTypes_ != null) {
             entityTypes_.put(mid, res);
         }

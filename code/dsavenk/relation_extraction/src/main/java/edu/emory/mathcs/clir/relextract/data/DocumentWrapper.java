@@ -34,6 +34,9 @@ public class DocumentWrapper {
     private Set<String> qDepPaths_ = null;
 
     private int[] mentionHead = null;
+    IntervalTree<Integer, Interval<Integer>> mentionIntervals_ =
+            new IntervalTree<>();
+    Map<Interval, Pair<Document.Span, Integer>> intervalToMention_ = new HashMap<>();
 
     /**
      * Create document wrapper for the given document.
@@ -62,23 +65,32 @@ public class DocumentWrapper {
 
     public int getTokenMentionHead(int token) {
         if (mentionHead == null) {
-            mentionHead = new int[document().getTokenCount()];
-            Arrays.fill(mentionHead, -1);
+            saveTokenSpanMentions();
+        }
+        return mentionHead[token];
+    }
 
-            for (Document.Span span : document().getSpanList()) {
-                if ("MEASURE".equals(span.getType())
-                        || (span.hasEntityId()
-                            && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE)) {
-                    for (Document.Mention mention : span.getMentionList()) {
-                        int head = DependencyTreeUtils.getMentionHeadToken(document(), mention);
-                        for (int j = mention.getTokenBeginOffset(); j < mention.getTokenEndOffset(); ++j) {
-                            mentionHead[j] = head;
-                        }
+    private void saveTokenSpanMentions() {
+        mentionHead = new int[document().getTokenCount()];
+        Arrays.fill(mentionHead, -1);
+
+        for (Document.Span span : document().getSpanList()) {
+            if ("MEASURE".equals(span.getType())
+                    || (span.hasEntityId()
+                        && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE)) {
+                int mentionIndex = 0;
+                for (Document.Mention mention : span.getMentionList()) {
+                    int head = DependencyTreeUtils.getMentionHeadToken(document(), mention);
+                    for (int j = mention.getTokenBeginOffset(); j < mention.getTokenEndOffset(); ++j) {
+                        mentionHead[j] = head;
                     }
+                    Interval<Integer> interval = Interval.toInterval(mention.getTokenBeginOffset(), mention.getTokenEndOffset());
+                    mentionIntervals_.add(interval);
+                    intervalToMention_.put(interval, new Pair<>(span, mentionIndex));
+                    ++mentionIndex;
                 }
             }
         }
-        return mentionHead[token];
     }
 
     public int getQuestionSentenceCount() {
@@ -497,4 +509,9 @@ public class DocumentWrapper {
         }
     }
 
+    public List<Document.Span> getTokenSpan(int token) {
+        if (mentionHead == null)
+            saveTokenSpanMentions();
+        return mentionIntervals_.getOverlapping(Interval.toInterval(token, token)).stream().map(x -> intervalToMention_.get(x).first).collect(Collectors.toList());
+    }
 }

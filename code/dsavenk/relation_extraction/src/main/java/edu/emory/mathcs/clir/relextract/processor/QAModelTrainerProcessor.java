@@ -34,6 +34,8 @@ public class QAModelTrainerProcessor extends Processor {
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
     private Set<String> predicates_ = new HashSet<>();
     private double subsampleRate_ = 10;
+    private boolean debug_ = false;
+    private boolean useFineTypes_ = false;
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
@@ -41,6 +43,8 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_TEST_PARAMETER = "qa_test";
     public static final String QA_SUBSAMPLE_PARAMETER = "qa_subsample";
     public static final String SPLIT_DATASET_PARAMETER = "qa_split_data";
+    public static final String QA_USE_FREEBASE_TYPESFEATURES = "qa_finetypes_features";
+    public static final String QA_DEBUG_PARAMETER = "qa_debug";
 
 
 
@@ -82,6 +86,12 @@ public class QAModelTrainerProcessor extends Processor {
         }
         if (properties.containsKey(QA_SUBSAMPLE_PARAMETER)) {
             subsampleRate_ = Double.parseDouble(properties.getProperty(QA_SUBSAMPLE_PARAMETER));
+        }
+        if (properties.containsKey(QA_DEBUG_PARAMETER)) {
+            debug_ = true;
+        }
+        if (properties.containsKey(QA_USE_FREEBASE_TYPESFEATURES)) {
+            useFineTypes_ = true;
         }
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         if (properties.containsKey(QA_PREDICATES_PARAMETER)) {
@@ -141,7 +151,7 @@ public class QAModelTrainerProcessor extends Processor {
 
         List<String> questionFeatures = new ArrayList<>();
         for (int sentence = 0; sentence < document.getSentenceCount() && sentence < documentWrapper.getQuestionSentenceCount(); ++sentence) {
-            questionFeatures.addAll(new QuestionGraph(documentWrapper, sentence).getEdgeFeatures());
+            questionFeatures.addAll(new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_).getEdgeFeatures());
         }
 
         PriorityQueue<Pair<Double, Document.QaRelationInstance>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
@@ -172,6 +182,7 @@ public class QAModelTrainerProcessor extends Processor {
 //                }
 //                out.write("\n");
 //            }
+
             Set<Integer> feats = new HashSet<>();
             for (String qFeature : questionFeatures) {
                 for (String aFeature : answerFeatures) {
@@ -239,7 +250,7 @@ public class QAModelTrainerProcessor extends Processor {
                         value = value.replace("\"", "\\\"");
                     }
                     if (!predictionsSet.contains(value)) {
-                        prediction.append(value);
+                        prediction.append(!debug_ ? value : e.getPredicate() + " = " + value);
                         predictionsSet.add(value);
                     }
                     prediction.append("\"");
@@ -407,17 +418,26 @@ public class QAModelTrainerProcessor extends Processor {
         static class Node {
             public List<Pair<Integer, String>> parent = new ArrayList<>();
             public NodeType type = NodeType.REGULAR;
-            public String value = "";
+            public List<String> values = new ArrayList<>();
+
+            public String[] getValues() {
+                String[] res = new String[values.size()];
+                int i = 0;
+                for (String value : values) {
+                    res[i++] = type != NodeType.REGULAR && type != NodeType.PREPOSITION ? type + "=" + value : value;
+                }
+                return res;
+            }
 
             @Override
             public String toString() {
-                return type != NodeType.REGULAR && type != NodeType.PREPOSITION ? type + "=" + value : value;
+                return type != NodeType.REGULAR && type != NodeType.PREPOSITION ? type + "=" + values : values.toString();
             }
         }
 
         private List<Node> nodes_ = new ArrayList<>();
 
-        QuestionGraph(DocumentWrapper document, int sentence) {
+        QuestionGraph(DocumentWrapper document, KnowledgeBase kb, int sentence, boolean useFreebaseTypes) {
             int firstToken = document.document().getSentence(sentence).getFirstToken();
             int lastToken = document.document().getSentence(sentence).getLastToken();
             int[] tokenToNodeIndex = new int[lastToken - firstToken];
@@ -430,15 +450,27 @@ public class QAModelTrainerProcessor extends Processor {
                         if (mentionHead == token) {
                             node = new Node();
                             node.type = NodeType.QTOPIC;
-                            node.value = document.document().getToken(token).getNer().equals("O")
-                                    ? document.document().getToken(token).getLemma()
-                                    : document.document().getToken(token).getNer();
+                            if (useFreebaseTypes) {
+                                for (Document.Span span : document.getTokenSpan(token)) {
+                                    if (span.hasEntityId()) {
+                                        for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
+                                            node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream().filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user.")).collect(Collectors.toList()));
+                                        }
+                                    } else if (span.getType().equals("MEASURE")) {
+                                        node.values.add(span.getNerType());
+                                    }
+                                }
+                            } else {
+                                node.values = document.document().getToken(token).getNer().equals("O")
+                                        ? Arrays.asList(document.document().getToken(token).getLemma())
+                                        : Arrays.asList(document.document().getToken(token).getNer());
+                            }
                         }
                     } else {
                         if (!document.document().getToken(token).getPos().startsWith("D")
                                 && !document.document().getToken(token).getPos().startsWith("PD")) {
                             node = new Node();
-                            node.value = document.document().getToken(token).getLemma();
+                            node.values = Arrays.asList(document.document().getToken(token).getLemma());
                             if (document.document().getToken(token).getPos().startsWith("W")) {
                                 node.type = NodeType.QWORD;
                             } else if (document.document().getToken(token).getPos().startsWith("V") || document.document().getToken(token).getPos().startsWith("MD")) {
@@ -480,14 +512,18 @@ public class QAModelTrainerProcessor extends Processor {
             List<String> res = new ArrayList<>();
             for (Node node : nodes_) {
                 if (node != null) {
-                    String nodeStr = node.toString();
                     if (node.type != NodeType.PREPOSITION) {
-                        res.add(nodeStr);
+                        for (String feat : node.getValues()) {
+                            res.add(feat);
+                        }
                     }
                     for (Pair<Integer, String> parent : node.parent) {
-                        String parentNode = nodes_.get(parent.first).toString();
-                        res.add(nodeStr + "->" + parentNode);
-                        res.add(nodeStr + "-" + parent.second + "->" + parentNode);
+                        for (String nodeStr : node.getValues()) {
+                            for (String parentNodeStr : nodes_.get(parent.first).getValues()) {
+                                res.add(nodeStr + "->" + parentNodeStr);
+                                res.add(nodeStr + "-" + parent.second + "->" + parentNodeStr);
+                            }
+                        }
                     }
                 }
             }
@@ -501,7 +537,7 @@ public class QAModelTrainerProcessor extends Processor {
                 if (node != null) {
                     res.append(node.type);
                     res.append("\t");
-                    res.append(node.value);
+                    res.append(node.values.toString());
                     res.append("\n");
                 }
             }

@@ -212,6 +212,14 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_SUBSAMPLE_PARAMETER)
                 .withDescription("QA subsampling rate").create(
                         QAModelTrainerProcessor.QA_SUBSAMPLE_PARAMETER));
+        opt.addOption(OptionBuilder
+                .withArgName(QAModelTrainerProcessor.QA_DEBUG_PARAMETER)
+                .withDescription("Output debug info").create(
+                        QAModelTrainerProcessor.QA_DEBUG_PARAMETER));
+        opt.addOption(OptionBuilder
+                .withArgName(QAModelTrainerProcessor.QA_USE_FREEBASE_TYPESFEATURES)
+                .withDescription("Use Freebase types as features").create(
+                        QAModelTrainerProcessor.QA_USE_FREEBASE_TYPESFEATURES));
 
         return opt;
     }
