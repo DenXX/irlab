@@ -285,12 +285,15 @@ public class QAModelTrainerProcessor extends Processor {
 
     private List<String> generateAnswerFeatures(Document.QaRelationInstance instance) {
         List<String> res = new ArrayList<>();
-        res.add(instance.getPredicate());
+        res.add("PREDICATE=" + instance.getPredicate());
         if (useFineTypes_) {
             res.addAll(kb_.getEntityTypes(instance.getObject(), false).stream()
+                    .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
                     .filter(x -> !x.startsWith("common.")
                             && !x.startsWith("base.")
-                            && !x.startsWith("user.")).collect(Collectors.toList()));
+                            && !x.startsWith("user."))
+                    .map(x -> "TYPE=" + x)
+                    .collect(Collectors.toSet()));
         }
         return res;
     }
@@ -388,7 +391,10 @@ public class QAModelTrainerProcessor extends Processor {
                             if (false && !measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
                                     for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
-                                        node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream().filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user.")).collect(Collectors.toList()));
+                                        node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream()
+                                                .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)
+                                                .filter(x -> !x.startsWith("common.") && !x.startsWith("base.") && !x.startsWith("user."))
+                                                .collect(Collectors.toSet()));
                                     }
                                 }
                             } else {
