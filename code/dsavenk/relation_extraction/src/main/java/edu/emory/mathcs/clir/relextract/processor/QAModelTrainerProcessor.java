@@ -242,7 +242,9 @@ public class QAModelTrainerProcessor extends Processor {
                                 String[] parts = value.split("\\-");
                                 String year = parts[0];
                                 String month = parts[1].startsWith("0") ? parts[1].substring(1) : parts[1];
-                                String day = parts[2].startsWith("0") ? parts[2].substring(1) : parts[2];
+                                String day = parts.length == 3
+                                        ? parts[2].startsWith("0") ? parts[2].substring(1) : parts[2]
+                                        : "";
                                 if (parts.length == 3)
                                     value = String.format("%s/%s/%s", month, day, year);
                                 else if (parts.length == 2)
