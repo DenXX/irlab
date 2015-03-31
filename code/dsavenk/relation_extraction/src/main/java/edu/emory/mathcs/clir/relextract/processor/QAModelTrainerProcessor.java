@@ -413,7 +413,7 @@ public class QAModelTrainerProcessor extends Processor {
                     int parent = document.document().getToken(token).getDependencyGovernor();
                     if (parent != 0) {
                         --parent;
-                        if (document.document().getToken(firstToken + parent).getPos().startsWith("W")) {
+                        if (document.document().getToken(firstToken + parent).getPos().startsWith("W") && node.type == NodeType.REGULAR) {
                             node.type = NodeType.QFOCUS;
                         }
                         if (tokenToNodeIndex[parent] != -1) {
