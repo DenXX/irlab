@@ -129,7 +129,7 @@ public class QAModelTrainerProcessor extends Processor {
                                 DependencyTreeUtils.getMentionHeadToken(document, mention));
                         if (path != null)
                             questionFeatures.add(path);
-                        questionFeatures.add(NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex));
+                        questionFeatures.add(NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex).trim());
                         ++mentionIndex;
                     }
                 }
@@ -448,11 +448,12 @@ public class QAModelTrainerProcessor extends Processor {
                             break;
                     }
 
-//                    if (node.type != NodeType.PREPOSITION) {
-//                        for (String feat : node.getValues()) {
-//                            res.add(feat);
-//                        }
-//                    }
+                    if (node.type != NodeType.PREPOSITION) {
+                        for (String feat : node.getValues()) {
+                            res.add(feat);
+                        }
+                    }
+
                     for (Pair<Integer, String> parent : node.parent) {
                         for (String nodeStr : node.getValues()) {
                             for (String parentNodeStr : nodes_.get(parent.first).getValues()) {
