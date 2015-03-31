@@ -11,6 +11,7 @@ import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.util.Pair;
+import edu.stanford.nlp.util.Triple;
 
 import java.io.*;
 import java.util.*;
@@ -154,7 +155,11 @@ public class QAModelTrainerProcessor extends Processor {
             questionFeatures.addAll(new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_).getEdgeFeatures());
         }
 
-        PriorityQueue<Pair<Double, Document.QaRelationInstance>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
+        questionFeatures.addAll(qDepPaths);
+
+        PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
+        StringWriter strWriter = debug_ ? new StringWriter() : null;
+        PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
                 continue;
@@ -184,16 +189,14 @@ public class QAModelTrainerProcessor extends Processor {
 //            }
 
             Set<Integer> feats = new HashSet<>();
-            for (String qFeature : questionFeatures) {
-                for (String aFeature : answerFeatures) {
-                    feats.add(((qFeature + "||" + aFeature).hashCode() & 0x7FFFFFFF) % alphabetSize_);
-                }
-            }
-
-            // TODO(dsavenk): Move this to question features
-            for (String qFeature : qDepPaths) {
-                for (String aFeature : answerFeatures) {
-                    feats.add(((qFeature + "||" + aFeature).hashCode() & 0x7FFFFFFF) % alphabetSize_);
+            for (String aFeature : answerFeatures) {
+                for (String qFeature : questionFeatures) {
+                    String feature = qFeature + "||" + aFeature;
+                    int id = (feature.hashCode() & 0x7FFFFFFF) % alphabetSize_;
+                    if (debug_) {
+                        debugWriter.println(id + "\t" + feature);
+                    }
+                    feats.add(id);
                 }
             }
 
@@ -204,7 +207,15 @@ public class QAModelTrainerProcessor extends Processor {
                     //dataset_.add(features, instance.getIsPositive());
                 }
             } else {
-                scores.add(new Pair<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance));
+                Triple<Double, Document.QaRelationInstance, String> tr =
+                        new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
+                if (debug_) {
+                    model_.justificationOf(new BasicDatum<>(feats), debugWriter);
+                    debugWriter.flush();
+                    tr.third = strWriter.toString();
+                    strWriter.getBuffer().setLength(0);
+                }
+                scores.add(tr);
             }
         }
 
@@ -222,11 +233,14 @@ public class QAModelTrainerProcessor extends Processor {
             StringBuilder prediction = new StringBuilder();
             prediction.append("[");
             Set<String> predictionsSet = new HashSet<>();
+
+            StringBuilder debugInfo = debug_ ? new StringBuilder() : null;
             if (!scores.isEmpty()) {
                 double bestScore = scores.peek().first;
                 boolean first = true;
-                while (!scores.isEmpty() && scores.peek().first == bestScore) {
-                    Document.QaRelationInstance e = scores.poll().second;
+                while (!scores.isEmpty() && scores.peek().first == bestScore && bestScore > 0.5) {
+                    Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
+                    Document.QaRelationInstance e = tr.second;
                     if (!first) prediction.append(",");
                     prediction.append("\"");
                     String value;
@@ -250,16 +264,26 @@ public class QAModelTrainerProcessor extends Processor {
                         value = value.replace("\"", "\\\"");
                     }
                     if (!predictionsSet.contains(value)) {
-                        prediction.append(!debug_ ? value : e.getPredicate() + " = " + value);
+                        prediction.append(value);
                         predictionsSet.add(value);
                     }
                     prediction.append("\"");
                     first = false;
+
+                    if (debug_) {
+                        debugInfo.append("-------\n");
+                        debugInfo.append(e.getSubject() + "\t" + e.getPredicate() + "\t" + e.getObject() + "\n");
+                        debugInfo.append(tr.third);
+                        debugInfo.append("\n\n");
+                    }
                 }
             }
             prediction.append("]");
             synchronized (this) {
                 System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
+                if (debug_) {
+                    System.out.println(debugInfo);
+                }
             }
         }
 
@@ -287,7 +311,7 @@ public class QAModelTrainerProcessor extends Processor {
 //            }
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
-                    new LinearClassifierFactory<>(1e-4, false, 0.0);
+                    new LinearClassifierFactory<>(1e-4, false, 1.0);
             //classifierFactory_.setTuneSigmaHeldOut();
             classifierFactory_.useInPlaceStochasticGradientDescent();
 
