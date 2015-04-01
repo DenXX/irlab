@@ -224,13 +224,13 @@ public class QAModelTrainerProcessor extends Processor {
                 String bestSubject = scores.peek().second.getSubject();
                 String bestPredicate = scores.peek().second.getPredicate();
                 boolean first = true;
-                while (bestScore > 0.5 && !scores.isEmpty()
-                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
-                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
+                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
+//                while (bestScore > 0.5 && !scores.isEmpty()
+//                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+//                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
+
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
-                    if (!first) prediction.append(",");
-                    prediction.append("\"");
                     String value;
                     if (e.getObject().startsWith("http://")) {
                         value = kb_.getEntityName(e.getObject());
@@ -253,15 +253,16 @@ public class QAModelTrainerProcessor extends Processor {
                             }
                         }
                     }
-                    if (value.contains("\"")) {
-                        value = value.replace("\"", "\\\"");
-                    }
+                    value = value.replace("\"", "\\\"").replace("\t", " ").replace("\n", " ");
+
                     if (!predictionsSet.contains(value)) {
+                        if (!first) prediction.append(",");
+                        prediction.append("\"");
                         prediction.append(value);
+                        prediction.append("\"");
+                        first = false;
                         predictionsSet.add(value);
                     }
-                    prediction.append("\"");
-                    first = false;
 
                     if (debug_) {
                         debugInfo.append("-------\n");
