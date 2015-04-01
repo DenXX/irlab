@@ -43,8 +43,8 @@ public class StanfordCoreNlpProcessor extends Processor {
     public StanfordCoreNlpProcessor(Properties properties) {
         super(properties);
         // Adds custom CoreNLP annotators.
-        properties.setProperty("customAnnotatorClass.span",
-                "edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator");
+        properties.setProperty("customAnnotatorClass.answer_mentions",
+                "edu.emory.mathcs.clir.relextract.annotators.AddAnswerMentionsAnnotator");
         properties.setProperty("customAnnotatorClass.moddcoref",
                 "edu.emory.mathcs.clir.relextract.annotators.ModifiedDeterministicCorefAnnotator");
 
@@ -90,7 +90,7 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
+        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, answer_mentions, moddcoref";
         //return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
         //return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, moddcoref";
     }

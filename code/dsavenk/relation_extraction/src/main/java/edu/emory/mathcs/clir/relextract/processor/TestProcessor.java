@@ -46,32 +46,14 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
-        boolean first = true;
+        ++total;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if (!triple.getObject().startsWith("http://")) {
-                String value = triple.getObject();
-                if (triple.getObject().contains("^^")) {
-                    value = triple.getObject().split("\\^\\^")[0].replace("\"", "");
-                    if (value.contains("-")) {
-                        String[] parts = value.split("\\-");
-                        value = String.format("%s/%s/%s", parts[1], parts[2], parts[0]);
-                    }
-                }
-                System.out.println(value);
-            }
             if (triple.getIsPositive()) {
-                if (first) {
-                    System.out.println(new DocumentWrapper(document).toString());
-                    first = false;
-                }
-                System.out.println(triple.getSubject() + "\t" + triple.getPredicate() + "\t" + triple.getObject());
+                ++count;
+                return null;
             }
         }
-        if (!first) {
-            System.out.println("------------------------------------------------");
-            return document;
-        }
-        return null;
+        return document;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {

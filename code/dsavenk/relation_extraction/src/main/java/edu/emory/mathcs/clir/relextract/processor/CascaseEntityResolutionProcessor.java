@@ -11,6 +11,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.spell.SpellChecker;
+import org.apache.lucene.search.spell.SuggestMode;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.QueryBuilder;
@@ -107,7 +108,9 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 Map<String, Float> entityIdScores = new HashMap<>();
 
                 // Iterate over all mentions.
-                for (Document.Mention.Builder mention : span.getMentionBuilderList()) {
+                for (Document.Mention.Builder mention : span.hasRepresentativeMention()
+                        ? Arrays.asList(span.getMentionBuilder(span.getRepresentativeMention()))
+                        : span.getMentionBuilderList()) {
                     mention.clearEntityId();
                     mention.clearCandidateEntityId();
                     mention.clearCandidateEntityScore();
@@ -170,15 +173,14 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private List<Pair<String, Float>> resolveEntity(String name, boolean isOtherMention) {
         Map<String, Float> matches = new HashMap<>();
 
-        if (!isOtherMention || alwaysLookupName) {
-            addMatches(matches, resolveByEntityNameCached(name));
-        }
-
         addMatches(matches, resolveByLinkPhrasesMatch(name));
-        if (matches.isEmpty()) {
+        if (matches.isEmpty() || alwaysLookupName) {
             addMatches(matches, resolveByNormalizedPhrasesMatch(name));
-            if (!isOtherMention && matches.isEmpty()) {
-                addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
+            if (matches.isEmpty() || alwaysLookupName) {
+                addMatches(matches, resolveByEntityNameCached(name));
+                if ((!isOtherMention || alwaysLookupName) && matches.isEmpty()) {
+                    addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
+                }
             }
         }
 
@@ -226,13 +228,14 @@ public class CascaseEntityResolutionProcessor extends Processor {
             return searchCache_.get(name);
         }
 
-        List<Pair<String, Float>> res = resolveByEntityName(name, 0.8f, true);
+        List<Pair<String, Float>> res = resolveByEntityName(name, 0.8f, true, true);
         searchCache_.put(name, res);
         return res;
     }
 
     private List<Pair<String, Float>> resolveByEntityName(
-            String name, float stopDocScoreDiff, boolean checkWordsCount) {
+            String name, float stopDocScoreDiff, boolean checkWordsCount,
+            boolean normalizeScores) {
         ScoreDoc[] docs = new ScoreDoc[0];
         Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
         // This can happen if query doesn't really contain any terms.
@@ -269,8 +272,10 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 e.printStackTrace();
             }
         }
-        for (Pair<String, Float> p : counts) {
-            p.second = 1.0f * p.second / maxCount;
+        if (normalizeScores) {
+            for (Pair<String, Float> p : counts) {
+                p.second = 1.0f * p.second / maxCount;
+            }
         }
         return counts;
     }
@@ -287,15 +292,17 @@ public class CascaseEntityResolutionProcessor extends Processor {
     private List<Pair<String, Float>> resolveBySpellcorrectedEntityName(String name) {
         List<Pair<String, Float>> results = new ArrayList<>();
         try {
-            for (String suggest : spellChecker_.suggestSimilar(name, 10, 0.8f)) {
-                List<Pair<String, Float>> res = resolveByEntityName(suggest, 1, false);
+            // TODO(dsavenk): These scores should probably be adjusted.
+            for (String suggest : spellChecker_.suggestSimilar(name, 50, 0.5f)) {
+                List<Pair<String, Float>> res = resolveByEntityName(suggest, 1, false, false);
                 results.addAll(res.stream().collect(Collectors.toList()));
             }
-            results.sort((o1, o2) -> o2.second.compareTo(o1.second));
-            return results;
-        } catch (IOException e) {
-            return emptyList_;
-        }
+            if (results.size() > 0) {
+                results.sort((o1, o2) -> o2.second.compareTo(o1.second));
+                return results.stream().map(x -> new Pair<>(x.first, x.second / results.get(0).second)).collect(Collectors.toList());
+            }
+        } catch (IOException e) {}
+        return Collections.emptyList();
     }
 
     private void readDictionary(
