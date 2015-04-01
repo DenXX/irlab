@@ -33,7 +33,9 @@ public class AddAnswerMentionsAnnotator implements Annotator {
             String text = token.get(CoreAnnotations.TextAnnotation.class);
             if (text.charAt(0) == '<' && text.charAt(text.length() - 1) == '>') {
                 token.set(CoreAnnotations.TextAnnotation.class, text.substring(1, text.length() - 1));
-                token.set(CoreAnnotations.MentionTokenAnnotation.class, new MultiTokenTag(new MultiTokenTag.Tag("answer", "ANS", text.length()), tokenIndex));
+                MultiTokenTag tag = new MultiTokenTag(new MultiTokenTag.Tag("answer", "ANS", 1), 0);
+                tag.isStart();
+                token.set(CoreAnnotations.MentionTokenAnnotation.class, tag);
             }
 //                mentionStarted = tokenIndex;
 //            } else if (token.get(CoreAnnotations.TextAnnotation.class).equals(">")) {
