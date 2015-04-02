@@ -28,6 +28,8 @@ public class TestProcessor extends Processor {
     private int count2 = 0;
     private int total = 0;
 
+    private boolean flag = false;
+
     private final Random rnd;
 
     private final KnowledgeBase kb_;
@@ -45,6 +47,7 @@ public class TestProcessor extends Processor {
         super(properties);
         rnd = new Random(42);
         kb_ = KnowledgeBase.getInstance(properties);
+        flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 
     @Override
@@ -52,17 +55,29 @@ public class TestProcessor extends Processor {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
         ++total;
         boolean first = true;
+        StringBuilder res = new StringBuilder();
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
+            if ((flag || triple.getIsPositive()) && first) {
+                res.append("----------------------------------\n").append(document.getText()).append("\n");
+                first = false;
+                ++count;
+            }
             if (triple.getIsPositive()) {
-                if (first) {
-                    System.out.println("----------------------------------\n" + document.getText());
-                    first = false;
-                    ++count;
-                }
-                System.out.println(kb_.getEntityName(triple.getSubject()) + "[" + triple.getSubject() + "]\t" + triple.getPredicate() + "\t" +
-                        (triple.getObject().startsWith("http:")
-                        ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
-                        : triple.getObject()));
+                res.append(kb_.getEntityName(triple.getSubject()))
+                        .append("[")
+                        .append(triple.getSubject())
+                        .append("]\t")
+                        .append(triple.getPredicate())
+                        .append("\t")
+                        .append(triple.getObject().startsWith("http:")
+                            ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
+                            : triple.getObject())
+                        .append("\n");
+            }
+        }
+        if (res.length() > 0) {
+            synchronized (this) {
+                System.out.println(res.toString());
             }
         }
         return null;
