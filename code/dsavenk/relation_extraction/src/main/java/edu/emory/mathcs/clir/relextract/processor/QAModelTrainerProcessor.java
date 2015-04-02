@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
@@ -227,9 +228,9 @@ public class QAModelTrainerProcessor extends Processor {
                 String bestPredicate = scores.peek().second.getPredicate();
                 boolean first = true;
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
-                while (bestScore > 0.5 && !scores.isEmpty()
+                while (!scores.isEmpty() && (debug_ || (bestScore > 0.5
                         && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
-                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
+                        && scores.peek().second.getPredicate().equals(bestPredicate)))) {
 
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
@@ -268,7 +269,7 @@ public class QAModelTrainerProcessor extends Processor {
 
                     if (debug_) {
                         debugInfo.append("-------\n");
-                        debugInfo.append(e.getSubject() + "\t" + e.getPredicate() + "\t" + e.getObject() + "\n");
+                        debugInfo.append(e.getIsPositive() + "\t" + e.getSubject() + "\t" + e.getPredicate() + "\t" + e.getObject() + "\n");
                         debugInfo.append(tr.third);
                         debugInfo.append("\n\n");
                     }
@@ -297,6 +298,10 @@ public class QAModelTrainerProcessor extends Processor {
                             && !x.startsWith("user."))
                     .map(x -> "TYPE=" + x)
                     .collect(Collectors.toSet()));
+            StmtIterator iter = kb_.getSubjectPredicateTriples(instance.getObject(), "people.person.gender");
+            while (iter.hasNext()) {
+                res.add("GENDER=" + kb_.getEntityName(iter.nextStatement().getObject().asResource().getLocalName()));
+            }
         }
         return res;
     }
