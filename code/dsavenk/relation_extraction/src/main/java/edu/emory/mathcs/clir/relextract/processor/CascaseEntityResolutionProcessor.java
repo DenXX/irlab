@@ -178,9 +178,9 @@ public class CascaseEntityResolutionProcessor extends Processor {
             addMatches(matches, resolveByNormalizedPhrasesMatch(name));
             if (matches.isEmpty() || alwaysLookupName) {
                 addMatches(matches, resolveByEntityNameCached(name));
-                if ((!isOtherMention || alwaysLookupName) && matches.isEmpty()) {
-                    addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
-                }
+//                if ((!isOtherMention || alwaysLookupName) && matches.isEmpty()) {
+//                    addMatches(matches, resolveBySpellcorrectedEntityNameCached(name));
+//                }
             }
         }
 
