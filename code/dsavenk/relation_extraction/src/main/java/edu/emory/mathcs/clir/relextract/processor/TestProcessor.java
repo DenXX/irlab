@@ -11,6 +11,7 @@ import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.BufferedWriter;
@@ -29,6 +30,8 @@ public class TestProcessor extends Processor {
 
     private final Random rnd;
 
+    private final KnowledgeBase kb_;
+
     BufferedWriter out_ = new BufferedWriter(new OutputStreamWriter(System.out));
 
     /**
@@ -41,19 +44,28 @@ public class TestProcessor extends Processor {
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
         rnd = new Random(42);
+        kb_ = KnowledgeBase.getInstance(properties);
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
         ++total;
+        boolean first = true;
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
             if (triple.getIsPositive()) {
-                ++count;
-                return null;
+                if (first) {
+                    System.out.println("----------------------------------\n" + document.getText());
+                    first = false;
+                    ++count;
+                }
+                System.out.println(kb_.getEntityName(triple.getSubject()) + "[" + triple.getSubject() + "]\t" + triple.getPredicate() + "\t" +
+                        (triple.getObject().startsWith("http:")
+                        ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
+                        : triple.getObject()));
             }
         }
-        return document;
+        return null;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {
