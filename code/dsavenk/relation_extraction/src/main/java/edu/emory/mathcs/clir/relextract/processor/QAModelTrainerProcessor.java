@@ -226,14 +226,22 @@ public class QAModelTrainerProcessor extends Processor {
                 double bestScore = scores.peek().first;
                 String bestSubject = scores.peek().second.getSubject();
                 String bestPredicate = scores.peek().second.getPredicate();
+                boolean shouldKeepAnswer;
                 boolean first = true;
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
-                while (!scores.isEmpty() && (debug_ || (bestScore > 0.5
-                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
-                        && scores.peek().second.getPredicate().equals(bestPredicate)))) {
+                while (!scores.isEmpty()
+                        && ((shouldKeepAnswer =
+                                (bestScore > 0.5
+                                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
+                            || debug_)) {
 
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
+
+                    // Skip not extracted negative instances.
+                    if (!shouldKeepAnswer && !e.getIsPositive()) continue;
+
                     String value;
                     if (e.getObject().startsWith("http://")) {
                         value = kb_.getEntityName(e.getObject());
@@ -258,7 +266,7 @@ public class QAModelTrainerProcessor extends Processor {
                     }
                     value = value.replace("\"", "\\\"").replace("\t", " ").replace("\n", " ");
 
-                    if (!predictionsSet.contains(value)) {
+                    if (shouldKeepAnswer && !predictionsSet.contains(value)) {
                         if (!first) prediction.append(",");
                         prediction.append("\"");
                         prediction.append(value);
@@ -269,7 +277,7 @@ public class QAModelTrainerProcessor extends Processor {
 
                     if (debug_) {
                         debugInfo.append("-------\n");
-                        debugInfo.append(e.getIsPositive() + "\t" + e.getSubject() + "\t" + e.getPredicate() + "\t" + e.getObject() + "\n");
+                        debugInfo.append("Correct: " + e.getIsPositive() + "\tExtracted: " + shouldKeepAnswer + "\t" + tr.first + "\t" + e.getSubject() + "\t" + e.getPredicate() + "\t" + e.getObject() + "\n");
                         debugInfo.append(tr.third);
                         debugInfo.append("\n\n");
                     }
@@ -279,7 +287,7 @@ public class QAModelTrainerProcessor extends Processor {
             synchronized (this) {
                 System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
                 if (debug_) {
-                    System.out.println(debugInfo);
+                    System.out.println(debugInfo + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
                 }
             }
         }
