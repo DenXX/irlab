@@ -209,7 +209,9 @@ public class QAModelTrainerProcessor extends Processor {
             StringBuilder answers = new StringBuilder();
             answers.append("[");
             for (int i = 1; i < fields.length; ++i) {
-                answers.append(fields[i].replace(",", ""));
+                answers.append("\"");
+                answers.append(fields[i].substring(1, fields[i].length() - 2));
+                answers.append("\"");
                 if (i < fields.length - 1) answers.append(",");
             }
             answers.append("]");
@@ -224,10 +226,10 @@ public class QAModelTrainerProcessor extends Processor {
                 String bestSubject = scores.peek().second.getSubject();
                 String bestPredicate = scores.peek().second.getPredicate();
                 boolean first = true;
-                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
-//                while (bestScore > 0.5 && !scores.isEmpty()
-//                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
-//                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
+//                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
+                while (bestScore > 0.5 && !scores.isEmpty()
+                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+                        && scores.peek().second.getPredicate().equals(bestPredicate)) {
 
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
