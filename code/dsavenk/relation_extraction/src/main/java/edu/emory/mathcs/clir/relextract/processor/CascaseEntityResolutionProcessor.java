@@ -252,7 +252,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
             String name, float stopDocScoreDiff, boolean checkWordsCount,
             boolean normalizeScores) {
         ScoreDoc[] docs = new ScoreDoc[0];
-        Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 1.0f);
+        Query q = queryBuilder_.createMinShouldMatchQuery("name", name, 0.8f); //1.0f);
         // This can happen if query doesn't really contain any terms.
         if (q == null) return emptyList_;
 

@@ -197,6 +197,9 @@ public class QAModelTrainerProcessor extends Processor {
             } else {
                 Triple<Double, Document.QaRelationInstance, String> tr =
                         new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
+
+                //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
+
                 if (debug_) {
                     model_.justificationOf(new BasicDatum<>(feats), debugWriter);
                     debugWriter.flush();
@@ -234,9 +237,10 @@ public class QAModelTrainerProcessor extends Processor {
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
                 while (!scores.isEmpty()
                         && ((shouldKeepAnswer =
-                                (bestScore > 0.5
-                                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
-                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
+                        scores.peek().first > 0.5)
+//                                (bestScore > 0.5
+//                                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+//                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
 
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();

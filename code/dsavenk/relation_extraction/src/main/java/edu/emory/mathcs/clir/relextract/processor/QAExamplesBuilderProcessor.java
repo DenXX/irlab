@@ -10,6 +10,7 @@ import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.util.Pair;
+import edu.stanford.nlp.util.Triple;
 
 import java.util.*;
 
@@ -49,7 +50,7 @@ public class QAExamplesBuilderProcessor extends Processor {
 
         Set<String> questionSpanIds = new HashSet<>();
         Set<String> answerSpanIds = new HashSet<>();
-        Set<String> answerDates = new HashSet<>();
+        Set<Triple<String, String, String>> answerDates = new HashSet<>();
         Map<String, List<Integer>> entityLocation = new HashMap<>();
         Set<String> added = new HashSet<>();
 
@@ -75,13 +76,13 @@ public class QAExamplesBuilderProcessor extends Processor {
                                 }
                             }
                             if (!skip) {
-                                answerDates.add(value);
+                                answerDates.add(extractDateParts(value));
                             }
                         } else {
-                            answerDates.add(span.getValue());
+                            answerDates.add(extractDateParts(span.getValue()));
                         }
                     } else {
-                        answerDates.add(span.getValue());
+                        answerDates.add(extractDateParts(span.getValue()));
                     }
                 } else {
                     entityIds.add(span.getValue());
@@ -130,22 +131,8 @@ public class QAExamplesBuilderProcessor extends Processor {
                                     .setObject(st.getObject().asNode().toString(null, true));
 
                             if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
-                                for (String date : answerDates) {
-                                    if (date.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
-                                        String year = date.substring(0, 4);
-                                        String month = date.length() > 4 ?
-                                                date.substring(5, 7)
-                                                : "XX";
-                                        String day = date.length() > 7
-                                                ? date.substring(8)
-                                                : "XX";
-                                        qaInstance.setIsPositive(kb_.matchDatesSoft(year, month, day, (XSDDateTime) st.getObject().asLiteral().getValue()));
-                                    } else {
-                                        qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
-                                        if (answerSpanIds.contains(relatedId)) {
-                                            qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
-                                        }
-                                    }
+                                for (Triple<String, String, String> date : answerDates) {
+                                    qaInstance.setIsPositive(kb_.matchDatesSoft(date.third, date.first, date.second, (XSDDateTime) st.getObject().asLiteral().getValue()));
                                 }
                             } else {
                                 qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
@@ -153,6 +140,7 @@ public class QAExamplesBuilderProcessor extends Processor {
                                     qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
                                 }
                             }
+
                             added.add(st.toString());
                         }
                     }
@@ -162,6 +150,34 @@ public class QAExamplesBuilderProcessor extends Processor {
         }
 
         return document;
+    }
+
+    private Triple<String, String, String> extractDateParts(String date) {
+        String year = "XXXX";
+        String month = "XX";
+        String day = "XX";
+        if (date.matches("[X0-9]{4}(-[X0-9]{2}){0,2}")) {
+            year = date.substring(0, 4);
+            month = date.length() > 4 ?
+                    date.substring(5, 7)
+                    : "XX";
+            day = date.length() > 7
+                    ? date.substring(8)
+                    : "XX";
+        } else if (date.matches("([0-9]{1,2}/){0,2}[0-9]{4}")) {
+            String[] parts = date.split("/");
+            year = parts[parts.length - 1];
+            if (parts.length > 1) {
+                month = parts[0].length() == 1 ? "0" + parts[0] : parts[0];
+                if (parts.length > 2) {
+                    day = parts[1].length() == 1 ? "0" + parts[1] : parts[1];
+                }
+            }
+        } else {
+            year = date;
+        }
+
+        return new Triple<>(month, day, year);
     }
 
     private void cacheTopicTriples(String id) {
