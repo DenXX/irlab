@@ -76,13 +76,22 @@ public class QAExamplesBuilderProcessor extends Processor {
                                 }
                             }
                             if (!skip) {
-                                answerDates.add(extractDateParts(value));
+                                Triple<String,String,String> dateTriple = extractDateParts(value);
+                                if (dateTriple != null) {
+                                    answerDates.add(dateTriple);
+                                }
                             }
                         } else {
-                            answerDates.add(extractDateParts(span.getValue()));
+                            Triple<String,String,String> dateTriple = extractDateParts(span.getValue());
+                            if (dateTriple != null) {
+                                answerDates.add(dateTriple);
+                            }
                         }
                     } else {
-                        answerDates.add(extractDateParts(span.getValue()));
+                        Triple<String,String,String> dateTriple = extractDateParts(span.getValue());
+                        if (dateTriple != null) {
+                            answerDates.add(dateTriple);
+                        }
                     }
                 } else {
                     entityIds.add(span.getValue());
@@ -174,7 +183,7 @@ public class QAExamplesBuilderProcessor extends Processor {
                 }
             }
         } else {
-            year = date;
+            return null;
         }
 
         return new Triple<>(month, day, year);
