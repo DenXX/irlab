@@ -161,7 +161,7 @@ public class QAExamplesBuilderProcessor extends Processor {
             return docBuilder.build();
         }
 
-        return null;
+        return document;
     }
 
     private void cacheTopicTriples(String id) {

@@ -108,9 +108,21 @@ public class CascaseEntityResolutionProcessor extends Processor {
                 Map<String, Float> entityIdScores = new HashMap<>();
 
                 // Iterate over all mentions.
-                for (Document.Mention.Builder mention : span.hasRepresentativeMention()
-                        ? Arrays.asList(span.getMentionBuilder(span.getRepresentativeMention()))
-                        : span.getMentionBuilderList()) {
+                List<Document.Mention.Builder> mentions = new ArrayList(span.getMentionBuilderList());
+                mentions.sort(new Comparator<Document.Mention.Builder>() {
+                    @Override
+                    public int compare(Document.Mention.Builder o1, Document.Mention.Builder o2) {
+                        if (span.hasRepresentativeMention()) {
+                            if (span.getMentionBuilder(span.getRepresentativeMention()) == o1)
+                                return -1;
+                            if (span.getMentionBuilder(span.getRepresentativeMention()) == o2)
+                                return 1;
+                        }
+                        return o1.getText().length() > o2.getText().length() ? -1 : 1;
+                    }
+                });
+
+                for (Document.Mention.Builder mention : mentions) {
                     mention.clearEntityId();
                     mention.clearCandidateEntityId();
                     mention.clearCandidateEntityScore();
@@ -137,6 +149,9 @@ public class CascaseEntityResolutionProcessor extends Processor {
                                             Math.max(entityIdScores.get(match.first), match.second));
                                 }
                             }
+
+                            // If we found a match, break!
+                            break;
                         }
                     }
                 }
@@ -338,7 +353,7 @@ public class CascaseEntityResolutionProcessor extends Processor {
         }
         // Put the last record to the dictionary.
         if (scores != null) {
-            if (scores != null && !scores.isEmpty()) {
+            if (!scores.isEmpty()) {
                 scores.sort((e1, e2) -> e2.second.compareTo(e1.second));
                 if (scores.size() > MAX_PHRASE_IDS) {
                     scores.subList(MAX_PHRASE_IDS, scores.size()).clear();
