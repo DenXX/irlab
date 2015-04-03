@@ -150,8 +150,11 @@ public class QAModelTrainerProcessor extends Processor {
                 continue;
             }
 
-            // Ignore self-triples
-            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject())))
+            // Ignore self-triples and triples with numeric object (those are noisy)
+            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject()))
+                    || (!instance.getSubject().startsWith("http")
+                        && instance.getSubject().contains("integer")  //|| instance.getSubject().contains("decimal"))
+                        ))
                 continue;
 
             if (isTraining) {
