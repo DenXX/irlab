@@ -198,7 +198,7 @@ public class QAModelTrainerProcessor extends Processor {
                 Triple<Double, Document.QaRelationInstance, String> tr =
                         new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
 
-                tr.first = instance.getIsPositive() ? 1.0 : 0.0;
+                // tr.first = instance.getIsPositive() ? 1.0 : 0.0;
 
                 if (debug_) {
                     model_.justificationOf(new BasicDatum<>(feats), debugWriter);
