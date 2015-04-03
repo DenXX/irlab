@@ -41,6 +41,7 @@ public class QAModelTrainerProcessor extends Processor {
     private double subsampleRate_ = 10;
     private boolean debug_ = false;
     private boolean useFineTypes_ = false;
+    private boolean partialPredicateNames_ = false;
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
@@ -49,6 +50,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_SUBSAMPLE_PARAMETER = "qa_subsample";
     public static final String SPLIT_DATASET_PARAMETER = "qa_split_data";
     public static final String QA_USE_FREEBASE_TYPESFEATURES = "qa_finetypes_features";
+    public static final String QA_PARTIAL_PREDICATE_FEATURES_PARAMETER = "qa_partialpredicate_features";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
 
     BufferedWriter out;
@@ -73,12 +75,10 @@ public class QAModelTrainerProcessor extends Processor {
         if (properties.containsKey(QA_SUBSAMPLE_PARAMETER)) {
             subsampleRate_ = Double.parseDouble(properties.getProperty(QA_SUBSAMPLE_PARAMETER));
         }
-        if (properties.containsKey(QA_DEBUG_PARAMETER)) {
-            debug_ = true;
-        }
-        if (properties.containsKey(QA_USE_FREEBASE_TYPESFEATURES)) {
-            useFineTypes_ = true;
-        }
+        debug_ = properties.containsKey(QA_DEBUG_PARAMETER);
+        useFineTypes_ = properties.containsKey(QA_USE_FREEBASE_TYPESFEATURES);
+        partialPredicateNames_ = properties.containsKey(QA_PARTIAL_PREDICATE_FEATURES_PARAMETER);
+
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
         if (properties.containsKey(QA_PREDICATES_PARAMETER)) {
             try {
@@ -301,6 +301,14 @@ public class QAModelTrainerProcessor extends Processor {
     private List<String> generateAnswerFeatures(Document.QaRelationInstance instance) {
         List<String> res = new ArrayList<>();
         res.add("PREDICATE=" + instance.getPredicate());
+
+        if (partialPredicateNames_) {
+            int pos = -1;
+            while ((pos = instance.getPredicate().indexOf(".", pos + 1)) != -1) {
+                res.add("PREDICATE_PART=" + instance.getPredicate().substring(0, pos));
+            }
+        }
+
         if (useFineTypes_) {
             res.addAll(kb_.getEntityTypes(instance.getObject(), false).stream()
                     .map(x -> x.contains("/") ? x.substring(x.lastIndexOf("/") + 1) : x)

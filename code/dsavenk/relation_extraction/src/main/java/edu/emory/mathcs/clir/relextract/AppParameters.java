@@ -220,6 +220,11 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_USE_FREEBASE_TYPESFEATURES)
                 .withDescription("Use Freebase types as features").create(
                         QAModelTrainerProcessor.QA_USE_FREEBASE_TYPESFEATURES));
+        opt.addOption(OptionBuilder
+                .withArgName(QAModelTrainerProcessor.QA_PARTIAL_PREDICATE_FEATURES_PARAMETER)
+                .withDescription("Use partial predicate names as features").create(
+                        QAModelTrainerProcessor.QA_PARTIAL_PREDICATE_FEATURES_PARAMETER));
+
 
         return opt;
     }
