@@ -18,7 +18,7 @@ Average question length (in chars) & 56.67 & 47.03 \\
 Average answer length (in chars) & 335.82 & 24.24 \\
 % Number of resolved entities per QnA pair & 3.57 & 3.23 \\
 Percent of QnA pairs with answers that do not have any verbs & 8.8\% & 18.9\% \\
-Percent of QnA pairs annotated with at least one relation between entities & 11.7\% & 27.5\% \\
+Percent of QnA pairs with at least one pair of entities related in Freebase & 11.7\% & 27.5\% \\
 Percent of relations between entity pairs in question sentences only & 1.6 \% & 3.1\% \\
 Percent of relations between entity pairs in question and answer sentences only & 28.1\% & 46.4\% \\
 Percent of relations between entity pairs in answer sentences only & 38.6\%& 12.0\%\\
@@ -29,7 +29,7 @@ Percent of relations between entity pairs in answer sentences only & 38.6\%& 12.
 \subsection{Preprocessing}
 
 For each concatenated QnA pair we applied tokenization, sentence detection, named entity tagger, parsing and coreference resolution from Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}.
-We used entity linking approach similar to \cite{chang2011stanford} and considered all noun phrase and named entity mentions as candidates.
+We used an entity linking approach similar to \newcite{chang2011stanford} and considered all noun phrase and named entity mentions as candidates.
 Our entity linking cascade has 4 stages, 2 of which applies to named entity mentions only.
 At the first stage all named entity mentions are looked up in Freebase names and aliases dictionary.
 The next two stages attempt to match mention text with dictionary of English Wikipedia concepts \cite{spitkovsky2012cross} and its normalized version.
@@ -37,10 +37,6 @@ Finally for named entity mentions we try spelling correction using Freebase enti
 We didn't disambiguate entities and instead took top-5 ids for each coreference cluster (using the $p(entity|phrase)$ score from the dictionary or number of existing Freebase triples).
 
 All pairs of entities (or entity and date) in a QnA pair that are directly related\footnote{We also consider some paths that come through a mediator node, \eg  /people/person/spouse\_s./people/marriage/spouse} in Freebase were annotated with the corresponding relations.
-
-% We perform an approximate date matching, \ie if either date in Freebase or date in a document misses some of the parts (day, month or year) but the other parts are the same, we still consider this as a match.
-
-% We should note, that unlike other datasets typically used for relation extraction (\eg NYT, Wikipedia) CQA data are much more noisy and have additional challenges, such as misspellings, mixed capitalization, informal speech, \etc
 
 Table \ref{table:cqastats} gives some statistics on the datasets used in this work.
 The analysis of answers that do not have any verbs show that $\sim$8.8\% of all QnA pairs do not state the predicate in the answer text.
@@ -55,12 +51,11 @@ Such relations are not considered by existing techniques and our goal is to extr
 
 For our experiments we use a subset of 29 Freebase predicates that have enough unique instances annotated in our corpus, \eg
 date\_of\_birth, profession, nationality, education institution, date\_of\_death, disease treatments, disease symptoms, book author, music artist album, \etc
-
 We train and test the models on each dataset separately.
 Each corpus is randomly split for training (75\%) and testing (25\%).
 Knowledge base facts are also split into training and testing sets (50\% each).
 QnA and sentence-based models predict labels for each entity pair mention, and we aggregate mention predictions by taking the maximum score for each predicate.
-We do the same aggregation to produce a combination of QnA- and sentence-based models, \ie all extractions produced by the models are combined and if there are multiple extractions of the same fact we take the maximum score as the final confidence.
+We do the same aggregation to produce a combination of QnA- and sentence-based models, \ie, all extractions produced by the models are combined and if there are multiple extractions of the same fact we take the maximum score as the final confidence.
 The precision and recall of extractions are evaluated on a test set of Freebase triples, \ie an extracted triple is considered correct if it belongs to the test set of Freebase triples, which are not used for training (triples used for training are simply ignored).
 Note, that this only provides a lower bound on the model performance as some of the predicted facts can be correct and simply missing in Freebase.
 
@@ -98,7 +93,7 @@ It is important to note, that since some entity pairs occur exclusively inside t
 \caption{Extraction results for QnA- and sentence-based models on both datasets}
 \vspace{-2mm}
 \label{table:results}
-\begin{tabular}{|p{5.5cm}||p{1.2cm}|p{1.3cm}|p{1.4cm}||p{1.2cm}|p{1.3cm}|p{1.4cm}|}
+\begin{tabular}{|p{6.6cm}||p{0.8cm}|p{1.2cm}|p{1.4cm}||p{0.8cm}|p{1.2cm}|p{1.4cm}|}
 \hline
 & \multicolumn{3}{|c||}{Yahoo! Answers} & \multicolumn{3}{|c|}{WikiAnswers}\\
 \cline{2-7}
@@ -106,7 +101,7 @@ It is important to note, that since some entity pairs occur exclusively inside t
 \hline
 F-1 score & 0.219 & 0.276 & 0.310 & 0.277 & 0.297 & 0.332\\
 Number of correct extractions & 3229 & 5900 & 7428 & 2804 & 2288 & 3779 \\
-Percent of correct triples not extracted by other model & 20.5 \% & 56.5\% & - & 39.4\% & 25.8\% & - \\
+Correct triples not extracted by other model & 20.5\% & 56.5\% & - & 39.4\% & 25.8\% & - \\
 \hline
 \end{tabular}
 \end{table*}

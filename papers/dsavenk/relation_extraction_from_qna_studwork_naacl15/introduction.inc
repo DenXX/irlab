@@ -1,12 +1,12 @@
-Recently all major search companies adopted knowledge bases, and as a result users now can get rich structured data as answers to some of their questions.
-However, even the largest existing knowledge bases (KB), such as Freebase \cite{bollacker_sigmod2008}, DPpedia \cite{auer2007dbpedia}, NELL \cite{Carlson10}, Google Knowledge Graph \etc, that store billions of facts about millions of entities, are far from being complete \cite{Dong:2014:KVW:2623330.2623623}.
+Recently all major search companies have adopted knowledge bases (KB), and as a result users now can get rich structured data as answers to some of their questions.
+However, even the largest existing knowledge bases, such as Freebase \cite{bollacker_sigmod2008}, DPpedia \cite{auer2007dbpedia}, NELL \cite{Carlson10}, Google Knowledge Graph \etc, which store billions of facts about millions of entities, are far from being complete \cite{Dong:2014:KVW:2623330.2623623}.
 A lot of information is hidden in unstructured data, such as natural language text, and extracting this information for knowledge base population (KBP) is an active area of research \cite{surdeanu2014overview}.
 
-One particularly interesting source of unstructured text data is CQA websites (\eg Yahoo! Answers\footnote{http://answers.yahoo.com/}, Answers.com\footnote{http://www.answers.com}, \etc), which became very popular resources for question answering.
+One particularly interesting source of unstructured text data is CQA websites (\eg Yahoo! Answers,\footnote{http://answers.yahoo.com/} Answers.com,\footnote{http://www.answers.com} \etc), which became very popular resources for question answering.
 The information expressed there can be very useful, for example, to answer future questions \cite{Shtok:2012:LPA:2187836.2187939}, which makes it potentially important for knowledge base population.
-There are certain limitations in applying existing relation extraction algorithms to CQA data, \ie they typically consider sentences independently and ignore the discourse of QnA pair text.
+There are certain limitations in applying existing relation extraction algorithms to CQA data, \ie, they typically consider sentences independently and ignore the discourse of QnA pair text.
 However, often it is impossible to understand the answer without knowing the question.
-For example, in many cases users simply give the answer to the question without stating it in a narrative sentence (\eg ``\emph{What does "xoxo" stand for? Hugs and kisses.}``), in some other cases the answer contains a statement, but some important information is omitted (\eg ``\emph{What's the capital city of Bolivia? Sucre is the legal capital, though the government sits in La Paz}``
+For example, in many cases users simply give the answer to the question without stating it in a narrative sentence (\eg ``\emph{What does "xoxo" stand for? Hugs and kisses.}``), in some other cases the answer contains a statement, but some important information is omitted (\eg ``\emph{What's the capital city of Bolivia? Sucre is the legal capital, though the government sits in La Paz}``).
 % or ``\emph{Who does the voice for Henry the Octopus on The Wiggles? Jeff Fatt aka Sleepy Jeff}''
 
 % or ``\emph{Which soccer team has won the most European club championships? Real Madrid has won 9 titles, followed by 6 for AC Milan and 5 for Liverpool}'').
