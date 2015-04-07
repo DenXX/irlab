@@ -2,7 +2,7 @@
 
 For experiments we used 2 publicly available CQA datasets: Yahoo! Answers Comprehensive Questions and Answers\footnote{http://webscope.sandbox.yahoo.com/catalog.php?datatype=l} and a crawl of WikiAnswers\footnote{http://wiki.answers.com} \cite{Fader:2014:OQA:2623330.2623677}.
 The Yahoo! Answers dataset contains 4,483,032 questions (3,894,644 in English) with the corresponding answers collected on 10/25/2007.
-The crawl of WikiAnswers has 30,370,994 question clusters, tagged by WikiAnswers users as paraphrases, and only 3,386,256 them have an answer.
+The crawl of WikiAnswers has 30,370,994 question clusters, tagged by WikiAnswers users as paraphrases, and only 3,386,256 them have answers.
 From these clusters we used all possible pairs of questions and answers (19,629,443 pairs in total).
 
 \begin{table*}[ht]
@@ -26,16 +26,12 @@ Percent of relations between entity pairs in answer sentences only & 38.6\%& 12.
 \end{tabular}
 \end{table*}
 
-\subsection{Preprocessing}
-
-For each concatenated QnA pair we applied tokenization, sentence detection, named entity tagger, parsing and coreference resolution from Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}.
-We used an entity linking approach similar to \newcite{chang2011stanford} and considered all noun phrase and named entity mentions as candidates.
-Our entity linking cascade has 4 stages, 2 of which applies to named entity mentions only.
-At the first stage all named entity mentions are looked up in Freebase names and aliases dictionary.
+For each QnA pair we applied tokenization, sentence detection, named entity tagger, parsing and coreference resolution from Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}.
+Our cascade entity linking approach is similar to \newcite{chang2011stanford} and considered all noun phrase and named entity mentions as candidates.
+First all named entity mentions are looked up in Freebase names and aliases dictionary.
 The next two stages attempt to match mention text with dictionary of English Wikipedia concepts \cite{spitkovsky2012cross} and its normalized version.
 Finally for named entity mentions we try spelling correction using Freebase entity names dictionary.
 We didn't disambiguate entities and instead took top-5 ids for each coreference cluster (using the $p(entity|phrase)$ score from the dictionary or number of existing Freebase triples).
-
 All pairs of entities (or entity and date) in a QnA pair that are directly related\footnote{We also consider some paths that come through a mediator node, \eg  /people/person/spouse\_s./people/marriage/spouse} in Freebase were annotated with the corresponding relations.
 
 Table \ref{table:cqastats} gives some statistics on the datasets used in this work.
@@ -43,14 +39,12 @@ The analysis of answers that do not have any verbs show that $\sim$8.8\% of all 
 The percentage is higher for WikiAnswers, which has shorter answers on average.
 Unfortunately, for many QnA pairs we were unable to find relations between the mentioned entities (for many of them no or few entities were resolved to Freebase).
 Among those QnA pairs, where some relation was annotated, we looked at the location of related entities.
-In Yahoo! Answers dataset answers are long and 38.6\% of relations occur in answer sentences, and 28.1\% between entities mentioned in question and answer sentences.
-For WikiAnswers we can see that more relations (46.4\%) occur between entities mentioned in different sentences.
-% Such relations are not considered by existing techniques and our goal is to extract some of them.
+In Yahoo! Answers dataset 38.6\% (12.0\% for WikiAnswers) of related entities are mentioned in answer sentences and can potentially be extracted by sentence-based model, and 28.1\% (46.4\% for WikiAnswers) between entities mentioned in question and answer sentences, which are not available to the baseline model and our goal is to extract some of them.
 
 \subsection{Experimental setup}
 
 For our experiments we use a subset of 29 Freebase predicates that have enough unique instances annotated in our corpus, \eg
-date\_of\_birth, profession, nationality, education institution, date\_of\_death, disease treatments, disease symptoms, book author, music artist album, \etc
+date of birth, profession, nationality, education institution, date of death, disease symptoms and treatments, book author, artist album, \etc
 We train and test the models on each dataset separately.
 Each corpus is randomly split for training (75\%) and testing (25\%).
 Knowledge base facts are also split into training and testing sets (50\% each).

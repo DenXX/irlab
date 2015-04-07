@@ -4,6 +4,7 @@ A lot of information is hidden in unstructured data, such as natural language te
 
 One particularly interesting source of unstructured text data is CQA websites (\eg Yahoo! Answers,\footnote{http://answers.yahoo.com/} Answers.com,\footnote{http://www.answers.com} \etc), which became very popular resources for question answering.
 The information expressed there can be very useful, for example, to answer future questions \cite{Shtok:2012:LPA:2187836.2187939}, which makes it attractive for knowledge base population.
+Although some of the facts mentioned in QnA pairs can also be found in some other text documents, another part might be unique (\eg in Clueweb\footnote{http://www.lemurproject.org/clueweb12/} about 10\% of entity pairs with existing Freebase relations mentioned in Yahoo!Answers documents cannot be found in other documents).
 There are certain limitations in applying existing relation extraction algorithms to CQA data, \ie, they typically consider sentences independently and ignore the discourse of QnA pair text.
 However, often it is impossible to understand the answer without knowing the question.
 For example, in many cases users simply give the answer to the question without stating it in a narrative sentence (\eg ``\emph{What does "xoxo" stand for? Hugs and kisses.}``), in some other cases the answer contains a statement, but some important information is omitted (\eg ``\emph{What's the capital city of Bolivia? Sucre is the legal capital, though the government sits in La Paz}``).
