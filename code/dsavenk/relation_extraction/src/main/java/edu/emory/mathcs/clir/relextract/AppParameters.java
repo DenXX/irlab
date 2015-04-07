@@ -225,6 +225,11 @@ public class AppParameters {
                 .withDescription("Use partial predicate names as features").create(
                         QAModelTrainerProcessor.QA_PARTIAL_PREDICATE_FEATURES_PARAMETER));
 
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(BuildSearchIndexProcessor.INDEX_LOCATION_PARAMETER)
+                .withDescription("Location of the index to store documents in").create(
+                        BuildSearchIndexProcessor.INDEX_LOCATION_PARAMETER));
 
         return opt;
     }

@@ -122,6 +122,9 @@ public class RelationExtractionApp {
                 case "qa":
                     workflow.addProcessor(new QAModelTrainerProcessor(props));
                     break;
+                case "index":
+                    workflow.addProcessor(new BuildSearchIndexProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");

@@ -198,7 +198,8 @@ public class QAModelTrainerProcessor extends Processor {
                 Triple<Double, Document.QaRelationInstance, String> tr =
                         new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
 
-                // tr.first = instance.getIsPositive() ? 1.0 : 0.0;
+                // GOLD PREDICTIONS
+                //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
 
                 if (debug_) {
                     model_.justificationOf(new BasicDatum<>(feats), debugWriter);
@@ -239,7 +240,7 @@ public class QAModelTrainerProcessor extends Processor {
                         && ((shouldKeepAnswer =
                                 (bestScore > 0.5
                                         && scores.peek().first > 0.5
-                                        && scores.peek().first > 0.9 * bestScore))
+                                        && scores.peek().first >= bestScore))
 //                                        && scores.peek().second.getSubject().equals(bestSubject)))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
@@ -333,6 +334,10 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     public void finishProcessing() {
         if (model_ == null) {
+
+            dataset_.summaryStatistics();
+            //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
+            dataset_.applyFeatureCountThreshold(2);
             dataset_.summaryStatistics();
 
             // TODO(dsavenk): Comment this out for now.
@@ -420,7 +425,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node = new Node();
                             boolean measure = document.isTokenMeasure(token);
                             node.type = measure ? NodeType.REGULAR : NodeType.QTOPIC;
-                            if (false && !measure && useFreebaseTypes) {
+                            if (!measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
                                     for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
                                         node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream()
