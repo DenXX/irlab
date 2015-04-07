@@ -1,11 +1,8 @@
-We follow the distant supervision approach for relation extraction \cite{mintz_acl2009}.
 Our models for relation extraction from QnA data incorporates the topic of the question and can be represented as a graphical model (Figure \ref{fig:graphmodel}).
 Each mention of a pair of entities is represented with a set of mention-based features $x$ and question-based features $x_t$.
-A multinomial latent variable $z$ represents a relation (or none) expressed in the mention and depends on the features and a set of weights $w_x$ for mention-based and $w_t$ for question-based features.
-In this work we represent each entity pair mention with a set of features $x_i$ and solve a multiclass classification problem
-$\hat{z_i} = \argmax{z_i \in P \cup \emptyset} p(z_i|x_i, e_1, e_2)$
-using L2-regularized multinomial logistic regression from Stanford CoreNLP library.
-Negative examples for training are sampled from entity pairs without existing Freebase relation (or with some relation other than relations of interest).
+A multinomial latent variable $z$ represents a relation (or none) expressed in the mention and depends on the features and a set of weights $w_x$ for mention-based and $w_t$ for question-based features:
+$\hat{z} = \argmax{z \in P \cup \emptyset} p(z|x, x_t, w_x, w_t)$.
+To estimate this variable we use L2-regularized multinomial logistic regression model, trained using the distant supervision approach for relation extraction \cite{mintz_acl2009}, in which mentions of entity pairs related in Freebase are treated as positive instances for the corresponding predicates, and negative examples are sampled from mentions of entity pairs which are not related by any of the predicates of interest.
 Finally, to predict a set of possible relations $\mathbf{y}$ between the pair of entities we take logical OR of individual mention variables $\mathbf{z}$, \ie $y_p = \lor_{i=1}^M [z_i = p, p \in P]$, where M is the number of mentions of this pair of entities.
 
 \begin{figure}[ht]
@@ -89,10 +86,7 @@ This information can help the model to account for the question topic and improv
 
 \subsection{QnA-based model}
 The QnA model for relation extraction is inspired by the observation, that often an answer sentence do not mention one of the entities at all, \eg, ``\emph{When was Isaac Newton born? December 25, 1642 Woolsthorpe, England}''.
-To tackle this situation we developed a discourse model for QnA pairs.
-The assumption made is that an entity mentioned in a question is related to entities in the corresponding answer and the context of both mentions can be used to infer the relation predicate.
-The model represents each entity pair with a set of question sentence and answer sentence features (Table \ref{table:features}) and predicts a possible relation between them.
-The features represent conjunctions of various dependency tree and surface patterns of question and answer sentences and aim to capture their topics and relation.
-
-
+To tackle this situation we make the following assumption about the discourse of a QnA pair: an entity mentioned in a question is related to entities in the corresponding answer and the context of both mentions can be used to infer the relation predicate.
+Our QnA-based relation extraction model takes an entity from a question sentence and entity from the answer as a candidate relation mention, represents it with a set features (Table \ref{table:features}) and predicts a possible relation between them similar to sentence-based models.
+The features are conjunctions of various dependency tree and surface patterns of question and answer sentences, designed to capture their topics and relation.
 

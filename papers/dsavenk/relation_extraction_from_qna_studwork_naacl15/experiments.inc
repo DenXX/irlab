@@ -45,7 +45,7 @@ Unfortunately, for many QnA pairs we were unable to find relations between the m
 Among those QnA pairs, where some relation was annotated, we looked at the location of related entities.
 In Yahoo! Answers dataset answers are long and 38.6\% of relations occur in answer sentences, and 28.1\% between entities mentioned in question and answer sentences.
 For WikiAnswers we can see that more relations (46.4\%) occur between entities mentioned in different sentences.
-Such relations are not considered by existing techniques and our goal is to extract some of them.
+% Such relations are not considered by existing techniques and our goal is to extract some of them.
 
 \subsection{Experimental setup}
 

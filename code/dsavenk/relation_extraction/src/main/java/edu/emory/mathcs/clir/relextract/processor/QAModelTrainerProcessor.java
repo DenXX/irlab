@@ -237,9 +237,10 @@ public class QAModelTrainerProcessor extends Processor {
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
                 while (!scores.isEmpty()
                         && ((shouldKeepAnswer =
-                        scores.peek().first > 0.5)
-//                                (bestScore > 0.5
-//                                        && scores.peek().first == bestScore && scores.peek().second.getSubject().equals(bestSubject)
+                                (bestScore > 0.5
+                                        && scores.peek().first > 0.5
+                                        && scores.peek().first > 0.9 * bestScore))
+//                                        && scores.peek().second.getSubject().equals(bestSubject)))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
 

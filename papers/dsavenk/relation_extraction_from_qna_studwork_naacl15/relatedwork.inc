@@ -2,10 +2,8 @@ Relation extraction from natural language text has been an active area of resear
 These techniques analyze individual sentences and can extract facts stated in them using syntactic patterns, sentence similarity, \etc.
 This work focus on one particular type of text data, \ie QnA pairs, and the proposed algorithm is designed to extract relations between entities mentioned in question and answer sentences.
 
-Community question-answering data has been a subject of active research during the last decade.
-The most closely related direction to our work is question answering, \eg \cite{Bian:2008:FRF:1367497.1367561} and \cite{Shtok:2012:LPA:2187836.2187939}.
-We should also mention question answering in general, which is an area with a long history of research.
-Numerous different approaches have been proposed over the decades and a good overview can be found in \newcite{Kolomiyets:2011:SQA:2046840.2047162}.
+Community question-answering data has been a subject of active research during the last decade, \eg, \newcite{Bian:2008:FRF:1367497.1367561} and \newcite{Shtok:2012:LPA:2187836.2187939} show how such data can be used for question answering.
+Question answering is an area with a long history of research, and numerous different approaches have been proposed over the decades \cite{Kolomiyets:2011:SQA:2046840.2047162}.
 One particular way to answer questions is to utilize structured KBs and perform semantic parsing of questions to transform natural language questions into KB queries.
 \newcite{berant2013semantic} proposed a semantic parsing model that can be trained from QnA pairs, which are much easier to obtain than correct KB queries used previously.
 However, unlike our approach, which takes noisy answer text provided by a CQA website user, the work of \newcite{berant2013semantic} uses manually created answers in a form of single or lists of KB entities.
