@@ -53,7 +53,6 @@ public class QAModelTrainerProcessor extends Processor {
     private final Map<String, Double> pRel_ = new HashMap<>();
     private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
     private final Map<String, Double> pWord_ = new HashMap<>();
-    private final PorterStemmer stemmer_ = new PorterStemmer();
 
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
@@ -211,13 +210,14 @@ public class QAModelTrainerProcessor extends Processor {
 
         Map<String, Integer> pQuesRelRank = null;
         if (!pRelWord_.isEmpty()) {
+            PorterStemmer stemmer = new PorterStemmer();
             List<String> questionLemmas = new ArrayList<>();
             for (int token = 0; token < document.getTokenCount()
                     && document.getToken(token).getBeginCharOffset() < document.getQuestionLength(); ++token) {
                 if (Character.isAlphabetic(document.getToken(token).getPos().charAt(0))) {
-                    stemmer_.setCurrent(document.getToken(token).getText().toLowerCase());
-                    stemmer_.stem();
-                    questionLemmas.add(stemmer_.getCurrent());
+                    stemmer.setCurrent(document.getToken(token).getText().toLowerCase());
+                    stemmer.stem();
+                    questionLemmas.add(stemmer.getCurrent());
                 }
             }
             pQuesRelRank = calculatePQuesRelRanks(questionLemmas, document.getQaInstanceList());
