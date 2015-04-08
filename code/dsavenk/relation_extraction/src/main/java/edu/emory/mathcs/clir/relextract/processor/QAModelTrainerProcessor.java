@@ -10,6 +10,7 @@ import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.classify.RVFDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.optimization.QNMinimizer;
@@ -209,18 +210,17 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         Map<String, Integer> pQuesRelRank = null;
+        Map<String, Double> pQuesRelScore = null;
         if (!pRelWord_.isEmpty()) {
-            PorterStemmer stemmer = new PorterStemmer();
-            List<String> questionLemmas = new ArrayList<>();
-            for (int token = 0; token < document.getTokenCount()
-                    && document.getToken(token).getBeginCharOffset() < document.getQuestionLength(); ++token) {
-                if (Character.isAlphabetic(document.getToken(token).getPos().charAt(0))) {
-                    stemmer.setCurrent(document.getToken(token).getText().toLowerCase());
-                    stemmer.stem();
-                    questionLemmas.add(stemmer.getCurrent());
-                }
+            List<String> questionLemmas = documentWrapper.getQuestionLemmas();
+            List<Pair<Double, String>> predicateScores = calculatePQuesRelScores(questionLemmas, document.getQaInstanceList());
+            pQuesRelRank = new HashMap<>();
+            pQuesRelScore = new HashMap<>();
+            for (int i = 0; i < predicateScores.size(); ++i) {
+                pQuesRelRank.put(predicateScores.get(i).second, predicateScores.size() - i);
+                pQuesRelScore.put(predicateScores.get(i).second, predicateScores.get(i).first);
             }
-            pQuesRelRank = calculatePQuesRelRanks(questionLemmas, document.getQaInstanceList());
+
         }
 
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
@@ -405,24 +405,22 @@ public class QAModelTrainerProcessor extends Processor {
         return document;
     }
 
-    private Map<String, Integer> calculatePQuesRelRanks(List<String> questionLemmas,
+    private List<Pair<Double, String>> calculatePQuesRelScores(List<String> questionLemmas,
                                                         List<Document.QaRelationInstance> relations) {
-        List<Pair<Double, String>> predicateScores =
-                relations.stream()
+        return relations.stream()
                 .map(Document.QaRelationInstance::getPredicate)
                 .distinct()
                 .map(x -> new Pair<>(calcPQuesRelScore(questionLemmas, x), x))
                 .sorted()
                 .collect(Collectors.toList());
-        Map<String, Integer> res = new HashMap<>();
-        for (int i = 0; i < predicateScores.size(); ++i) {
-            res.put(predicateScores.get(i).second, predicateScores.size() - i);
-        }
-        return res;
     }
 
     private double calcPQuesRelScore(List<String> questionLemmas, String predicate) {
         double res = 0.0;
+        int pos = -1;
+        if ((pos = predicate.indexOf(".cvt.")) != -1) {
+            predicate = predicate.substring(pos + 5);
+        }
         if (pRel_.containsKey(predicate)) {
             Map<String, Double> currentRelWordMap = pRelWord_.get(predicate);
             res = pRel_.get(predicate);
@@ -488,6 +486,7 @@ public class QAModelTrainerProcessor extends Processor {
         if (model_ == null) {
 
             dataset_.summaryStatistics();
+//            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
 //            dataset_.applyFeatureCountThreshold(2);
 //            dataset_.summaryStatistics();

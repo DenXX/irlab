@@ -16,6 +16,7 @@ import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
+import org.tartarus.snowball.ext.PorterStemmer;
 
 import java.util.*;
 import java.util.PriorityQueue;
@@ -118,6 +119,20 @@ public class DocumentWrapper {
             findQVerbs();
         }
         return qVerbs_.stream().map(i -> document().getToken(i).getLemma().toLowerCase()).collect(Collectors.toSet());
+    }
+
+    public List<String> getQuestionLemmas() {
+        PorterStemmer stemmer = new PorterStemmer();
+        List<String> questionLemmas = new ArrayList<>();
+        for (int token = 0; token < document_.getTokenCount()
+                && document_.getToken(token).getBeginCharOffset() < document_.getQuestionLength(); ++token) {
+            if (Character.isAlphabetic(document_.getToken(token).getPos().charAt(0))) {
+                stemmer.setCurrent(document_.getToken(token).getText().toLowerCase());
+                stemmer.stem();
+                questionLemmas.add(stemmer.getCurrent());
+            }
+        }
+        return questionLemmas;
     }
 
     public Set<String> getQuestionFocus() {

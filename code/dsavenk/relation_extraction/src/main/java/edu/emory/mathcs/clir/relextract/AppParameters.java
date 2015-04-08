@@ -229,6 +229,11 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_RELATION_WORD_DICT_PARAMETER)
                 .withDescription("Location of the relation-word probabilities dictionary files (3 paths, comma separated)").create(
                         QAModelTrainerProcessor.QA_RELATION_WORD_DICT_PARAMETER));
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(CollectPredicateDictProcessor.QA_RELATION_WORD_DICT_OUT_PARAMETER)
+                .withDescription("Output location of the relation-word probabilities dictionary files (3 paths, comma separated)").create(
+                        CollectPredicateDictProcessor.QA_RELATION_WORD_DICT_OUT_PARAMETER));
 
         opt.addOption(OptionBuilder
                 .hasArg()

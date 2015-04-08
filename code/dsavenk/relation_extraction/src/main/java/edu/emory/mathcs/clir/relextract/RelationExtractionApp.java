@@ -125,6 +125,10 @@ public class RelationExtractionApp {
                 case "index":
                     workflow.addProcessor(new BuildSearchIndexProcessor(props));
                     break;
+                case "preddict":
+                    workflow.addProcessor(new CollectPredicateDictProcessor(props));
+                    break;
+
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
@@ -136,29 +140,54 @@ public class RelationExtractionApp {
             Iterable<Document.NlpDocument> docs = null;
             final String reader = props.getProperty(
                     AppParameters.READER_PARAMETER);
-            switch (reader) {
-                case "text":
-                    docs = new TextInputProvider(props);
-                    break;
-                case "batchser":
-                    docs = new DeserializerBatchInputProvider(props);
-                    break;
-                case "ser":
-                    docs = new DeserializerInputProvider(props);
-                    break;
-                case "yahooxml":
-                    docs = new YahooAnswersWebscopeXmlInputProvider(props);
-                    break;
-                case "wikianswers":
-                    docs = new WikiAnswersAllQuestionsInputProvider(props);
-                    break;
-                case "webquestions":
-                    docs = new WebQuestionsInputProvider(props);
-                    break;
+            if (props.getProperty(AppParameters.INPUT_PARAMETER).contains(MultipleFilesInputProvider.NAMES_SEPARATOR)) {
+                Class<? extends Iterable<Document.NlpDocument>> baseProvider = null;
+                switch (reader) {
+                    case "text":
+                        baseProvider = TextInputProvider.class;
+                        break;
+                    case "batchser":
+                        baseProvider = DeserializerBatchInputProvider.class;
+                        break;
+                    case "ser":
+                        baseProvider = DeserializerInputProvider.class;
+                        break;
+                    case "yahooxml":
+                        baseProvider = YahooAnswersWebscopeXmlInputProvider.class;
+                        break;
+                    case "wikianswers":
+                        baseProvider = WikiAnswersAllQuestionsInputProvider.class;
+                        break;
+                    case "webquestions":
+                        baseProvider = WebQuestionsInputProvider.class;
+                        break;
+                }
+                docs = new MultipleFilesInputProvider<>(props, baseProvider);
+            } else {
+                switch (reader) {
+                    case "text":
+                        docs = new TextInputProvider(props);
+                        break;
+                    case "batchser":
+                        docs = new DeserializerBatchInputProvider(props);
+                        break;
+                    case "ser":
+                        docs = new DeserializerInputProvider(props);
+                        break;
+                    case "yahooxml":
+                        docs = new YahooAnswersWebscopeXmlInputProvider(props);
+                        break;
+                    case "wikianswers":
+                        docs = new WikiAnswersAllQuestionsInputProvider(props);
+                        break;
+                    case "webquestions":
+                        docs = new WebQuestionsInputProvider(props);
+                        break;
 
-                default:
-                    throw new UnsupportedOperationException("Reader " + reader +
-                            " doesn't exist!");
+                    default:
+                        throw new UnsupportedOperationException("Reader " + reader +
+                                " doesn't exist!");
+                }
             }
             new ProcessorRunner(workflow, props).run(docs);
         } catch (FileNotFoundException e) {
