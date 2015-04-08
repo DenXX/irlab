@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -37,7 +38,7 @@ public class BuildSearchIndexProcessor extends Processor {
         super(properties);
         String indexLocation = properties.getProperty(INDEX_LOCATION_PARAMETER);
         indexWriter_ = new IndexWriter(FSDirectory.open(new File(indexLocation)),
-                new IndexWriterConfig(Version.LATEST, new StandardAnalyzer()));
+                new IndexWriterConfig(Version.LATEST, new StandardAnalyzer(CharArraySet.EMPTY_SET)));
     }
 
     @Override

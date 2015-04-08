@@ -16,10 +16,17 @@ import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 import org.apache.avro.generic.GenericData;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.snowball.SnowballAnalyzer;
+import org.apache.lucene.analysis.snowball.SnowballFilter;
+import org.apache.lucene.analysis.util.StemmerUtil;
+import org.tartarus.snowball.ext.PorterStemmer;
 
+import javax.print.attribute.IntegerSyntax;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -43,6 +50,11 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean useFineTypes_ = false;
     private boolean partialPredicateNames_ = false;
 
+    private final Map<String, Double> pRel_ = new HashMap<>();
+    private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
+    private final Map<String, Double> pWord_ = new HashMap<>();
+    private final PorterStemmer stemmer_ = new PorterStemmer();
+
     public static final String QA_MODEL_PARAMETER = "qa_model_path";
     public static final String QA_DATASET_PARAMETER = "qa_dataset_path";
     public static final String QA_PREDICATES_PARAMETER = "qa_predicates";
@@ -51,6 +63,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String SPLIT_DATASET_PARAMETER = "qa_split_data";
     public static final String QA_USE_FREEBASE_TYPESFEATURES = "qa_finetypes_features";
     public static final String QA_PARTIAL_PREDICATE_FEATURES_PARAMETER = "qa_partialpredicate_features";
+    public static final String QA_RELATION_WORD_DICT_PARAMETER = "qa_relword_dict";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
 
     BufferedWriter out;
@@ -78,8 +91,19 @@ public class QAModelTrainerProcessor extends Processor {
         debug_ = properties.containsKey(QA_DEBUG_PARAMETER);
         useFineTypes_ = properties.containsKey(QA_USE_FREEBASE_TYPESFEATURES);
         partialPredicateNames_ = properties.containsKey(QA_PARTIAL_PREDICATE_FEATURES_PARAMETER);
-
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
+
+        if (properties.containsKey(QA_RELATION_WORD_DICT_PARAMETER)) {
+            String[] files = properties.getProperty(QA_RELATION_WORD_DICT_PARAMETER).split(",");
+            try {
+                readRelationWordMapping(files[0], files[1], files[2]);
+            } catch (IOException e) {
+                pRel_.clear();
+                pWord_.clear();
+                pRelWord_.clear();
+            }
+        }
+
         if (properties.containsKey(QA_PREDICATES_PARAMETER)) {
             try {
                 BufferedReader input = new BufferedReader(new FileReader(properties.getProperty(QA_PREDICATES_PARAMETER)));
@@ -96,6 +120,49 @@ public class QAModelTrainerProcessor extends Processor {
             }
         }
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
+    }
+
+    private void readRelationWordMapping(String relInfoFile, String wordInfoFile, String relWordInfoFile) throws IOException {
+        String line;
+
+        Map<Integer, String> relIndexes = new HashMap<>();
+        Map<Integer, String> wordIndexes = new HashMap<>();
+        readDictFile(relInfoFile, relIndexes, pRel_);
+        readDictFile(wordInfoFile, wordIndexes, pWord_);
+        BufferedReader input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(relWordInfoFile))));
+        int rowIndex = 0;
+        while ((line = input.readLine()) != null) {
+            int colIndex = 0;
+            String currentRel = relIndexes.get(rowIndex);
+            Map<String, Double> currentRelationDict;
+            if (!pRelWord_.containsKey(currentRel)) {
+                currentRelationDict = new HashMap<>();
+                pRelWord_.put(currentRel, currentRelationDict);
+            } else {
+                currentRelationDict = pRelWord_.get(currentRel);
+            }
+
+            for (String val : line.split(" ")) {
+                if (!val.equals("-inf")) {
+                    currentRelationDict.put(wordIndexes.get(colIndex), Double.parseDouble(val));
+                    ++colIndex;
+                }
+            }
+            ++rowIndex;
+        }
+        input.close();
+    }
+
+    private void readDictFile(String infoFile, Map<Integer, String> indexesDict, Map<String, Double> dict) throws IOException {
+        String line;BufferedReader input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(infoFile))));;
+        while ((line = input.readLine()) != null) {
+            String[] f = line.split(" ");
+            int index = Integer.parseInt(f[1]);
+            double score = Double.parseDouble(f[3]);
+            dict.put(f[0], score);
+            indexesDict.put(index, f[0]);
+        }
+        input.close();
     }
 
     @Override
@@ -142,6 +209,20 @@ public class QAModelTrainerProcessor extends Processor {
             questionFeatures.addAll(new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_).getEdgeFeatures());
         }
 
+        Map<String, Integer> pQuesRelRank = null;
+        if (!pRelWord_.isEmpty()) {
+            List<String> questionLemmas = new ArrayList<>();
+            for (int token = 0; token < document.getTokenCount()
+                    && document.getToken(token).getBeginCharOffset() < document.getQuestionLength(); ++token) {
+                if (Character.isAlphabetic(document.getToken(token).getPos().charAt(0))) {
+                    stemmer_.setCurrent(document.getToken(token).getText().toLowerCase());
+                    stemmer_.stem();
+                    questionLemmas.add(stemmer_.getCurrent());
+                }
+            }
+            pQuesRelRank = calculatePQuesRelRanks(questionLemmas, document.getQaInstanceList());
+        }
+
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         StringWriter strWriter = debug_ ? new StringWriter() : null;
         PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
@@ -175,6 +256,26 @@ public class QAModelTrainerProcessor extends Processor {
 //                }
 //                out.write("\n");
 //            }
+
+            if (pQuesRelRank != null) {
+                int rank = pQuesRelRank.get(instance.getPredicate());
+                if (rank == 1)
+                    answerFeatures.add("RANK=1");
+                else if (rank <= 2)
+                    answerFeatures.add("RANK=2");
+                else if (rank <= 3)
+                    answerFeatures.add("RANK=3");
+                else if (rank <= 5)
+                    answerFeatures.add("RANK=4-5");
+                else if (rank <= 10)
+                    answerFeatures.add("RANK=6-10");
+                else if (rank <= 50)
+                    answerFeatures.add("RANK=11-50");
+                else if (rank <= 100)
+                    answerFeatures.add("RANK=51-100");
+                else
+                    answerFeatures.add("RANK=101-");
+            }
 
             Set<Integer> feats = new HashSet<>();
             for (String aFeature : answerFeatures) {
@@ -238,9 +339,9 @@ public class QAModelTrainerProcessor extends Processor {
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
                 while (!scores.isEmpty()
                         && ((shouldKeepAnswer =
-                                (bestScore > 0.5
-                                        && scores.peek().first > 0.5
-                                        && scores.peek().first >= bestScore))
+//                                (bestScore > 0.5 &&
+//                                        && scores.peek().first > 0.5
+                                        scores.peek().first >= bestScore)
 //                                        && scores.peek().second.getSubject().equals(bestSubject)))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
@@ -304,6 +405,57 @@ public class QAModelTrainerProcessor extends Processor {
         return document;
     }
 
+    private Map<String, Integer> calculatePQuesRelRanks(List<String> questionLemmas,
+                                                        List<Document.QaRelationInstance> relations) {
+        List<Pair<Double, String>> predicateScores =
+                relations.stream()
+                .map(Document.QaRelationInstance::getPredicate)
+                .distinct()
+                .map(x -> new Pair<>(calcPQuesRelScore(questionLemmas, x), x))
+                .sorted()
+                .collect(Collectors.toList());
+        Map<String, Integer> res = new HashMap<>();
+        for (int i = 0; i < predicateScores.size(); ++i) {
+            res.put(predicateScores.get(i).second, predicateScores.size() - i);
+        }
+        return res;
+    }
+
+    private double calcPQuesRelScore(List<String> questionLemmas, String predicate) {
+        double res = 0.0;
+        if (pRel_.containsKey(predicate)) {
+            Map<String, Double> currentRelWordMap = pRelWord_.get(predicate);
+            res = pRel_.get(predicate);
+            for (String lemma : questionLemmas) {
+                if (currentRelWordMap.containsKey(lemma)) {
+                    res += currentRelWordMap.get(lemma);
+                } else {
+                    res += Math.log(1.0 / pWord_.size());
+                }
+            }
+        } else {
+            int counter = 0;
+            for (String piece : predicate.split("\\.")) {
+                if (pRel_.containsKey(piece)) {
+                    ++counter;
+                    res += pRel_.get(piece);
+                    Map<String, Double> currentRelWordMap = pRelWord_.get(piece);
+                    for (String lemma : questionLemmas) {
+                        if (currentRelWordMap.containsKey(lemma)) {
+                            res += currentRelWordMap.get(lemma);
+                        } else {
+                            res += Math.log(1.0 / pWord_.size());
+                        }
+                    }
+                }
+            }
+            if (counter > 0) {
+                res /= counter;
+            }
+        }
+        return res == 0 ? Double.NEGATIVE_INFINITY : res;
+    }
+
     private List<String> generateAnswerFeatures(Document.QaRelationInstance instance) {
         List<String> res = new ArrayList<>();
         res.add("PREDICATE=" + instance.getPredicate());
@@ -337,8 +489,8 @@ public class QAModelTrainerProcessor extends Processor {
 
             dataset_.summaryStatistics();
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
-            dataset_.applyFeatureCountThreshold(2);
-            dataset_.summaryStatistics();
+//            dataset_.applyFeatureCountThreshold(2);
+//            dataset_.summaryStatistics();
 
             // TODO(dsavenk): Comment this out for now.
 //            try {

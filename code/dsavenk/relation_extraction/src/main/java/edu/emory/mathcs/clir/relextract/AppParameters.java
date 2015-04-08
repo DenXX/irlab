@@ -224,6 +224,11 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_PARTIAL_PREDICATE_FEATURES_PARAMETER)
                 .withDescription("Use partial predicate names as features").create(
                         QAModelTrainerProcessor.QA_PARTIAL_PREDICATE_FEATURES_PARAMETER));
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_RELATION_WORD_DICT_PARAMETER)
+                .withDescription("Location of the relation-word probabilities dictionary files (3 paths, comma separated)").create(
+                        QAModelTrainerProcessor.QA_RELATION_WORD_DICT_PARAMETER));
 
         opt.addOption(OptionBuilder
                 .hasArg()
