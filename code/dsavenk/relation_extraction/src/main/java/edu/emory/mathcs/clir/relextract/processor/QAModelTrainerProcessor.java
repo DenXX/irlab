@@ -462,14 +462,7 @@ public class QAModelTrainerProcessor extends Processor {
             }
             if (counter > 0) {
                 res /= counter;
-                if (debug_) {
-                    System.out.println(res + "/" + counter);
-                }
             }
-        }
-
-        if (debug_) {
-            System.out.println("pQuestionRel=" + res);
         }
 
         return res == 0 ? Double.NEGATIVE_INFINITY : res;
@@ -597,7 +590,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node = new Node();
                             boolean measure = document.isTokenMeasure(token);
                             node.type = measure ? NodeType.REGULAR : NodeType.QTOPIC;
-                            if (!measure && useFreebaseTypes) {
+                            if (false && !measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
                                     for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
                                         node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream()
