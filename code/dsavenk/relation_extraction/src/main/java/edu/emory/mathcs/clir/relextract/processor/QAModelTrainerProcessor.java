@@ -308,6 +308,7 @@ public class QAModelTrainerProcessor extends Processor {
 
                 // GOLD PREDICTIONS
                 //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
+                tr.first = pQuesRelScore.get(instance.getPredicate());
 
                 if (debug_) {
                     model_.justificationOf(new BasicDatum<>(feats), debugWriter);
@@ -348,8 +349,8 @@ public class QAModelTrainerProcessor extends Processor {
                         && ((shouldKeepAnswer =
 //                                (bestScore > 0.5 &&
 //                                        && scores.peek().first > 0.5
-                                        scores.peek().first >= bestScore
-                                        && scores.peek().second.getSubject().equals(bestSubject))
+                                        scores.peek().first >= bestScore)
+//                                        && scores.peek().second.getSubject().equals(bestSubject))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
 
