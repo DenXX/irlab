@@ -51,6 +51,7 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean debug_ = false;
     private boolean useFineTypes_ = false;
     private boolean partialPredicateNames_ = false;
+    private float regularizer_ = 1.f;
 
     private final Map<String, Double> pRel_ = new HashMap<>();
     private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
@@ -66,6 +67,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_PARTIAL_PREDICATE_FEATURES_PARAMETER = "qa_partialpredicate_features";
     public static final String QA_RELATION_WORD_DICT_PARAMETER = "qa_relword_dict";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
+    public static final String QA_REGULARIZER_PARAMETER = "qa_regularizer";
 
     BufferedWriter out;
 
@@ -93,6 +95,10 @@ public class QAModelTrainerProcessor extends Processor {
         useFineTypes_ = properties.containsKey(QA_USE_FREEBASE_TYPESFEATURES);
         partialPredicateNames_ = properties.containsKey(QA_PARTIAL_PREDICATE_FEATURES_PARAMETER);
         datasetFile_ = properties.getProperty(QA_DATASET_PARAMETER);
+
+        if (properties.containsKey(QA_REGULARIZER_PARAMETER)) {
+            regularizer_ = Float.parseFloat(properties.getProperty(QA_REGULARIZER_PARAMETER));
+        }
 
         if (properties.containsKey(QA_RELATION_WORD_DICT_PARAMETER)) {
             String[] files = properties.getProperty(QA_RELATION_WORD_DICT_PARAMETER).split(",");
@@ -507,20 +513,22 @@ public class QAModelTrainerProcessor extends Processor {
 //            dataset_.summaryStatistics();
 
             // TODO(dsavenk): Comment this out for now.
-//            try {
-//                PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-//                for (Datum<Boolean, String> d : dataset_) {
-//                    out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
-//                }
-//                out.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            if (!datasetFile_.equals("None")) {
+                try {
+                    PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
+                    for (Datum<Boolean, String> d : dataset_) {
+                        out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
+                    }
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
             LinearClassifierFactory<Boolean, String> classifierFactory_ =
-                    new LinearClassifierFactory<>(1e-4, false, 1.0);
+                    new LinearClassifierFactory<>(1e-4, false, regularizer_);
             //classifierFactory_.setTuneSigmaHeldOut();
-            classifierFactory_.useInPlaceStochasticGradientDescent();
+            classifierFactory_.useInPlaceStochasticGradientDescent(-1, -1, regularizer_);
 
 //        classifierFactory_.setMinimizerCreator(() -> {
 //            QNMinimizer min = new QNMinimizer(15);
