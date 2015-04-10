@@ -26,6 +26,7 @@ import org.tartarus.snowball.ext.PorterStemmer;
 import javax.print.attribute.IntegerSyntax;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -35,11 +36,11 @@ import java.util.zip.GZIPOutputStream;
  */
 public class QAModelTrainerProcessor extends Processor {
 
-    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
+    private final Dataset<Boolean, String> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
     private String modelFile_;
-    private LinearClassifier<Boolean, Integer> model_ = null;
+    private LinearClassifier<Boolean, String> model_ = null;
     private String datasetFile_;
     private boolean split_ = false;
 
@@ -98,6 +99,7 @@ public class QAModelTrainerProcessor extends Processor {
             try {
                 readRelationWordMapping(files[0], files[1], files[2]);
             } catch (IOException e) {
+                e.printStackTrace();
                 pRel_.clear();
                 pWord_.clear();
                 pRelWord_.clear();
@@ -145,8 +147,8 @@ public class QAModelTrainerProcessor extends Processor {
             for (String val : line.split(" ")) {
                 if (!val.equals("-inf")) {
                     currentRelationDict.put(wordIndexes.get(colIndex), Double.parseDouble(val));
-                    ++colIndex;
                 }
+                ++colIndex;
             }
             ++rowIndex;
         }
@@ -157,10 +159,15 @@ public class QAModelTrainerProcessor extends Processor {
         String line;BufferedReader input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(infoFile))));;
         while ((line = input.readLine()) != null) {
             String[] f = line.split(" ");
-            int index = Integer.parseInt(f[1]);
-            double score = Double.parseDouble(f[3]);
-            dict.put(f[0], score);
-            indexesDict.put(index, f[0]);
+            try {
+                int index = Integer.parseInt(f[1]);
+                double score = Double.parseDouble(f[3]);
+                dict.put(f[0], score);
+                indexesDict.put(index, f[0]);
+            } catch (Exception e) {
+                System.err.println(line);
+                e.printStackTrace();
+            }
         }
         input.close();
     }
@@ -277,7 +284,7 @@ public class QAModelTrainerProcessor extends Processor {
                     answerFeatures.add("RANK=101-");
             }
 
-            Set<Integer> feats = new HashSet<>();
+            Set<String> feats = new HashSet<>();
             for (String aFeature : answerFeatures) {
                 for (String qFeature : questionFeatures) {
                     String feature = qFeature + "||" + aFeature;
@@ -285,7 +292,8 @@ public class QAModelTrainerProcessor extends Processor {
                     if (debug_) {
                         debugWriter.println(id + "\t" + feature);
                     }
-                    feats.add(id);
+                    //feats.add(id);
+                    feats.add(feature);
                 }
             }
 
@@ -293,7 +301,6 @@ public class QAModelTrainerProcessor extends Processor {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
                     dataset_.add(feats, instance.getIsPositive());
-                    //dataset_.add(features, instance.getIsPositive());
                 }
             } else {
                 Triple<Double, Document.QaRelationInstance, String> tr =
@@ -421,14 +428,17 @@ public class QAModelTrainerProcessor extends Processor {
         if ((pos = predicate.indexOf(".cvt.")) != -1) {
             predicate = predicate.substring(pos + 5);
         }
+
         if (pRel_.containsKey(predicate)) {
             Map<String, Double> currentRelWordMap = pRelWord_.get(predicate);
             res = pRel_.get(predicate);
+
             for (String lemma : questionLemmas) {
                 if (currentRelWordMap.containsKey(lemma)) {
+
                     res += currentRelWordMap.get(lemma);
                 } else {
-                    res += Math.log(1.0 / pWord_.size());
+                    res += -10; //Math.log(1.0 / pWord_.size());
                 }
             }
         } else {
@@ -436,21 +446,32 @@ public class QAModelTrainerProcessor extends Processor {
             for (String piece : predicate.split("\\.")) {
                 if (pRel_.containsKey(piece)) {
                     ++counter;
+
                     res += pRel_.get(piece);
                     Map<String, Double> currentRelWordMap = pRelWord_.get(piece);
                     for (String lemma : questionLemmas) {
                         if (currentRelWordMap.containsKey(lemma)) {
                             res += currentRelWordMap.get(lemma);
                         } else {
-                            res += Math.log(1.0 / pWord_.size());
+                            res += -10; //Math.log(1.0 / pWord_.size());
                         }
                     }
+                } else {
+                    res += -10 * (questionLemmas.size() + 1);
                 }
             }
             if (counter > 0) {
                 res /= counter;
+                if (debug_) {
+                    System.out.println(res + "/" + counter);
+                }
             }
         }
+
+        if (debug_) {
+            System.out.println("pQuestionRel=" + res);
+        }
+
         return res == 0 ? Double.NEGATIVE_INFINITY : res;
     }
 
@@ -494,15 +515,15 @@ public class QAModelTrainerProcessor extends Processor {
             // TODO(dsavenk): Comment this out for now.
 //            try {
 //                PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-//                for (Datum<Boolean, Integer> d : dataset_) {
-//                    out.println(d.label() ? "1" : "-1" + " | " + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining(" ")));
+//                for (Datum<Boolean, String> d : dataset_) {
+//                    out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
 //                }
 //                out.close();
 //            } catch (IOException e) {
 //                e.printStackTrace();
 //            }
 
-            LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
+            LinearClassifierFactory<Boolean, String> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, 1.0);
             //classifierFactory_.setTuneSigmaHeldOut();
             classifierFactory_.useInPlaceStochasticGradientDescent();
