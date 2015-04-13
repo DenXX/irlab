@@ -36,11 +36,11 @@ import java.util.zip.GZIPOutputStream;
  */
 public class QAModelTrainerProcessor extends Processor {
 
-    private final Dataset<Boolean, String> dataset_ = new Dataset<>();
+    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
     private String modelFile_;
-    private LinearClassifier<Boolean, String> model_ = null;
+    private LinearClassifier<Boolean, Integer> model_ = null;
     private String datasetFile_;
     private boolean split_ = false;
 
@@ -290,7 +290,7 @@ public class QAModelTrainerProcessor extends Processor {
                     answerFeatures.add("RANK=101-");
             }
 
-            Set<String> feats = new HashSet<>();
+            Set<Integer> feats = new HashSet<>();
             for (String aFeature : answerFeatures) {
                 for (String qFeature : questionFeatures) {
                     String feature = qFeature + "||" + aFeature;
@@ -298,8 +298,8 @@ public class QAModelTrainerProcessor extends Processor {
                     if (debug_) {
                         debugWriter.println(id + "\t" + feature);
                     }
-                    //feats.add(id);
-                    feats.add(feature);
+                    feats.add(id);
+//                    feats.add(feature);
                 }
             }
 
@@ -314,7 +314,7 @@ public class QAModelTrainerProcessor extends Processor {
 
                 // GOLD PREDICTIONS
                 //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
-                tr.first = pQuesRelScore.get(instance.getPredicate());
+//                tr.first = pQuesRelScore.get(instance.getPredicate());
 
                 if (debug_) {
                     model_.justificationOf(new BasicDatum<>(feats), debugWriter);
@@ -516,7 +516,7 @@ public class QAModelTrainerProcessor extends Processor {
             if (!datasetFile_.equals("None")) {
                 try {
                     PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-                    for (Datum<Boolean, String> d : dataset_) {
+                    for (Datum<Boolean, Integer> d : dataset_) {
                         out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
                     }
                     out.close();
@@ -525,7 +525,7 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
 
-            LinearClassifierFactory<Boolean, String> classifierFactory_ =
+            LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
                     new LinearClassifierFactory<>(1e-4, false, regularizer_);
             //classifierFactory_.setTuneSigmaHeldOut();
             classifierFactory_.useInPlaceStochasticGradientDescent(-1, -1, regularizer_);
