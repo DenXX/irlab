@@ -41,12 +41,12 @@ public class TestProcessor extends Processor {
      * argument.
      *
      * @param properties A set of properties, the processor doesn't have to
-     *                   consume all of the them, it checks what it needs.
+     *                   consume all of the them, it checks what it needs
      */
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
         rnd = new Random(42);
-        kb_ = KnowledgeBase.getInstance(properties);
+        kb_ = null; //KnowledgeBase.getInstance(properties);
         flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 

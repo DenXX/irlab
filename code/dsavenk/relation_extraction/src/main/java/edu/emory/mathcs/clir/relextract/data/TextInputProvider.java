@@ -2,10 +2,7 @@ package edu.emory.mathcs.clir.relextract.data;
 
 import edu.emory.mathcs.clir.relextract.AppParameters;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -14,10 +11,14 @@ import java.util.Properties;
  */
 public class TextInputProvider implements Iterable<Document.NlpDocument> {
 
-    private final String inputFilename_;
+    private final InputStream inputStream_;
 
-    public TextInputProvider(Properties properties) {
-        inputFilename_ = properties.getProperty(AppParameters.INPUT_PARAMETER);
+    public TextInputProvider(Properties properties) throws FileNotFoundException {
+        if (!properties.getProperty(AppParameters.INPUT_PARAMETER).equals("stdin"))
+            inputStream_ = new FileInputStream(properties.getProperty(AppParameters.INPUT_PARAMETER));
+        else
+            inputStream_ = System.in;
+
     }
 
     @Override
@@ -38,15 +39,15 @@ public class TextInputProvider implements Iterable<Document.NlpDocument> {
 
         public TextInputIterator() throws IOException {
             input_ = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(inputFilename_)));
+                    new InputStreamReader(inputStream_));
             readInputObject();
         }
 
         private void readInputObject() {
             try {
-                if (input_.ready()) {
-                    currentObject_ = Document.NlpDocument.newBuilder().setText(
-                            input_.readLine()).build();
+                String line;
+                if ((line = input_.readLine()) != null) {
+                    currentObject_ = Document.NlpDocument.newBuilder().setText(line).build();
                 } else {
                     currentObject_ = null;
                 }
