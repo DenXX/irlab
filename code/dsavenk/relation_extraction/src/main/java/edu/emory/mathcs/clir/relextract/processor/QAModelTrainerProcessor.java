@@ -186,11 +186,8 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         if (isTraining_) {
-            long positiveInstances = document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).filter(Document.QaRelationInstance::getIsPositive).count();
-
             if (document.getQaInstanceCount() == 0
-//                    || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
-                      || positiveInstances < 1 || positiveInstances > 2) {
+                    || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
                 return null;
             }
         }
