@@ -225,7 +225,7 @@ public class QAModelTrainerProcessor extends Processor {
         Map<String, Integer> pQuesRelRank = null;
         Map<String, Double> pQuesRelScore = null;
         if (!pRelWord_.isEmpty()) {
-            List<String> questionLemmas = documentWrapper.getQuestionLemmas();
+            List<String> questionLemmas = documentWrapper.getQuestionLemmas(true);
             List<Pair<Double, String>> predicateScores = calculatePQuesRelScores(questionLemmas, document.getQaInstanceList());
             pQuesRelRank = new HashMap<>();
             pQuesRelScore = new HashMap<>();

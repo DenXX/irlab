@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.data;
 
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.PorterStemmer;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
 import edu.stanford.nlp.dcoref.Dictionaries;
@@ -16,7 +17,6 @@ import edu.stanford.nlp.semgraph.SemanticGraphEdge;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
-import org.tartarus.snowball.ext.PorterStemmer;
 
 import java.util.*;
 import java.util.PriorityQueue;
@@ -87,7 +87,7 @@ public class DocumentWrapper {
                     for (int j = mention.getTokenBeginOffset(); j < mention.getTokenEndOffset(); ++j) {
                         mentionHead[j] = head;
                     }
-                    Interval<Integer> interval = Interval.toInterval(mention.getTokenBeginOffset(), mention.getTokenEndOffset());
+                    Interval<Integer> interval = Interval.toInterval(mention.getTokenBeginOffset(), mention.getTokenEndOffset() - 1);
                     mentionIntervals_.add(interval);
                     intervalToMention_.put(interval, new Pair<>(span, mentionIndex));
                     ++mentionIndex;
@@ -121,15 +121,31 @@ public class DocumentWrapper {
         return qVerbs_.stream().map(i -> document().getToken(i).getLemma().toLowerCase()).collect(Collectors.toSet());
     }
 
-    public List<String> getQuestionLemmas() {
+    public List<String> getQuestionLemmas(boolean replaceEntities) {
         PorterStemmer stemmer = new PorterStemmer();
         List<String> questionLemmas = new ArrayList<>();
+        Document.Span lastTokenSpan = null;
         for (int token = 0; token < document_.getTokenCount()
                 && document_.getToken(token).getBeginCharOffset() < document_.getQuestionLength(); ++token) {
-            if (Character.isAlphabetic(document_.getToken(token).getPos().charAt(0))) {
-                stemmer.setCurrent(document_.getToken(token).getText().toLowerCase());
-                stemmer.stem();
-                questionLemmas.add(stemmer.getCurrent());
+            if (Character.isAlphabetic(document_.getToken(token).getPos().charAt(0)) && !document_.getToken(token).getPos().equals("DT")) {
+                String term = document_.getToken(token).getText().toLowerCase();
+                if (replaceEntities) {
+                    List<Document.Span> tokenSpans = getTokenSpan(token);
+                    if (!tokenSpans.isEmpty()) {
+                        if (tokenSpans.get(0) != lastTokenSpan) {
+                            term = tokenSpans.get(0).getNerType();
+                        } else {
+                            term = null;
+                        }
+                        lastTokenSpan = tokenSpans.get(0);
+                    } else {
+                        lastTokenSpan = null;
+                    }
+                }
+
+                if (term != null && !term.isEmpty()) {
+                    questionLemmas.add(stemmer.stem(term));
+                }
             }
         }
         return questionLemmas;

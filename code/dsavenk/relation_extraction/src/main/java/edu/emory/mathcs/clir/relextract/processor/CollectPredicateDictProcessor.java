@@ -45,7 +45,7 @@ public class CollectPredicateDictProcessor extends Processor {
                 .collect(Collectors.toSet());
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
         if (!positivePredicates.isEmpty()) {
-            List<String> lemmas = documentWrapper.getQuestionLemmas();
+            List<String> lemmas = documentWrapper.getQuestionLemmas(true);
             lemmas.stream()
                     .filter(x -> !x.isEmpty())
                     .forEach(x -> {
