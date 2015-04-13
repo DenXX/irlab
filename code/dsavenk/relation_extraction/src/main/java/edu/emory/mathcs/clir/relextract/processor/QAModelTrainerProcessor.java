@@ -14,6 +14,8 @@ import edu.stanford.nlp.classify.RVFDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.optimization.QNMinimizer;
+import edu.stanford.nlp.optimization.SGDMinimizer;
+import edu.stanford.nlp.optimization.SQNMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 import org.apache.avro.generic.GenericData;
@@ -45,6 +47,7 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean split_ = false;
 
     private int alphabetSize_ = 10000000;
+    private int maxExamplesPerIteration_ = 100;
     private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
     private Set<String> predicates_ = new HashSet<>();
     private double subsampleRate_ = 10;
@@ -52,6 +55,7 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean useFineTypes_ = false;
     private boolean partialPredicateNames_ = false;
     private float regularizer_ = 1.f;
+    private boolean isTraining_ = true;
 
     private final Map<String, Double> pRel_ = new HashMap<>();
     private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
@@ -84,6 +88,7 @@ public class QAModelTrainerProcessor extends Processor {
         modelFile_ = properties.getProperty(QA_MODEL_PARAMETER);
         if (properties.containsKey(QA_TEST_PARAMETER)) {
             model_ = LinearClassifier.readClassifier(modelFile_);
+            isTraining_ = false;
         }
         if (properties.containsKey(SPLIT_DATASET_PARAMETER)) {
             split_ = true;
@@ -180,9 +185,7 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        boolean isTraining = model_ == null;
-
-        if (isTraining) {
+        if (isTraining_) {
             if (document.getQaInstanceCount() == 0
                     || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
                 return null;
@@ -190,7 +193,7 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
-        if (split_ && (isInTraining != isTraining)) return null;
+        if (split_ && (isInTraining != isTraining_)) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -251,7 +254,7 @@ public class QAModelTrainerProcessor extends Processor {
                         ))
                 continue;
 
-            if (isTraining) {
+            if (isTraining_) {
                 if (!instance.getIsPositive()) {
                     if (rnd_.nextInt(1000) > subsampleRate_) continue;
                 }
@@ -303,7 +306,7 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
 
-            if (isTraining) {
+            if (isTraining_) {
                 synchronized (dataset_) {
                     //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
                     dataset_.add(feats, instance.getIsPositive());
@@ -326,7 +329,7 @@ public class QAModelTrainerProcessor extends Processor {
             }
         }
 
-        if (!isTraining) {
+        if (!isTraining_) {
             String[] fields = document.getText().split("\n");
             String utterance = fields[0];
             StringBuilder answers = new StringBuilder();
@@ -418,6 +421,7 @@ public class QAModelTrainerProcessor extends Processor {
 
         return document;
     }
+
 
     private List<Pair<Double, String>> calculatePQuesRelScores(List<String> questionLemmas,
                                                         List<Document.QaRelationInstance> relations) {
@@ -525,16 +529,11 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
 
-            LinearClassifierFactory<Boolean, Integer> classifierFactory_ =
-                    new LinearClassifierFactory<>(1e-4, false, regularizer_);
+            LinearClassifierFactory<Boolean, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
             //classifierFactory_.setTuneSigmaHeldOut();
-            classifierFactory_.useInPlaceStochasticGradientDescent(-1, -1, regularizer_);
+//            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
+            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
 
-//        classifierFactory_.setMinimizerCreator(() -> {
-//            QNMinimizer min = new QNMinimizer(15);
-//            min.useOWLQN(true, 1.0);
-//            return min;
-//        });
             classifierFactory_.setVerbose(true);
             model_ = classifierFactory_.trainClassifier(dataset_);
             LinearClassifier.writeClassifier(model_, modelFile_);
