@@ -640,8 +640,8 @@ public class QAModelTrainerProcessor extends Processor {
             }
 
             for (int token = firstToken; token < lastToken; ++token) {
-                if (tokenToNodeIndex[token] != -1) {
-                    Node node = nodes_.get(tokenToNodeIndex[token]);
+                if (tokenToNodeIndex[token - firstToken] != -1) {
+                    Node node = nodes_.get(tokenToNodeIndex[token - firstToken]);
                     int parent = document.document().getToken(token).getDependencyGovernor();
                     if (parent != 0) {
                         --parent;
@@ -649,7 +649,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node.type = NodeType.QFOCUS;
                         }
                         if (tokenToNodeIndex[parent] != -1) {
-                            node.parent.add(new Pair<>(tokenToNodeIndex[parent], document.document().getToken(token).getDependencyType()));
+                            node.parent.add(new Pair<>(tokenToNodeIndex[token - firstToken], document.document().getToken(token).getDependencyType()));
                         }
                     }
                 }
