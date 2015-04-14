@@ -10,25 +10,14 @@ import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
-import edu.stanford.nlp.classify.RVFDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
-import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.optimization.SGDMinimizer;
-import edu.stanford.nlp.optimization.SQNMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
-import org.apache.avro.generic.GenericData;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.snowball.SnowballAnalyzer;
-import org.apache.lucene.analysis.snowball.SnowballFilter;
-import org.apache.lucene.analysis.util.StemmerUtil;
-import org.tartarus.snowball.ext.PorterStemmer;
 
-import javax.print.attribute.IntegerSyntax;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -650,7 +639,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node.type = NodeType.QFOCUS;
                         }
                         if (tokenToNodeIndex[parent] != -1) {
-                            node.parent.add(new Pair<>(tokenToNodeIndex[token - firstToken], document.document().getToken(token).getDependencyType()));
+                            node.parent.add(new Pair<>(tokenToNodeIndex[parent], document.document().getToken(token).getDependencyType()));
                         }
                     }
                 }
