@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
@@ -7,37 +8,29 @@ import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
-import edu.stanford.nlp.classify.Dataset;
-import edu.stanford.nlp.classify.LinearClassifier;
-import edu.stanford.nlp.classify.LinearClassifierFactory;
-import edu.stanford.nlp.ling.BasicDatum;
-import edu.stanford.nlp.ling.Datum;
-import edu.stanford.nlp.optimization.GoldenSectionLineSearch;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by dsavenk on 3/20/15.
  */
 public class QAModelTrainerProcessor extends Processor {
-
-    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
     private Random rnd_ = new Random(42);
     private String modelFile_;
-    private LinearClassifier<Boolean, Integer> model_ = null;
     private String datasetFile_;
     private boolean split_ = false;
 
-    private int alphabetSize_ = 10000000;
-    private int maxExamplesPerIteration_ = 100;
-    private Map<String, Integer> alphabet_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, Map<String, AtomicDouble>> featureCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, AtomicDouble> predicatePositiveCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, AtomicLong> predicateCounts_ = Collections.synchronizedMap(new HashMap<>());
+
     private Set<String> predicates_ = new HashSet<>();
     private double subsampleRate_ = 10;
     private boolean debug_ = false;
@@ -76,8 +69,18 @@ public class QAModelTrainerProcessor extends Processor {
         kb_ = KnowledgeBase.getInstance(properties);
         modelFile_ = properties.getProperty(QA_MODEL_PARAMETER);
         if (properties.containsKey(QA_TEST_PARAMETER)) {
-            model_ = LinearClassifier.readClassifier(modelFile_);
             isTraining_ = false;
+            try {
+                ObjectInputStream modelFile = new ObjectInputStream(new BufferedInputStream(new FileInputStream(modelFile_)));
+                predicateCounts_ = (Map<String, AtomicLong>) modelFile.readObject();
+                predicatePositiveCounts_ = (Map<String, AtomicDouble>) modelFile.readObject();
+                featureCounts_ = (Map<String, Map<String, AtomicDouble>>) modelFile.readObject();
+                modelFile.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
         if (properties.containsKey(SPLIT_DATASET_PARAMETER)) {
             split_ = true;
@@ -174,17 +177,19 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+
+        List<Document.QaRelationInstance> instances = document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).collect(Collectors.toList());
+        long positiveSubjects = instances.stream().filter(Document.QaRelationInstance::getIsPositive).map(Document.QaRelationInstance::getSubject).distinct().count();
+
         if (isTraining_) {
             //long positivePredicates = document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).filter(Document.QaRelationInstance::getIsPositive).map(Document.QaRelationInstance::getPredicate).distinct().count();
-
-            if (document.getQaInstanceCount() == 0
-                    || document.getQaInstanceList().stream().filter(x -> predicates_.isEmpty() || predicates_.contains(x.getPredicate())).noneMatch(Document.QaRelationInstance::getIsPositive)) {
+            if (positiveSubjects == 0) {
                 return null;
             }
         }
 
-        boolean isInTraining = ((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7;
-        if (split_ && (isInTraining != isTraining_)) return null;
+        // If we need to split, use document text hash.
+        if (split_ && ((((document.getText().hashCode() & 0x7FFFFFFF) % 10) < 7) != isTraining_)) return null;
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
@@ -233,91 +238,55 @@ public class QAModelTrainerProcessor extends Processor {
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         StringWriter strWriter = debug_ ? new StringWriter() : null;
         PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
-        for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
-            if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
-                continue;
-            }
 
-            // Ignore self-triples and triples with numeric object (those are noisy)
-            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject()))
-                    || (!instance.getSubject().startsWith("http")
-                        && instance.getSubject().contains("integer")  //|| instance.getSubject().contains("decimal"))
-                        ))
-                continue;
+        if (isTraining_) {
+            instances.stream()
+                    .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
+                    .forEach((predicate, predicateInstances) -> {
+                        featureCounts_.putIfAbsent(predicate, Collections.synchronizedMap(new HashMap<>()));
+                        Map<String, AtomicDouble> currentMap = featureCounts_.get(predicate);
+                        double positive = 1.0 * predicateInstances.stream().filter(Document.QaRelationInstance::getIsPositive).count() / predicateInstances.size();
+                        questionFeatures.forEach(feat -> {
+                            currentMap.putIfAbsent(feat, new AtomicDouble(0.0));
+                            currentMap.get(feat).addAndGet(positive);
+                        });
+                        predicatePositiveCounts_.putIfAbsent(predicate, new AtomicDouble(0));
+                        predicatePositiveCounts_.get(predicate).addAndGet(positive);
+                        predicateCounts_.putIfAbsent(predicate, new AtomicLong(0));
+                        predicateCounts_.get(predicate).incrementAndGet();
+                    });
+        } else {
+            instances.stream()
+                    .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
+                    .forEach((predicate, predicateInstances) -> {
+                        if (predicateCounts_.containsKey(predicate)) {
+                            StringBuilder debugInfo = new StringBuilder();
+                            Map<String, AtomicDouble> currentMap = featureCounts_.get(predicate);
+                            final double[] score = {Math.log(predicatePositiveCounts_.get(predicate).get() + 1) - Math.log(predicateCounts_.get(predicate).get() + 10000)};
 
-            if (isTraining_) {
-                if (!instance.getIsPositive()) {
-                    if (rnd_.nextInt(1000) > subsampleRate_) continue;
-                }
-            }
+                            if (debug_)
+                                debugInfo.append("p(").append(predicate).append(")=").append(score[0]).append("\n");
 
-//            for (String str : features) {
-//                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize_);
-//            }
-            List<String> answerFeatures = generateAnswerFeatures(instance);
-            //generateFeatures(documentWrapper, instance, qDepPaths, features);
-//            synchronized (out) {
-//                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
-//                for (String feat : features) {
-//                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
-//                }
-//                out.write("\n");
-//            }
+                            questionFeatures.forEach(feature -> {
+                                double delta = Math.log(currentMap.getOrDefault(feature, new AtomicDouble(0.0)).get() + 1) - Math.log(predicatePositiveCounts_.get(predicate).get() + 10000000);
+                                score[0] += delta;
+                                if (debug_) {
+                                    debugInfo.append("p(").append(feature).append("|").append(predicate).append(")=").append(delta).append("\n");
+                                }
+                            });
+                            predicateInstances.forEach(instance -> {
+                                Triple<Double, Document.QaRelationInstance, String> tr =
+                                        new Triple<>(score[0], instance, "");
+                                scores.add(tr);
 
-            if (pQuesRelRank != null) {
-                int rank = pQuesRelRank.get(instance.getPredicate());
-                if (rank == 1)
-                    answerFeatures.add("RANK=1");
-                else if (rank <= 2)
-                    answerFeatures.add("RANK=2");
-                else if (rank <= 3)
-                    answerFeatures.add("RANK=3");
-                else if (rank <= 5)
-                    answerFeatures.add("RANK=4-5");
-                else if (rank <= 10)
-                    answerFeatures.add("RANK=6-10");
-                else if (rank <= 50)
-                    answerFeatures.add("RANK=11-50");
-                else if (rank <= 100)
-                    answerFeatures.add("RANK=51-100");
-                else
-                    answerFeatures.add("RANK=101-");
-            }
-
-            Set<Integer> feats = new HashSet<>();
-            for (String aFeature : answerFeatures) {
-                for (String qFeature : questionFeatures) {
-                    String feature = qFeature + "||" + aFeature;
-                    int id = (feature.hashCode() & 0x7FFFFFFF) % alphabetSize_;
-                    if (debug_) {
-                        debugWriter.println(id + "\t" + feature);
-                    }
-                    feats.add(id);
-//                    feats.add(feature);
-                }
-            }
-
-            if (isTraining_) {
-                synchronized (dataset_) {
-                    //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                    dataset_.add(feats, instance.getIsPositive());
-                }
-            } else {
-                Triple<Double, Document.QaRelationInstance, String> tr =
-                        new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
-
-                // GOLD PREDICTIONS
-                //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
-//                tr.first = pQuesRelScore.get(instance.getPredicate());
-
-                if (debug_) {
-                    model_.justificationOf(new BasicDatum<>(feats), debugWriter);
-                    debugWriter.flush();
-                    tr.third = strWriter.toString();
-                    strWriter.getBuffer().setLength(0);
-                }
-                scores.add(tr);
-            }
+                                if (debug_) {
+                                    tr.third = debugInfo.toString();
+                                }
+                            });
+                        } else {
+                            // TODO(dsavenk): Implement smoothing...
+                        }
+                    });
         }
 
         if (!isTraining_) {
@@ -499,38 +468,14 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        if (model_ == null) {
-
-            dataset_.summaryStatistics();
-//            dataset_.selectFeaturesBinaryInformationGain(10000);
-            //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
-//            dataset_.applyFeatureCountThreshold(2);
-//            dataset_.summaryStatistics();
-
-            // TODO(dsavenk): Comment this out for now.
-            if (!datasetFile_.equals("None")) {
-                try {
-                    PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-                    for (Datum<Boolean, Integer> d : dataset_) {
-                        out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
-                    }
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            LinearClassifierFactory<Boolean, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
-            classifierFactory_.useQuasiNewton(true);
-            classifierFactory_.setTuneSigmaHeldOut();
-            classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
-            classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
-//            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
-//            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
-
-            classifierFactory_.setVerbose(true);
-            model_ = classifierFactory_.trainClassifier(dataset_);
-            LinearClassifier.writeClassifier(model_, modelFile_);
+        try {
+            ObjectOutputStream model = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_)));
+            model.writeObject(predicateCounts_);
+            model.writeObject(predicatePositiveCounts_);
+            model.writeObject(featureCounts_);
+            model.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
