@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by dsavenk on 3/20/15.
@@ -71,7 +72,7 @@ public class QAModelTrainerProcessor extends Processor {
         if (properties.containsKey(QA_TEST_PARAMETER)) {
             isTraining_ = false;
             try {
-                ObjectInputStream modelFile = new ObjectInputStream(new BufferedInputStream(new FileInputStream(modelFile_)));
+                ObjectInputStream modelFile = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(modelFile_))));
                 predicateCounts_ = (Map<String, AtomicLong>) modelFile.readObject();
                 predicatePositiveCounts_ = (Map<String, AtomicDouble>) modelFile.readObject();
                 featureCounts_ = (Map<String, Map<String, AtomicDouble>>) modelFile.readObject();
@@ -469,7 +470,7 @@ public class QAModelTrainerProcessor extends Processor {
     @Override
     public void finishProcessing() {
         try {
-            ObjectOutputStream model = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_)));
+            ObjectOutputStream model = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_))));
             model.writeObject(predicateCounts_);
             model.writeObject(predicatePositiveCounts_);
             model.writeObject(featureCounts_);
