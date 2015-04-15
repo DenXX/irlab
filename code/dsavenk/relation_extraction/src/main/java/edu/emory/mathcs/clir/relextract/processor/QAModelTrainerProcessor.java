@@ -12,7 +12,7 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
-import edu.stanford.nlp.optimization.SGDMinimizer;
+import edu.stanford.nlp.optimization.GoldenSectionLineSearch;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -521,9 +521,12 @@ public class QAModelTrainerProcessor extends Processor {
             }
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
-            //classifierFactory_.setTuneSigmaHeldOut();
+            classifierFactory_.useQuasiNewton(true);
+            classifierFactory_.setTuneSigmaHeldOut();
+            classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
 //            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
-            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
+//            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
 
             classifierFactory_.setVerbose(true);
             model_ = classifierFactory_.trainClassifier(dataset_);
