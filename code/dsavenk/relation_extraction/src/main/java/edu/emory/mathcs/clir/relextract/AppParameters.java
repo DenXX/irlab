@@ -237,6 +237,17 @@ public class AppParameters {
 
         opt.addOption(OptionBuilder
                 .hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_PRED_SMOOTHING_PARAMETER)
+                .withDescription("Predicate smoothing parameter").create(
+                        QAModelTrainerProcessor.QA_PRED_SMOOTHING_PARAMETER));
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_FEAT_SMOOTHING_PARAMETER)
+                .withDescription("Features smoothing parameter").create(
+                        QAModelTrainerProcessor.QA_FEAT_SMOOTHING_PARAMETER));
+
+        opt.addOption(OptionBuilder
+                .hasArg()
                 .withArgName(CollectPredicateDictProcessor.QA_RELATION_WORD_DICT_OUT_PARAMETER)
                 .withDescription("Output location of the relation-word probabilities dictionary files (3 paths, comma separated)").create(
                         CollectPredicateDictProcessor.QA_RELATION_WORD_DICT_OUT_PARAMETER));

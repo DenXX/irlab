@@ -28,9 +28,11 @@ public class QAModelTrainerProcessor extends Processor {
     private String datasetFile_;
     private boolean split_ = false;
 
-    private Map<String, Map<String, AtomicDouble>> featureCounts_ = Collections.synchronizedMap(new HashMap<>());
-    private Map<String, AtomicDouble> predicatePositiveCounts_ = Collections.synchronizedMap(new HashMap<>());
-    private Map<String, AtomicLong> predicateCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private static final int PREDICATE_ALPHABET_SIZE = 100000;
+    private static final int ALPHABET_SIZE = 1000000;
+    private Map<Integer, Map<Integer, AtomicDouble>> featureCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, AtomicDouble> predicatePositiveCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, AtomicLong> predicateCounts_ = Collections.synchronizedMap(new HashMap<>());
 
     private Set<String> predicates_ = new HashSet<>();
     private double subsampleRate_ = 10;
@@ -39,6 +41,9 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean partialPredicateNames_ = false;
     private float regularizer_ = 1.f;
     private boolean isTraining_ = true;
+
+    private long predSmoothingCount_ = 10000;
+    private long featureSmoothingCount_ = 1000000;
 
     private final Map<String, Double> pRel_ = new HashMap<>();
     private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
@@ -55,6 +60,9 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_RELATION_WORD_DICT_PARAMETER = "qa_relword_dict";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
     public static final String QA_REGULARIZER_PARAMETER = "qa_regularizer";
+
+    public static final String QA_PRED_SMOOTHING_PARAMETER = "qa_pred_smooth";
+    public static final String QA_FEAT_SMOOTHING_PARAMETER = "qa_feat_smooth";
 
     BufferedWriter out;
 
@@ -73,9 +81,9 @@ public class QAModelTrainerProcessor extends Processor {
             isTraining_ = false;
             try {
                 ObjectInputStream modelFile = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(modelFile_))));
-                predicateCounts_ = (Map<String, AtomicLong>) modelFile.readObject();
-                predicatePositiveCounts_ = (Map<String, AtomicDouble>) modelFile.readObject();
-                featureCounts_ = (Map<String, Map<String, AtomicDouble>>) modelFile.readObject();
+                predicateCounts_ = (Map<Integer, AtomicLong>) modelFile.readObject();
+                predicatePositiveCounts_ = (Map<Integer, AtomicDouble>) modelFile.readObject();
+                featureCounts_ = (Map<Integer, Map<Integer, AtomicDouble>>) modelFile.readObject();
                 modelFile.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -125,6 +133,14 @@ public class QAModelTrainerProcessor extends Processor {
                 e.printStackTrace();
             }
         }
+
+        if (properties.containsKey(QA_PRED_SMOOTHING_PARAMETER)) {
+            predSmoothingCount_ = Long.parseLong(properties.getProperty(QA_PRED_SMOOTHING_PARAMETER));
+        }
+        if (properties.containsKey(QA_FEAT_SMOOTHING_PARAMETER)) {
+            featureSmoothingCount_ = Long.parseLong(properties.getProperty(QA_FEAT_SMOOTHING_PARAMETER));
+        }
+
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
 
@@ -244,35 +260,37 @@ public class QAModelTrainerProcessor extends Processor {
             instances.stream()
                     .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
                     .forEach((predicate, predicateInstances) -> {
-                        featureCounts_.putIfAbsent(predicate, Collections.synchronizedMap(new HashMap<>()));
-                        Map<String, AtomicDouble> currentMap = featureCounts_.get(predicate);
+                        int predicateId = getId(predicate, PREDICATE_ALPHABET_SIZE);
+                        featureCounts_.putIfAbsent(predicateId, Collections.synchronizedMap(new HashMap<>()));
+                        Map<Integer, AtomicDouble> currentMap = featureCounts_.get(predicateId);
                         double positive = 1.0 * predicateInstances.stream().filter(Document.QaRelationInstance::getIsPositive).count() / predicateInstances.size();
                         questionFeatures.forEach(feat -> {
-                            currentMap.putIfAbsent(feat, new AtomicDouble(0.0));
-                            currentMap.get(feat).addAndGet(positive);
+                            currentMap.putIfAbsent(getId(feat, ALPHABET_SIZE), new AtomicDouble(0.0));
+                            currentMap.get(getId(feat, ALPHABET_SIZE)).addAndGet(positive);
                         });
-                        predicatePositiveCounts_.putIfAbsent(predicate, new AtomicDouble(0));
-                        predicatePositiveCounts_.get(predicate).addAndGet(positive);
-                        predicateCounts_.putIfAbsent(predicate, new AtomicLong(0));
-                        predicateCounts_.get(predicate).incrementAndGet();
+                        predicatePositiveCounts_.putIfAbsent(predicateId, new AtomicDouble(0));
+                        predicatePositiveCounts_.get(predicateId).addAndGet(positive);
+                        predicateCounts_.putIfAbsent(predicateId, new AtomicLong(0));
+                        predicateCounts_.get(predicateId).incrementAndGet();
                     });
         } else {
             instances.stream()
                     .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
                     .forEach((predicate, predicateInstances) -> {
-                        if (predicateCounts_.containsKey(predicate)) {
+                        int predicateId = getId(predicate, PREDICATE_ALPHABET_SIZE);
+                        if (predicateCounts_.containsKey(predicateId)) {
                             StringBuilder debugInfo = new StringBuilder();
-                            Map<String, AtomicDouble> currentMap = featureCounts_.get(predicate);
-                            final double[] score = {Math.log(predicatePositiveCounts_.get(predicate).get() + 1) - Math.log(predicateCounts_.get(predicate).get() + 10000)};
+                            Map<Integer, AtomicDouble> currentMap = featureCounts_.get(predicateId);
+                            final double[] score = {Math.log(predicatePositiveCounts_.get(predicateId).get() + 1) - Math.log(predicateCounts_.get(predicateId).get() + predSmoothingCount_)};
 
                             if (debug_)
-                                debugInfo.append("p(").append(predicate).append(")=").append(score[0]).append("\n");
+                                debugInfo.append("p(").append(predicate).append(")=").append(predicatePositiveCounts_.get(predicateId)).append("/").append(predicateCounts_.get(predicateId)).append("=").append(score[0]).append("\n");
 
                             questionFeatures.forEach(feature -> {
-                                double delta = Math.log(currentMap.getOrDefault(feature, new AtomicDouble(0.0)).get() + 1) - Math.log(predicatePositiveCounts_.get(predicate).get() + 10000000);
+                                double delta = Math.log(currentMap.getOrDefault(getId(feature, ALPHABET_SIZE), new AtomicDouble(0.0)).get() + 1) - Math.log(predicatePositiveCounts_.get(predicateId).get() + featureSmoothingCount_);
                                 score[0] += delta;
                                 if (debug_) {
-                                    debugInfo.append("p(").append(feature).append("|").append(predicate).append(")=").append(delta).append("\n");
+                                    debugInfo.append("p(").append(feature).append("|").append(predicate).append(")=").append(currentMap.get(getId(feature, ALPHABET_SIZE))).append("/").append(predicatePositiveCounts_.get(predicateId)).append("=").append(delta).append("\n");
                                 }
                             });
                             predicateInstances.forEach(instance -> {
@@ -314,6 +332,9 @@ public class QAModelTrainerProcessor extends Processor {
                 String bestPredicate = scores.peek().second.getPredicate();
                 boolean shouldKeepAnswer;
                 boolean first = true;
+                double smallestPositiveScore = scores.stream()
+                        .filter(x -> x.second.getIsPositive())
+                        .reduce((a1, a2) -> a1.first < a2.first ? a1 : a2).orElseGet(() -> new Triple<>(0.0, null, null)).first;
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
                 while (!scores.isEmpty()
                         && ((shouldKeepAnswer =
@@ -327,8 +348,8 @@ public class QAModelTrainerProcessor extends Processor {
                     Triple<Double, Document.QaRelationInstance, String> tr = scores.poll();
                     Document.QaRelationInstance e = tr.second;
 
-                    // Skip not extracted negative instances.
-                    if (!shouldKeepAnswer && !e.getIsPositive()) continue;
+                    // For debug only, output more examples.
+                    if (!shouldKeepAnswer && tr.first < smallestPositiveScore) continue;
 
                     String value;
                     if (e.getObject().startsWith("http://")) {
@@ -381,6 +402,10 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         return document;
+    }
+
+    private Integer getId(String feat, int alphabetSize) {
+        return (feat.hashCode() & 0x7FFFFFFF) % alphabetSize;
     }
 
 
@@ -529,6 +554,8 @@ public class QAModelTrainerProcessor extends Processor {
             int lastToken = document.document().getSentence(sentence).getLastToken();
             int[] tokenToNodeIndex = new int[lastToken - firstToken];
             Arrays.fill(tokenToNodeIndex, -1);
+            Node highestDepTreeVerb = null;
+            int highestDepTreeVerbDepth = Integer.MAX_VALUE;
             for (int token = firstToken; token < lastToken; ++token) {
                 int mentionHead = document.getTokenMentionHead(token);
                 Node node = null;
@@ -538,7 +565,7 @@ public class QAModelTrainerProcessor extends Processor {
                             node = new Node();
                             boolean measure = document.isTokenMeasure(token);
                             node.type = measure ? NodeType.REGULAR : NodeType.QTOPIC;
-                            if (false && !measure && useFreebaseTypes) {
+                            if (!measure && useFreebaseTypes) {
                                 for (Document.Span span : document.getTokenSpan(token)) {
                                     for (int i = 0; i < span.getCandidateEntityIdCount() && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
                                         node.values.addAll(kb.getEntityTypes(span.getCandidateEntityId(i), false).stream()
@@ -561,7 +588,10 @@ public class QAModelTrainerProcessor extends Processor {
                             if (document.document().getToken(token).getPos().startsWith("W")) {
                                 node.type = NodeType.QWORD;
                             } else if (document.document().getToken(token).getPos().startsWith("V") || document.document().getToken(token).getPos().startsWith("MD")) {
-                                node.type = NodeType.QVERB;
+                                int curDepth = document.document().getToken(token).getDependencyTreeNodeDepth();
+                                if (curDepth < highestDepTreeVerbDepth) {
+                                    highestDepTreeVerb = node;
+                                }
                             } else {
                                 if (document.document().getToken(token).getPos().startsWith("IN")) {
                                     node.type = NodeType.PREPOSITION;
@@ -571,6 +601,9 @@ public class QAModelTrainerProcessor extends Processor {
                             }
                         }
                     }
+                }
+                if (highestDepTreeVerb != null) {
+                    highestDepTreeVerb.type = NodeType.QVERB;
                 }
                 if (node != null) {
                     tokenToNodeIndex[token - firstToken] = nodes_.size();
