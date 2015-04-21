@@ -494,14 +494,16 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        try {
-            ObjectOutputStream model = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_))));
-            model.writeObject(predicateCounts_);
-            model.writeObject(predicatePositiveCounts_);
-            model.writeObject(featureCounts_);
-            model.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (isTraining_) {
+            try {
+                ObjectOutputStream model = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_))));
+                model.writeObject(predicateCounts_);
+                model.writeObject(predicatePositiveCounts_);
+                model.writeObject(featureCounts_);
+                model.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
