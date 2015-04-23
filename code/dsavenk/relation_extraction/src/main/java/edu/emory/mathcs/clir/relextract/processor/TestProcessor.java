@@ -1,24 +1,13 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.impl.LiteralImpl;
-import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
-import edu.emory.mathcs.clir.relextract.extraction.Parameters;
-import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
-import edu.emory.mathcs.clir.relextract.utils.DocumentUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.Properties;
+import java.util.Random;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -55,6 +44,9 @@ public class TestProcessor extends Processor {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
         ++total;
         boolean first = true;
+        if (!document.getText().contains("What country gained control")) {
+            return null;
+        }
         StringBuilder res = new StringBuilder();
         for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
             if ((flag || triple.getIsPositive()) && first) {
