@@ -3,21 +3,18 @@ package edu.emory.mathcs.clir.relextract.utils;
 import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.rdf.model.impl.LiteralImpl;
 import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
 import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import com.hp.hpl.jena.tdb.TDBFactory;
-import edu.emory.mathcs.clir.relextract.data.*;
+import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import org.apache.xerces.impl.dv.XSSimpleType;
 
 import java.io.BufferedReader;
@@ -214,6 +211,10 @@ public class KnowledgeBase {
         String rangePredicate = predicate;
         if (predicate.contains("|")) {
             String[] parts = predicate.split("\\|");
+            domainPredicate = parts[0];
+            rangePredicate = parts[1];
+        } else if (predicate.contains(".cvt.")) {
+            String[] parts = predicate.split("\\.cvt\\.");
             domainPredicate = parts[0];
             rangePredicate = parts[1];
         }

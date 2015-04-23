@@ -30,9 +30,12 @@ public class QAModelTrainerProcessor extends Processor {
 
     private static final int PREDICATE_ALPHABET_SIZE = 100000;
     private static final int ALPHABET_SIZE = 1000000;
-    private Map<Integer, Map<Integer, AtomicDouble>> featureCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, Map<Integer, AtomicDouble>> predicateFeatureCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, Map<Integer, AtomicDouble>> typeFeatureCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, AtomicDouble> typePositiveCounts_ = Collections.synchronizedMap(new HashMap<>());
     private Map<Integer, AtomicDouble> predicatePositiveCounts_ = Collections.synchronizedMap(new HashMap<>());
     private Map<Integer, AtomicLong> predicateCounts_ = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, AtomicLong> typeCounts_ = Collections.synchronizedMap(new HashMap<>());
 
     private Set<String> predicates_ = new HashSet<>();
     private double subsampleRate_ = 10;
@@ -83,7 +86,10 @@ public class QAModelTrainerProcessor extends Processor {
                 ObjectInputStream modelFile = new ObjectInputStream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(modelFile_))));
                 predicateCounts_ = (Map<Integer, AtomicLong>) modelFile.readObject();
                 predicatePositiveCounts_ = (Map<Integer, AtomicDouble>) modelFile.readObject();
-                featureCounts_ = (Map<Integer, Map<Integer, AtomicDouble>>) modelFile.readObject();
+                predicateFeatureCounts_ = (Map<Integer, Map<Integer, AtomicDouble>>) modelFile.readObject();
+                typeCounts_ = (Map<Integer, AtomicLong>) modelFile.readObject();
+                typePositiveCounts_ = (Map<Integer, AtomicDouble>) modelFile.readObject();
+                typeFeatureCounts_ = (Map<Integer, Map<Integer, AtomicDouble>>) modelFile.readObject();
                 modelFile.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -261,45 +267,69 @@ public class QAModelTrainerProcessor extends Processor {
                     .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
                     .forEach((predicate, predicateInstances) -> {
                         int predicateId = getId(predicate, PREDICATE_ALPHABET_SIZE);
-                        featureCounts_.putIfAbsent(predicateId, Collections.synchronizedMap(new HashMap<>()));
-                        Map<Integer, AtomicDouble> currentMap = featureCounts_.get(predicateId);
+                        Pair<String, String> domainRange = kb_.getPredicateDomainAndRange(predicate);
+                        domainRange.second = domainRange.second == null ? "none" : domainRange.second;
+                        int typeId = getId(domainRange.second, PREDICATE_ALPHABET_SIZE);
+                        predicateFeatureCounts_.putIfAbsent(predicateId, Collections.synchronizedMap(new HashMap<>()));
+                        typeFeatureCounts_.putIfAbsent(typeId, Collections.synchronizedMap(new HashMap<>()));
+                        Map<Integer, AtomicDouble> currentPredicateMap = predicateFeatureCounts_.get(predicateId);
+                        Map<Integer, AtomicDouble> currentTypeMap = typeFeatureCounts_.get(typeId);
                         double positive = 1.0 * predicateInstances.stream().filter(Document.QaRelationInstance::getIsPositive).count() / predicateInstances.size();
                         questionFeatures.forEach(feat -> {
-                            currentMap.putIfAbsent(getId(feat, ALPHABET_SIZE), new AtomicDouble(0.0));
-                            currentMap.get(getId(feat, ALPHABET_SIZE)).addAndGet(positive);
+                            currentPredicateMap.putIfAbsent(getId(feat, ALPHABET_SIZE), new AtomicDouble(0.0));
+                            currentPredicateMap.get(getId(feat, ALPHABET_SIZE)).addAndGet(positive);
+                            currentTypeMap.putIfAbsent(getId(feat, ALPHABET_SIZE), new AtomicDouble(0.0));
+                            currentTypeMap.get(getId(feat, ALPHABET_SIZE)).addAndGet(positive);
                         });
                         predicatePositiveCounts_.putIfAbsent(predicateId, new AtomicDouble(0));
                         predicatePositiveCounts_.get(predicateId).addAndGet(positive);
                         predicateCounts_.putIfAbsent(predicateId, new AtomicLong(0));
                         predicateCounts_.get(predicateId).incrementAndGet();
+                        typePositiveCounts_.putIfAbsent(typeId, new AtomicDouble(0));
+                        typePositiveCounts_.get(typeId).addAndGet(positive);
+                        typeCounts_.putIfAbsent(typeId, new AtomicLong(0));
+                        typeCounts_.get(typeId).incrementAndGet();
                     });
         } else {
             instances.stream()
                     .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate))
                     .forEach((predicate, predicateInstances) -> {
                         int predicateId = getId(predicate, PREDICATE_ALPHABET_SIZE);
+                        Pair<String, String> domainRange = kb_.getPredicateDomainAndRange(predicate);
+                        domainRange.second = domainRange.second == null ? "none" : domainRange.second;
+                        int typeId = getId(domainRange.second, PREDICATE_ALPHABET_SIZE);
                         if (predicateCounts_.containsKey(predicateId)) {
                             StringBuilder debugInfo = new StringBuilder();
-                            Map<Integer, AtomicDouble> currentMap = featureCounts_.get(predicateId);
-                            final double[] score = {Math.log(predicatePositiveCounts_.get(predicateId).get() + 1) - Math.log(predicateCounts_.get(predicateId).get() + predSmoothingCount_)};
+                            Map<Integer, AtomicDouble> currentPredicateMap = predicateFeatureCounts_.get(predicateId);
+                            Map<Integer, AtomicDouble> currentTypeMap = typeFeatureCounts_.get(typeId);
+                            double predPrior = Math.log(predicatePositiveCounts_.get(predicateId).get() + 1) - Math.log(predicateCounts_.get(predicateId).get() + predSmoothingCount_);
+                            double typePrior = Math.log(typePositiveCounts_.get(typeId).get() + 1) - Math.log(typeCounts_.get(typeId).get() + predSmoothingCount_);
+                            final double[] score = {predPrior + typePrior};
 
-                            if (debug_)
-                                debugInfo.append("p(").append(predicate).append(")=").append(predicatePositiveCounts_.get(predicateId)).append("/").append(predicateCounts_.get(predicateId)).append("=").append(score[0]).append("\n");
+                            if (debug_) {
+                                debugInfo.append("p(").append(predicate).append(")=").append(predicatePositiveCounts_.get(predicateId)).append("/").append(predicateCounts_.get(predicateId)).append("=").append(predPrior).append("\n");
+                                debugInfo.append("p(").append(domainRange.second).append(")=").append(typePositiveCounts_.get(typeId)).append("/").append(typeCounts_.get(typeId)).append("=").append(typePrior).append("\n");
+                            }
 
                             questionFeatures.forEach(feature -> {
-                                double delta = Math.log(currentMap.getOrDefault(getId(feature, ALPHABET_SIZE), new AtomicDouble(0.0)).get() + 1) - Math.log(predicatePositiveCounts_.get(predicateId).get() + featureSmoothingCount_);
-                                score[0] += delta;
+                                double predicateDelta = Math.log(currentPredicateMap.getOrDefault(getId(feature, ALPHABET_SIZE), new AtomicDouble(0.0)).get() + 1) - Math.log(predicatePositiveCounts_.get(predicateId).get() + featureSmoothingCount_);
+                                double typeDelta = Math.log(currentTypeMap.getOrDefault(getId(feature, ALPHABET_SIZE), new AtomicDouble(0.0)).get() + 1) - Math.log(typePositiveCounts_.get(typeId).get() + featureSmoothingCount_);
+                                score[0] += predicateDelta;
                                 if (debug_) {
-                                    debugInfo.append("p(").append(feature).append("|").append(predicate).append(")=").append(currentMap.get(getId(feature, ALPHABET_SIZE))).append("/").append(predicatePositiveCounts_.get(predicateId)).append("=").append(delta).append("\n");
+                                    debugInfo.append("p(").append(feature).append("|").append(predicate).append(")=").append(currentPredicateMap.get(getId(feature, ALPHABET_SIZE))).append("/").append(predicatePositiveCounts_.get(predicateId)).append("=").append(predicateDelta).append("\n");
+                                    debugInfo.append("p(").append(feature).append("|").append(domainRange.second).append(")=").append(currentTypeMap.get(getId(feature, ALPHABET_SIZE))).append("/").append(typePositiveCounts_.get(typeId)).append("=").append(typeDelta).append("\n");
                                 }
                             });
-                            predicateInstances.forEach(instance -> {
-                                Triple<Double, Document.QaRelationInstance, String> tr =
-                                        new Triple<>(score[0], instance, "");
-                                scores.add(tr);
+                            predicateInstances
+                                    .stream()
+                                    .filter(instance -> !kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject())))
+                                    .forEach(instance -> {
+                                        Triple<Double, Document.QaRelationInstance, String> tr =
+                                                new Triple<>(score[0], instance, "");
+                                        scores.add(tr);
 
-                                if (debug_) {
-                                    tr.third = debugInfo.toString();
+                                        if (debug_) {
+                                            tr.third = debugInfo.toString();
                                 }
                             });
                         } else {
@@ -499,7 +529,10 @@ public class QAModelTrainerProcessor extends Processor {
                 ObjectOutputStream model = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(modelFile_))));
                 model.writeObject(predicateCounts_);
                 model.writeObject(predicatePositiveCounts_);
-                model.writeObject(featureCounts_);
+                model.writeObject(predicateFeatureCounts_);
+                model.writeObject(typeCounts_);
+                model.writeObject(typePositiveCounts_);
+                model.writeObject(typeFeatureCounts_);
                 model.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -590,6 +623,7 @@ public class QAModelTrainerProcessor extends Processor {
                             if (document.document().getToken(token).getPos().startsWith("W")) {
                                 node.type = NodeType.QWORD;
                             } else if (document.document().getToken(token).getPos().startsWith("V") || document.document().getToken(token).getPos().startsWith("MD")) {
+                                node.type = NodeType.REGULAR;
                                 int curDepth = document.document().getToken(token).getDependencyTreeNodeDepth();
                                 if (curDepth < highestDepTreeVerbDepth) {
                                     highestDepTreeVerb = node;
