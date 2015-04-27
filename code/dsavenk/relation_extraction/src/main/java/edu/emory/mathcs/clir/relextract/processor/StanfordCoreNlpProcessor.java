@@ -1,29 +1,11 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
-import edu.emory.mathcs.clir.relextract.annotators.SpanAnnotator;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
-import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
-import edu.stanford.nlp.dcoref.CorefChain;
-import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
-import edu.stanford.nlp.dcoref.Dictionaries;
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.SentenceAnnotator;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.process.PTBTokenizer;
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
-import edu.stanford.nlp.semgraph.SemanticGraphEdge;
-import edu.stanford.nlp.trees.*;
-import edu.stanford.nlp.util.CoreMap;
-import edu.stanford.nlp.util.Interval;
-import edu.stanford.nlp.util.IntervalTree;
-import edu.stanford.nlp.util.Pair;
 
-import java.util.*;
+import java.util.Properties;
 
 /**
  * The processor runs standard Stanford CoreNLP pipeline.
@@ -90,9 +72,8 @@ public class StanfordCoreNlpProcessor extends Processor {
     }
 
     protected String getAnnotators() {
-        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, answer_mentions, moddcoref";
-        //return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
-        //return "tokenize, cleanxml, ssplit, pos, lemma, ner, span, parse, depparse, moddcoref";
+        return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, moddcoref";
+        //return "tokenize, ssplit, pos, lemma, ner, regexner, entitymentions, parse, depparse, answer_mentions, moddcoref";
     }
 
     @Override

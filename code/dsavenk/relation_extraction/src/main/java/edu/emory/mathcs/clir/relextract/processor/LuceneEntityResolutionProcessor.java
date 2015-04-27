@@ -1,6 +1,7 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.process.PTBTokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
@@ -29,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class LuceneEntityResolutionProcessor extends Processor {
 
-    public static final String LUCENE_INDEX_PARAMETER = "lucene_lexicon_index";
     public static final String LUCENE_SPELLCHECKINDEX_PARAMETER = "spellcheck_index";
     private final ConcurrentMap<String, String[]> entityNameCache = new ConcurrentHashMap<>();
     private final IndexSearcher searcher_;
@@ -52,7 +52,7 @@ public class LuceneEntityResolutionProcessor extends Processor {
                 new File(properties.getProperty(
                         LUCENE_SPELLCHECKINDEX_PARAMETER)));
         Directory searchIndexDir = FSDirectory.open(
-                new File(properties.getProperty(LUCENE_INDEX_PARAMETER)));
+                new File(properties.getProperty(KnowledgeBase.LUCENE_INDEX_PARAMETER)));
         IndexReader searchIndexReader = DirectoryReader.open(searchIndexDir);
         spellChecker_ = new SpellChecker(spellIndexDir);
         searcher_ = new IndexSearcher(searchIndexReader);

@@ -3,27 +3,29 @@ package edu.emory.mathcs.clir.relextract.utils;
 import com.hp.hpl.jena.datatypes.DatatypeFormatException;
 import com.hp.hpl.jena.datatypes.RDFDatatype;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
-import com.hp.hpl.jena.graph.Node;
+import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.query.Dataset;
+import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.rdf.model.impl.LiteralImpl;
 import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
 import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
 import com.hp.hpl.jena.sparql.util.NodeFactoryExtra;
 import com.hp.hpl.jena.tdb.TDBFactory;
-import edu.emory.mathcs.clir.relextract.data.*;
+import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.stanford.nlp.time.Timex;
 import edu.stanford.nlp.util.Pair;
 import org.apache.commons.collections4.map.LRUMap;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.search.*;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.QueryBuilder;
 import org.apache.xerces.impl.dv.XSSimpleType;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -38,10 +40,18 @@ public class KnowledgeBase {
      * Property name to store the location of Apache Jena model of the KB.
      */
     public static final String KB_PROPERTY = "kb";
+    public static final String LUCENE_INDEX_PARAMETER = "lucene_lexicon_index";
 
     public static final String CVT_PREDICATE_LIST_PARAMETER = "cvt";
 
     public static final String ENTITY_TYPES_PARAMETER = "entity_types";
+
+    private static final float MATCH_MIN_FRACTION = 0.8f;
+    private static final int MAX_IDS_COUNT = 15;
+    private static final int MIN_TRIPLES_COUNT = 1;
+    private static final float MIN_FRACTION_OF_MAX_SCORE = 0.5f;
+
+    private static final String TRIPLE_COUNT_FIELD = "triple_count";
 
     /**
      * Prefix of Freebase RDF.
@@ -49,6 +59,7 @@ public class KnowledgeBase {
     // TODO(denxx): Can we get this prefix from the KB?
     public static final String FREEBASE_RDF_PREFIX =
             "http://rdf.freebase.com/ns/";
+
     private static KnowledgeBase kb_ = null;
     private final Set<String> cvtProperties_ = new HashSet<>();
     private final Set<String> dateProperties = new HashSet<>();
@@ -61,13 +72,21 @@ public class KnowledgeBase {
 
     private Map<String, List<Statement>> topicCache_ = Collections.synchronizedMap(new HashMap<>());
 
+    private IndexSearcher dictSearcher_;
+    private final QueryBuilder queryBuilder_ = new QueryBuilder(
+            new StandardAnalyzer(CharArraySet.EMPTY_SET));
+    private final QueryBuilder keywordQueryBuilder_ = new QueryBuilder(new KeywordAnalyzer());
+    private final Sort sort_ = new Sort(SortField.FIELD_SCORE,
+            new SortField(TRIPLE_COUNT_FIELD, SortField.Type.LONG, true));
+    private Map<String, Set<String>> nameLookupCache_ = Collections.synchronizedMap(new HashMap<>());
+
     /**
      * Private constructor, that initializes a new instance of the knowledge
      * base.
      *
      * @param location Location of the Apache Jena model of the KB.
      */
-    private KnowledgeBase(String location) {
+    private KnowledgeBase(String location, String indexLocation) {
 
 //        Dataset dataset = new virtuoso.jena.driver.VirtDataset("jdbc:virtuoso://localhost:3093", "dba", "dba");
         Dataset dataset = TDBFactory.createDataset(location);
@@ -97,6 +116,19 @@ public class KnowledgeBase {
             }
         }
 
+        if (indexLocation != null && !indexLocation.isEmpty()) {
+            try {
+                dictSearcher_ = new IndexSearcher(
+                        DirectoryReader.open(
+                                FSDirectory.open(new File(indexLocation))));
+            } catch (IOException e) {
+                e.printStackTrace();
+                dictSearcher_ = null;
+            }
+        } else {
+            dictSearcher_ = null;
+        }
+
 //        iter = model_.listStatements(null,
 //                model_.getProperty(FREEBASE_RDF_PREFIX, "type.property.expected_type"),
 //                model_.getResource(convertFreebaseMidRdf("type.datetime")));
@@ -117,7 +149,7 @@ public class KnowledgeBase {
      */
     public static synchronized KnowledgeBase getInstance(Properties props) {
         if (kb_ == null) {
-            kb_ = new KnowledgeBase(props.getProperty(KB_PROPERTY));
+            kb_ = new KnowledgeBase(props.getProperty(KB_PROPERTY), props.getProperty(LUCENE_INDEX_PARAMETER));
         }
         if (props.containsKey(ENTITY_TYPES_PARAMETER)) {
             try {
@@ -199,6 +231,17 @@ public class KnowledgeBase {
     }
 
     public long getTripleCount(String mid) {
+        if (dictSearcher_ != null) {
+            TopDocs docs = null;
+            try {
+                docs = dictSearcher_.search(keywordQueryBuilder_.createBooleanQuery("id", mid), 1);
+                if (docs.totalHits > 0) return Long.parseLong(dictSearcher_.doc(docs.scoreDocs[0].doc).get(TRIPLE_COUNT_FIELD));
+                else return 0L;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         long count = 0;
         StmtIterator iter = model_.getResource(convertFreebaseMidRdf(mid)).listProperties();
         while (iter.hasNext()) {
@@ -768,5 +811,44 @@ public class KnowledgeBase {
                     + predicate + " - " + kb_.getEntityName(object) +
                     " [" + object + "]";
         }
+    }
+
+    public Set<String> lookupEntitiesByName(String name) {
+        if (nameLookupCache_.containsKey(name)) return nameLookupCache_.get(name);
+
+        ScoreDoc[] docs;
+        org.apache.lucene.search.Query q = queryBuilder_.createMinShouldMatchQuery("name", name, MATCH_MIN_FRACTION);
+        if (q == null) return Collections.emptySet();
+
+        TopDocs topDocs;
+        try {
+            topDocs = dictSearcher_.search(q, MAX_IDS_COUNT, sort_);
+        } catch (IOException e) {
+            return Collections.emptySet();
+        }
+        docs = topDocs.scoreDocs;
+
+        Set<String> entities = new HashSet<>();
+        float maxScore = (docs.length > 0) ? (float)((FieldDoc)docs[0]).fields[0] : 0;
+        for (ScoreDoc doc : docs) {
+            try {
+                org.apache.lucene.document.Document document =
+                        dictSearcher_.doc(doc.doc);
+                float score = (float)((FieldDoc)doc).fields[0];
+                if (score < maxScore * MIN_FRACTION_OF_MAX_SCORE) {
+                    // Check length? (1.0 * document.get("name").split("\\s+").length / name.split("\\s+").length < 0.6)
+                    break;
+                }
+                long count = (long)((FieldDoc)doc).fields[1];
+                if (count > MIN_TRIPLES_COUNT) {
+                    String id = document.get("id");
+                    entities.add(id);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        nameLookupCache_.put(name, entities);
+        return entities;
     }
 }

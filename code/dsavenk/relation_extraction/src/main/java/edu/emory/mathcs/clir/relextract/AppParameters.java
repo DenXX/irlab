@@ -69,9 +69,9 @@ public class AppParameters {
                         DumpEntityNamesProcessor.ENTITY_NAMES_FILENAME));
 
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(LuceneEntityResolutionProcessor.LUCENE_INDEX_PARAMETER)
+                .withArgName(KnowledgeBase.LUCENE_INDEX_PARAMETER)
                 .withDescription("Entity names lucene index").create(
-                        LuceneEntityResolutionProcessor.LUCENE_INDEX_PARAMETER));
+                        KnowledgeBase.LUCENE_INDEX_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(LuceneEntityResolutionProcessor.LUCENE_SPELLCHECKINDEX_PARAMETER)
                 .withDescription("Lucene spellcheck index").create(
@@ -171,17 +171,17 @@ public class AppParameters {
 
         // Cascade entity resolver
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)
+                .withArgName(CascadeEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER)
                 .withDescription("Wikilinks dictionary file").create(
-                        CascaseEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER));
+                        CascadeEntityResolutionProcessor.WIKILINKS_DICTIONARY_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
-                .withArgName(CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER)
+                .withArgName(CascadeEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER)
                 .withDescription("Wikilinks normalized dictionary file").create(
-                        CascaseEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER));
+                        CascadeEntityResolutionProcessor.WIKILINKS_LNRM_DICTIONARY_PARAMETER));
         opt.addOption(OptionBuilder
-                .withArgName(CascaseEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER)
+                .withArgName(CascadeEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER)
                 .withDescription("Always use Freebase entity names dictionary first").create(
-                        CascaseEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER));
+                        CascadeEntityResolutionProcessor.ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER));
         opt.addOption(OptionBuilder.hasArg()
                 .withArgName(QAModelTrainerProcessor.QA_MODEL_PARAMETER)
                 .withDescription("QA model file").create(
