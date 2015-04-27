@@ -128,6 +128,7 @@ public class QAExamplesBuilderProcessor extends Processor {
             questionSpanIds.stream().forEach(this::cacheTopicTriples);
 
             docBuilder = document.toBuilder();
+            docBuilder.clearQaInstance();
 
             for (String id : questionSpanIds) {
                 for (String relatedId : sop.get(id).keySet()) {
