@@ -9,7 +9,6 @@ import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
 import java.util.*;
@@ -58,7 +57,8 @@ public class QAExamplesBuilderProcessor extends Processor {
         for (Document.Span span : document.getSpanList()) {
             Set<String> entityIds = new HashSet<>();
             if ("MEASURE".equals(span.getType())) {
-                if (span.getNerType().equals("DATE")) {
+                if (span.getNerType().equals("DATE")
+                        && span.getMentionList().stream().filter(x -> x.getSentenceIndex() >= questionSentencesCount).count() > 0) {
                     boolean skip = false;
                     int pos1 = span.getValue().indexOf("value=");
                     if (pos1 == -1) {
