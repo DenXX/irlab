@@ -1,11 +1,12 @@
 package edu.emory.mathcs.clir.relextract.data;
 
 import edu.emory.mathcs.clir.relextract.AppParameters;
-import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -70,7 +71,7 @@ public class WebQuestionsInputProvider implements Iterable<Document.NlpDocument>
                 int par = answerLisp.indexOf(")", pos);
                 int beg = quote > 0 && quote < par ? quote : space;
                 int end = quote > 0 && quote < par ? answerLisp.indexOf("\"", quote + 1) : par;
-                res.append("<").append(answerLisp.substring(beg + 1, end)).append(">,\n");
+                res.append("<").append(answerLisp.substring(beg + 1, end)).append(">.\n");
                 pos = end;
             }
             return res.toString();

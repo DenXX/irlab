@@ -3,13 +3,11 @@ package edu.emory.mathcs.clir.relextract.annotators;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.MultiTokenTag;
-import edu.stanford.nlp.ling.tokensregex.types.Tags;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.Annotator;
 import edu.stanford.nlp.util.ArraySet;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -33,7 +31,7 @@ public class AddAnswerMentionsAnnotator implements Annotator {
             String text = token.get(CoreAnnotations.TextAnnotation.class);
             if (text.charAt(0) == '<' && text.charAt(text.length() - 1) == '>') {
                 token.set(CoreAnnotations.TextAnnotation.class, text.substring(1, text.length() - 1));
-                MultiTokenTag tag = new MultiTokenTag(new MultiTokenTag.Tag("answer", "ANS", 1), 0);
+                MultiTokenTag tag = new MultiTokenTag(new MultiTokenTag.Tag(text, text, 1), 0);
                 tag.isStart();
                 token.set(CoreAnnotations.MentionTokenAnnotation.class, tag);
             }

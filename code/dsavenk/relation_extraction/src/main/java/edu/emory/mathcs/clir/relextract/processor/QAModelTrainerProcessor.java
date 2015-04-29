@@ -7,12 +7,12 @@ import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
+import edu.emory.mathcs.clir.representations.WordVec;
 import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
-import edu.stanford.nlp.optimization.GoldenSectionLineSearch;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -29,6 +29,9 @@ public class QAModelTrainerProcessor extends Processor {
 
     private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
     private final KnowledgeBase kb_;
+    private WordVec wordVec_ = null;
+    private Map<String, float[]> embeddings = new HashMap<>();
+
     private Random rnd_ = new Random(42);
     private String modelFile_;
     private LinearClassifier<Boolean, Integer> model_ = null;
@@ -61,6 +64,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_RELATION_WORD_DICT_PARAMETER = "qa_relword_dict";
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
     public static final String QA_REGULARIZER_PARAMETER = "qa_regularizer";
+    public static final String QA_WORDVEC_PARAMETER = "qa_wordvec";
 
     BufferedWriter out;
 
@@ -120,6 +124,14 @@ public class QAModelTrainerProcessor extends Processor {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        if (properties.containsKey(QA_WORDVEC_PARAMETER)) {
+            try {
+                wordVec_ = new WordVec(properties.getProperty(QA_WORDVEC_PARAMETER));
+            } catch (IOException e) {}
+        } else {
+            wordVec_ = null;
         }
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
@@ -205,7 +217,8 @@ public class QAModelTrainerProcessor extends Processor {
                                 DependencyTreeUtils.getMentionHeadToken(document, mention));
                         if (path != null)
                             questionFeatures.add(path);
-                        questionFeatures.add(NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex).trim());
+                        String template = NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex).trim();
+                        questionFeatures.add(template);
                         ++mentionIndex;
                     }
                 }
@@ -213,8 +226,27 @@ public class QAModelTrainerProcessor extends Processor {
         }
 
         for (int sentence = 0; sentence < document.getSentenceCount() && sentence < documentWrapper.getQuestionSentenceCount(); ++sentence) {
-            questionFeatures.addAll(new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_).getEdgeFeatures());
+            QuestionGraph qGraph = new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_);
+            questionFeatures.addAll(qGraph.getEdgeFeatures());
         }
+
+
+
+        if (wordVec_ != null) {
+            // RVF FEatures
+            int firstToken = document.getSentence(0).getFirstToken();
+            int lastToken = document.getSentence(0).getLastToken();
+            List<String> words = new ArrayList<>();
+            for (int token = firstToken; token < lastToken; ++token) {
+                if (Character.isAlphabetic(document.getToken(token).getPos().charAt(0)) &&
+                        documentWrapper.getTokenSpan(token).isEmpty()) {
+                    words.add(document.getToken(token).getText());
+                }
+            }
+            embeddings.put(document.getSentence(0).getText(), wordVec_.getPhraseVec(words.toArray(new String[words.size()])));
+        }
+
+
 
         Map<String, Integer> pQuesRelRank = null;
         Map<String, Double> pQuesRelScore = null;
@@ -233,6 +265,7 @@ public class QAModelTrainerProcessor extends Processor {
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
         StringWriter strWriter = debug_ ? new StringWriter() : null;
         PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
+
         for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
             if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
                 continue;
@@ -501,6 +534,25 @@ public class QAModelTrainerProcessor extends Processor {
     public void finishProcessing() {
         if (model_ == null) {
 
+            for (String question : embeddings.keySet()) {
+                float[] currentQ = embeddings.get(question);
+                System.out.println("\n\n>>>>>>> " + question);
+                for (Pair<String, Double> closest :
+                        embeddings.entrySet().stream().filter(e -> !e.getKey().equals(question))
+                                .map(e -> {
+                                    double dist = 0;
+                                    for (int i = 0; i < currentQ.length; ++i) {
+                                        dist += (currentQ[i] - e.getValue()[i]) * (currentQ[i] - e.getValue()[i]);
+                                    }
+                                    return new Pair<>(e.getKey(), Math.sqrt(dist));
+                                })
+                                .sorted((e1, e2) -> e1.second.compareTo(e2.second))
+                                .limit(10)
+                                .collect(Collectors.toList())) {
+                    System.out.println(closest.second + "\t" + closest.first);
+                }
+            }
+
             dataset_.summaryStatistics();
 //            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
@@ -522,9 +574,9 @@ public class QAModelTrainerProcessor extends Processor {
 
             LinearClassifierFactory<Boolean, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
             classifierFactory_.useQuasiNewton(true);
-            classifierFactory_.setTuneSigmaHeldOut();
-            classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
-            classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
+            //classifierFactory_.setTuneSigmaHeldOut();
+            //classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            //classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
 //            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
 //            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
 
@@ -651,7 +703,27 @@ public class QAModelTrainerProcessor extends Processor {
 
         List<String> getEdgeFeatures() {
             List<String> res = new ArrayList<>();
+            Node qwordNode = null;
+            Node qfocusNode = null;
+            Node qverbNode = null;
+            Node qtargetNode = null;
             for (Node node : nodes_) {
+                if (node != null) {
+                    switch (node.type) {
+                        case QWORD:
+                            qwordNode = node;
+                            break;
+                        case QFOCUS:
+                            qfocusNode = node;
+                            break;
+                        case QVERB:
+                            qverbNode = node;
+                            break;
+                        case QTOPIC:
+                            qtargetNode = node;
+                            break;
+                    }
+                }
                 if (node != null) {
                     if (node.type != NodeType.PREPOSITION) {
                         for (String feat : node.getValues()) {
@@ -665,6 +737,16 @@ public class QAModelTrainerProcessor extends Processor {
                                 res.add(nodeStr + "->" + parentNodeStr);
                                 res.add(nodeStr + "-" + parent.second + "->" + parentNodeStr);
                             }
+                        }
+                    }
+                }
+            }
+
+            for (String qword : qwordNode != null ? qwordNode.getValues() : new String[] {""}) {
+                for (String qfocus : qfocusNode != null ? qfocusNode.getValues() : new String[] {""}) {
+                    for (String qverb : qverbNode != null ? qverbNode.getValues() : new String[] {""}) {
+                        for (String qtarget : qtargetNode != null ? qtargetNode.getValues() : new String[] {""}) {
+                            res.add(qword + " + " + qfocus + " + " + qverb + " + " + qtarget);
                         }
                     }
                 }

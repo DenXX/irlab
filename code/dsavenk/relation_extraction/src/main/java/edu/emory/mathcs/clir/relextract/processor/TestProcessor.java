@@ -35,44 +35,42 @@ public class TestProcessor extends Processor {
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
         rnd = new Random(42);
-        kb_ = null; //KnowledgeBase.getInstance(properties);
+        kb_ = KnowledgeBase.getInstance(properties);
         flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
-        ++total;
-        boolean first = true;
-        if (!document.getText().contains("What country gained control")) {
-            return null;
-        }
-        StringBuilder res = new StringBuilder();
-        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if ((flag || triple.getIsPositive()) && first) {
-                res.append("----------------------------------\n").append(document.getText()).append("\n");
-                first = false;
-                ++count;
-            }
-            if (triple.getIsPositive()) {
-                res.append(kb_.getEntityName(triple.getSubject()))
-                        .append("[")
-                        .append(triple.getSubject())
-                        .append("]\t")
-                        .append(triple.getPredicate())
-                        .append("\t")
-                        .append(triple.getObject().startsWith("http:")
-                            ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
-                            : triple.getObject())
-                        .append("\n");
-            }
-        }
-        if (res.length() > 0) {
-            synchronized (this) {
-                System.out.println(res.toString());
-            }
-        }
-        return null;
+
+//        ++total;
+//        boolean first = true;
+//        StringBuilder res = new StringBuilder();
+//        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
+//            if ((flag || triple.getIsPositive()) && first) {
+//                res.append("----------------------------------\n").append(document.getText()).append("\n");
+//                first = false;
+//                ++count;
+//            }
+//            if (triple.getIsPositive()) {
+//                res.append(kb_.getEntityName(triple.getSubject()))
+//                        .append("[")
+//                        .append(triple.getSubject())
+//                        .append("]\t")
+//                        .append(triple.getPredicate())
+//                        .append("\t")
+//                        .append(triple.getObject().startsWith("http:")
+//                            ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
+//                            : triple.getObject())
+//                        .append("\n");
+//            }
+//        }
+//        if (res.length() > 0) {
+//            synchronized (this) {
+//                System.out.println(res.toString());
+//            }
+//        }
+        return document;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {

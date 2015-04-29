@@ -108,7 +108,6 @@ public class QAExamplesBuilderProcessor extends Processor {
                     if (mention.getSentenceIndex() < questionSentencesCount
                             && !"MEASURE".equals(span.getType())) {
                         questionSpanIds.addAll(entityIds);
-                        break;
                     } else {
                         answerSpanIds.addAll(entityIds);
                     }
@@ -123,7 +122,10 @@ public class QAExamplesBuilderProcessor extends Processor {
             }
             ++spanIndex;
         }
-        answerSpanIds.removeAll(questionSpanIds);
+
+        // TODO(dsavenk): I used to have this, but it causes some issues.
+        //answerSpanIds.removeAll(questionSpanIds);
+
         if (!answerSpanIds.isEmpty() && !questionSpanIds.isEmpty()) {
             questionSpanIds.stream().forEach(this::cacheTopicTriples);
 
@@ -133,7 +135,8 @@ public class QAExamplesBuilderProcessor extends Processor {
             for (String id : questionSpanIds) {
                 for (String relatedId : sop.get(id).keySet()) {
                     for (Statement st : sop.get(id).get(relatedId)) {
-                        if (!added.contains(st.toString())) {
+                        if ((!st.getObject().isResource() || !st.getSubject().equals(st.getObject().asResource())) &&
+                                !added.contains(st.toString())) {
                             Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
                                     .setSubject(id)
                                     .addAllObjSpanIndex(entityLocation.get(id))

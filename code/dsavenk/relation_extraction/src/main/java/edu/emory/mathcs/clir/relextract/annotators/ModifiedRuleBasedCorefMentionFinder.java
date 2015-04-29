@@ -93,7 +93,7 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
             findHead(s, mentions);
             setBarePlural(mentions);
 
-            removeSpuriousMentions(s, mentions, dict);
+            //removeSpuriousMentions(s, mentions, dict);
         }
 
         // assign mention IDs

@@ -234,6 +234,11 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_REGULARIZER_PARAMETER)
                 .withDescription("Regularizer parameter").create(
                         QAModelTrainerProcessor.QA_REGULARIZER_PARAMETER));
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_WORDVEC_PARAMETER)
+                .withDescription("Binary word2vec file with word vectors").create(
+                        QAModelTrainerProcessor.QA_WORDVEC_PARAMETER));
 
         opt.addOption(OptionBuilder
                 .hasArg()
