@@ -1,5 +1,6 @@
 package edu.emory.mathcs.clir.relextract;
 
+import edu.emory.mathcs.clir.relextract.data.YahooAnswersWebscopeXmlInputProvider;
 import edu.emory.mathcs.clir.relextract.processor.*;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.cli.OptionBuilder;
@@ -251,6 +252,12 @@ public class AppParameters {
                 .withArgName(BuildSearchIndexProcessor.INDEX_LOCATION_PARAMETER)
                 .withDescription("Location of the index to store documents in").create(
                         BuildSearchIndexProcessor.INDEX_LOCATION_PARAMETER));
+
+        opt.addOption(OptionBuilder
+                .withArgName(YahooAnswersWebscopeXmlInputProvider.KEEP_ALL_ANSWERS_PARAMETER)
+                .withDescription("Keep all answers, not only best answer.").create(
+                        YahooAnswersWebscopeXmlInputProvider.KEEP_ALL_ANSWERS_PARAMETER));
+
 
         return opt;
     }

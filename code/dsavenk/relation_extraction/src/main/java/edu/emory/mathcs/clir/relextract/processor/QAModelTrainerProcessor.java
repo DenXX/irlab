@@ -8,9 +8,9 @@ import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.emory.mathcs.clir.representations.WordVec;
-import edu.stanford.nlp.classify.Dataset;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.classify.WeightedDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
 import edu.stanford.nlp.util.Pair;
@@ -27,14 +27,14 @@ import java.util.zip.GZIPOutputStream;
  */
 public class QAModelTrainerProcessor extends Processor {
 
-    private final Dataset<Boolean, Integer> dataset_ = new Dataset<>();
+    private final WeightedDataset<String, Integer> dataset_ = new WeightedDataset<>();
     private final KnowledgeBase kb_;
     private WordVec wordVec_ = null;
     private Map<String, float[]> embeddings = new HashMap<>();
 
     private Random rnd_ = new Random(42);
     private String modelFile_;
-    private LinearClassifier<Boolean, Integer> model_ = null;
+    private LinearClassifier<String, Integer> model_ = null;
     private String datasetFile_;
     private boolean split_ = false;
 
@@ -200,18 +200,29 @@ public class QAModelTrainerProcessor extends Processor {
 
         DocumentWrapper documentWrapper = new DocumentWrapper(document);
 
-//        int[] tokenMentions = new int[documentWrapper.getQuestionSentenceCount() < document.getSentenceCount()
-//                ? document.getSentence(documentWrapper.getQuestionSentenceCount()).getFirstToken()
-//                : document.getTokenCount()];
-//        Arrays.fill(tokenMentions, -1);
+        Map<String, Double> entityScores = new HashMap<>();
 
         Set<String> questionFeatures = new HashSet<>();
-
+        String bestEntity = "";
+        Pair<Double, Double> bestEntityScore = new Pair<>(0.0, 0.0);
+        int answersCount = 0;
         for (Document.Span span : document.getSpanList()) {
             if (span.hasEntityId() && span.getCandidateEntityScore(0) > Parameters.MIN_ENTITYID_SCORE) {
                 int mentionIndex = 0;
+                boolean answerEntity = false;
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
+
+                        for (int i = 0; i < span.getCandidateEntityIdCount(); ++i) {
+                            entityScores.put(span.getCandidateEntityId(i), span.getCandidateEntityScore(i));
+                            Pair<Double, Double> currentScore = new Pair<>(span.getCandidateEntityScore(i), (double)mention.getText().split("\\s+").length); // span.getCandidateEntityScore(i);
+                            if (currentScore.first > bestEntityScore.first || (currentScore.first.equals(bestEntityScore.first) && currentScore.second > bestEntityScore.second))
+                            {
+                                bestEntity = span.getCandidateEntityId(i);
+                                bestEntityScore = currentScore;
+                            }
+                        }
+
                         String path = DependencyTreeUtils.getQuestionDependencyPath(document,
                                 mention.getSentenceIndex(),
                                 DependencyTreeUtils.getMentionHeadToken(document, mention));
@@ -220,8 +231,11 @@ public class QAModelTrainerProcessor extends Processor {
                         String template = NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, mentionIndex).trim();
                         questionFeatures.add(template);
                         ++mentionIndex;
+                    } else {
+                        answerEntity = true;
                     }
                 }
+                if (answerEntity) ++answersCount;
             }
         }
 
@@ -230,128 +244,149 @@ public class QAModelTrainerProcessor extends Processor {
             questionFeatures.addAll(qGraph.getEdgeFeatures());
         }
 
+//        Map<String, Integer> pQuesRelRank = null;
+//        Map<String, Double> pQuesRelScore = null;
+//        if (!pRelWord_.isEmpty()) {
+//            List<String> questionLemmas = documentWrapper.getQuestionLemmas(true);
+//            List<Pair<Double, String>> predicateScores = calculatePQuesRelScores(questionLemmas, document.getQaInstanceList());
+//            pQuesRelRank = new HashMap<>();
+//            pQuesRelScore = new HashMap<>();
+//            for (int i = 0; i < predicateScores.size(); ++i) {
+//                pQuesRelRank.put(predicateScores.get(i).second, predicateScores.size() - i);
+//                pQuesRelScore.put(predicateScores.get(i).second, predicateScores.get(i).first);
+//            }
+//
+//        }
 
-
-        if (wordVec_ != null) {
-            // RVF FEatures
-            int firstToken = document.getSentence(0).getFirstToken();
-            int lastToken = document.getSentence(0).getLastToken();
-            List<String> words = new ArrayList<>();
-            for (int token = firstToken; token < lastToken; ++token) {
-                if (Character.isAlphabetic(document.getToken(token).getPos().charAt(0)) &&
-                        documentWrapper.getTokenSpan(token).isEmpty()) {
-                    words.add(document.getToken(token).getText());
-                }
-            }
-            embeddings.put(document.getSentence(0).getText(), wordVec_.getPhraseVec(words.toArray(new String[words.size()])));
-        }
-
-
-
-        Map<String, Integer> pQuesRelRank = null;
-        Map<String, Double> pQuesRelScore = null;
-        if (!pRelWord_.isEmpty()) {
-            List<String> questionLemmas = documentWrapper.getQuestionLemmas(true);
-            List<Pair<Double, String>> predicateScores = calculatePQuesRelScores(questionLemmas, document.getQaInstanceList());
-            pQuesRelRank = new HashMap<>();
-            pQuesRelScore = new HashMap<>();
-            for (int i = 0; i < predicateScores.size(); ++i) {
-                pQuesRelRank.put(predicateScores.get(i).second, predicateScores.size() - i);
-                pQuesRelScore.put(predicateScores.get(i).second, predicateScores.get(i).first);
-            }
-
-        }
-
-        PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> o2.first.compareTo(o1.first));
+        PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> {
+            int res = o2.first.compareTo(o1.first);
+            if (res != 0) return res;
+            return Double.compare(entityScores.get(o2.second.getSubject()), entityScores.get(o1.second.getSubject()));
+        });
         StringWriter strWriter = debug_ ? new StringWriter() : null;
         PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
 
-        for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
-            if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
-                continue;
-            }
+        if (isTraining_) {
+            final int finalAnswersCount = answersCount;
+            document.getQaInstanceList().stream()
+                    .filter(Document.QaRelationInstance::getIsPositive)
+                    .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
+                    .entrySet()
+                    .stream()
+                    .forEach(entry -> {
+                        float weight = 1.0f * entry.getValue().size() / (kb_.getSubjectPredicateTriplesCount(entry.getKey().first, entry.getKey().second) - entry.getValue().size() + finalAnswersCount);
+                        if (Float.isFinite(weight) && !Float.isNaN(weight)) {
+                            synchronized (dataset_) {
+                                dataset_.add(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()), entry.getKey().second, weight);
+                            }
+                        }
+                    });
+        } else {
+            Datum<String, Integer> e = new BasicDatum<>(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()));
+            Set<String> labels = new HashSet<>(model_.labels());
 
-            // Ignore self-triples and triples with numeric object (those are noisy)
-            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject()))
-                    || (!instance.getSubject().startsWith("http")
-                        && instance.getSubject().contains("integer")  //|| instance.getSubject().contains("decimal"))
-                        ))
-                continue;
+            String bestPredicate = document.getQaInstanceList().stream()
+                    .map(Document.QaRelationInstance::getPredicate)
+                    .filter(labels::contains)
+                    .map(x -> new Pair<>(x, model_.scoreOf(e, x)))
+                    .max((e1, e2) -> e1.second.compareTo(e2.second))
+                    .map(Pair::first)
+                    .orElse("");
 
-            if (isTraining_) {
-                if (!instance.getIsPositive()) {
-                    if (rnd_.nextInt(1000) > subsampleRate_) continue;
-                }
-            }
-
-//            for (String str : features) {
-//                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize_);
-//            }
-            List<String> answerFeatures = generateAnswerFeatures(instance);
-            //generateFeatures(documentWrapper, instance, qDepPaths, features);
-//            synchronized (out) {
-//                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
-//                for (String feat : features) {
-//                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
-//                }
-//                out.write("\n");
-//            }
-
-            if (pQuesRelRank != null) {
-                int rank = pQuesRelRank.get(instance.getPredicate());
-                if (rank == 1)
-                    answerFeatures.add("RANK=1");
-                else if (rank <= 2)
-                    answerFeatures.add("RANK=2");
-                else if (rank <= 3)
-                    answerFeatures.add("RANK=3");
-                else if (rank <= 5)
-                    answerFeatures.add("RANK=4-5");
-                else if (rank <= 10)
-                    answerFeatures.add("RANK=6-10");
-                else if (rank <= 50)
-                    answerFeatures.add("RANK=11-50");
-                else if (rank <= 100)
-                    answerFeatures.add("RANK=51-100");
-                else
-                    answerFeatures.add("RANK=101-");
-            }
-
-            Set<Integer> feats = new HashSet<>();
-            for (String aFeature : answerFeatures) {
-                for (String qFeature : questionFeatures) {
-                    String feature = qFeature + "||" + aFeature;
-                    int id = (feature.hashCode() & 0x7FFFFFFF) % alphabetSize_;
-                    if (debug_) {
-                        debugWriter.println(id + "\t" + feature);
-                    }
-                    feats.add(id);
-//                    feats.add(feature);
-                }
-            }
-
-            if (isTraining_) {
-                synchronized (dataset_) {
-                    //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
-                    dataset_.add(feats, instance.getIsPositive());
-                }
-            } else {
-                Triple<Double, Document.QaRelationInstance, String> tr =
-                        new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
-
-                // GOLD PREDICTIONS
-                //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
-//                tr.first = pQuesRelScore.get(instance.getPredicate());
-
-                if (debug_) {
-                    model_.justificationOf(new BasicDatum<>(feats), debugWriter);
-                    debugWriter.flush();
-                    tr.third = strWriter.toString();
-                    strWriter.getBuffer().setLength(0);
-                }
-                scores.add(tr);
-            }
+            scores.addAll(document.getQaInstanceList()
+                    .stream()
+                    .filter(x -> x.getPredicate().equals(bestPredicate))
+                    .map(x -> new Triple<>(1.0, x, ""))
+                    .collect(Collectors.toList()));
         }
+
+//        for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
+//            if (!predicates_.isEmpty() && !predicates_.contains(instance.getPredicate())) {
+//                continue;
+//            }
+//
+//            // Ignore self-triples and triples with numeric object (those are noisy)
+//            if (kb_.convertFreebaseMidRdf(instance.getObject()).equals(kb_.convertFreebaseMidRdf(instance.getSubject()))
+//                    || (!instance.getSubject().startsWith("http")
+//                        && instance.getSubject().contains("integer")  //|| instance.getSubject().contains("decimal"))
+//                        ))
+//                continue;
+//
+//            if (isTraining_) {
+//                if (!instance.getIsPositive()) {
+//                    if (rnd_.nextInt(1000) > subsampleRate_) continue;
+//                }
+//            }
+//
+////            for (String str : features) {
+////                alphabet_.put(str, (str.hashCode() & 0x7FFFFFFF) % alphabetSize_);
+////            }
+//            List<String> answerFeatures = generateAnswerFeatures(instance);
+//            //generateFeatures(documentWrapper, instance, qDepPaths, features);
+////            synchronized (out) {
+////                out.write(instance.getIsPositive() ? "1" : "-1" + " |");
+////                for (String feat : features) {
+////                    out.write(" " + feat.replace(" ", "_").replace("\t", "_").replace("\n", "_").replace("|", "/"));
+////                }
+////                out.write("\n");
+////            }
+//
+//            if (pQuesRelRank != null) {
+//                int rank = pQuesRelRank.get(instance.getPredicate());
+//                if (rank == 1)
+//                    answerFeatures.add("RANK=1");
+//                else if (rank <= 2)
+//                    answerFeatures.add("RANK=2");
+//                else if (rank <= 3)
+//                    answerFeatures.add("RANK=3");
+//                else if (rank <= 5)
+//                    answerFeatures.add("RANK=4-5");
+//                else if (rank <= 10)
+//                    answerFeatures.add("RANK=6-10");
+//                else if (rank <= 50)
+//                    answerFeatures.add("RANK=11-50");
+//                else if (rank <= 100)
+//                    answerFeatures.add("RANK=51-100");
+//                else
+//                    answerFeatures.add("RANK=101-");
+//            }
+//
+//            Set<Integer> feats = new HashSet<>();
+//            for (String aFeature : answerFeatures) {
+//                for (String qFeature : questionFeatures) {
+//                    String feature = qFeature + "||" + aFeature;
+//                    int id = (feature.hashCode() & 0x7FFFFFFF) % alphabetSize_;
+//                    if (debug_) {
+//                        debugWriter.println(id + "\t" + feature);
+//                    }
+//                    feats.add(id);
+////                    feats.add(feature);
+//                }
+//            }
+//
+//            if (isTraining_) {
+//                synchronized (dataset_) {
+//                    //System.out.println(instance.getIsPositive() + "\t" + features.stream().collect(Collectors.joining("\t")));
+//                    //dataset_.add(feats, instance.getIsPositive());
+//                    dataset_.add(feats, instance.getIsPositive());
+//                }
+//            } else {
+//                Triple<Double, Document.QaRelationInstance, String> tr =
+//                        new Triple<>(model_.probabilityOf(new BasicDatum<>(feats)).getCount(true), instance, "");
+//
+//                // GOLD PREDICTIONS
+//                //tr.first = instance.getIsPositive() ? 1.0 : 0.0;
+////                tr.first = pQuesRelScore.get(instance.getPredicate());
+//
+//                if (debug_) {
+//                    model_.justificationOf(new BasicDatum<>(feats), debugWriter);
+//                    debugWriter.flush();
+//                    tr.third = strWriter.toString();
+//                    strWriter.getBuffer().setLength(0);
+//                }
+//                scores.add(tr);
+//            }
+//        }
 
         if (!isTraining_) {
             String[] fields = document.getText().split("\n");
@@ -382,8 +417,8 @@ public class QAModelTrainerProcessor extends Processor {
                         && ((shouldKeepAnswer =
 //                                (bestScore > 0.5 &&
 //                                        && scores.peek().first > 0.5
-                                        scores.peek().first >= bestScore)
-//                                        && scores.peek().second.getSubject().equals(bestSubject))
+                                        scores.peek().first >= bestScore
+                                        && scores.peek().second.getSubject().equals(bestSubject))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
 
@@ -534,25 +569,6 @@ public class QAModelTrainerProcessor extends Processor {
     public void finishProcessing() {
         if (model_ == null) {
 
-            for (String question : embeddings.keySet()) {
-                float[] currentQ = embeddings.get(question);
-                System.out.println("\n\n>>>>>>> " + question);
-                for (Pair<String, Double> closest :
-                        embeddings.entrySet().stream().filter(e -> !e.getKey().equals(question))
-                                .map(e -> {
-                                    double dist = 0;
-                                    for (int i = 0; i < currentQ.length; ++i) {
-                                        dist += (currentQ[i] - e.getValue()[i]) * (currentQ[i] - e.getValue()[i]);
-                                    }
-                                    return new Pair<>(e.getKey(), Math.sqrt(dist));
-                                })
-                                .sorted((e1, e2) -> e1.second.compareTo(e2.second))
-                                .limit(10)
-                                .collect(Collectors.toList())) {
-                    System.out.println(closest.second + "\t" + closest.first);
-                }
-            }
-
             dataset_.summaryStatistics();
 //            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
@@ -563,8 +579,9 @@ public class QAModelTrainerProcessor extends Processor {
             if (!datasetFile_.equals("None")) {
                 try {
                     PrintWriter out = new PrintWriter(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(datasetFile_))));
-                    for (Datum<Boolean, Integer> d : dataset_) {
-                        out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
+                    for (Datum<String, Integer> d : dataset_) {
+                        //out.println((d.label() ? "1" : "-1") + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
+                        out.println(d.label() + "\t" + d.asFeatures().stream().sorted().map(Object::toString).collect(Collectors.joining("\t")));
                     }
                     out.close();
                 } catch (IOException e) {
@@ -572,12 +589,12 @@ public class QAModelTrainerProcessor extends Processor {
                 }
             }
 
-            LinearClassifierFactory<Boolean, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
-            classifierFactory_.useQuasiNewton(true);
-            //classifierFactory_.setTuneSigmaHeldOut();
-            //classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            LinearClassifierFactory<String, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
+            //classifierFactory_.useQuasiNewton(true);
+//            classifierFactory_.setTuneSigmaHeldOut();
+//            classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
             //classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
-//            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
+            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
 //            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
 
             classifierFactory_.setVerbose(true);

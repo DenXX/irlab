@@ -11,8 +11,10 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Input provider, that reads Y!Answers Q&A pairs from WebScope XML format and
@@ -21,10 +23,16 @@ import java.util.stream.Collectors;
 public class YahooAnswersWebscopeXmlInputProvider
         implements Iterable<Document.NlpDocument> {
 
+    public static final String KEEP_ALL_ANSWERS_PARAMETER = "ya_keep_all_answers";
+
+    private boolean keepAllAnswers = false;
+
     private int counter_ = 0;
 
     public YahooAnswersWebscopeXmlInputProvider(Properties props) {
         inputFilename_ = props.getProperty(AppParameters.INPUT_PARAMETER);
+        if (props.containsKey(KEEP_ALL_ANSWERS_PARAMETER))
+            keepAllAnswers = true;
     }
 
     @Override
@@ -92,9 +100,11 @@ public class YahooAnswersWebscopeXmlInputProvider
                                 answer = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
                                 break;
                             case "answer_item":
-                                String txt = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
-                                if (!txt.equals(answer)) {
-                                    answers.add(txt);
+                                if (keepAllAnswers) {
+                                    String txt = getCurrentTagContent().trim().replaceAll("<(br|BR) ?/?>", "\n");
+                                    if (!txt.equals(answer)) {
+                                        answers.add(txt);
+                                    }
                                 }
                                 break;
                             case "nbestanswers":

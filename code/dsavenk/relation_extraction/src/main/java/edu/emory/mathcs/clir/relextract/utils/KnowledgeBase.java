@@ -759,6 +759,23 @@ public class KnowledgeBase {
                 (RDFNode) null);
     }
 
+    public int getSubjectPredicateTriplesCount(String subject, String predicate) {
+        if (predicate.contains(".cvt.")) {
+            int res = 0;
+            StmtIterator iter = getSubjectPredicateTriples(subject, predicate.substring(0, predicate.indexOf(".cvt.")));
+            while (iter.hasNext()) {
+                RDFNode mediator = iter.nextStatement().getObject();
+                if (mediator.isResource()) {
+                    StmtIterator iter2 = mediator.asResource().listProperties(model_.getProperty(FREEBASE_RDF_PREFIX, predicate.substring(predicate.indexOf(".cvt.") + 5)));
+                    res += iter2.toList().size();
+                }
+            }
+            return res;
+        } else {
+            return getSubjectPredicateTriples(subject, predicate).toList().size();
+        }
+    }
+
     public boolean isCVTProperty(String property) {
         String prop = property.startsWith("/") ? property : "/" + property;
         return cvtProperties_.contains(prop.replace(".", "/"));

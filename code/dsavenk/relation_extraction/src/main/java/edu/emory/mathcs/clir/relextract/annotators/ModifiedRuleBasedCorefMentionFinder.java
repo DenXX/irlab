@@ -33,6 +33,10 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
 
     private final boolean allowReparsing;
 
+    private static final boolean REMOVE_SPURIOUS_MENTIONS = true;
+    private static final boolean ADD_ENUMERATION_MENTIONS = false;
+    private static final boolean ADD_NP_MENTIONS = false;
+
     public ModifiedRuleBasedCorefMentionFinder() {
         this(Constants.ALLOW_REPARSING);
     }
@@ -89,11 +93,13 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
             extractPremarkedEntityMentions(s, mentions, mentionSpanSet, namedEntitySpanSet);
             extractNamedEntityMentions(s, mentions, mentionSpanSet, namedEntitySpanSet);
             extractNPorPRP(s, mentions, mentionSpanSet, namedEntitySpanSet);
-            extractEnumerations(s, mentions, mentionSpanSet, namedEntitySpanSet);
+            if (ADD_ENUMERATION_MENTIONS)
+                extractEnumerations(s, mentions, mentionSpanSet, namedEntitySpanSet);
             findHead(s, mentions);
             setBarePlural(mentions);
 
-            //removeSpuriousMentions(s, mentions, dict);
+            if (REMOVE_SPURIOUS_MENTIONS)
+                removeSpuriousMentions(s, mentions, dict);
         }
 
         // assign mention IDs
@@ -190,6 +196,7 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
     }
 
     private static final TregexPattern npOrPrpMentionPattern = TregexPattern.compile("/^(?:NP|PRP)/");
+    private static final TregexPattern prpMentionPattern = TregexPattern.compile("/^(?:PRP)/");
 
     protected static void extractNPorPRP(CoreMap s, List<Mention> mentions, Set<IntPair> mentionSpanSet, Set<IntPair> namedEntitySpanSet) {
         List<CoreLabel> sent = s.get(CoreAnnotations.TokensAnnotation.class);
@@ -197,7 +204,7 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
         tree.indexLeaves();
         SemanticGraph dependency = s.get(SemanticGraphCoreAnnotations.CollapsedDependenciesAnnotation.class);
 
-        TregexPattern tgrepPattern = npOrPrpMentionPattern;
+        TregexPattern tgrepPattern = ADD_NP_MENTIONS ? npOrPrpMentionPattern : prpMentionPattern;
         TregexMatcher matcher = tgrepPattern.matcher(tree);
         while (matcher.find()) {
             Tree t = matcher.getMatch();
