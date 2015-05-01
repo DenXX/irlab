@@ -48,6 +48,7 @@ public class QAModelTrainerProcessor extends Processor {
     private boolean partialPredicateNames_ = false;
     private float regularizer_ = 1.f;
     private boolean isTraining_ = true;
+    private boolean tuneSigma_ = false;
 
     private final Map<String, Double> pRel_ = new HashMap<>();
     private final Map<String, Map<String, Double>> pRelWord_ = new HashMap<>();
@@ -65,6 +66,7 @@ public class QAModelTrainerProcessor extends Processor {
     public static final String QA_DEBUG_PARAMETER = "qa_debug";
     public static final String QA_REGULARIZER_PARAMETER = "qa_regularizer";
     public static final String QA_WORDVEC_PARAMETER = "qa_wordvec";
+    public static final String QA_TUNESIGMA_PARAMETER = "qa_tunesigma";
 
     BufferedWriter out;
 
@@ -132,6 +134,9 @@ public class QAModelTrainerProcessor extends Processor {
             } catch (IOException e) {}
         } else {
             wordVec_ = null;
+        }
+        if (properties.containsKey(QA_TUNESIGMA_PARAMETER)) {
+            tuneSigma_ = true;
         }
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
     }
@@ -591,8 +596,10 @@ public class QAModelTrainerProcessor extends Processor {
 
             LinearClassifierFactory<String, Integer> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
             //classifierFactory_.useQuasiNewton(true);
-//            classifierFactory_.setTuneSigmaHeldOut();
-//            classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            if (tuneSigma_) {
+                classifierFactory_.setTuneSigmaHeldOut();
+                classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            }
             //classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
             classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
 //            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));

@@ -1,7 +1,6 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.io.BufferedWriter;
@@ -44,20 +43,20 @@ public class TestProcessor extends Processor {
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         //document.getQaInstanceList().stream().filter(Document.QaRelationInstance::getIsPositive).forEach(System.out::println);
 
-        int questionSentences = new DocumentWrapper(document).getQuestionSentenceCount();
-
-        boolean ok = false;
-        for (Document.Span span : document.getSpanList()) {
-            if (span.getType().equals("ENTITY")) {
-                for (Document.Mention mention : span.getMentionList()) {
-                    if (mention.getSentenceIndex() < questionSentences) {
-                        if (document.getToken(document.getSentence(mention.getSentenceIndex()).getFirstToken()).getPos().startsWith("W"))
-                            ok = true;
-                    }
-                }
-            }
-        }
-        if (!ok) return null;
+//        int questionSentences = new DocumentWrapper(document).getQuestionSentenceCount();
+//
+//        boolean ok = false;
+//        for (Document.Span span : document.getSpanList()) {
+//            if (span.getType().equals("ENTITY")) {
+//                for (Document.Mention mention : span.getMentionList()) {
+//                    if (mention.getSentenceIndex() < questionSentences) {
+//                        if (document.getToken(document.getSentence(mention.getSentenceIndex()).getFirstToken()).getPos().startsWith("W"))
+//                            ok = true;
+//                    }
+//                }
+//            }
+//        }
+//        if (!ok) return null;
 
         ++total;
         boolean first = true;

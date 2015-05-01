@@ -98,6 +98,9 @@ public class RelationExtractionApp {
                 case "filterunresolvedspans":
                     workflow.addProcessor(new FilterNonResolvedSpans(props));
                     break;
+                case "filterq":
+                    workflow.addProcessor(new FilterQuestionsProcessor(props));
+                    break;
                 case "outputtemplate":
                     workflow.addProcessor(new OutputQuestionTemplateProcessor(props));
                     break;
@@ -156,6 +159,9 @@ public class RelationExtractionApp {
                         baseProvider = YahooAnswersWebscopeXmlInputProvider.class;
                         break;
                     case "wikianswers":
+                        baseProvider = WikiAnswersInputProvider.class;
+                        break;
+                    case "wikianswersall":
                         baseProvider = WikiAnswersAllQuestionsInputProvider.class;
                         break;
                     case "webquestions":
@@ -178,6 +184,9 @@ public class RelationExtractionApp {
                         docs = new YahooAnswersWebscopeXmlInputProvider(props);
                         break;
                     case "wikianswers":
+                        docs = new WikiAnswersInputProvider(props);
+                        break;
+                    case "wikianswersall":
                         docs = new WikiAnswersAllQuestionsInputProvider(props);
                         break;
                     case "webquestions":

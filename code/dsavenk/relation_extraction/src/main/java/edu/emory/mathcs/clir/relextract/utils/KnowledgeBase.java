@@ -46,10 +46,10 @@ public class KnowledgeBase {
 
     public static final String ENTITY_TYPES_PARAMETER = "entity_types";
 
-    private static final float MATCH_MIN_FRACTION = 0.8f;
+    private static final float MATCH_MIN_FRACTION = 1.0f;
     private static final int MAX_IDS_COUNT = 15;
     private static final int MIN_TRIPLES_COUNT = 1;
-    private static final float MIN_FRACTION_OF_MAX_SCORE = 0.5f;
+    private static final float MIN_FRACTION_OF_MAX_SCORE = 0.8f;
 
     private static final String TRIPLE_COUNT_FIELD = "triple_count";
 
@@ -852,8 +852,8 @@ public class KnowledgeBase {
                 org.apache.lucene.document.Document document =
                         dictSearcher_.doc(doc.doc);
                 float score = (float)((FieldDoc)doc).fields[0];
-                if (score < maxScore * MIN_FRACTION_OF_MAX_SCORE) {
-                    // Check length? (1.0 * document.get("name").split("\\s+").length / name.split("\\s+").length < 0.6)
+                if (score < maxScore * MIN_FRACTION_OF_MAX_SCORE ||
+                        (1.0 * document.get("name").split("\\s+").length / name.split("\\s+").length > 2)) {
                     break;
                 }
                 long count = (long)((FieldDoc)doc).fields[1];

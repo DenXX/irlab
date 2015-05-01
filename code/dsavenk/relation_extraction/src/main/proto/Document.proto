@@ -118,4 +118,7 @@ message QaRelationInstance {
     optional bool isPositive = 4;
     repeated uint32 subjSpanIndex = 5;
     repeated uint32 objSpanIndex = 6;
+
+    optional bool isCvtHasArgInQuestion = 100;
+    optional uint32 predicateObjectsCount = 101;
 }

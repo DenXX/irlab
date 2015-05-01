@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CascadeEntityResolutionProcessor extends Processor {
 
     public static final String ENTITYRES_ALWAYS_FREEBASEDICT_PARAMETER = "entityres_alwaysfreebasedict";
-
     public static final String WIKILINKS_DICTIONARY_PARAMETER = "wikilinks_dict";
     public static final String WIKILINKS_LNRM_DICTIONARY_PARAMETER = "wikilinks_lnrm_dict";
 
@@ -103,19 +102,16 @@ public class CascadeEntityResolutionProcessor extends Processor {
 
                 // Iterate over all mentions.
                 List<Document.Mention.Builder> mentions = new ArrayList(span.getMentionBuilderList());
-                mentions.sort(new Comparator<Document.Mention.Builder>() {
-                    @Override
-                    public int compare(Document.Mention.Builder o1, Document.Mention.Builder o2) {
-                        if (o1 == o2) return 0;
-                        if (span.hasRepresentativeMention()) {
-                            if (span.getMentionBuilder(span.getRepresentativeMention()) == o1)
-                                return -1;
-                            if (span.getMentionBuilder(span.getRepresentativeMention()) == o2)
-                                return 1;
-                        }
-                        if (o1.getText().length() == o2.getText().length()) return 0;
-                        else return o1.getText().length() > o2.getText().length() ? -1 : 1;
+                mentions.sort((o1, o2) -> {
+                    if (o1 == o2) return 0;
+                    if (span.hasRepresentativeMention()) {
+                        if (span.getMentionBuilder(span.getRepresentativeMention()) == o1)
+                            return -1;
+                        if (span.getMentionBuilder(span.getRepresentativeMention()) == o2)
+                            return 1;
                     }
+                    if (o1.getText().length() == o2.getText().length()) return 0;
+                    else return o1.getText().length() > o2.getText().length() ? -1 : 1;
                 });
 
                 for (Document.Mention.Builder mention : mentions) {

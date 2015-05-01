@@ -257,7 +257,10 @@ public class AppParameters {
                 .withArgName(YahooAnswersWebscopeXmlInputProvider.KEEP_ALL_ANSWERS_PARAMETER)
                 .withDescription("Keep all answers, not only best answer.").create(
                         YahooAnswersWebscopeXmlInputProvider.KEEP_ALL_ANSWERS_PARAMETER));
-
+        opt.addOption(OptionBuilder
+                .withArgName(QAModelTrainerProcessor.QA_TUNESIGMA_PARAMETER)
+                .withDescription("Tune sigma during training.").create(
+                        QAModelTrainerProcessor.QA_TUNESIGMA_PARAMETER));
 
         return opt;
     }

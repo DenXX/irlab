@@ -12,11 +12,18 @@ import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.stanford.nlp.util.Triple;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by dsavenk on 3/18/15.
  */
 public class QAExamplesBuilderProcessor extends Processor {
+
+    private static final int MAX_ENTITY_IDS = 1;
+    private static final boolean POSITIVE_ONLY = true;
+    private static final boolean ADD_OTHER_MEASURES = false;
+    private static final boolean NER_ONLY_QUESTIONSPANS = true;
 
     private final KnowledgeBase kb_;
     private Map<String, Map<String, Set<Statement>>> sop = Collections.synchronizedMap(new HashMap<>());
@@ -93,11 +100,11 @@ public class QAExamplesBuilderProcessor extends Processor {
                             answerDates.add(dateTriple);
                         }
                     }
-                } else {
+                } else if (ADD_OTHER_MEASURES) {
                     entityIds.add(span.getValue());
                 }
             } else {
-                for (int i = 0; i < span.getCandidateEntityIdCount()
+                for (int i = 0; i < Math.min(MAX_ENTITY_IDS, span.getCandidateEntityIdCount())
                         && span.getCandidateEntityScore(i) >= Parameters.MIN_ENTITYID_SCORE; ++i) {
                     entityIds.add(span.getCandidateEntityId(i));
                 }
@@ -105,9 +112,9 @@ public class QAExamplesBuilderProcessor extends Processor {
 
             if (!entityIds.isEmpty()) {
                 for (Document.Mention mention : span.getMentionList()) {
-                    if (mention.getSentenceIndex() < questionSentencesCount
-                            && !"MEASURE".equals(span.getType())) {
-                        questionSpanIds.addAll(entityIds);
+                    if (mention.getSentenceIndex() < questionSentencesCount && !"MEASURE".equals(span.getType())) {
+                        if (!NER_ONLY_QUESTIONSPANS || span.getType().equals("ENTITY"))
+                            questionSpanIds.addAll(entityIds);
                     } else {
                         answerSpanIds.addAll(entityIds);
                     }
@@ -132,37 +139,49 @@ public class QAExamplesBuilderProcessor extends Processor {
             docBuilder = document.toBuilder();
             docBuilder.clearQaInstance();
 
+            int positiveCount = 0;
             for (String id : questionSpanIds) {
+
+                Map<String, Long> predicateObjectsCount =
+                        sop.get(id).values().stream()
+                                .flatMap(Set::stream)
+                                .map(st -> st.getPredicate().getLocalName())
+                                .collect(Collectors.groupingBy(Function.<String>identity(), Collectors.counting()));
+
                 for (String relatedId : sop.get(id).keySet()) {
                     for (Statement st : sop.get(id).get(relatedId)) {
                         if ((!st.getObject().isResource() || !st.getSubject().equals(st.getObject().asResource())) &&
                                 !added.contains(st.toString())) {
-                            Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
-                                    .setSubject(id)
-                                    .addAllObjSpanIndex(entityLocation.get(id))
-                                    .setPredicate(st.getPredicate().getLocalName())
-                                    .setObject(st.getObject().asNode().toString(null, true));
+                            if (!POSITIVE_ONLY || answerSpanIds.contains(relatedId)) {
+                                Document.QaRelationInstance.Builder qaInstance = docBuilder.addQaInstanceBuilder()
+                                        .setSubject(id)
+                                        .addAllObjSpanIndex(entityLocation.get(id))
+                                        .setPredicate(st.getPredicate().getLocalName())
+                                        .setObject(st.getObject().asNode().toString(null, true))
+                                        .setPredicateObjectsCount(predicateObjectsCount.get(st.getPredicate().getLocalName()).intValue());
 
-                            if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
-                                for (Triple<String, String, String> date : answerDates) {
-                                    qaInstance.setIsPositive(kb_.matchDatesSoft(date.third, date.first, date.second, (XSDDateTime) st.getObject().asLiteral().getValue()));
+                                if (st.getObject().isLiteral() && dateTypes_.contains(st.getObject().asLiteral().getDatatype())) {
+                                    for (Triple<String, String, String> date : answerDates) {
+                                        qaInstance.setIsPositive(kb_.matchDatesSoft(date.third, date.first, date.second, (XSDDateTime) st.getObject().asLiteral().getValue()));
+                                    }
+                                } else {
+                                    qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
+                                    if (answerSpanIds.contains(relatedId)) {
+                                        ++positiveCount;
+                                        qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
+                                    }
                                 }
-                            } else {
-                                qaInstance.setIsPositive(answerSpanIds.contains(relatedId));
-                                if (answerSpanIds.contains(relatedId)) {
-                                    qaInstance.addAllObjSpanIndex(entityLocation.get(relatedId));
-                                }
+                                added.add(st.toString());
                             }
-
-                            added.add(st.toString());
                         }
                     }
                 }
             }
+            if (POSITIVE_ONLY && positiveCount == 0) return null;
             return docBuilder.build();
         }
 
-        return document;
+        return POSITIVE_ONLY ? null : document;
     }
 
     private Triple<String, String, String> extractDateParts(String date) {

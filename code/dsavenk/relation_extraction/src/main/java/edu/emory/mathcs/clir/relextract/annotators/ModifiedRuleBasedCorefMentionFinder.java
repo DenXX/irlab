@@ -34,8 +34,8 @@ public class ModifiedRuleBasedCorefMentionFinder implements CorefMentionFinder {
     private final boolean allowReparsing;
 
     private static final boolean REMOVE_SPURIOUS_MENTIONS = true;
-    private static final boolean ADD_ENUMERATION_MENTIONS = false;
-    private static final boolean ADD_NP_MENTIONS = false;
+    private static final boolean ADD_ENUMERATION_MENTIONS = true;
+    private static final boolean ADD_NP_MENTIONS = true;
 
     public ModifiedRuleBasedCorefMentionFinder() {
         this(Constants.ALLOW_REPARSING);

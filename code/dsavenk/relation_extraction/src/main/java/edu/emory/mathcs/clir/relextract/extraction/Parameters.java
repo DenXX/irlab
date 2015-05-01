@@ -5,5 +5,5 @@ package edu.emory.mathcs.clir.relextract.extraction;
  */
 public class Parameters {
     public static int MIN_FEATURE_COUNT = 2;
-    public static float MIN_ENTITYID_SCORE = 0.05f;
+    public static float MIN_ENTITYID_SCORE = 0.1f;
 }
