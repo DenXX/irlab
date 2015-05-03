@@ -13,6 +13,7 @@ import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.WeightedDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.optimization.SGDMinimizer;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
 
@@ -279,7 +280,7 @@ public class QAModelTrainerProcessor extends Processor {
                     .entrySet()
                     .stream()
                     .forEach(entry -> {
-                        float weight = 1.0f * entry.getValue().size() / (kb_.getSubjectPredicateTriplesCount(entry.getKey().first, entry.getKey().second) - entry.getValue().size() + finalAnswersCount);
+                        float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
                         if (Float.isFinite(weight) && !Float.isNaN(weight)) {
                             synchronized (dataset_) {
                                 dataset_.add(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()), entry.getKey().second, weight);
@@ -577,8 +578,8 @@ public class QAModelTrainerProcessor extends Processor {
             dataset_.summaryStatistics();
 //            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
-//            dataset_.applyFeatureCountThreshold(2);
-//            dataset_.summaryStatistics();
+            dataset_.applyFeatureCountThreshold(2);
+            dataset_.summaryStatistics();
 
             // TODO(dsavenk): Comment this out for now.
             if (!datasetFile_.equals("None")) {
@@ -601,8 +602,9 @@ public class QAModelTrainerProcessor extends Processor {
                 classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
             }
             //classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
-            classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
-//            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
+            //classifierFactory_.useInPlaceStochasticGradientDescent(50, 1000, regularizer_);
+            // We are doing this to specify batch size, otherwise we can get array index out of bounds for large datasets.
+            classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
 
             classifierFactory_.setVerbose(true);
             model_ = classifierFactory_.trainClassifier(dataset_);
