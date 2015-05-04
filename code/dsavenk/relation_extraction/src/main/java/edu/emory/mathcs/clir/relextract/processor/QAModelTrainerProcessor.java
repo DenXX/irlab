@@ -327,10 +327,17 @@ public class QAModelTrainerProcessor extends Processor {
                 final org.apache.lucene.document.Document doc = searcher_.doc(docs.scoreDocs[i].doc);
 
                 Set<String> matches = new HashSet<>();
-                int queryLength = ((BooleanQuery)q).getClauses().length;
-                for (BooleanClause subquery : ((BooleanQuery)q).getClauses()) {
-                    if (searcher_.explain(subquery.getQuery(), docs.scoreDocs[i].doc).isMatch()) {
-                        matches.add(((TermQuery) subquery.getQuery()).getTerm().text());
+                int queryLength = 1;
+                if (q instanceof BooleanQuery) {
+                    queryLength = ((BooleanQuery) q).getClauses().length;
+                    for (BooleanClause subquery : ((BooleanQuery) q).getClauses()) {
+                        if (searcher_.explain(subquery.getQuery(), docs.scoreDocs[i].doc).isMatch()) {
+                            matches.add(((TermQuery) subquery.getQuery()).getTerm().text());
+                        }
+                    }
+                } else if (q instanceof TermQuery) {
+                    if (searcher_.explain(q, docs.scoreDocs[i].doc).isMatch()) {
+                        matches.add(((TermQuery)q).getTerm().text());
                     }
                 }
 
