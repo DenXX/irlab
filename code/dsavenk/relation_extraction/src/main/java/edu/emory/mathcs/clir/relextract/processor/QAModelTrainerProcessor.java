@@ -10,16 +10,33 @@ import edu.emory.mathcs.clir.relextract.utils.NlpUtils;
 import edu.emory.mathcs.clir.representations.WordVec;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
+import edu.stanford.nlp.classify.RVFDataset;
 import edu.stanford.nlp.classify.WeightedDataset;
 import edu.stanford.nlp.ling.BasicDatum;
 import edu.stanford.nlp.ling.Datum;
+import edu.stanford.nlp.ling.RVFDatum;
 import edu.stanford.nlp.optimization.SGDMinimizer;
+import edu.stanford.nlp.stats.ClassicCounter;
+import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.util.Pair;
 import edu.stanford.nlp.util.Triple;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.KeywordAnalyzer;
+import org.apache.lucene.analysis.core.SimpleAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.*;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.QueryBuilder;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -29,6 +46,7 @@ import java.util.zip.GZIPOutputStream;
 public class QAModelTrainerProcessor extends Processor {
 
     private final WeightedDataset<String, Integer> dataset_ = new WeightedDataset<>();
+    private final RVFDataset<Boolean, String> simDataset_ = new RVFDataset<>();
     private final KnowledgeBase kb_;
     private WordVec wordVec_ = null;
     private Map<String, float[]> embeddings = new HashMap<>();
@@ -36,6 +54,7 @@ public class QAModelTrainerProcessor extends Processor {
     private Random rnd_ = new Random(42);
     private String modelFile_;
     private LinearClassifier<String, Integer> model_ = null;
+    private LinearClassifier<Boolean, String> simModel_ = null;
     private String datasetFile_;
     private boolean split_ = false;
 
@@ -71,6 +90,12 @@ public class QAModelTrainerProcessor extends Processor {
 
     BufferedWriter out;
 
+    // Similarity based QA.
+    public static final String QA_INDEX_PATH_PARAMETER = "qa_index";
+    private static final double SCORE_THRESHOLD = 0.8;
+    private IndexSearcher searcher_;
+    private QueryBuilder queryBuilder_;
+
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -78,12 +103,13 @@ public class QAModelTrainerProcessor extends Processor {
      * @param properties A set of properties, the processor doesn't have to
      *                   consume all of the them, it checks what it needs.
      */
-    public QAModelTrainerProcessor(Properties properties) {
+    public QAModelTrainerProcessor(Properties properties) throws IOException {
         super(properties);
         kb_ = KnowledgeBase.getInstance(properties);
         modelFile_ = properties.getProperty(QA_MODEL_PARAMETER);
         if (properties.containsKey(QA_TEST_PARAMETER)) {
-            model_ = LinearClassifier.readClassifier(modelFile_);
+            //model_ = LinearClassifier.readClassifier(modelFile_);
+            simModel_ = LinearClassifier.readClassifier(modelFile_);
             isTraining_ = false;
         }
         if (properties.containsKey(SPLIT_DATASET_PARAMETER)) {
@@ -140,6 +166,18 @@ public class QAModelTrainerProcessor extends Processor {
             tuneSigma_ = true;
         }
 //        out = new BufferedWriter(new OutputStreamWriter(System.out));
+
+        searcher_ = new IndexSearcher(
+                DirectoryReader.open(
+                        FSDirectory.open(new File(properties.getProperty(QA_INDEX_PATH_PARAMETER)))));
+        //searcher_.setSimilarity(new BM25Similarity());
+
+        Map<String, Analyzer> analyzers = new HashMap<>();
+        analyzers.put(BuildSearchIndexProcessor.RELATIONS_FIELD_NAME, new KeywordAnalyzer());
+        analyzers.put(BuildSearchIndexProcessor.QUESTION_FIELD_NAME, new EnglishAnalyzer(CharArraySet.EMPTY_SET));
+        analyzers.put(BuildSearchIndexProcessor.QUESTION_TEMPLATE_FIELD_NAME, new SimpleAnalyzer());
+        analyzers.put(BuildSearchIndexProcessor.QUESTION_FEATURES_FIELD_NAME, new KeywordAnalyzer());
+        queryBuilder_ = new QueryBuilder(new PerFieldAnalyzerWrapper(new SimpleAnalyzer(), analyzers));
     }
 
     private void readRelationWordMapping(String relInfoFile, String wordInfoFile, String relWordInfoFile) throws IOException {
@@ -245,6 +283,8 @@ public class QAModelTrainerProcessor extends Processor {
             }
         }
 
+        final int finalAnswersCount = answersCount;
+
         for (int sentence = 0; sentence < document.getSentenceCount() && sentence < documentWrapper.getQuestionSentenceCount(); ++sentence) {
             QuestionGraph qGraph = new QuestionGraph(documentWrapper, kb_, sentence, useFineTypes_);
             questionFeatures.addAll(qGraph.getEdgeFeatures());
@@ -264,6 +304,86 @@ public class QAModelTrainerProcessor extends Processor {
 //
 //        }
 
+        // SIMILARITY BASED QA
+        Set<String> templates = new HashSet<>();
+        for (Document.Span span : document.getSpanList()) {
+            int index = 0;
+            for (Document.Mention mention : span.getMentionList()) {
+                if (mention.getSentenceIndex() < documentWrapper.getQuestionSentenceCount()) {
+                    String template = NlpUtils.getQuestionTemplate(document, mention.getSentenceIndex(), span, index);
+                    templates.add(template);
+                    break;
+                }
+                ++index;
+            }
+        }
+
+        Map<String, List<RVFDatum<Boolean, String>>> relationDatums = new HashMap<>();
+        for (String template : templates) {
+            Query q = queryBuilder_.createBooleanQuery(BuildSearchIndexProcessor.QUESTION_TEMPLATE_FIELD_NAME, template);
+            TopDocs docs = searcher_.search(q, 100);
+
+            for (int i = 0; i < docs.scoreDocs.length; ++i) {
+                final org.apache.lucene.document.Document doc = searcher_.doc(docs.scoreDocs[i].doc);
+
+                Set<String> matches = new HashSet<>();
+                int queryLength = ((BooleanQuery)q).getClauses().length;
+                for (BooleanClause subquery : ((BooleanQuery)q).getClauses()) {
+                    if (searcher_.explain(subquery.getQuery(), docs.scoreDocs[i].doc).isMatch()) {
+                        matches.add(((TermQuery) subquery.getQuery()).getTerm().text());
+                    }
+                }
+
+                Set<String> posMatches = new HashSet<>();
+                for (int questionSentence = 0; questionSentence < documentWrapper.getQuestionSentenceCount(); ++questionSentence) {
+                    for (Document.Token token : document.getTokenList()) {
+                        if (matches.contains(token.getLemma())) posMatches.add(token.getPos());
+                    }
+                }
+
+                Counter<String> baseFeats = new ClassicCounter<>();
+                baseFeats.setCount("SCORE", docs.scoreDocs[i].score);
+                baseFeats.setCount("PERC_MAX_SCORE", docs.scoreDocs[i].score / docs.getMaxScore());
+                baseFeats.setCount("RANK", i);
+                baseFeats.setCount("RANK_1", i == 0 ? 1.0 : 0.0);
+                baseFeats.setCount("RANK_5", i < 5 ? 1.0 : 0.0);
+                baseFeats.setCount("RANK_10", i < 10 ? 1.0 : 0.0);
+                baseFeats.setCount("RANK_20", i < 20 ? 1.0 : 0.0);
+                baseFeats.setCount("RANK_50", i < 50 ? 1.0 : 0.0);
+                baseFeats.setCount("MATCH_PERC", 1.0 * matches.size() / queryLength);
+                for (String match : matches) {
+                    baseFeats.setCount("MATCH(" + match + ")", 1.0);
+                }
+                for (String posMatch : posMatches) {
+                    baseFeats.setCount("MATCH_POS(" + posMatch + ")", 1.0);
+                }
+
+
+                Stream.of(doc.getValues(BuildSearchIndexProcessor.RELATIONS_FIELD_NAME))
+                        .collect(Collectors.groupingBy(Function.<String>identity(), Collectors.counting()))
+                        .forEach((predicate, count) -> {
+                            RVFDatum<Boolean, String> instance = new RVFDatum<>(baseFeats);
+                            instance.setLabel(false);
+                            Counter<String> feats = instance.asFeaturesCounter();
+                            try {
+                                feats.setCount("DOC_FREQUENCY", Math.log(1 + searcher_.getIndexReader().docFreq(new Term(BuildSearchIndexProcessor.RELATIONS_FIELD_NAME, predicate))));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            feats.setCount("ANSWER_MATCHES_PERCENT", 1.0 * count / (finalAnswersCount == 0 ? 1 : finalAnswersCount));
+                            feats.setCount("PREDICATE(" + predicate + ")", 1.0);
+                            relationDatums.putIfAbsent(predicate, new ArrayList<>());
+                            relationDatums.get(predicate).add(instance);
+                        });
+
+            }
+        }
+//        relationScores.entrySet().stream()
+//                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+//                .limit(10)
+//                .forEach(x -> System.out.println(x.getKey() + "\t" + x.getValue()));
+        // SIMILARITY BASED QA
+
         PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores = new PriorityQueue<>((o1, o2) -> {
             int res = o2.first.compareTo(o1.first);
             if (res != 0) return res;
@@ -273,37 +393,12 @@ public class QAModelTrainerProcessor extends Processor {
         PrintWriter debugWriter = debug_ ? new PrintWriter(strWriter) : null;
 
         if (isTraining_) {
-            final int finalAnswersCount = answersCount;
-            document.getQaInstanceList().stream()
-                    .filter(Document.QaRelationInstance::getIsPositive)
-                    .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
-                    .entrySet()
-                    .stream()
-                    .forEach(entry -> {
-                        float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
-                        if (Float.isFinite(weight) && !Float.isNaN(weight)) {
-                            synchronized (dataset_) {
-                                dataset_.add(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()), entry.getKey().second, weight);
-                            }
-                        }
-                    });
+            //addTrainingInstances(document, questionFeatures, finalAnswersCount);
+            addTrainingInstancesSim(document, finalAnswersCount, relationDatums);
         } else {
-            Datum<String, Integer> e = new BasicDatum<>(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()));
-            Set<String> labels = new HashSet<>(model_.labels());
+            //predictAnswer(document, questionFeatures, scores);
+            predictAnswerSim(document, relationDatums, scores);
 
-            String bestPredicate = document.getQaInstanceList().stream()
-                    .map(Document.QaRelationInstance::getPredicate)
-                    .filter(labels::contains)
-                    .map(x -> new Pair<>(x, model_.scoreOf(e, x)))
-                    .max((e1, e2) -> e1.second.compareTo(e2.second))
-                    .map(Pair::first)
-                    .orElse("");
-
-            scores.addAll(document.getQaInstanceList()
-                    .stream()
-                    .filter(x -> x.getPredicate().equals(bestPredicate))
-                    .map(x -> new Triple<>(1.0, x, ""))
-                    .collect(Collectors.toList()));
         }
 
 //        for (Document.QaRelationInstance instance : document.getQaInstanceList()) {
@@ -487,6 +582,77 @@ public class QAModelTrainerProcessor extends Processor {
         return document;
     }
 
+    private void predictAnswerSim(Document.NlpDocument document, Map<String, List<RVFDatum<Boolean, String>>> relationDatums, PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores) {
+        scores.addAll(document.getQaInstanceList().stream()
+                .map(entry -> {
+                    //float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
+                    //if (Float.isFinite(weight) && !Float.isNaN(weight)) {
+                    double curScore = 0;
+                    int count = relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList()).size();
+                    for (RVFDatum<Boolean, String> instance : relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList())) {
+                        instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", entry.getPredicateObjectsCount());
+                        curScore = Math.max(curScore, simModel_.probabilityOf(instance).getCount(true));
+                    }
+                    return new Triple<>(curScore, entry, "");
+                })
+                .collect(Collectors.toList()));
+    }
+
+    private void predictAnswer(Document.NlpDocument document, Set<String> questionFeatures, PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores) {
+        Datum<String, Integer> e = new BasicDatum<>(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()));
+        Set<String> labels = new HashSet<>(model_.labels());
+
+        String bestPredicate = document.getQaInstanceList().stream()
+                .map(Document.QaRelationInstance::getPredicate)
+                .filter(labels::contains)
+                .map(x -> new Pair<>(x, model_.scoreOf(e, x)))
+                .max((e1, e2) -> e1.second.compareTo(e2.second))
+                .map(Pair::first)
+                .orElse("");
+
+        scores.addAll(document.getQaInstanceList()
+                .stream()
+                .filter(x -> x.getPredicate().equals(bestPredicate))
+                .map(x -> new Triple<>(1.0, x, ""))
+                .collect(Collectors.toList()));
+    }
+
+    private void addTrainingInstances(Document.NlpDocument document, Set<String> questionFeatures, int finalAnswersCount) {
+        document.getQaInstanceList().stream()
+                .filter(Document.QaRelationInstance::getIsPositive)
+                .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
+                .entrySet()
+                .stream()
+                .forEach(entry -> {
+                    float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
+                    if (Float.isFinite(weight) && !Float.isNaN(weight)) {
+                        synchronized (dataset_) {
+                            dataset_.add(questionFeatures.stream().map(f -> (f.hashCode() & 0x7FFFFFFF) % alphabetSize_).collect(Collectors.toList()), entry.getKey().second, weight);
+                        }
+                    }
+                });
+    }
+
+    private void addTrainingInstancesSim(Document.NlpDocument document,
+                                         int finalAnswersCount,
+                                         Map<String, List<RVFDatum<Boolean, String>>> relationDatums) {
+        document.getQaInstanceList().stream()
+                .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
+                .entrySet()
+                .stream()
+                .forEach(entry -> {
+                    //float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
+                    //if (Float.isFinite(weight) && !Float.isNaN(weight)) {
+                        for (RVFDatum<Boolean, String> instance : relationDatums.getOrDefault(entry.getKey().second, Collections.emptyList())) {
+                            instance.setLabel(entry.getValue().get(0).getIsPositive());
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", entry.getValue().get(0).getPredicateObjectsCount());
+                            synchronized (simDataset_) {
+                                simDataset_.add(instance);
+                            }
+                        }
+                    //}
+                });
+    }
 
     private List<Pair<Double, String>> calculatePQuesRelScores(List<String> questionLemmas,
                                                         List<Document.QaRelationInstance> relations) {
@@ -573,8 +739,38 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        if (model_ == null) {
 
+        // REGULAR QA
+        trainQaSimModel();
+    }
+
+    private void trainQaSimModel() {
+        if (model_ == null) {
+            simDataset_.summaryStatistics();
+//            dataset_.selectFeaturesBinaryInformationGain(10000);
+            //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);
+            simDataset_.applyFeatureCountThreshold(2);
+            simDataset_.summaryStatistics();
+
+            LinearClassifierFactory<Boolean, String> classifierFactory_ = new LinearClassifierFactory<>(1e-4, false, regularizer_);
+            classifierFactory_.useQuasiNewton(true);
+            if (tuneSigma_) {
+                classifierFactory_.setTuneSigmaHeldOut();
+                classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
+            }
+            //classifierFactory_.setHeldOutSearcher(new GoldenSectionLineSearch(0.01, 0.01, 10.0, true));
+
+            // We are doing this to specify batch size, otherwise we can get array index out of bounds for large datasets.
+            //classifierFactory_.setMinimizerCreator(() -> new SGDMinimizer(regularizer_, 50, -1, 1000));
+
+            classifierFactory_.setVerbose(true);
+            simModel_= classifierFactory_.trainClassifier(simDataset_);
+            LinearClassifier.writeClassifier(simModel_, modelFile_);
+        }
+    }
+
+    private void trainQaModel() {
+        if (model_ == null) {
             dataset_.summaryStatistics();
 //            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);

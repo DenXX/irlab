@@ -261,6 +261,11 @@ public class AppParameters {
                 .withArgName(QAModelTrainerProcessor.QA_TUNESIGMA_PARAMETER)
                 .withDescription("Tune sigma during training.").create(
                         QAModelTrainerProcessor.QA_TUNESIGMA_PARAMETER));
+        opt.addOption(OptionBuilder
+                .hasArg()
+                .withArgName(QAModelTrainerProcessor.QA_INDEX_PATH_PARAMETER)
+                .withDescription("Search index for similarity search.").create(
+                        QAModelTrainerProcessor.QA_INDEX_PATH_PARAMETER));
 
         return opt;
     }
