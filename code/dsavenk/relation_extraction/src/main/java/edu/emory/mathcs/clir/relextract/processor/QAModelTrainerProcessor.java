@@ -321,7 +321,7 @@ public class QAModelTrainerProcessor extends Processor {
         Map<String, List<RVFDatum<Boolean, String>>> relationDatums = new HashMap<>();
         for (String template : templates) {
             Query q = queryBuilder_.createBooleanQuery(BuildSearchIndexProcessor.QUESTION_TEMPLATE_FIELD_NAME, template);
-            TopDocs docs = searcher_.search(q, 100);
+            TopDocs docs = searcher_.search(q, 20);
 
             for (int i = 0; i < docs.scoreDocs.length; ++i) {
                 final org.apache.lucene.document.Document doc = searcher_.doc(docs.scoreDocs[i].doc);
@@ -590,15 +590,15 @@ public class QAModelTrainerProcessor extends Processor {
     }
 
     private void predictAnswerSim(Document.NlpDocument document, Map<String, List<RVFDatum<Boolean, String>>> relationDatums, PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores) {
-        scores.addAll(document.getQaInstanceList().stream()
+       scores.addAll(document.getQaInstanceList().stream()
                 .map(entry -> {
-                    //float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
+                    //float weight = 1.0f / Math.max(1, (entry.getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
                     //if (Float.isFinite(weight) && !Float.isNaN(weight)) {
                     double curScore = 0;
                     int count = relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList()).size();
                     for (RVFDatum<Boolean, String> instance : relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList())) {
                         instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", entry.getPredicateObjectsCount());
-                        curScore = Math.max(curScore, simModel_.probabilityOf(instance).getCount(true));
+                        curScore = Math.max(curScore, simModel_.scoreOf(instance, true));
                     }
                     return new Triple<>(curScore, entry, "");
                 })
@@ -643,21 +643,38 @@ public class QAModelTrainerProcessor extends Processor {
     private void addTrainingInstancesSim(Document.NlpDocument document,
                                          int finalAnswersCount,
                                          Map<String, List<RVFDatum<Boolean, String>>> relationDatums) {
+        
+        final float[] maxWeight = new float[1];
+        document.getQaInstanceList().stream()
+                .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
+                .entrySet()
+                .stream()
+                .forEach(e1 -> {
+                     long positive = e1.getValue().stream().filter(Document.QaRelationInstance::getIsPositive).count(); 
+                     float weight = 1.0f * positive / Math.max(1, (e1.getValue().get(0).getPredicateObjectsCount() - positive + finalAnswersCount));
+                     maxWeight[0] = Math.max(maxWeight[0], weight);
+                });
+ 
+        
         document.getQaInstanceList().stream()
                 .collect(Collectors.groupingBy(instance -> new Pair<>(instance.getSubject(), instance.getPredicate())))
                 .entrySet()
                 .stream()
                 .forEach(entry -> {
-                    //float weight = 1.0f * entry.getValue().size() / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - entry.getValue().size() + finalAnswersCount));
-                    //if (Float.isFinite(weight) && !Float.isNaN(weight)) {
                         for (RVFDatum<Boolean, String> instance : relationDatums.getOrDefault(entry.getKey().second, Collections.emptyList())) {
-                            instance.setLabel(entry.getValue().get(0).getIsPositive());
+                            long positive = entry.getValue().stream().filter(Document.QaRelationInstance::getIsPositive).count(); 
+                            float weight = 1.0f * positive / Math.max(1, (entry.getValue().get(0).getPredicateObjectsCount() - positive + finalAnswersCount));
+                     
+                            instance.setLabel(entry.getValue().get(0).getIsPositive() && weight == maxWeight[0]);
                             instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", entry.getValue().get(0).getPredicateObjectsCount());
+                            Counter<String> feats = instance.asFeaturesCounter();
+                            //for (String feat : feats.keySet()) {
+                            //    feats.setCount(feat, feats.getCount(feat) * weight);
+                            //}
                             synchronized (simDataset_) {
                                 simDataset_.add(instance);
                             }
                         }
-                    //}
                 });
     }
 
@@ -746,13 +763,12 @@ public class QAModelTrainerProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-
         // REGULAR QA
         trainQaSimModel();
     }
 
     private void trainQaSimModel() {
-        if (model_ == null) {
+        if (simModel_ == null) {
             simDataset_.summaryStatistics();
 //            dataset_.selectFeaturesBinaryInformationGain(10000);
             //dataset_.applyFeatureMaxCountThreshold(dataset_.size() / 10000);

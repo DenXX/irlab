@@ -25,7 +25,7 @@ mainClassName = 'edu.emory.mathcs.clir.relextract.RelationExtractionApp'
 //                             "-XX:+UseConcMarkSweepGC",
 //                             "-XX:PermSize=20g"]
 
-applicationDefaultJvmArgs = ["-Xmx8g",
+applicationDefaultJvmArgs = ["-Xmx220g",
                              "-XX:+UseParNewGC",
                              "-XX:+UseConcMarkSweepGC"]
 
@@ -37,7 +37,7 @@ configurations.all {
 
         // force certain versions of dependencies (including transitive)
         //  *append new forced modules:
-        force 'edu.stanford.nlp:stanford-corenlp:3.5.1'
+        force 'edu.stanford.nlp:stanford-corenlp:3.5.2'
         //  *replace existing forced modules with new ones:
         //forcedModules = ['asm:asm-all:3.3.1']
     }
@@ -68,8 +68,8 @@ buildscript {
 dependencies {
     compile name: 'stanford-srparser-2014-10-23-models'
     compile name: 'stanford-corenlp-caseless-2014-02-25-models'
-    compile name: 'virt_jena2'
-    compile name: 'virtjdbc4'
+    //compile name: 'virt_jena2'
+    //compile name: 'virtjdbc4'
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     compile group: 'org.apache.lucene', name: 'lucene-core', version: '4.10.1'
     compile group: 'org.apache.lucene', name: 'lucene-analyzers-common', version: '4.10.1'
