@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 public class QAExamplesBuilderProcessor extends Processor {
 
     private static final int MAX_ENTITY_IDS = 1;
-    private static final boolean POSITIVE_ONLY = true;
+    private static final boolean POSITIVE_ONLY = false;
     private static final boolean ADD_OTHER_MEASURES = false;
-    private static final boolean NER_ONLY_QUESTIONSPANS = true;
+    private static final boolean NER_ONLY_QUESTIONSPANS = false;
 
     private final KnowledgeBase kb_;
     private Map<String, Map<String, Set<Statement>>> sop = Collections.synchronizedMap(new HashMap<>());

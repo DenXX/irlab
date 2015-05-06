@@ -852,8 +852,9 @@ public class KnowledgeBase {
                 org.apache.lucene.document.Document document =
                         dictSearcher_.doc(doc.doc);
                 float score = (float)((FieldDoc)doc).fields[0];
+
                 if (score < maxScore * MIN_FRACTION_OF_MAX_SCORE ||
-                        (1.0 * document.get("name").split("\\s+").length / name.split("\\s+").length > 2)) {
+                        (1.0 * document.get("name").split("\\s+").length / name.split("\\s+").length >= 2)) {
                     break;
                 }
                 long count = (long)((FieldDoc)doc).fields[1];

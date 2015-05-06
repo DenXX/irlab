@@ -21,11 +21,15 @@ public class WikiLinksDictionaryEntityLinking implements EntityLinking {
     private final Map<String, Map<String, Float>> wikilinksLnrmDictionary_ = new HashMap<>();
 
     public WikiLinksDictionaryEntityLinking(String dictionaryPath, String lnrmDictionaryPath) throws IOException {
-        System.err.println("Starting reading wikilinks dictionary...");
-        readDictionary(dictionaryPath, wikilinksDictionary_);
-        System.err.println("Starting reading normalized wikilinks dictionary...");
-        readDictionary(lnrmDictionaryPath, wikilinksLnrmDictionary_);
-        System.err.println("Finished reading dictionaries.");
+        if (dictionaryPath != null && lnrmDictionaryPath != null) {
+            System.err.println("Starting reading wikilinks dictionary...");
+            readDictionary(dictionaryPath, wikilinksDictionary_);
+            System.err.println("Starting reading normalized wikilinks dictionary...");
+            readDictionary(lnrmDictionaryPath, wikilinksLnrmDictionary_);
+            System.err.println("Finished reading dictionaries.");
+        } else {
+            System.err.println("Dictionaries are not provided...");
+        }
     }
 
     private void readDictionary(

@@ -306,8 +306,10 @@ public class DocumentWrapper {
                     docBuilder.addSentenceBuilder();
             sentBuilder.setFirstToken(firstSentenceToken)
                     .setLastToken(endSentenceToken)
-                    .setText(sentence.get(CoreAnnotations.TextAnnotation.class))
-                    .setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
+                    .setText(sentence.get(CoreAnnotations.TextAnnotation.class));
+            if (sentence.has(TreeCoreAnnotations.TreeAnnotation.class)) {
+                sentBuilder.setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
+            }
             // Process dependency tree.
             // TODO(denxx): I switched to the basic dependency tree, so that I
             // have no loops and everything is a tree.

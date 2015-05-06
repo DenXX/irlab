@@ -199,9 +199,7 @@ public class CascadeEntityResolutionProcessor extends Processor {
 //            }
 //            System.out.println(name + "\t" + mid + "\t" + entityName + "\t" + triples + "\t" + score + "\t" + kb_.getTripleCount(mid) + "\t" + (2.0 * match / (total + nameTokens)));
             long triplesCount = kb_.getTripleCount(mid);
-            if (triplesCount > 42) {
-                res.add(new Pair<>(mid, (float) triplesCount));
-            }
+            res.add(new Pair<>(mid, (float) triplesCount));
         }
 
 
