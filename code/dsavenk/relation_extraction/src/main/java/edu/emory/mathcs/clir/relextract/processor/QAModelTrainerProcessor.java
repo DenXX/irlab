@@ -514,6 +514,7 @@ public class QAModelTrainerProcessor extends Processor {
             answers.append("]");
 
             StringBuilder prediction = new StringBuilder();
+            StringBuilder confs = new StringBuilder();
             prediction.append("[");
             Set<String> predictionsSet = new HashSet<>();
 
@@ -527,9 +528,9 @@ public class QAModelTrainerProcessor extends Processor {
 //                while (!scores.isEmpty() && (scores.peek().first == bestScore || scores.peek().first > 0.5)) {
                 while (!scores.isEmpty()
                         && ((shouldKeepAnswer =
-//                                (bestScore > 0.5 &&
+                                (bestScore > 0.0 &&
 //                                        && scores.peek().first > 0.5
-                                        scores.peek().first >= bestScore)
+                                        scores.peek().first >= bestScore))
 //                                        && scores.peek().second.getSubject().equals(bestSubject))
 //                                        && scores.peek().second.getPredicate().equals(bestPredicate)))
                             || debug_)) {
@@ -571,6 +572,8 @@ public class QAModelTrainerProcessor extends Processor {
                         prediction.append("\"");
                         first = false;
                         predictionsSet.add(value);
+                        confs.append(tr.first);
+                        confs.append(" ");
                     }
 
                     if (debug_) {
@@ -583,7 +586,7 @@ public class QAModelTrainerProcessor extends Processor {
             }
             prediction.append("]");
             synchronized (this) {
-                System.out.println(String.format("%s\t%s\t%s", utterance, answers, prediction));
+                System.out.println(String.format("%s\t%s\t%s\t%s", utterance, answers, prediction, confs));
                 if (debug_) {
                     System.out.println(debugInfo + "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
                 }
@@ -599,9 +602,24 @@ public class QAModelTrainerProcessor extends Processor {
                        .collect(Collectors.groupingBy(Document.QaRelationInstance::getPredicate, Collectors.counting()));
 
         Map<String, Double> entityTriples = new HashMap<>();
+        Map<String, Double> entitySimilarity = new HashMap<>();
+        Map<String, Double> entityMentionLengthChars = new HashMap<>();
+        Map<String, Double> entityMentionLengthTokens = new HashMap<>();
+        Set<String> nerEntities = new HashSet<>();
         document.getSpanList().stream().forEach(span -> {
             for (int i = 0; i < span.getCandidateEntityIdCount(); ++i) {
                 entityTriples.put(span.getCandidateEntityId(i), span.getCandidateEntityScore(i));
+                entitySimilarity.put(span.getCandidateEntityId(i),
+                        Math.max(entitySimilarity.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                getNamesSimilarity(span.getText(), kb_.getEntityName(span.getCandidateEntityId(i)))));
+                entityMentionLengthChars.put(span.getCandidateEntityId(i),
+                        Math.max(entityMentionLengthChars.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                span.getText().length()));
+                entityMentionLengthTokens.put(span.getCandidateEntityId(i),
+                        Math.max(entityMentionLengthTokens.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                span.getText().split("\\s+").length));
+                if (span.getType().equals("ENTITY"))
+                    nerEntities.add(span.getCandidateEntityId(i));
             }
         });
 
@@ -613,18 +631,39 @@ public class QAModelTrainerProcessor extends Processor {
                    double curScore = 0;
                    int count = relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList()).size();
                    for (RVFDatum<Boolean, String> instance : relationDatums.getOrDefault(entry.getPredicate(), Collections.emptyList())) {
-//                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", answerCounts.get(entry.getPredicate()));
-//                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_1", answerCounts.get(entry.getPredicate()) == 1 ? 1 : 0);
-//                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_2", answerCounts.get(entry.getPredicate()) == 2 ? 1 : 0);
-//                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT2L10", answerCounts.get(entry.getPredicate()) > 2 && answerCounts.get(entry.getPredicate()) < 10 ? 1 : 0);
-//                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT10", answerCounts.get(entry.getPredicate()) >= 10 ? 1 : 0);
-                       instance.asFeaturesCounter().setCount("MATCHED_DOC_RELATIONS", count);
-                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_TRIPLES", entityTriples.get(entry.getSubject()));
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", Math.log(answerCounts.get(entry.getPredicate())));
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_1", answerCounts.get(entry.getPredicate()) == 1 ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_2", answerCounts.get(entry.getPredicate()) == 2 ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_3", answerCounts.get(entry.getPredicate()) == 3 ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT3", answerCounts.get(entry.getPredicate()) > 3 ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT10", answerCounts.get(entry.getPredicate()) >= 10 ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("MATCHED_DOC_RELATIONS", Math.log(count));
+                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NER", nerEntities.contains(entry.getSubject()) ? 1 : 0);
+                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_TRIPLES", Math.log(entityTriples.get(entry.getSubject())));
+                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_SIMILARITY", entitySimilarity.get(entry.getSubject()));
+                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NAME_LENGTH_CHARS", entityMentionLengthChars.get(entry.getSubject()));
+                       instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NAME_LENGTH_TOKENS", entityMentionLengthTokens.get(entry.getSubject()));
                        curScore = Math.max(curScore, simModel_.probabilityOf(instance).getCount(true));
                    }
                    return new Triple<>(curScore, entry, "");
                })
                 .collect(Collectors.toList()));
+    }
+
+    private double getNamesSimilarity(String name1, String name2) {
+        String[] terms1 = name1.toLowerCase().split("\\s+");
+        String[] terms2 = name2.toLowerCase().split("\\s+");
+        Set<String> terms2Set = new HashSet<>(Arrays.asList(terms2));
+
+        int match = 0;
+
+        for (String term1 : terms1) {
+            if (terms2Set.contains(term1)) {
+                ++match;
+            }
+        }
+
+        return 2.0 * match / (terms1.length + terms2.length);
     }
 
     private void predictAnswer(Document.NlpDocument document, Set<String> questionFeatures, PriorityQueue<Triple<Double, Document.QaRelationInstance, String>> scores) {
@@ -678,9 +717,25 @@ public class QAModelTrainerProcessor extends Processor {
                 });
 
         Map<String, Double> entityTriples = new HashMap<>();
+        Map<String, Double> entitySimilarity = new HashMap<>();
+        Map<String, Double> entityMentionLengthChars = new HashMap<>();
+        Map<String, Double> entityMentionLengthTokens = new HashMap<>();
+        Set<String> nerEntities = new HashSet<>();
         document.getSpanList().stream().forEach(span -> {
             for (int i = 0; i < span.getCandidateEntityIdCount(); ++i) {
                 entityTriples.put(span.getCandidateEntityId(i), span.getCandidateEntityScore(i));
+                entitySimilarity.put(span.getCandidateEntityId(i),
+                        Math.max(entitySimilarity.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                getNamesSimilarity(span.getText(), kb_.getEntityName(span.getCandidateEntityId(i)))));
+                entityMentionLengthChars.put(span.getCandidateEntityId(i),
+                        Math.max(entityMentionLengthChars.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                span.getText().length()));
+                entityMentionLengthTokens.put(span.getCandidateEntityId(i),
+                        Math.max(entityMentionLengthTokens.getOrDefault(span.getCandidateEntityId(i), 0.0),
+                                span.getText().split("\\s+").length));
+                if (span.getType().equals("ENTITY")) {
+                    nerEntities.add(span.getCandidateEntityId(i));
+                }
             }
         });
         
@@ -694,13 +749,19 @@ public class QAModelTrainerProcessor extends Processor {
                             float weight = 1.0f * positive / Math.max(1, (entry.getValue().size() - positive + finalAnswersCount));
                      
                             instance.setLabel(entry.getValue().get(0).getIsPositive() && weight == maxWeight[0]);
-//                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", entry.getValue().size());
-//                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_1", entry.getValue().size() == 1 ? 1 : 0);
-//                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_2", entry.getValue().size() == 2 ? 1 : 0);
-//                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT2L10", entry.getValue().size() > 2 && entry.getValue().size() < 10 ? 1 : 0);
-//                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT10", entry.getValue().size() >= 10 ? 1 : 0);
-                            instance.asFeaturesCounter().setCount("MATCHED_DOC_RELATIONS", relationDatums.get(entry.getKey().second).size());
-                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_TRIPLES", entityTriples.get(entry.getKey().first));
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS", Math.log(entry.getValue().size()));
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_1", entry.getValue().size() == 1 ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_2", entry.getValue().size() == 2 ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_3", entry.getValue().size() == 3 ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT3", entry.getValue().size() > 3 ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("PREDICATE_OBJECTS_GT10", entry.getValue().size() >= 10 ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("MATCHED_DOC_RELATIONS", Math.log(relationDatums.get(entry.getKey().second).size()));
+                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NER", nerEntities.contains(entry.getKey().first) ? 1 : 0);
+                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_TRIPLES", Math.log(entityTriples.get(entry.getKey().first)));
+                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_SIMILARITY", entitySimilarity.get(entry.getKey().first));
+                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NAME_LENGTH_CHARS", entityMentionLengthChars.get(entry.getKey().first));
+                            instance.asFeaturesCounter().setCount("SUBJECT_ENTITY_NAME_LENGTH_TOKENS", entityMentionLengthTokens.get(entry.getKey().first));
+
                             //Counter<String> feats = instance.asFeaturesCounter();
                             //for (String feat : feats.keySet()) {
                             //    feats.setCount(feat, feats.getCount(feat) * weight);

@@ -2,15 +2,12 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
-import edu.stanford.nlp.util.Pair;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -45,18 +42,18 @@ public class TestProcessor extends Processor {
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
 
-        Set<Pair<Double, String>> mids = new HashSet<>();
-        for (Document.Span span : document.getSpanList()) {
-            for (int i = 0; i < span.getCandidateEntityIdCount(); ++i) {
-                mids.add(new Pair<>(span.getCandidateEntityScore(i), span.getCandidateEntityId(i)));
-            }
-        }
+//        Set<Pair<Double, String>> mids = new HashSet<>();
+//        for (Document.Span span : document.getSpanList()) {
+//            for (int i = 0; i < span.getCandidateEntityIdCount(); ++i) {
+//                mids.add(new Pair<>(span.getCandidateEntityScore(i), span.getCandidateEntityId(i)));
+//            }
+//        }
 
-        System.out.println(document.getSentence(0).getText());
-        mids.stream()
-                .sorted((e1, e2) -> e2.first.compareTo(e1.first))
-                .limit(5)
-                .forEach(e -> System.out.println(e.second + "\t" + kb_.getEntityName(e.second)));
+//        System.out.println(document.getSentence(0).getText());
+//        mids.stream()
+//                .sorted((e1, e2) -> e2.first.compareTo(e1.first))
+//                .limit(5)
+//                .forEach(e -> System.out.println(e.second + "\t" + kb_.getEntityName(e.second)));
 
 
         ++total;
