@@ -134,6 +134,9 @@ public class RelationExtractionApp {
                 case "windowspans":
                     workflow.addProcessor(new SlidingWindowSpanCreatorProcessor(props));
                     break;
+                case "filterrecommend":
+                    workflow.addProcessor(new FilterRecommendationQuestionsProcessor(props));
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Processor " + processor + " doesn't exist!");
