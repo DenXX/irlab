@@ -14,6 +14,7 @@ import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
@@ -307,6 +308,7 @@ public class DocumentWrapper {
             sentBuilder.setFirstToken(firstSentenceToken)
                     .setLastToken(endSentenceToken)
                     .setText(sentence.get(CoreAnnotations.TextAnnotation.class));
+            sentBuilder.setSentiment(sentence.get(SentimentCoreAnnotations.SentimentClass.class));
             if (sentence.has(TreeCoreAnnotations.TreeAnnotation.class)) {
                 sentBuilder.setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
             }
