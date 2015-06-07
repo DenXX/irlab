@@ -46,9 +46,11 @@ public class TestProcessor extends Processor {
                 document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
             if (document.getToken(tokenIndex).getPos().equals("JJS")) {
                 ++count;
-                int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
-                System.out.println(document.getToken(dependencyHead).getText());
-                return document;
+                if (document.getToken(tokenIndex).getDependencyGovernor() > 0) {
+                    int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
+                    System.out.println(document.getToken(dependencyHead).getText() + "\t" + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getText());
+                    return document;
+                }
             }
         }
         return null;
