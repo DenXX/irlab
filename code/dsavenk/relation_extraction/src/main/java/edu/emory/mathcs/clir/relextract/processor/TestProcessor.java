@@ -41,6 +41,17 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        ++total;
+        for (int tokenIndex = 0; tokenIndex < document.getTokenCount() &&
+                document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
+            if (document.getToken(tokenIndex).getPos().equals("JJS")) {
+                ++count;
+                int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
+                System.out.println(document.getToken(dependencyHead).getText());
+                return document;
+            }
+        }
+        return null;
 
 //        Set<Pair<Double, String>> mids = new HashSet<>();
 //        for (Document.Span span : document.getSpanList()) {
@@ -56,34 +67,6 @@ public class TestProcessor extends Processor {
 //                .forEach(e -> System.out.println(e.second + "\t" + kb_.getEntityName(e.second)));
 
 
-        ++total;
-        boolean first = true;
-        StringBuilder res = new StringBuilder();
-        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if ((flag || triple.getIsPositive()) && first) {
-                res.append("----------------------------------\n").append(document.getText()).append("\n");
-                first = false;
-                ++count;
-            }
-            if (triple.getIsPositive()) {
-                res.append(kb_.getEntityName(triple.getSubject()))
-                        .append("[")
-                        .append(triple.getSubject())
-                        .append("]\t")
-                        .append(triple.getPredicate())
-                        .append("\t")
-                        .append(triple.getObject().startsWith("http:")
-                            ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
-                            : triple.getObject())
-                        .append("\n");
-            }
-        }
-        if (res.length() > 0) {
-            synchronized (this) {
-                System.out.println(res.toString());
-            }
-        }
-        return document;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {

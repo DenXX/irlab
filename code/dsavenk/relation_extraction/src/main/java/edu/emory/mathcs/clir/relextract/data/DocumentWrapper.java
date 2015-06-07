@@ -208,6 +208,7 @@ public class DocumentWrapper {
         for (int tokenIndex = 0;
              tokenIndex < document_.getTokenCount(); ++tokenIndex) {
             if (document_.getToken(tokenIndex).getSentenceIndex() != prevSentenceIndex) {
+                res.append(document_.getSentence(document_.getToken(tokenIndex).getSentenceIndex()).getSentiment());
                 res.append("\n");
                 prevSentenceIndex = document_.getToken(tokenIndex).getSentenceIndex();
             }
