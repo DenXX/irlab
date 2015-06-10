@@ -187,6 +187,39 @@ public class DocumentWrapper {
         return qDepPaths_;
     }
 
+    public List<String> getModifierPhrases(int headTokenIndex) {
+        List<String> res = new ArrayList<>();
+
+        Document.Token headToken = document_.getToken(headTokenIndex);
+        Document.Sentence sentence = document().getSentence(headToken.getSentenceIndex());
+        List<List<Integer>> children = new ArrayList<>();
+        for (int i = sentence.getFirstToken(); i <= sentence.getLastToken(); ++i) {
+            children.add(new ArrayList<>());
+        }
+
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
+            int curHead = document_.getToken(i).getDependencyGovernor();
+            if (curHead != 0) {
+                --curHead;
+                children.get(curHead).add(i - sentence.getFirstToken());
+            }
+        }
+
+        for (int child : children.get(headTokenIndex - sentence.getFirstToken())) {
+            List<Pair<Integer, String>> modifierTokens = new ArrayList<>();
+            Queue<Integer> q = new LinkedList<>();
+            q.add(child);
+            while (!q.isEmpty()) {
+                int curChild = q.poll();
+                modifierTokens.add(new Pair<>(curChild, document().getToken(sentence.getFirstToken() + curChild).getText().toLowerCase()));
+                q.addAll(children.get(curChild).stream().collect(Collectors.toList()));
+            }
+            Collections.sort(modifierTokens, (p1, p2) -> p1.first.compareTo(p2.first));
+            res.add(String.join(" ", modifierTokens.stream().map(x -> x.second).collect(Collectors.toList())));
+        }
+        return res;
+    }
+
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
@@ -309,7 +342,10 @@ public class DocumentWrapper {
             sentBuilder.setFirstToken(firstSentenceToken)
                     .setLastToken(endSentenceToken)
                     .setText(sentence.get(CoreAnnotations.TextAnnotation.class));
-            sentBuilder.setSentiment(sentence.get(SentimentCoreAnnotations.SentimentClass.class));
+
+            if (sentence.has(SentimentCoreAnnotations.SentimentClass.class)) {
+                sentBuilder.setSentiment(sentence.get(SentimentCoreAnnotations.SentimentClass.class));
+            }
             if (sentence.has(TreeCoreAnnotations.TreeAnnotation.class)) {
                 sentBuilder.setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
             }

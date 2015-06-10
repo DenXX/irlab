@@ -1,11 +1,14 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
@@ -35,21 +38,52 @@ public class TestProcessor extends Processor {
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
         rnd = new Random(42);
-        kb_ = KnowledgeBase.getInstance(properties);
+        kb_ = null; //KnowledgeBase.getInstance(properties);
         flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
         ++total;
+        DocumentWrapper documentWrapper = new DocumentWrapper(document);
+        boolean qaPrinted = false;
+
+        List<String> answers = new ArrayList<>();
+        for (Document.Span span : document.getSpanList()) {
+            if (span.getType().equals("ENTITY")) {
+                for (Document.Mention mention : span.getMentionList()) {
+                    if (mention.getSentenceIndex() >= documentWrapper.getQuestionSentenceCount()) {
+                        answers.add(span.getText().replace("\t", " ").replace("\n", " "));
+                    }
+                }
+            }
+
+        }
+
         for (int tokenIndex = 0; tokenIndex < document.getTokenCount() &&
                 document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
             if (document.getToken(tokenIndex).getPos().equals("JJS")) {
                 ++count;
                 if (document.getToken(tokenIndex).getDependencyGovernor() > 0) {
                     int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
-                    System.out.println(document.getToken(dependencyHead).getText() + "\t" + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getText());
-                    return document;
+                    if (!qaPrinted) {
+                        StringBuilder question = new StringBuilder();
+                        StringBuilder answer = new StringBuilder();
+                        StringBuilder curBuilder = question;
+                        for (int sentence = 0; sentence < document.getSentenceCount(); ++sentence) {
+                            if (sentence == documentWrapper.getQuestionSentenceCount()) {
+                                curBuilder = answer;
+                            }
+                            curBuilder.append(document.getSentence(sentence).getText().replace("\n", " ")).append(" ");
+                        }
+                        System.out.println(question.toString());
+                        System.out.println(answer.toString());
+                        qaPrinted = true;
+                    }
+
+                    String type = document.getToken(dependencyHead).getText();
+                    String attributes = String.join(",", documentWrapper.getModifierPhrases(dependencyHead));
+                    System.out.println(type + "\t" + attributes + "\t" + String.join(", ", answers));
                 }
             }
         }

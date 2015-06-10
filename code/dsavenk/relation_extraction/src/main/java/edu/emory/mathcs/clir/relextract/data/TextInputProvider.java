@@ -47,7 +47,7 @@ public class TextInputProvider implements Iterable<Document.NlpDocument> {
             try {
                 String line;
                 if ((line = input_.readLine()) != null) {
-                    currentObject_ = Document.NlpDocument.newBuilder().setText(line).build();
+                    currentObject_ = Document.NlpDocument.newBuilder().setText(line).setQuestionLength(line.length()).build();
                 } else {
                     currentObject_ = null;
                 }
