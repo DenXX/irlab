@@ -7,10 +7,7 @@ import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -62,10 +59,9 @@ public class TestProcessor extends Processor {
 
         for (int tokenIndex = 0; tokenIndex < document.getTokenCount() &&
                 document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
-            if (document.getToken(tokenIndex).getPos().equals("JJS")) {
+            if (document.getToken(tokenIndex).getPos().equals("JJS") || document.getToken(tokenIndex).getLemma().equals("recommend")) {
                 ++count;
                 if (document.getToken(tokenIndex).getDependencyGovernor() > 0) {
-                    int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
                     if (!qaPrinted) {
                         StringBuilder question = new StringBuilder();
                         StringBuilder answer = new StringBuilder();
@@ -81,8 +77,33 @@ public class TestProcessor extends Processor {
                         qaPrinted = true;
                     }
 
+                    int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
                     String type = document.getToken(dependencyHead).getText();
-                    String attributes = String.join(",", documentWrapper.getModifierPhrases(dependencyHead));
+                    String attributes = String.join(",", documentWrapper.getModifierPhrases(dependencyHead, new HashSet<>(Arrays.asList(tokenIndex))));
+                    System.out.println(type + "\t" + attributes + "\t" + String.join(", ", answers));
+                }
+            }
+            if (document.getToken(tokenIndex).getLemma().equals("recommend")) {
+                ++count;
+                int head = documentWrapper.getDependencyChild(tokenIndex, "dobj");
+                if (head >= 0) {
+                    if (!qaPrinted) {
+                        StringBuilder question = new StringBuilder();
+                        StringBuilder answer = new StringBuilder();
+                        StringBuilder curBuilder = question;
+                        for (int sentence = 0; sentence < document.getSentenceCount(); ++sentence) {
+                            if (sentence == documentWrapper.getQuestionSentenceCount()) {
+                                curBuilder = answer;
+                            }
+                            curBuilder.append(document.getSentence(sentence).getText().replace("\n", " ")).append(" ");
+                        }
+                        System.out.println(question.toString());
+                        System.out.println(answer.toString());
+                        qaPrinted = true;
+                    }
+
+                    String type = document.getToken(head).getText();
+                    String attributes = String.join(",", documentWrapper.getModifierPhrases(head, new HashSet<>(Arrays.asList(tokenIndex))));
                     System.out.println(type + "\t" + attributes + "\t" + String.join(", ", answers));
                 }
             }

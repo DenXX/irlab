@@ -18,6 +18,7 @@ import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 
 import java.util.*;
 import java.util.PriorityQueue;
@@ -187,13 +188,25 @@ public class DocumentWrapper {
         return qDepPaths_;
     }
 
-    public List<String> getModifierPhrases(int headTokenIndex) {
+    public int getDependencyChild(int token, String dependencyType) {
+        Document.Token headToken = document_.getToken(token);
+        Document.Sentence sentence = document().getSentence(headToken.getSentenceIndex());
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
+            int head = document().getToken(i).getDependencyGovernor();
+            if (head == token - sentence.getFirstToken() + 1
+                    && document().getToken(i).getDependencyType().equals(dependencyType))
+                return i;
+        }
+        return -1;
+    }
+
+    public List<String> getModifierPhrases(int headTokenIndex, Set<Integer> tokensToIgnore) {
         List<String> res = new ArrayList<>();
 
         Document.Token headToken = document_.getToken(headTokenIndex);
         Document.Sentence sentence = document().getSentence(headToken.getSentenceIndex());
         List<List<Integer>> children = new ArrayList<>();
-        for (int i = sentence.getFirstToken(); i <= sentence.getLastToken(); ++i) {
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
             children.add(new ArrayList<>());
         }
 
@@ -211,11 +224,20 @@ public class DocumentWrapper {
             q.add(child);
             while (!q.isEmpty()) {
                 int curChild = q.poll();
-                modifierTokens.add(new Pair<>(curChild, document().getToken(sentence.getFirstToken() + curChild).getText().toLowerCase()));
-                q.addAll(children.get(curChild).stream().collect(Collectors.toList()));
+                Document.Token curToken = document().getToken(sentence.getFirstToken() + curChild);
+                if (!tokensToIgnore.contains(curChild) &&
+                        !curToken.getPos().startsWith("W") &&
+                        !curToken.getDependencyType().equals("det") &&
+                        Character.isAlphabetic(curToken.getPos().charAt(0))) {
+                    modifierTokens.add(new Pair<>(curChild, curToken.getText().toLowerCase()));
+                    q.addAll(children.get(curChild).stream().collect(Collectors.toList()));
+                }
             }
             Collections.sort(modifierTokens, (p1, p2) -> p1.first.compareTo(p2.first));
-            res.add(String.join(" ", modifierTokens.stream().map(x -> x.second).collect(Collectors.toList())));
+            String modifier = String.join(" ", modifierTokens.stream().map(x -> x.second)
+                    .filter(x -> !x.isEmpty())
+                    .collect(Collectors.toList())).trim();
+            if (!modifier.isEmpty()) res.add(modifier);
         }
         return res;
     }
