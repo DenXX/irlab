@@ -108,6 +108,7 @@ public class TestProcessor extends Processor {
                 }
             }
         }
+        if (qaPrinted) System.out.println();
         return null;
 
 //        Set<Pair<Double, String>> mids = new HashSet<>();
