@@ -39,7 +39,7 @@ public class RecommendationExtractionProcessor extends Processor {
 
         for (int tokenIndex = 0; tokenIndex < document.getTokenCount() &&
                 document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
-            if (document.getToken(tokenIndex).getPos().equals("JJS") || document.getToken(tokenIndex).getLemma().equals("recommend")) {
+            if (document.getToken(tokenIndex).getPos().equals("JJS") || document.getToken(tokenIndex).getLemma().equals("favorit") || document.getToken(tokenIndex).getLemma().equals("good")) {
                 if (document.getToken(tokenIndex).getDependencyGovernor() > 0) {
                     if (!qaPrinted) {
                         StringBuilder question = new StringBuilder();
