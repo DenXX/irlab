@@ -41,75 +41,12 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        ++total;
-        DocumentWrapper documentWrapper = new DocumentWrapper(document);
-        boolean qaPrinted = false;
-
-        List<String> answers = new ArrayList<>();
-        for (Document.Span span : document.getSpanList()) {
-            if (span.getType().equals("ENTITY")) {
-                for (Document.Mention mention : span.getMentionList()) {
-                    if (mention.getSentenceIndex() >= documentWrapper.getQuestionSentenceCount()) {
-                        answers.add(span.getText().replace("\t", " ").replace("\n", " "));
-                    }
-                }
-            }
-
+        String questionText = document.getSentence(0).getText().toLowerCase();
+        if (questionText.contains("restaurant") && questionText.contains("thai")) {
+            System.out.println(questionText);
         }
-
-        for (int tokenIndex = 0; tokenIndex < document.getTokenCount() &&
-                document.getToken(tokenIndex).getBeginCharOffset() < document.getQuestionLength(); ++tokenIndex) {
-            if (document.getToken(tokenIndex).getPos().equals("JJS") || document.getToken(tokenIndex).getLemma().equals("recommend")) {
-                ++count;
-                if (document.getToken(tokenIndex).getDependencyGovernor() > 0) {
-                    if (!qaPrinted) {
-                        StringBuilder question = new StringBuilder();
-                        StringBuilder answer = new StringBuilder();
-                        StringBuilder curBuilder = question;
-                        for (int sentence = 0; sentence < document.getSentenceCount(); ++sentence) {
-                            if (sentence == documentWrapper.getQuestionSentenceCount()) {
-                                curBuilder = answer;
-                            }
-                            curBuilder.append(document.getSentence(sentence).getText().replace("\n", " ")).append(" ");
-                        }
-                        System.out.println(question.toString());
-                        System.out.println(answer.toString());
-                        qaPrinted = true;
-                    }
-
-                    int dependencyHead = document.getToken(tokenIndex).getDependencyGovernor() + document.getSentence(document.getToken(tokenIndex).getSentenceIndex()).getFirstToken() - 1;
-                    String type = document.getToken(dependencyHead).getText();
-                    String attributes = String.join(",", documentWrapper.getModifierPhrases(dependencyHead, new HashSet<>(Arrays.asList(tokenIndex))));
-                    System.out.println(type + "\t" + attributes + "\t" + String.join(", ", answers));
-                }
-            }
-            if (document.getToken(tokenIndex).getLemma().equals("recommend")) {
-                ++count;
-                int head = documentWrapper.getDependencyChild(tokenIndex, "dobj");
-                if (head >= 0) {
-                    if (!qaPrinted) {
-                        StringBuilder question = new StringBuilder();
-                        StringBuilder answer = new StringBuilder();
-                        StringBuilder curBuilder = question;
-                        for (int sentence = 0; sentence < document.getSentenceCount(); ++sentence) {
-                            if (sentence == documentWrapper.getQuestionSentenceCount()) {
-                                curBuilder = answer;
-                            }
-                            curBuilder.append(document.getSentence(sentence).getText().replace("\n", " ")).append(" ");
-                        }
-                        System.out.println(question.toString());
-                        System.out.println(answer.toString());
-                        qaPrinted = true;
-                    }
-
-                    String type = document.getToken(head).getText();
-                    String attributes = String.join(",", documentWrapper.getModifierPhrases(head, new HashSet<>(Arrays.asList(tokenIndex))));
-                    System.out.println(type + "\t" + attributes + "\t" + String.join(", ", answers));
-                }
-            }
-        }
-        if (qaPrinted) System.out.println();
         return null;
+
 
 //        Set<Pair<Double, String>> mids = new HashSet<>();
 //        for (Document.Span span : document.getSpanList()) {
