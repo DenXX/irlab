@@ -14,9 +14,11 @@ import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 
 import java.util.*;
 import java.util.PriorityQueue;
@@ -186,6 +188,60 @@ public class DocumentWrapper {
         return qDepPaths_;
     }
 
+    public int getDependencyChild(int token, String dependencyType) {
+        Document.Token headToken = document_.getToken(token);
+        Document.Sentence sentence = document().getSentence(headToken.getSentenceIndex());
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
+            int head = document().getToken(i).getDependencyGovernor();
+            if (head == token - sentence.getFirstToken() + 1
+                    && document().getToken(i).getDependencyType().equals(dependencyType))
+                return i;
+        }
+        return -1;
+    }
+
+    public List<String> getModifierPhrases(int headTokenIndex, Set<Integer> tokensToIgnore) {
+        List<String> res = new ArrayList<>();
+
+        Document.Token headToken = document_.getToken(headTokenIndex);
+        Document.Sentence sentence = document().getSentence(headToken.getSentenceIndex());
+        List<List<Integer>> children = new ArrayList<>();
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
+            children.add(new ArrayList<>());
+        }
+
+        for (int i = sentence.getFirstToken(); i < sentence.getLastToken(); ++i) {
+            int curHead = document_.getToken(i).getDependencyGovernor();
+            if (curHead != 0) {
+                --curHead;
+                children.get(curHead).add(i - sentence.getFirstToken());
+            }
+        }
+
+        for (int child : children.get(headTokenIndex - sentence.getFirstToken())) {
+            List<Pair<Integer, String>> modifierTokens = new ArrayList<>();
+            Queue<Integer> q = new LinkedList<>();
+            q.add(child);
+            while (!q.isEmpty()) {
+                int curChild = q.poll();
+                Document.Token curToken = document().getToken(sentence.getFirstToken() + curChild);
+                if (!tokensToIgnore.contains(curChild) &&
+                        !curToken.getPos().startsWith("W") &&
+                        !curToken.getDependencyType().equals("det") &&
+                        Character.isAlphabetic(curToken.getPos().charAt(0))) {
+                    modifierTokens.add(new Pair<>(curChild, curToken.getText().toLowerCase()));
+                    q.addAll(children.get(curChild).stream().collect(Collectors.toList()));
+                }
+            }
+            Collections.sort(modifierTokens, (p1, p2) -> p1.first.compareTo(p2.first));
+            String modifier = String.join(" ", modifierTokens.stream().map(x -> x.second)
+                    .filter(x -> !x.isEmpty())
+                    .collect(Collectors.toList())).trim();
+            if (!modifier.isEmpty()) res.add(modifier);
+        }
+        return res;
+    }
+
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
@@ -207,6 +263,7 @@ public class DocumentWrapper {
         for (int tokenIndex = 0;
              tokenIndex < document_.getTokenCount(); ++tokenIndex) {
             if (document_.getToken(tokenIndex).getSentenceIndex() != prevSentenceIndex) {
+                res.append(document_.getSentence(document_.getToken(tokenIndex).getSentenceIndex()).getSentiment());
                 res.append("\n");
                 prevSentenceIndex = document_.getToken(tokenIndex).getSentenceIndex();
             }
@@ -307,6 +364,10 @@ public class DocumentWrapper {
             sentBuilder.setFirstToken(firstSentenceToken)
                     .setLastToken(endSentenceToken)
                     .setText(sentence.get(CoreAnnotations.TextAnnotation.class));
+
+            if (sentence.has(SentimentCoreAnnotations.SentimentClass.class)) {
+                sentBuilder.setSentiment(sentence.get(SentimentCoreAnnotations.SentimentClass.class));
+            }
             if (sentence.has(TreeCoreAnnotations.TreeAnnotation.class)) {
                 sentBuilder.setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
             }

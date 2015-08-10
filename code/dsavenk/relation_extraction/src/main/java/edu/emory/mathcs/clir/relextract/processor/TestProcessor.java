@@ -1,13 +1,13 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
+import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -35,12 +35,18 @@ public class TestProcessor extends Processor {
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
         rnd = new Random(42);
-        kb_ = KnowledgeBase.getInstance(properties);
+        kb_ = null; //KnowledgeBase.getInstance(properties);
         flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+        String questionText = document.getSentence(0).getText().toLowerCase();
+        if (questionText.contains("restaurant") && questionText.contains("thai")) {
+            System.out.println(questionText);
+        }
+        return null;
+
 
 //        Set<Pair<Double, String>> mids = new HashSet<>();
 //        for (Document.Span span : document.getSpanList()) {
@@ -56,34 +62,6 @@ public class TestProcessor extends Processor {
 //                .forEach(e -> System.out.println(e.second + "\t" + kb_.getEntityName(e.second)));
 
 
-        ++total;
-        boolean first = true;
-        StringBuilder res = new StringBuilder();
-        for (Document.QaRelationInstance triple : document.getQaInstanceList()) {
-            if ((flag || triple.getIsPositive()) && first) {
-                res.append("----------------------------------\n").append(document.getText()).append("\n");
-                first = false;
-                ++count;
-            }
-            if (triple.getIsPositive()) {
-                res.append(kb_.getEntityName(triple.getSubject()))
-                        .append("[")
-                        .append(triple.getSubject())
-                        .append("]\t")
-                        .append(triple.getPredicate())
-                        .append("\t")
-                        .append(triple.getObject().startsWith("http:")
-                            ? (kb_.getEntityName(triple.getObject()) + "[/" + triple.getObject().substring(triple.getObject().lastIndexOf("/") + 1).replace(".", "/") + "]")
-                            : triple.getObject())
-                        .append("\n");
-            }
-        }
-        if (res.length() > 0) {
-            synchronized (this) {
-                System.out.println(res.toString());
-            }
-        }
-        return document;
 
 //        for (Document.Span span : document.getSpanList()) {
 //            if ("ENTITY".equals(span.getType())) {

@@ -46,6 +46,7 @@ message Sentence {
     optional string dependencyTree = 5;
     repeated DependencyEdge dependencyEdge = 6;
     optional string parseTree = 7;
+    optional string sentiment = 8;
 
     extensions 10000 to max;
 }
