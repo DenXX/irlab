@@ -3,8 +3,10 @@ package edu.emory.mathcs.ir.scraping;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,29 @@ public class YahooAnswersScraper {
 
     private static final Logger logger = Logger.getLogger(
             YahooAnswersScraper.class.getName());
+
+    /**
+     * Returns URL of a webpage for the question with the given id.
+     * @param qid id of the question.
+     * @return URL of the question.
+     */
+    public static String GetQuestionAnswerUrl(String qid) {
+        return BASE_URL.concat(qid);
+    }
+
+    /**
+     * Returns the URL for a related questions search page with the given query.
+     * @param searchQuery The query to search for.
+     * @return URL of the search page with the given query.
+     */
+    public static String getRelatedQuestionsSearchUrl(String searchQuery) {
+        try {
+            return SEARCH_BASE_URL.concat(URLEncoder.encode(
+                    searchQuery, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            return SEARCH_BASE_URL.concat(URLEncoder.encode(searchQuery));
+        }
+    }
 
     /**
      * Stores information about a particular question-answer pair.
@@ -66,21 +91,15 @@ public class YahooAnswersScraper {
 
         @Override
         public void processElement(Element e) {
-            if (e.nodeName().equals("meta") &&
-                    e.attr("name").equals("title")) {
+            if (isQuestionTitleNode(e)) {
                 result_.title = e.attr("content");
-            } else if (e.nodeName().equals("meta") &&
-                    e.attr("name").equals("description")) {
+            } else if (isAnswerBodyNode(e)) {
                 result_.body = e.attr("content");
-            } else if (e.nodeName().equals("a") &&
-                    e.className().contains("Clr-b") &&
-                    e.parent().id().equals("brdCrb")) {
+            } else if (isCategoryNode(e)) {
                 categories_.add(e.text());
-            } else if (e.nodeName().equals("div") &&
-                    e.hasAttr("data-ya-question-id")) {
+            } else if (isQidNode(e)) {
                 result_.qid = e.attr("data-ya-question-id");
-            } else if (e.nodeName().equals("span") &&
-                    e.hasClass("ya-q-full-text")) {
+            } else if (isAnswerNode(e)) {
                 Element parent = e.parent();
 
                 // Check parent to determine if this is the
@@ -181,7 +200,7 @@ public class YahooAnswersScraper {
      */
     public static Optional<QuestionAnswer> GetQuestionAnswerData(String qid) {
         try {
-            return GetQuestionAnswerData(new URL(BASE_URL + qid));
+            return GetQuestionAnswerData(new URL(GetQuestionAnswerUrl(qid)));
         } catch (MalformedURLException e) {
             logger.warning(e.getMessage());
             return Optional.empty();
@@ -189,21 +208,51 @@ public class YahooAnswersScraper {
     }
 
     /**
-     * Returns the list of questions related to the given query using
+     * Returns the list of ids of questions related to the given query using
      * Yahoo! Answers search functionality.
      * @param searchQuery A query to submit to Yahoo! Answers.
      * @return An array of string question identifiers.
      */
-    public static String[] GetRelatedQuestions(String searchQuery) {
+    public static String[] GetRelatedQuestionIds(String searchQuery) {
         SearchResultsExtractor extractor = new SearchResultsExtractor();
         extractor.Init();
         try {
-            WebPageScraper.scrape(new URL(SEARCH_BASE_URL + searchQuery),
+            WebPageScraper.scrape(new URL(
+                            getRelatedQuestionsSearchUrl(searchQuery)),
                     new WebPageScraper.ProcessElementCallback[] {extractor});
             return extractor.GetQids();
         } catch (IOException e) {
             logger.warning(e.getMessage());
             return new String[0];
         }
+    }
+
+
+    // Predicates that check if a particular DOM tree node is answer node,
+    // title node, etc.
+    private static boolean isAnswerNode(Element node) {
+        return node.nodeName().equals("span") &&
+                node.hasClass("ya-q-full-text");
+    }
+
+    private static boolean isQidNode(Element node) {
+        return node.nodeName().equals("div") &&
+                node.hasAttr("data-ya-question-id");
+    }
+
+    private static boolean isCategoryNode(Element node) {
+        return node.nodeName().equals("a") &&
+                node.className().contains("Clr-b") &&
+                node.parent().id().equals("brdCrb");
+    }
+
+    private static boolean isAnswerBodyNode(Element node) {
+        return node.nodeName().equals("meta") &&
+                node.attr("name").equals("description");
+    }
+
+    private static boolean isQuestionTitleNode(Element node) {
+        return node.nodeName().equals("meta") &&
+                node.attr("name").equals("title");
     }
 }

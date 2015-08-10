@@ -56,4 +56,11 @@ public class Question {
     public String getCategory() {
         return category_;
     }
+
+    @Override
+    public String toString() {
+        return String.join("\t", new String[] {
+                getId(), getCategory(), getTitle().toString(),
+                getBody().toString()});
+    }
 }

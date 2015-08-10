@@ -1,5 +1,9 @@
 package edu.emory.mathcs.ir.qa;
 
+import edu.emory.mathcs.ir.qa.answer.Answer;
+import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
+import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
+import edu.emory.mathcs.ir.qa.question.Question;
 import org.trec.liveqa.TrecLiveQaDemoServer;
 
 import java.io.IOException;
@@ -16,6 +20,10 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
     private static final String LOG_FILE = "emory-test-01.log";
     private static final Logger logger =
             Logger.getLogger(LiveQaServer.class.getName());
+
+    // QA system.
+    private final QuestionAnswering qa_ =
+            new YahooAnswersBasedQuestionAnswerer();
 
     public LiveQaServer(String hostname, int port) throws IOException {
         super(hostname, port);
@@ -48,10 +56,13 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
         title = normalize(title);
         body = normalize(body);
         category = normalize(category);
-        logger.info(String.join("\t",
-                new String[] {qid, category, title, body}));
+        final Question question = new Question(qid, title, body, category);
+        logger.info(question.toString());
+        final Answer answer = qa_.GetAnswer(question);
+        logger.info(answer.toString());
+
         return new TrecLiveQaDemoServer.AnswerAndResources(
-                "I don't really know", "None");
+                answer.getAnswer().text, answer.getSource());
     }
 
     private String normalize(String text) {

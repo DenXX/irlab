@@ -27,7 +27,8 @@ public class LiveQaApp {
             System.exit(-1);
         }
 
-        // Trying to parse command line arguments and print usage and exit if unsuccessful.
+        // Trying to parse command line arguments and print usage and exit if
+        // unsuccessful.
         Options cmdLineOptions = AppConfig.getCommandLineOptions();
         Optional<CommandLine> cmdLine = Optional.empty();
         try {

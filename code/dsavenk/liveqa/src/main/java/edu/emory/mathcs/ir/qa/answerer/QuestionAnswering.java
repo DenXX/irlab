@@ -1,11 +1,16 @@
 package edu.emory.mathcs.ir.qa.answerer;
 
+import edu.emory.mathcs.ir.qa.answer.Answer;
 import edu.emory.mathcs.ir.qa.question.Question;
-import edu.emory.mathcs.ir.qa.text.Text;
 
 /**
  * A general interface for question answering.
  */
 public interface QuestionAnswering {
-    Text GetAnswer(Question question);
+    /**
+     * Returns the answer to the given question.
+     * @param question The question to be answered.
+     * @return The answer to the given question.
+     */
+    Answer GetAnswer(Question question);
 }

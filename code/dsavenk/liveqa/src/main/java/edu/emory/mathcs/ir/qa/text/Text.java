@@ -22,4 +22,9 @@ public class Text {
      * Annotates the text with an additional information.
      */
     private void Annotate() {}
+
+    @Override
+    public String toString() {
+        return text;
+    }
 }
