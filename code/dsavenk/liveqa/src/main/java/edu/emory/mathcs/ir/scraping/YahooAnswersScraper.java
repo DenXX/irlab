@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.scraping;
 
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
@@ -28,9 +29,6 @@ public class YahooAnswersScraper {
      */
     public static final String SEARCH_BASE_URL =
             "https://answers.yahoo.com/search/search_result?p=";
-
-    private static final Logger logger = Logger.getLogger(
-            YahooAnswersScraper.class.getName());
 
     /**
      * Returns URL of a webpage for the question with the given id.
@@ -187,7 +185,7 @@ public class YahooAnswersScraper {
                             {extractor});
             return Optional.of(extractor.getQuestionAnswer());
         } catch (IOException e) {
-            logger.warning(e.getMessage());
+            LiveQaLogger.LOGGER.warning(e.getMessage());
             return Optional.empty();
         }
     }
@@ -202,7 +200,7 @@ public class YahooAnswersScraper {
         try {
             return GetQuestionAnswerData(new URL(GetQuestionAnswerUrl(qid)));
         } catch (MalformedURLException e) {
-            logger.warning(e.getMessage());
+            LiveQaLogger.LOGGER.warning(e.getMessage());
             return Optional.empty();
         }
     }
@@ -222,7 +220,7 @@ public class YahooAnswersScraper {
                     new WebPageScraper.ProcessElementCallback[] {extractor});
             return extractor.GetQids();
         } catch (IOException e) {
-            logger.warning(e.getMessage());
+            LiveQaLogger.LOGGER.warning(e.getMessage());
             return new String[0];
         }
     }

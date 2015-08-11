@@ -35,4 +35,10 @@ public class Answer {
     public String getSource() {
         return source_;
     }
+
+    @Override
+    public String toString() {
+        return String.join("\t", new String[] {
+                getAnswer().text, getSource()});
+    }
 }

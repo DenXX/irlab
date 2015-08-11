@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.scraping;
 
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -82,7 +83,7 @@ public class WebPageScraper {
 
         int statusCode = client.executeMethod(method);
         if (statusCode != HttpStatus.SC_OK) {
-            logger.warning("Method failed: " + method.getStatusLine());
+            LiveQaLogger.LOGGER.warning("Method failed: " + method.getStatusLine());
         }
         InputStream responseBody = method.getResponseBodyAsStream();
         return Jsoup.parse(responseBody, "UTF8", url.toExternalForm());
@@ -106,7 +107,4 @@ public class WebPageScraper {
             processElementHierarchy(childElement, callbacks);
         }
     }
-
-    private static Logger logger =
-            Logger.getLogger(WebPageScraper.class.getName());
 }

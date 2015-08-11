@@ -7,9 +7,6 @@ import edu.emory.mathcs.ir.qa.question.Question;
 import org.trec.liveqa.TrecLiveQaDemoServer;
 
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * Created by dsavenk on 8/5/15.
@@ -17,9 +14,6 @@ import java.util.logging.SimpleFormatter;
 public class LiveQaServer extends TrecLiveQaDemoServer {
     public static final String PARTICIPANT_ID = "emory-test-01";
     private static final String HOST = "0.0.0.0";
-    private static final String LOG_FILE = "emory-test-01.log";
-    private static final Logger logger =
-            Logger.getLogger(LiveQaServer.class.getName());
 
     // QA system.
     private final QuestionAnswering qa_ =
@@ -27,18 +21,9 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
 
     public LiveQaServer(String hostname, int port) throws IOException {
         super(hostname, port);
-        InitLogger();
     }
     public LiveQaServer(int port) throws IOException {
         super(port);
-        InitLogger();
-    }
-
-    private void InitLogger() throws IOException {
-        FileHandler fileHandler = new FileHandler(LOG_FILE);
-        fileHandler.setFormatter(new SimpleFormatter());
-        logger.addHandler(fileHandler);
-        logger.setUseParentHandlers(false);
     }
 
     @Override
@@ -57,9 +42,9 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
         body = normalize(body);
         category = normalize(category);
         final Question question = new Question(qid, title, body, category);
-        logger.info(question.toString());
+        LiveQaLogger.LOGGER.info(question.toString());
         final Answer answer = qa_.GetAnswer(question);
-        logger.info(answer.toString());
+        LiveQaLogger.LOGGER.info(answer.toString());
 
         return new TrecLiveQaDemoServer.AnswerAndResources(
                 answer.getAnswer().text, answer.getSource());

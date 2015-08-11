@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -59,8 +59,6 @@ public class TrecLiveQaDemoServer extends NanoHTTPD {
     public static final TimeZone WORKING_TIME_ZONE = TimeZone.getTimeZone(WORKING_TIME_ZONE_ID);
     public static final Charset WORKING_CHARSET = StandardCharsets.UTF_8;
 
-    private static final Logger logger = Logger.getLogger(TrecLiveQaDemoServer.class.getName());
-
     public TrecLiveQaDemoServer(String hostname, int port) {
         super(hostname, port);
     }
@@ -73,7 +71,7 @@ public class TrecLiveQaDemoServer extends NanoHTTPD {
     public Response serve(IHTTPSession session) {
         // extract get time from system
         final long getTime = System.currentTimeMillis();
-        logger.info("Got request at " + getTime);
+        LiveQaLogger.LOGGER.info("Got request at " + getTime);
 
         // read question data
         Map<String, String> files = new HashMap<>();
@@ -93,14 +91,14 @@ public class TrecLiveQaDemoServer extends NanoHTTPD {
         String title = params.get(QUESTION_TITLE_PARAMETER_NAME);
         String body = params.get(QUESTION_BODY_PARAMETER_NAME);
         String category = params.get(QUESTION_CATEGORY_PARAMETER_NAME);
-        logger.info("QID: " + qid);
+        LiveQaLogger.LOGGER.info("QID: " + qid);
 
         // "get answer"
         AnswerAndResources answerAndResources = null;
         try {
             answerAndResources = getAnswerAndResources(qid, title, body, category);
         } catch (Exception e) {
-            logger.warning("Failed to retrieve answer and resources");
+            LiveQaLogger.LOGGER.warning("Failed to retrieve answer and resources");
             e.printStackTrace();
             return null;
         }
@@ -111,7 +109,7 @@ public class TrecLiveQaDemoServer extends NanoHTTPD {
         try {
             docBuilder = docFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            logger.warning("Could not build XML document");
+            LiveQaLogger.LOGGER.warning("Could not build XML document");
             e.printStackTrace();
             return null;
         }
@@ -127,18 +125,18 @@ public class TrecLiveQaDemoServer extends NanoHTTPD {
             XmlUtils.addElementWithText(doc, answerElement, ANSWER_CONTENT_ELEMENT_NAME, answerAndResources.answer());
             XmlUtils.addElementWithText(doc, answerElement, ANSWER_RESOURCES_ELEMENT_NAME,
                     answerAndResources.resources());
-            logger.info("Response: " + answerAndResources.answer() + "; Resources: " + answerAndResources.resources());
+            LiveQaLogger.LOGGER.info("Response: " + answerAndResources.answer() + "; Resources: " + answerAndResources.resources());
         } else {
             answerElement.setAttribute(ANSWER_ANSWERED_YES_NO_ATTRIBUTE_NAME, NO);
             XmlUtils.addElementWithText(doc, answerElement, ANSWER_WHY_NOT_ANSWERED_ELEMENT_NAME, EXCUSE);
-            logger.info("No answer given: " + EXCUSE);
+            LiveQaLogger.LOGGER.info("No answer given: " + EXCUSE);
         }
 
         final long timeElapsed = System.currentTimeMillis() - getTime;
         answerElement.setAttribute(ANSWER_PARTICIPANT_ID_ATTRIBUTE_NAME, participantId());
         answerElement.setAttribute(ANSWER_REPORTED_TIME_MILLISECONDS_ATTRIBUTE_NAME, Long.toString(timeElapsed));
         answerElement.setAttribute(QUESTION_ID_PARAMETER_NAME, qid);
-        logger.info("Internal time logged: " + timeElapsed);
+        LiveQaLogger.LOGGER.info("Internal time logged: " + timeElapsed);
 
         String resp = XmlUtils.writeDocumentToString(doc);
         return new Response(resp);
