@@ -1,6 +1,6 @@
 package edu.emory.mathcs.ir.qa.answerer.query;
 
-import edu.emory.mathcs.ir.qa.question.Question;
+import edu.emory.mathcs.ir.qa.Question;
 
 /**
  * Defines a method to formulate a query given a question.

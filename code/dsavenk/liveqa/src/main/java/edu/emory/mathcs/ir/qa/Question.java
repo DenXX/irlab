@@ -1,8 +1,7 @@
-package edu.emory.mathcs.ir.qa.question;
+package edu.emory.mathcs.ir.qa;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
-import edu.emory.mathcs.ir.qa.text.Text;
 
 /**
  * Represents a question to be answered.

@@ -1,6 +1,5 @@
-package edu.emory.mathcs.ir.qa.answer;
+package edu.emory.mathcs.ir.qa;
 
-import edu.emory.mathcs.ir.qa.text.Text;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**

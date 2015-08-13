@@ -1,13 +1,13 @@
 package edu.emory.mathcs.ir.qa.answerer.yahooanswers;
 
-import edu.emory.mathcs.ir.qa.answer.Answer;
+import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.qa.answerer.query.TitleOnlyQueryFormulator;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
 import edu.emory.mathcs.ir.qa.answerer.ranking.TopAnswerSelector;
-import edu.emory.mathcs.ir.qa.question.Question;
-import edu.emory.mathcs.ir.qa.text.Text;
+import edu.emory.mathcs.ir.qa.Question;
+import edu.emory.mathcs.ir.qa.Text;
 
 /**
  * QA based on the best answer to the related questions from Yahoo! Answers.

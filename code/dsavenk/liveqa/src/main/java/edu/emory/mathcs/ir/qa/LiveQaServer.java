@@ -1,9 +1,7 @@
 package edu.emory.mathcs.ir.qa;
 
-import edu.emory.mathcs.ir.qa.answer.Answer;
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
 import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
-import edu.emory.mathcs.ir.qa.question.Question;
 import org.trec.liveqa.TrecLiveQaDemoServer;
 
 import java.io.IOException;
@@ -55,10 +53,10 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
     }
 
     public static void main(String args[]) throws IOException {
-        LiveQaServer server =
-                new LiveQaServer(HOST, args.length == 0 ?
-                        DEFAULT_PORT :
-                        Integer.parseInt(args[0]));
+        AppConfig.Init(args);
+        final int port = Integer.parseInt(
+                AppConfig.PROPERTIES.getProperty(AppConfig.PORT_PARAMETER));
+        LiveQaServer server = new LiveQaServer(HOST, port);
         server.start();
         System.in.read();
         server.stop();

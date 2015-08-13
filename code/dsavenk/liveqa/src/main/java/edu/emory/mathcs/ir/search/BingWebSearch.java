@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.search;
 
+import edu.emory.mathcs.ir.qa.AppConfig;
 import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.carrot2.core.Document;
@@ -22,10 +23,10 @@ public class BingWebSearch implements WebSearch {
     @Override
     public SearchResult[] search(String query, int top) {
         final Map<String, Object> attributes = new HashMap<>();
-
-        // TODO(denxx): Remove the actual API key.
+        final String apiKey = AppConfig.PROPERTIES.getProperty(
+                AppConfig.BING_API_KEY_PARAMETER);
         Bing3WebDocumentSourceDescriptor.attributeBuilder(attributes)
-                .appid("qaiWmCHnf0KlqvRinysEmXYAmXrV51+K1M/YiDmPBa0");
+                .appid(apiKey);
         /* Query and the required number of results */
         attributes.put(CommonAttributesDescriptor.Keys.QUERY, query);
         attributes.put(CommonAttributesDescriptor.Keys.RESULTS, top);

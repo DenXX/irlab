@@ -1,4 +1,4 @@
-package edu.emory.mathcs.ir.qa.question;
+package edu.emory.mathcs.ir.qa;
 
 /**
  * An interface implemented by question annotations.

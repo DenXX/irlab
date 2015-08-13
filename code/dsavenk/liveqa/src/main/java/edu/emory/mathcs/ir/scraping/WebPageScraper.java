@@ -6,12 +6,20 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.html.BoilerpipeContentHandler;
+import org.apache.tika.sax.BodyContentHandler;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ContentHandler;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -88,6 +96,35 @@ public class WebPageScraper {
         InputStream responseBody = method.getResponseBodyAsStream();
         return Jsoup.parse(responseBody, "UTF8", url.toExternalForm());
     }
+
+    /**
+     * Returns the main content of the web document given a URL.
+     * @param url URL of web document to extract.
+     * @return String representation of the web document main content.
+     * @throws IOException
+     * @throws TikaException
+     */
+    public static String getDocumentContent(URL url)
+            throws IOException, TikaException, SAXException {
+        return getDocumentContent(url.openStream());
+    }
+
+    /**
+     * Returns the main content of the web document given a URL.
+     * @param stream Input stream for the document content.
+     * @return String representation of the main document content.
+     * @throws IOException
+     * @throws TikaException
+     */
+    public static String getDocumentContent(InputStream stream)
+            throws IOException, TikaException, SAXException {
+        BoilerpipeContentHandler handler = new BoilerpipeContentHandler(
+                new BodyContentHandler());
+        AutoDetectParser parser = new AutoDetectParser();
+        parser.parse(stream, handler, new Metadata());
+        return handler.toTextDocument().getContent();
+    }
+
 
     /**
      * Process the hierarchy of web page elements starting from the given top

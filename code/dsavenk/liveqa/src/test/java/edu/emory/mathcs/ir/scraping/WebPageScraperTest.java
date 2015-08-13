@@ -9,7 +9,7 @@ import org.jsoup.nodes.Element;
 import java.io.InputStream;
 
 /**
- * Created by dsavenk on 8/6/15.
+ * Tests web scraper functionality.
  */
 public class WebPageScraperTest extends TestCase {
 
@@ -47,5 +47,45 @@ public class WebPageScraperTest extends TestCase {
                 "a 30-38 gallon?", title[0]);
         Assert.assertTrue(body[0].contains("Brown Dot Peckoltia"));
         Assert.assertEquals("Pets", category[0]);
+    }
+
+    public void testGetDocumentContent() throws Exception {
+        InputStream resourceStream =
+                this.getClass().getResourceAsStream("/test.html");
+        String content = WebPageScraper.getDocumentContent(resourceStream);
+        // Contains the title of the article.
+        Assert.assertTrue(
+                content.contains("9 Ways to Take Your Diet on Vacation"));
+        // Contains subtitle of the article.
+        Assert.assertTrue(
+                content.contains("Food and travel don't have to add up to " +
+                        "diet disaster."));
+        // Contains the first sentence of the article.
+        Assert.assertTrue(
+                content.contains("When you take a trip, does your diet go on " +
+                        "vacation, too?"));
+        // Contains the last sentence of the article.
+        Assert.assertTrue(
+                content.contains("You can also find a local market and " +
+                        "stock up on fresh fruit to have in your hotel room " +
+                        "for breakfast and snacks."));
+    }
+
+    public void testGetDocumentContentAnotherPage() throws Exception {
+        InputStream resourceStream =
+                this.getClass().getResourceAsStream("/test2.html");
+        String content = WebPageScraper.getDocumentContent(resourceStream);
+        // Contains the title of the article.
+        Assert.assertTrue(
+                content.contains("Underwear (Base Layer): How to Choose"));
+        Assert.assertTrue(
+                content.contains("Want a comfort boost on your next " +
+                        "outdoor adventure?"));
+        Assert.assertTrue(
+                content.contains("Admittedly, these nuances can be tough " +
+                        "to detect in the field, and when conditions turn " +
+                        "seriously cold, you will obviously need more than " +
+                        "a lightweight wool tee to maintain a comfortable " +
+                        "body temperature."));
     }
 }

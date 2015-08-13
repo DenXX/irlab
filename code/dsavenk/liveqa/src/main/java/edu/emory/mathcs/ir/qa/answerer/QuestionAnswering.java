@@ -1,7 +1,7 @@
 package edu.emory.mathcs.ir.qa.answerer;
 
-import edu.emory.mathcs.ir.qa.answer.Answer;
-import edu.emory.mathcs.ir.qa.question.Question;
+import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.Question;
 
 /**
  * A general interface for question answering.

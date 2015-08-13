@@ -10,6 +10,7 @@ public class SearchResult {
     public final String title;
     public final String url;
     public final String snippet;
+    public String content = "";
 
     public SearchResult(int rank, String url, String title, String snippet) {
         this.rank = rank;

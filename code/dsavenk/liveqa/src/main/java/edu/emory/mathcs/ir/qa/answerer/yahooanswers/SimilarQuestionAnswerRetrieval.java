@@ -1,16 +1,15 @@
 package edu.emory.mathcs.ir.qa.answerer.yahooanswers;
 
-import edu.emory.mathcs.ir.qa.answer.Answer;
+import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.answerer.AnswerFormatter;
 import edu.emory.mathcs.ir.qa.answerer.AnswerRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
-import edu.emory.mathcs.ir.qa.question.Question;
-import edu.emory.mathcs.ir.qa.text.Text;
+import edu.emory.mathcs.ir.qa.Question;
+import edu.emory.mathcs.ir.qa.Text;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Uses Yahoo! Answers similar questions search to retrieve the answers to
