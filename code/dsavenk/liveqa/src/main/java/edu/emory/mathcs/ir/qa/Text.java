@@ -7,6 +7,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,6 +34,32 @@ public class Text {
             this.charBeginOffset = charBeginOffset;
             this.charEndOffset = charEndOffset;
         }
+
+        /**
+         * Copy constructor.
+         * @param copy An original sentence to copy.
+         */
+        public Sentence(Sentence copy) {
+            this(copy, 0);
+        }
+
+        /**
+         * Creates a copy of the sentences and makes the appropriate corrections
+         * in character-based beginning and end offsets.
+         * @param copy A sentence to copy.
+         * @param characterOffsetCorrection Value to add to all character-based
+         *                                  offsets.
+         */
+        public Sentence(Sentence copy, int characterOffsetCorrection) {
+            this(copy.text, copy.tokens.length,
+                    copy.charBeginOffset + characterOffsetCorrection,
+                    copy.charEndOffset + characterOffsetCorrection);
+            int index = 0;
+            for (Token token : copy.tokens) {
+                this.tokens[index++] =
+                        new Token(token, characterOffsetCorrection);
+            }
+        }
     }
 
     /**
@@ -58,6 +85,27 @@ public class Text {
             this.pos = pos;
             this.charBeginOffset = charBeginOffset;
             this.charEndOffset = charEndOffset;
+        }
+
+        /**
+         * Copy constructor.
+         * @param copy Creates a copy of a token.
+         */
+        public Token(Token copy) {
+            this(copy, 0);
+        }
+
+        /**
+         * Creates a copy of the token and makes the specified correction in
+         * the character-based beginning and end offset fields.
+         * @param copy The token to copy.
+         * @param characterOffsetCorrection The value to add to all
+         *                                  character-based offsets.
+         */
+        public Token(Token copy, int characterOffsetCorrection) {
+            this(copy.text, copy.lemma, copy.pos,
+                    copy.charBeginOffset + characterOffsetCorrection,
+                    copy.charEndOffset + characterOffsetCorrection);
         }
     }
 
@@ -88,6 +136,25 @@ public class Text {
                 this.sentenceIndex = sentenceIndex;
                 this.beginToken = beginToken;
                 this.endToken = endToken;
+            }
+
+            /**
+             * Copy constructor and adjusts sentence index.
+             * @param copy A mention to copy.
+             * @param sentenceIndexCorrection A value to add to the mention
+             *                                sentence index.
+             */
+            public Mention(Mention copy, int sentenceIndexCorrection) {
+                this(copy.text, copy.sentenceIndex + sentenceIndexCorrection,
+                        copy.beginToken, copy.endToken);
+            }
+
+            /**
+             * Copy constructor.
+             * @param copy A mention to copy.
+             */
+            public Mention(Mention copy) {
+                this(copy, 0);
             }
         }
 
@@ -120,11 +187,23 @@ public class Text {
 
     /**
      * Creates an annotated text from its string representation.
-     * @param text
+     * @param text The content of the text.
      */
     public Text(String text) {
+        this(text, true);
+    }
+
+
+    /**
+     * Creates an annotated text from its string representation.
+     * @param text The content of the text.
+     * @param annotate Whether to annotate text with sentences, tokens, etc.
+     */
+    private Text(String text, boolean annotate) {
         this.text = text;
-        Annotate();
+        if (annotate) {
+            Annotate();
+        }
     }
 
     /**
@@ -224,6 +303,64 @@ public class Text {
     public Entity[] getEntities() {
         return entities_;
     }
+
+    public Text subtext(int startSentence, int endSentence) {
+        if (endSentence < startSentence) {
+            throw new IndexOutOfBoundsException(
+                    "endSentence should greater or equal to the startSentence");
+        }
+        if (startSentence >= sentences_.length ||
+                endSentence >= sentences_.length) {
+            throw new IndexOutOfBoundsException(
+                    String.format("Sentence index out of range. Specified " +
+                            "range (%d, %d), total number of sentences is %d",
+                            startSentence, endSentence, sentences_.length));
+        }
+
+        Text res = new Text(
+                text.substring(sentences_[startSentence].charBeginOffset,
+                        sentences_[endSentence].charEndOffset), false);
+
+        // Get the offset of the start sentence.
+        final int firstSentenceCharOffset =
+                sentences_[startSentence].charBeginOffset;
+        res.sentences_ = new Sentence[endSentence - startSentence + 1];
+
+        // Go over all sentences and copy them.
+        for (int sentenceIndex = startSentence; sentenceIndex <= endSentence;
+             ++sentenceIndex) {
+            final int newSentenceIndex = sentenceIndex - startSentence;
+            res.sentences_[newSentenceIndex] =
+                    new Sentence(sentences_[sentenceIndex],
+                            -firstSentenceCharOffset);
+        }
+
+        // Copy all entities that have mentions in the specified range of
+        // sentences.
+        List<Entity> entities = new ArrayList<>();
+        for (Entity entity : entities_) {
+            Entity copy = null;
+            for (Entity.Mention mention : entity.mentions) {
+                if (mention.sentenceIndex >= startSentence &&
+                        mention.sentenceIndex <= endSentence) {
+                    if (copy == null) {
+                        copy = new Entity(entity.name);
+                    }
+                    copy.mentions.add(
+                            copy.new Mention(mention, -startSentence));
+                }
+            }
+            // Add entity if we found at least one mention int he given range of
+            // sentences.
+            if (copy != null) {
+                entities.add(copy);
+            }
+        }
+        res.entities_ = entities.toArray(new Entity[entities.size()]);
+
+        return res;
+    }
+
 
     @Override
     public String toString() {
