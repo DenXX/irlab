@@ -9,6 +9,8 @@ import edu.stanford.nlp.util.CoreMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Stores a text with NLP annotations, i.e. sentence splits, tokens, POS, etc.
@@ -361,6 +363,15 @@ public class Text {
         return res;
     }
 
+    /**
+     * Returns a set of normalized lemmas of terms in the text.
+     * @return A set of lemmas of terms in the text.
+     */
+    public Set<String> getLemmas() {
+        return Arrays.stream(this.getSentences())
+                .flatMap(sentence -> Arrays.stream(sentence.tokens))
+                .map(token -> token.lemma).collect(Collectors.toSet());
+    }
 
     @Override
     public String toString() {

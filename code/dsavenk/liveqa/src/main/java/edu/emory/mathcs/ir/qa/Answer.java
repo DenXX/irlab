@@ -15,10 +15,20 @@ public class Answer {
     /**
      * Creates the answer with the given text.
      * @param answer Text representation of the answer.
+     * @param source The source of the answer.
      */
     public Answer(@NonNull Text answer, @NonNull String source) {
         answerText_ = answer;
         source_ = source;
+    }
+
+    /**
+     * Creates the answer with the given text and source.
+     * @param answer String containing the answer.
+     * @param source The source of the answer.
+     */
+    public Answer(@NonNull String answer, @NonNull String source) {
+        this(new Text(answer), source);
     }
 
     /**

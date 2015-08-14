@@ -35,12 +35,11 @@ public class AppConfig {
     public static final String BING_API_KEY_PARAMETER_DESCRIPTION
             = "Bing API key";
 
-    /**
-     * Initializes system properties with properties read from the resources
-     * and overriden values found in the command line.
-     * @param args Command line arguments.
-     */
-    public static void Init(String[] args) {
+    static {
+        Init();
+    }
+
+    private static void Init() {
         // Trying to read application config file and exit on failure.
         try {
             PROPERTIES.load(AppConfig.class.getResourceAsStream(
@@ -49,7 +48,14 @@ public class AppConfig {
             e.printStackTrace();
             System.exit(-1);
         }
+    }
 
+    /**
+     * Initializes system properties with properties read from the resources
+     * and overriden values found in the command line.
+     * @param args Command line arguments.
+     */
+    public static void Init(String[] args) {
         // Trying to parse command line arguments and print usage and exit if
         // unsuccessful.
         Options cmdLineOptions = AppConfig.getCommandLineOptions();
