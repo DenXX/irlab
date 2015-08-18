@@ -5,6 +5,7 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.CoreMap;
+import org.apache.lucene.analysis.core.StopAnalyzer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -368,9 +369,22 @@ public class Text {
      * @return A set of lemmas of terms in the text.
      */
     public Set<String> getLemmas() {
+        return getLemmas(false);
+    }
+
+    /**
+     * Returns a set of normalized lemmas of terms in the text.
+     * @param removeStopwords Whether to remove stopwords.
+     * @return A set of lemmas of terms in the text.
+     */
+    public Set<String> getLemmas(boolean removeStopwords) {
         return Arrays.stream(this.getSentences())
                 .flatMap(sentence -> Arrays.stream(sentence.tokens))
-                .map(token -> token.lemma).collect(Collectors.toSet());
+                .filter(token -> Character.isAlphabetic(token.pos.charAt(0)))
+                .map(token -> token.lemma)
+                .filter(token -> !removeStopwords ||
+                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(token))
+                .collect(Collectors.toSet());
     }
 
     @Override

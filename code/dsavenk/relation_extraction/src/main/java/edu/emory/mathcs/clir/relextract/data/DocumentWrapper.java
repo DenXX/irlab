@@ -263,7 +263,6 @@ public class DocumentWrapper {
         for (int tokenIndex = 0;
              tokenIndex < document_.getTokenCount(); ++tokenIndex) {
             if (document_.getToken(tokenIndex).getSentenceIndex() != prevSentenceIndex) {
-                res.append(document_.getSentence(document_.getToken(tokenIndex).getSentenceIndex()).getSentiment());
                 res.append("\n");
                 prevSentenceIndex = document_.getToken(tokenIndex).getSentenceIndex();
             }
@@ -365,9 +364,6 @@ public class DocumentWrapper {
                     .setLastToken(endSentenceToken)
                     .setText(sentence.get(CoreAnnotations.TextAnnotation.class));
 
-            if (sentence.has(SentimentCoreAnnotations.SentimentClass.class)) {
-                sentBuilder.setSentiment(sentence.get(SentimentCoreAnnotations.SentimentClass.class));
-            }
             if (sentence.has(TreeCoreAnnotations.TreeAnnotation.class)) {
                 sentBuilder.setParseTree(sentence.get(TreeCoreAnnotations.TreeAnnotation.class).toString());
             }

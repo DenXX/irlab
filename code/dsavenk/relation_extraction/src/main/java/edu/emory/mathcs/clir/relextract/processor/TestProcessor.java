@@ -41,7 +41,7 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        String questionText = document.getSentence(0).getText().toLowerCase();
+        String questionText = document.getText().toLowerCase();
         if (questionText.contains("restaurant") && questionText.contains("thai")) {
             System.out.println(questionText);
         }
