@@ -1,6 +1,7 @@
 package edu.emory.mathcs.ir.qa;
 
 import edu.emory.mathcs.ir.utils.NlpUtils;
+import edu.emory.mathcs.ir.utils.StringUtils;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Stores a text with NLP annotations, i.e. sentence splits, tokens, POS, etc.
@@ -309,6 +311,23 @@ public class Text {
         return entities_;
     }
 
+    /**
+     * Concatenates the current text with the provided.
+     * @param text The text to concatenate to the current one.
+     * @return The new text with concatenation of the current and given texts.
+     */
+    public Text concat(Text text) {
+        // TODO(denxx): Make concatenation similar to subtext.
+        return new Text(String.join("\n", this.text, text.text));
+    }
+
+    /**
+     * Extracts subtext from the current text starting and ending on sentences
+     * with the provided indexes.
+     * @param startSentence The first sentence to extract.
+     * @param endSentence The last sentence to extract
+     * @return New text containing the extracted part of the original text.
+     */
     public Text subtext(int startSentence, int endSentence) {
         if (endSentence < startSentence) {
             throw new IndexOutOfBoundsException(
@@ -370,8 +389,8 @@ public class Text {
      * Returns a set of normalized lemmas of terms in the text.
      * @return A set of lemmas of terms in the text.
      */
-    public Set<String> getLemmas() {
-        return getLemmas(false);
+    public Set<String> getLemmaSet() {
+        return getLemmaSet(false);
     }
 
     /**
@@ -379,18 +398,33 @@ public class Text {
      * @param removeStopwords Whether to remove stopwords.
      * @return A set of lemmas of terms in the text.
      */
-    public Set<String> getLemmas(boolean removeStopwords) {
-        return Arrays.stream(this.getSentences())
-                .flatMap(sentence -> Arrays.stream(sentence.tokens))
-                .filter(token -> Character.isAlphabetic(token.pos.charAt(0)))
-                .map(token -> token.lemma)
-                .filter(token -> !removeStopwords ||
-                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(token))
+    public Set<String> getLemmaSet(boolean removeStopwords) {
+        return getLemmaStream(removeStopwords)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns a list of normalized lemmas of terms in the text.
+     * @param removeStopwords Whether to remove stopwords.
+     * @return A list of lemmas of terms in the text.
+     */
+    public List<String> getLemmaList(boolean removeStopwords) {
+        return getLemmaStream(removeStopwords)
+                .collect(Collectors.toList());
     }
 
     @Override
     public String toString() {
         return text;
+    }
+
+    private Stream<String> getLemmaStream(boolean removeStopwords) {
+        return Arrays.stream(this.getSentences())
+                .flatMap(sentence -> Arrays.stream(sentence.tokens))
+                .filter(token -> Character.isAlphabetic(token.pos.charAt(0)))
+                .map(token -> token.lemma)
+                .map(StringUtils::normalizeString)
+                .filter(token -> !removeStopwords ||
+                        !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(token));
     }
 }

@@ -15,8 +15,8 @@ public class QuestionTermsCountAnswerSelector implements AnswerSelection {
     @Override
     public Optional<Answer> chooseBestAnswer(Question question,
                                              Answer[] answers) {
-        Set<String> questionTitleTerms = question.getTitle().getLemmas();
-        Set<String> questionBodyTerms = question.getBody().getLemmas();
+        Set<String> questionTitleTerms = question.getTitle().getLemmaSet();
+        Set<String> questionBodyTerms = question.getBody().getLemmaSet();
 
         // Find the best candidate answer.
         double bestScore = Double.NEGATIVE_INFINITY;
@@ -47,7 +47,7 @@ public class QuestionTermsCountAnswerSelector implements AnswerSelection {
      * answer.
      */
     private double getScore(Answer answer, Set<String> terms) {
-        Set<String> answerTerms = answer.getAnswer().getLemmas();
+        Set<String> answerTerms = answer.getAnswer().getLemmaSet();
         answerTerms.retainAll(terms);
         return answerTerms.size();
     }

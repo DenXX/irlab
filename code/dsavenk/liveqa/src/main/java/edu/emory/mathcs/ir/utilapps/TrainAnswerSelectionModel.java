@@ -1,10 +1,14 @@
 package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
+import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.Text;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
-import edu.emory.mathcs.ir.utils.StringUtils;
-import edu.stanford.nlp.classify.Dataset;
+import edu.emory.mathcs.ir.qa.ml.BM25FeatureGenerator;
+import edu.emory.mathcs.ir.qa.ml.CombinerFeatureGenerator;
+import edu.emory.mathcs.ir.qa.ml.FeatureGeneration;
+import edu.emory.mathcs.ir.qa.ml.LemmaPairsFeatureGenerator;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
@@ -12,16 +16,11 @@ import edu.stanford.nlp.ling.RVFDatum;
 import edu.stanford.nlp.optimization.QNMinimizer;
 import edu.stanford.nlp.stats.ClassicCounter;
 import edu.stanford.nlp.stats.Counter;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.QueryBuilder;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -35,6 +34,8 @@ public class TrainAnswerSelectionModel {
 
     public static final int TOPN = 10;
 
+    private static FeatureGeneration featureGenerator;
+
     public static void main(String[] args) {
         final String indexLocation = args[0];
         final String modelLocation = args[1];
@@ -46,6 +47,12 @@ public class TrainAnswerSelectionModel {
                     FileSystems.getDefault().getPath(indexLocation));
             final IndexReader indexReader = DirectoryReader.open(directory);
             final IndexSearcher searcher = new IndexSearcher(indexReader);
+
+            // Create feature generator.
+            featureGenerator = new CombinerFeatureGenerator(
+                    new LemmaPairsFeatureGenerator(),
+                    new BM25FeatureGenerator(indexReader));
+
             for (int docid = 0; docid < indexReader.maxDoc(); ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
                         QnAIndexDocument.getQnAPair(
@@ -107,37 +114,13 @@ public class TrainAnswerSelectionModel {
             YahooAnswersXmlInput.QnAPair instanceQna) {
         Counter<String> features = new ClassicCounter<>();
 
-        final Text targetQuestion = new Text(targetQna.questionTitle);
-        final Text targetQuestionBody = new Text(targetQna.questionBody);
-        final Text answer = new Text(instanceQna.bestAnswer);
-
-        final Set<String> questionTitleTokens = targetQuestion.getLemmas(true);
-        final Set<String> questionBodyTokens =
-                targetQuestionBody.getLemmas(true);
-        final Set<String> answerTokens = answer.getLemmas(true);
-
-        int matchedTitleTerms = 0;
-        for (final String questionToken : questionTitleTokens) {
-            for (final String answerToken : answerTokens) {
-                features.setCount(
-                        String.join("_", "title:", questionToken, answerToken),
-                        1.0);
-                matchedTitleTerms += questionToken.equals(answerToken) ? 1 : 0;
-            }
-        }
-        features.setCount("title_answer_matched_terms", matchedTitleTerms);
-
-        int matchedBodyTerms = 0;
-        for (final String questionToken : questionBodyTokens) {
-            for (final String answerToken : answerTokens) {
-                features.setCount(
-                        String.join("_", "body:", questionToken, answerToken),
-                        1.0);
-                matchedBodyTerms += questionToken.equals(answerToken) ? 1 : 0;
-            }
-        }
-        features.setCount("body_answer_matched_terms", matchedBodyTerms);
-
+        final Question question =
+                new Question("", targetQna.questionTitle,
+                        targetQna.questionBody, "");
+        final Answer answer = new Answer(instanceQna.bestAnswer, "");
+        featureGenerator.generateFeatures(question, answer).entrySet()
+                .stream()
+                .forEach(e -> features.setCount(e.getKey(), e.getValue()));
         return new RVFDatum<>(features);
     }
 }
