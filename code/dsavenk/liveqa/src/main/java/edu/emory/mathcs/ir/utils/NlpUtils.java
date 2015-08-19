@@ -19,7 +19,7 @@ public class NlpUtils {
     private static Properties getProperties() {
         Properties properties = new Properties();
         properties.setProperty("annotators",
-                "tokenize, ssplit, pos, lemma, ner, entitymentions");
+                "tokenize, ssplit, pos, lemma"); // ner, entitymentions
         properties.setProperty("ssplit.newlineIsSentenceBreak", "always");
         return properties;
     }

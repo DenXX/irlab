@@ -266,30 +266,32 @@ public class Text {
 
         List<CoreMap> entities =
                 annotation.get(CoreAnnotations.MentionsAnnotation.class);
-        entities_ = new Entity[entities.size()];
-        int entityIndex = 0;
-        for (CoreMap entity : entities) {
-            final String entityName = entity.get(
-                    CoreAnnotations.TextAnnotation.class);
-            final int mentionSentence = entity.get(
-                    CoreAnnotations.SentenceIndexAnnotation.class);
-            final int firstSentenceTokenIndex = mentionSentence == 0 ?
-                    0 :
-                    cumulativeTokenCount[mentionSentence - 1];
-            final int mentionBeginToken = entity.get(
-                    CoreAnnotations.TokenBeginAnnotation.class) -
-                    firstSentenceTokenIndex;
-            final int mentionEndToken = entity.get(
-                    CoreAnnotations.TokenEndAnnotation.class) -
-                    firstSentenceTokenIndex;
+        if (entities != null) {
+            entities_ = new Entity[entities.size()];
+            int entityIndex = 0;
+            for (CoreMap entity : entities) {
+                final String entityName = entity.get(
+                        CoreAnnotations.TextAnnotation.class);
+                final int mentionSentence = entity.get(
+                        CoreAnnotations.SentenceIndexAnnotation.class);
+                final int firstSentenceTokenIndex = mentionSentence == 0 ?
+                        0 :
+                        cumulativeTokenCount[mentionSentence - 1];
+                final int mentionBeginToken = entity.get(
+                        CoreAnnotations.TokenBeginAnnotation.class) -
+                        firstSentenceTokenIndex;
+                final int mentionEndToken = entity.get(
+                        CoreAnnotations.TokenEndAnnotation.class) -
+                        firstSentenceTokenIndex;
 
-            Entity currentEntity = new Entity(entityName);
-            entities_[entityIndex] = currentEntity;
-            currentEntity.mentions.add(currentEntity.new Mention(
-                    entityName, mentionSentence, mentionBeginToken,
-                    mentionEndToken));
+                Entity currentEntity = new Entity(entityName);
+                entities_[entityIndex] = currentEntity;
+                currentEntity.mentions.add(currentEntity.new Mention(
+                        entityName, mentionSentence, mentionBeginToken,
+                        mentionEndToken));
 
-            ++entityIndex;
+                ++entityIndex;
+            }
         }
     }
 

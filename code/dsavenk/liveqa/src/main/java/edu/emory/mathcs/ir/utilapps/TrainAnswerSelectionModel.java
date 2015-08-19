@@ -25,6 +25,7 @@ import org.apache.lucene.util.QueryBuilder;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -53,24 +54,33 @@ public class TrainAnswerSelectionModel {
                 instance.setLabel(true);
                 dataset.add(instance);
 
-                // Get similar QnA pairs.
-                final YahooAnswersXmlInput.QnAPair[] similarQnAPairs =
-                        QnAIndexDocument.getSimilarQnAPairs(
-                                searcher, qna, TOPN);
-                for (final YahooAnswersXmlInput.QnAPair similarQna :
-                        similarQnAPairs) {
-                    instance = createInstance(qna, similarQna);
-                    instance.setLabel(false);
-                    dataset.add(instance);
+                try {
+                    // Get similar QnA pairs.
+                    final YahooAnswersXmlInput.QnAPair[] similarQnAPairs =
+                            QnAIndexDocument.getSimilarQnAPairs(
+                                    searcher, qna, TOPN);
+                    for (final YahooAnswersXmlInput.QnAPair similarQna :
+                            similarQnAPairs) {
+                        instance = createInstance(qna, similarQna);
+                        instance.setLabel(false);
+                        dataset.add(instance);
+                    }
+
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
                 }
 
-                if (docid > 100) break;
+                if (docid % 100 == 0) {
+                    System.err.println(
+                            String.format("%d qna processed", docid));
+                }
+                if (docid > 100000) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.err.println(dataset.toSummaryString());
-        dataset.applyFeatureCountThreshold(2);
+        dataset.applyFeatureCountThreshold(10);
         System.err.println(dataset.toSummaryString());
 
         LinearClassifierFactory<Boolean, String> classifierFactory_ =
@@ -78,7 +88,7 @@ public class TrainAnswerSelectionModel {
         //classifierFactory_.setTuneSigmaHeldOut();
         classifierFactory_.setMinimizerCreator(() -> {
             QNMinimizer min = new QNMinimizer(15);
-            min.useOWLQN(true, 1.0);
+            min.useOWLQN(true, 10.0);
             return min;
         });
         classifierFactory_.setVerbose(true);
@@ -86,8 +96,10 @@ public class TrainAnswerSelectionModel {
         LinearClassifier<Boolean, String> model =
                 classifierFactory_.trainClassifier(dataset);
         model.saveToFilename(modelLocation);
+        Set<Boolean> positive = new HashSet<>();
+        positive.add(true);
         System.err.println(
-                model.toBiggestWeightFeaturesString(false, 1000, true));
+                model.getTopFeatures(positive, 0.001, false, 1000, true));
     }
 
     private static RVFDatum<Boolean, String> createInstance(
