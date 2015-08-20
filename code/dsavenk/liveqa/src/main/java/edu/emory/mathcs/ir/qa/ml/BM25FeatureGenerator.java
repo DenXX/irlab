@@ -83,7 +83,7 @@ public class BM25FeatureGenerator implements FeatureGeneration {
                 bm25 += idf(term) * answerTerms.get(term) * (K1 + 1) / denom;
             }
         }
-        return bm25;
+        return bm25 / questionTerms.size();
     }
 
     private double idf(String term) {

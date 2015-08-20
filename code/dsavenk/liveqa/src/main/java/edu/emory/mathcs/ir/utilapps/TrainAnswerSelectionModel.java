@@ -87,7 +87,7 @@ public class TrainAnswerSelectionModel {
             e.printStackTrace();
         }
         System.err.println(dataset.toSummaryString());
-        dataset.applyFeatureCountThreshold(10);
+        dataset.applyFeatureCountThreshold(100);
         System.err.println(dataset.toSummaryString());
 
         LinearClassifierFactory<Boolean, String> classifierFactory_ =
