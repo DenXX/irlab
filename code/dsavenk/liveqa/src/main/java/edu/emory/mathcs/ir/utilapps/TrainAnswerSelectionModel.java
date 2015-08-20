@@ -3,12 +3,8 @@ package edu.emory.mathcs.ir.utilapps;
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
 import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
-import edu.emory.mathcs.ir.qa.Text;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
-import edu.emory.mathcs.ir.qa.ml.BM25FeatureGenerator;
-import edu.emory.mathcs.ir.qa.ml.CombinerFeatureGenerator;
-import edu.emory.mathcs.ir.qa.ml.FeatureGeneration;
-import edu.emory.mathcs.ir.qa.ml.LemmaPairsFeatureGenerator;
+import edu.emory.mathcs.ir.qa.ml.*;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
@@ -118,9 +114,8 @@ public class TrainAnswerSelectionModel {
                 new Question("", targetQna.questionTitle,
                         targetQna.questionBody, "");
         final Answer answer = new Answer(instanceQna.bestAnswer, "");
-        featureGenerator.generateFeatures(question, answer).entrySet()
-                .stream()
-                .forEach(e -> features.setCount(e.getKey(), e.getValue()));
-        return new RVFDatum<>(features);
+
+        return StanfordClassifierUtils.createInstance(
+                featureGenerator.generateFeatures(question, answer));
     }
 }

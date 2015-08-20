@@ -35,6 +35,12 @@ public class QnAIndexDocument {
     public static final String SUB_CATEGORY_FIELD_NAME = "subcategory";
     public static final String CATEGORY_FIELD_NAME = "category";
 
+    private static final String[] CATEGORY_FIELD_NAMES = new String[]{
+            QnAIndexDocument.MAIN_CATEGORY_FIELD_NAME,
+            QnAIndexDocument.SUB_CATEGORY_FIELD_NAME,
+            QnAIndexDocument.CATEGORY_FIELD_NAME
+    };
+
     private static final QueryBuilder queryBuilder_ =
             new QueryBuilder(new EnglishAnalyzer());
 
@@ -95,18 +101,14 @@ public class QnAIndexDocument {
         indexDocument.add(new TextField(
                 QnAIndexDocument.ANSWER_FIELD_NAME, qna.bestAnswer,
                 Field.Store.YES));
-        indexDocument.add(new StringField(
-                QnAIndexDocument.MAIN_CATEGORY_FIELD_NAME,
-                qna.categories[0], Field.Store.YES));
-        indexDocument.add(new StringField(
-                QnAIndexDocument.SUB_CATEGORY_FIELD_NAME,
-                qna.categories[1], Field.Store.YES));
-        if (qna.categories.length > 2) {
-            indexDocument.add(
-                    new StringField(
-                            QnAIndexDocument.CATEGORY_FIELD_NAME,
-                            qna.categories[2], Field.Store.YES));
+
+        for (int catIndex = 0; catIndex < 3 && catIndex < qna.categories.length;
+             ++catIndex) {
+
+            indexDocument.add(new StringField(CATEGORY_FIELD_NAMES[catIndex],
+                    qna.categories[catIndex], Field.Store.YES));
         }
+
         return indexDocument;
     }
 

@@ -21,10 +21,15 @@ import java.util.stream.Collectors;
  * Outputs BM25 score for answer matching the question.
  */
 public class BM25FeatureGenerator implements FeatureGeneration {
+    public static final String TITLE_ANSWER_BM_25_FEATURENAME =
+            "title_answer_bm25";
+    public static final String BODY_ANSWER_BM_25_FEATURENAME =
+            "body_answer_bm25";
+    public static final String TITLEBODY_ANSWER_BM_25_FEATURENAME =
+            "titlebody_answer_bm25";
     private static final double K1 = 1.2;
     private static final double B = 0.75;
     private static final double DEFAULT_AVG_ANSWER_LENGTH = 50;
-
     private final IndexReader indexReader_;
     private final double averageAnswerLength_;
     private final int docCount_;
@@ -57,11 +62,11 @@ public class BM25FeatureGenerator implements FeatureGeneration {
     public Map<String, Double> generateFeatures(
             Question question, Answer answer) {
         Map<String, Double> features = new HashMap<>();
-        features.put("title_answer_bm25",
+        features.put(TITLE_ANSWER_BM_25_FEATURENAME,
                 getBM25(question.getTitle(), answer.getAnswer()));
-        features.put("body_answer_bm25",
+        features.put(BODY_ANSWER_BM_25_FEATURENAME,
                 getBM25(question.getBody(), answer.getAnswer()));
-        features.put("titlebody_answer_bm25",
+        features.put(TITLEBODY_ANSWER_BM_25_FEATURENAME,
                 getBM25(question.getTitle().concat(question.getBody()),
                         answer.getAnswer()));
         return features;
@@ -75,15 +80,19 @@ public class BM25FeatureGenerator implements FeatureGeneration {
                 .collect(Collectors.groupingBy(Function.identity(),
                         Collectors.counting()));
         double bm25 = 0;
-        for (String term : questionTerms) {
-            if (answerTerms.containsKey(term)) {
-                final double denom = answerTerms.get(term) +
-                        K1 *(1 - B + B * answerLemmas.size() /
-                                averageAnswerLength_);
-                bm25 += idf(term) * answerTerms.get(term) * (K1 + 1) / denom;
+        if (questionTerms.size() > 0) {
+            for (String term : questionTerms) {
+                if (answerTerms.containsKey(term)) {
+                    final double denom = answerTerms.get(term) +
+                            K1 * (1 - B + B * answerLemmas.size() /
+                                    averageAnswerLength_);
+                    bm25 += idf(term) * answerTerms.get(term) *
+                            (K1 + 1) / denom;
+                }
             }
+            return bm25 / questionTerms.size();
         }
-        return bm25 / questionTerms.size();
+        return 0;
     }
 
     private double idf(String term) {

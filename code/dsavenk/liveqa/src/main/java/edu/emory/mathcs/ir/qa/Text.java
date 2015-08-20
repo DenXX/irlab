@@ -20,171 +20,13 @@ import java.util.stream.Stream;
  */
 public class Text {
     /**
-     * Represents a natural language sentence.
-     */
-    public static class Sentence {
-        public final String text;
-        public final Token[] tokens;
-        public final int charBeginOffset;
-        public final int charEndOffset;
-
-        /**
-         * Constructs a sentence with the given number of tokens.
-         * @param tokensCount The number of tokens in the sentence.
-         */
-        public Sentence(String text, int tokensCount, int charBeginOffset,
-                        int charEndOffset) {
-            this.text = text;
-            tokens = new Token[tokensCount];
-            this.charBeginOffset = charBeginOffset;
-            this.charEndOffset = charEndOffset;
-        }
-
-        /**
-         * Copy constructor.
-         * @param copy An original sentence to copy.
-         */
-        public Sentence(Sentence copy) {
-            this(copy, 0);
-        }
-
-        /**
-         * Creates a copy of the sentences and makes the appropriate corrections
-         * in character-based beginning and end offsets.
-         * @param copy A sentence to copy.
-         * @param characterOffsetCorrection Value to add to all character-based
-         *                                  offsets.
-         */
-        public Sentence(Sentence copy, int characterOffsetCorrection) {
-            this(copy.text, copy.tokens.length,
-                    copy.charBeginOffset + characterOffsetCorrection,
-                    copy.charEndOffset + characterOffsetCorrection);
-            int index = 0;
-            for (Token token : copy.tokens) {
-                this.tokens[index++] =
-                        new Token(token, characterOffsetCorrection);
-            }
-        }
-    }
-
-    /**
-     * Represents natural language token (word, number etc).
-     */
-    public static class Token {
-        public final String text;
-        public final String lemma;
-        public final String pos;
-        public final int charBeginOffset;
-        public final int charEndOffset;
-
-        /**
-         * Creates a token with the given parameters.
-         * @param text Token text.
-         * @param lemma Token lemma.
-         * @param pos Token part of speech.
-         */
-        public Token(String text, String lemma, String pos, int charBeginOffset,
-                     int charEndOffset) {
-            this.text = text;
-            this.lemma = lemma;
-            this.pos = pos;
-            this.charBeginOffset = charBeginOffset;
-            this.charEndOffset = charEndOffset;
-        }
-
-        /**
-         * Copy constructor.
-         * @param copy Creates a copy of a token.
-         */
-        public Token(Token copy) {
-            this(copy, 0);
-        }
-
-        /**
-         * Creates a copy of the token and makes the specified correction in
-         * the character-based beginning and end offset fields.
-         * @param copy The token to copy.
-         * @param characterOffsetCorrection The value to add to all
-         *                                  character-based offsets.
-         */
-        public Token(Token copy, int characterOffsetCorrection) {
-            this(copy.text, copy.lemma, copy.pos,
-                    copy.charBeginOffset + characterOffsetCorrection,
-                    copy.charEndOffset + characterOffsetCorrection);
-        }
-    }
-
-    /**
-     * Represents an entity.
-     */
-    public static class Entity {
-        /**
-         * Represents a mention of the entity.
-         */
-        public class Mention {
-            public final String text;
-            public final int sentenceIndex;
-            public final int beginToken;
-            public final int endToken;
-
-            /**
-             * Constructs a mention with the given text in the given sentence
-             * and tokens span.
-             * @param text The text of the mention.
-             * @param sentenceIndex The index of the sentence of the mention.
-             * @param beginToken The first token of the mention.
-             * @param endToken The token after the last token of the mention.
-             */
-            public Mention(String text, int sentenceIndex, int beginToken,
-                           int endToken) {
-                this.text = text;
-                this.sentenceIndex = sentenceIndex;
-                this.beginToken = beginToken;
-                this.endToken = endToken;
-            }
-
-            /**
-             * Copy constructor and adjusts sentence index.
-             * @param copy A mention to copy.
-             * @param sentenceIndexCorrection A value to add to the mention
-             *                                sentence index.
-             */
-            public Mention(Mention copy, int sentenceIndexCorrection) {
-                this(copy.text, copy.sentenceIndex + sentenceIndexCorrection,
-                        copy.beginToken, copy.endToken);
-            }
-
-            /**
-             * Copy constructor.
-             * @param copy A mention to copy.
-             */
-            public Mention(Mention copy) {
-                this(copy, 0);
-            }
-        }
-
-        public final String name;
-        public final List<Mention> mentions = new ArrayList<>();
-
-        /**
-         * Constructs the entity with the given name.
-         * @param name The name of the entity.
-         */
-        public Entity(String name) {
-            this.name = name;
-        }
-    }
-
-    /**
      * Stores the string representation of the text.
      */
     public final String text;
-
     /**
      * Array of sentences.
      */
     private Sentence[] sentences_;
-
     /**
      * Array of entities mentioned in text.
      */
@@ -197,7 +39,6 @@ public class Text {
     public Text(String text) {
         this(text, true);
     }
-
 
     /**
      * Creates an annotated text from its string representation.
@@ -268,8 +109,8 @@ public class Text {
 
         List<CoreMap> entities =
                 annotation.get(CoreAnnotations.MentionsAnnotation.class);
+        entities_ = new Entity[entities != null ? entities.size() : 0];
         if (entities != null) {
-            entities_ = new Entity[entities.size()];
             int entityIndex = 0;
             for (CoreMap entity : entities) {
                 final String entityName = entity.get(
@@ -337,7 +178,7 @@ public class Text {
                 endSentence >= sentences_.length) {
             throw new IndexOutOfBoundsException(
                     String.format("Sentence index out of range. Specified " +
-                            "range (%d, %d), total number of sentences is %d",
+                                    "range (%d, %d), total number of sentences is %d",
                             startSentence, endSentence, sentences_.length));
         }
 
@@ -426,5 +267,170 @@ public class Text {
                 .map(StringUtils::normalizeString)
                 .filter(token -> !removeStopwords ||
                         !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(token));
+    }
+
+    /**
+     * Represents a natural language sentence.
+     */
+    public static class Sentence {
+        public final String text;
+        public final Token[] tokens;
+        public final int charBeginOffset;
+        public final int charEndOffset;
+
+        /**
+         * Constructs a sentence with the given number of tokens.
+         *
+         * @param tokensCount The number of tokens in the sentence.
+         */
+        public Sentence(String text, int tokensCount, int charBeginOffset,
+                        int charEndOffset) {
+            this.text = text;
+            tokens = new Token[tokensCount];
+            this.charBeginOffset = charBeginOffset;
+            this.charEndOffset = charEndOffset;
+        }
+
+        /**
+         * Copy constructor.
+         *
+         * @param copy An original sentence to copy.
+         */
+        public Sentence(Sentence copy) {
+            this(copy, 0);
+        }
+
+        /**
+         * Creates a copy of the sentences and makes the appropriate corrections
+         * in character-based beginning and end offsets.
+         *
+         * @param copy                      A sentence to copy.
+         * @param characterOffsetCorrection Value to add to all character-based
+         *                                  offsets.
+         */
+        public Sentence(Sentence copy, int characterOffsetCorrection) {
+            this(copy.text, copy.tokens.length,
+                    copy.charBeginOffset + characterOffsetCorrection,
+                    copy.charEndOffset + characterOffsetCorrection);
+            int index = 0;
+            for (Token token : copy.tokens) {
+                this.tokens[index++] =
+                        new Token(token, characterOffsetCorrection);
+            }
+        }
+    }
+
+    /**
+     * Represents natural language token (word, number etc).
+     */
+    public static class Token {
+        public final String text;
+        public final String lemma;
+        public final String pos;
+        public final int charBeginOffset;
+        public final int charEndOffset;
+
+        /**
+         * Creates a token with the given parameters.
+         *
+         * @param text  Token text.
+         * @param lemma Token lemma.
+         * @param pos   Token part of speech.
+         */
+        public Token(String text, String lemma, String pos, int charBeginOffset,
+                     int charEndOffset) {
+            this.text = text;
+            this.lemma = lemma;
+            this.pos = pos;
+            this.charBeginOffset = charBeginOffset;
+            this.charEndOffset = charEndOffset;
+        }
+
+        /**
+         * Copy constructor.
+         *
+         * @param copy Creates a copy of a token.
+         */
+        public Token(Token copy) {
+            this(copy, 0);
+        }
+
+        /**
+         * Creates a copy of the token and makes the specified correction in
+         * the character-based beginning and end offset fields.
+         *
+         * @param copy                      The token to copy.
+         * @param characterOffsetCorrection The value to add to all
+         *                                  character-based offsets.
+         */
+        public Token(Token copy, int characterOffsetCorrection) {
+            this(copy.text, copy.lemma, copy.pos,
+                    copy.charBeginOffset + characterOffsetCorrection,
+                    copy.charEndOffset + characterOffsetCorrection);
+        }
+    }
+
+    /**
+     * Represents an entity.
+     */
+    public static class Entity {
+        public final String name;
+        public final List<Mention> mentions = new ArrayList<>();
+
+        /**
+         * Constructs the entity with the given name.
+         *
+         * @param name The name of the entity.
+         */
+        public Entity(String name) {
+            this.name = name;
+        }
+
+        /**
+         * Represents a mention of the entity.
+         */
+        public class Mention {
+            public final String text;
+            public final int sentenceIndex;
+            public final int beginToken;
+            public final int endToken;
+
+            /**
+             * Constructs a mention with the given text in the given sentence
+             * and tokens span.
+             *
+             * @param text          The text of the mention.
+             * @param sentenceIndex The index of the sentence of the mention.
+             * @param beginToken    The first token of the mention.
+             * @param endToken      The token after the last token of the mention.
+             */
+            public Mention(String text, int sentenceIndex, int beginToken,
+                           int endToken) {
+                this.text = text;
+                this.sentenceIndex = sentenceIndex;
+                this.beginToken = beginToken;
+                this.endToken = endToken;
+            }
+
+            /**
+             * Copy constructor and adjusts sentence index.
+             *
+             * @param copy                    A mention to copy.
+             * @param sentenceIndexCorrection A value to add to the mention
+             *                                sentence index.
+             */
+            public Mention(Mention copy, int sentenceIndexCorrection) {
+                this(copy.text, copy.sentenceIndex + sentenceIndexCorrection,
+                        copy.beginToken, copy.endToken);
+            }
+
+            /**
+             * Copy constructor.
+             * @param copy A mention to copy.
+             */
+            public Mention(Mention copy) {
+                this(copy, 0);
+            }
+        }
     }
 }
