@@ -10,8 +10,6 @@ import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
 import edu.stanford.nlp.ling.RVFDatum;
 import edu.stanford.nlp.optimization.QNMinimizer;
-import edu.stanford.nlp.stats.ClassicCounter;
-import edu.stanford.nlp.stats.Counter;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
@@ -45,9 +43,7 @@ public class TrainAnswerSelectionModel {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
 
             // Create feature generator.
-            featureGenerator = new CombinerFeatureGenerator(
-                    new LemmaPairsFeatureGenerator(),
-                    new BM25FeatureGenerator(indexReader));
+            featureGenerator = getFeatureGenerator(indexReader);
 
             for (int docid = 0; docid < indexReader.maxDoc(); ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
@@ -83,33 +79,41 @@ public class TrainAnswerSelectionModel {
             e.printStackTrace();
         }
         System.err.println(dataset.toSummaryString());
-        dataset.applyFeatureCountThreshold(100);
+        dataset.applyFeatureCountThreshold(10);
         System.err.println(dataset.toSummaryString());
 
         LinearClassifierFactory<Boolean, String> classifierFactory_ =
-                new LinearClassifierFactory<>(1e-4, false, 1.0);
-        //classifierFactory_.setTuneSigmaHeldOut();
+                new LinearClassifierFactory<>(1e-4, false, 0.1);
+        //classifierFactory_.setTuneSigmaCV(10);
+        //classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
         classifierFactory_.setMinimizerCreator(() -> {
             QNMinimizer min = new QNMinimizer(15);
-            min.useOWLQN(true, 10.0);
+            min.useOWLQN(true, 0.1);
             return min;
         });
         classifierFactory_.setVerbose(true);
 
         LinearClassifier<Boolean, String> model =
                 classifierFactory_.trainClassifier(dataset);
-        model.saveToFilename(modelLocation);
+        LinearClassifier.writeClassifier(model, modelLocation);
         Set<Boolean> positive = new HashSet<>();
         positive.add(true);
         System.err.println(
-                model.getTopFeatures(positive, 0.001, false, 1000, true));
+                model.getTopFeatures(positive, 0.0001, false, 1000, true));
+    }
+
+    private static FeatureGeneration getFeatureGenerator(
+            IndexReader indexReader) throws IOException {
+        return new CombinerFeatureGenerator(
+                new LemmaPairsFeatureGenerator(),
+                new BM25FeatureGenerator(indexReader),
+                new NamedEntityTypesFeatureGenerator()
+        );
     }
 
     private static RVFDatum<Boolean, String> createInstance(
             YahooAnswersXmlInput.QnAPair targetQna,
             YahooAnswersXmlInput.QnAPair instanceQna) {
-        Counter<String> features = new ClassicCounter<>();
-
         final Question question =
                 new Question("", targetQna.questionTitle,
                         targetQna.questionBody, "");

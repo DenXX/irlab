@@ -127,7 +127,8 @@ public class Text {
                         CoreAnnotations.TokenEndAnnotation.class) -
                         firstSentenceTokenIndex;
 
-                Entity currentEntity = new Entity(entityName);
+                Entity currentEntity = new Entity(entityName,
+                        entity.get(CoreAnnotations.NamedEntityTagAnnotation.class));
                 entities_[entityIndex] = currentEntity;
                 currentEntity.mentions.add(currentEntity.new Mention(
                         entityName, mentionSentence, mentionBeginToken,
@@ -209,7 +210,7 @@ public class Text {
                 if (mention.sentenceIndex >= startSentence &&
                         mention.sentenceIndex <= endSentence) {
                     if (copy == null) {
-                        copy = new Entity(entity.name);
+                        copy = new Entity(entity.name, entity.type);
                     }
                     copy.mentions.add(
                             copy.new Mention(mention, -startSentence));
@@ -375,6 +376,7 @@ public class Text {
      */
     public static class Entity {
         public final String name;
+        public final String type;
         public final List<Mention> mentions = new ArrayList<>();
 
         /**
@@ -382,8 +384,9 @@ public class Text {
          *
          * @param name The name of the entity.
          */
-        public Entity(String name) {
+        public Entity(String name, String type) {
             this.name = name;
+            this.type = type;
         }
 
         /**

@@ -35,6 +35,12 @@ public class AppConfig {
     public static final String BING_API_KEY_PARAMETER_DESCRIPTION
             = "Bing API key";
 
+    public static final String LIVEQA_CATEGORIES_PARAMETER =
+            "LIVEQA_CATEGORIES";
+    public static final String LIVEQA_CATEGORIES_PARAMETER_DESCRIPTION =
+            "The list of Yahoo! Answers top-level categories selected for " +
+                    "the LiveQA TREC";
+
     static {
         Init();
     }
@@ -96,6 +102,9 @@ public class AppConfig {
                 .desc(PORT_PARAMETER_DESCRIPTION).hasArg().build());
         options.addOption(Option.builder(BING_API_KEY_PARAMETER)
                 .desc(BING_API_KEY_PARAMETER_DESCRIPTION).hasArg().build());
+        options.addOption(Option.builder(LIVEQA_CATEGORIES_PARAMETER)
+                .desc(LIVEQA_CATEGORIES_PARAMETER_DESCRIPTION).hasArg()
+                .build());
         return options;
     }
 

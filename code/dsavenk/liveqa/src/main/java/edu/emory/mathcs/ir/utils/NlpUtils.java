@@ -1,11 +1,8 @@
 package edu.emory.mathcs.ir.utils;
 
-import edu.emory.mathcs.ir.qa.Text;
-import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.util.CoreMap;
 
 import java.util.Properties;
 
@@ -19,7 +16,7 @@ public class NlpUtils {
     private static Properties getProperties() {
         Properties properties = new Properties();
         properties.setProperty("annotators",
-                "tokenize, ssplit, pos, lemma"); // ner, entitymentions
+                "tokenize, ssplit, pos, lemma, ner, entitymentions");
         properties.setProperty("ssplit.newlineIsSentenceBreak", "always");
         return properties;
     }

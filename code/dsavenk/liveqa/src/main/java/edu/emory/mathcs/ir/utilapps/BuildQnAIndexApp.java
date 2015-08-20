@@ -1,22 +1,18 @@
 package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
+import edu.emory.mathcs.ir.qa.AppConfig;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.KeywordAnalyzer;
-import org.apache.lucene.analysis.core.SimpleAnalyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by dsavenk on 8/18/15.
@@ -36,11 +32,22 @@ public class BuildQnAIndexApp {
                     FileSystems.getDefault().getPath(args[1]));
             indexWriter = QnAIndexDocument.createIndexWriter(directory);
             YahooAnswersXmlInput input = new YahooAnswersXmlInput(args[0]);
-            int counter = 0;
-            for (YahooAnswersXmlInput.QnAPair qna : input) {
-                if (qna.attributes.containsKey("qlang") &&
-                        qna.attributes.get("qlang").equals("en")) {
 
+            // Get the list of Yahoo! Answers categories selected for LiveQA.
+            Set<String> categories = Arrays.stream(
+                    AppConfig.PROPERTIES.getProperty(
+                            AppConfig.LIVEQA_CATEGORIES_PARAMETER).split(";"))
+                    .collect(Collectors.toSet());
+
+            int counter = 0;
+            int skipped = 0;
+            for (YahooAnswersXmlInput.QnAPair qna : input) {
+                // Check if question is written in English and that the
+                // category of the question belongs to the list of categories
+                // selected for LiveQA task.
+                if (qna.attributes.containsKey("qlang") &&
+                        qna.attributes.get("qlang").equals("en") &&
+                        categories.contains(qna.categories[0])) {
                     // Convert QnA document to Lucene document format.
                     final Document indexDocument =
                             QnAIndexDocument.getIndexDocument(qna);
@@ -49,8 +56,11 @@ public class BuildQnAIndexApp {
                     // Add friendly output to keep us updated on the progress.
                     if (++counter % 10000 == 0) {
                         System.err.println(String.format(
-                                "%d documents processed", counter));
+                                "%d documents processed and %d skipped",
+                                counter, skipped));
                     }
+                } else {
+                    ++skipped;
                 }
             }
             Finalize(indexWriter);
