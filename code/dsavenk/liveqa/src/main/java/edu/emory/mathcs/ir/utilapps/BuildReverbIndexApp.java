@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.utilapps;
 
+import edu.emory.mathcs.ir.qa.ml.ReverbTriplesFeatureGenerator;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
@@ -26,10 +27,6 @@ import java.util.zip.GZIPInputStream;
  * Created by dsavenk on 8/21/15.
  */
 public class BuildReverbIndexApp {
-    private static final String PREDICATE_FIELDNAME = "predicate";
-    private static final String OBJECT_FIELDNAME = "object";
-    private static final String SUBJECT_FIELDNAME = "subject";
-
     public static void main(String[] args) {
         IndexWriter indexWriter;
         try {
@@ -47,11 +44,14 @@ public class BuildReverbIndexApp {
                 String[] fields = Strings.split(line, '\t');
                 Document doc = new Document();
                 doc.add(new TextField(
-                        SUBJECT_FIELDNAME, fields[4], Field.Store.YES));
+                        ReverbTriplesFeatureGenerator.SUBJECT_FIELDNAME,
+                        fields[4], Field.Store.YES));
                 doc.add(new TextField(
-                        PREDICATE_FIELDNAME, fields[5], Field.Store.YES));
+                        ReverbTriplesFeatureGenerator.PREDICATE_FIELDNAME,
+                        fields[5], Field.Store.YES));
                 doc.add(new TextField(
-                        OBJECT_FIELDNAME, fields[6], Field.Store.YES));
+                        ReverbTriplesFeatureGenerator.OBJECT_FIELDNAME,
+                        fields[6], Field.Store.YES));
                 indexWriter.addDocument(doc);
             }
 
@@ -66,9 +66,12 @@ public class BuildReverbIndexApp {
     private static IndexWriter createIndexWriter(Directory directory)
             throws IOException {
         Map<String, Analyzer> analyzers = new HashMap<>();
-        analyzers.put(SUBJECT_FIELDNAME, new EnglishAnalyzer());
-        analyzers.put(OBJECT_FIELDNAME, new EnglishAnalyzer());
-        analyzers.put(PREDICATE_FIELDNAME, new EnglishAnalyzer());
+        analyzers.put(ReverbTriplesFeatureGenerator.SUBJECT_FIELDNAME,
+                new EnglishAnalyzer());
+        analyzers.put(ReverbTriplesFeatureGenerator.OBJECT_FIELDNAME,
+                new EnglishAnalyzer());
+        analyzers.put(ReverbTriplesFeatureGenerator.PREDICATE_FIELDNAME,
+                new EnglishAnalyzer());
         final IndexWriterConfig config =
                 new IndexWriterConfig(
                         new PerFieldAnalyzerWrapper(new SimpleAnalyzer(),

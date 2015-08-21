@@ -33,6 +33,7 @@ public class TrainAnswerSelectionModel {
     public static void main(String[] args) {
         final String indexLocation = args[0];
         final String modelLocation = args[1];
+        final String reverbIndexLocation = args[2];
 
         RVFDataset<Boolean, String> dataset = new RVFDataset<>();
         final Directory directory;
@@ -43,7 +44,8 @@ public class TrainAnswerSelectionModel {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
 
             // Create feature generator.
-            featureGenerator = getFeatureGenerator(indexReader);
+            featureGenerator = getFeatureGenerator(
+                    indexReader, reverbIndexLocation);
 
             for (int docid = 0; docid < indexReader.maxDoc(); ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
@@ -106,11 +108,13 @@ public class TrainAnswerSelectionModel {
     }
 
     private static FeatureGeneration getFeatureGenerator(
-            IndexReader indexReader) throws IOException {
+            IndexReader indexReader, String reverbIndexLocation)
+            throws IOException {
         return new CombinerFeatureGenerator(
-                //new LemmaPairsFeatureGenerator(),
+                new LemmaPairsFeatureGenerator(),
                 new BM25FeatureGenerator(indexReader),
-                new NamedEntityTypesFeatureGenerator()
+                new NamedEntityTypesFeatureGenerator(),
+                new ReverbTriplesFeatureGenerator(reverbIndexLocation)
         );
     }
 
