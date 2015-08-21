@@ -49,9 +49,8 @@ public class TrainAnswerSelectionModel {
                 final YahooAnswersXmlInput.QnAPair qna =
                         QnAIndexDocument.getQnAPair(
                                 indexReader.document(docid));
-                RVFDatum<Boolean, String> instance = createInstance(qna, qna);
-                instance.setLabel(true);
-                dataset.add(instance);
+                RVFDatum<Boolean, String> positiveInstance =
+                        createInstance(qna, qna);
 
                 try {
                     // Get similar QnA pairs.
@@ -60,9 +59,13 @@ public class TrainAnswerSelectionModel {
                                     searcher, qna, TOPN);
                     for (final YahooAnswersXmlInput.QnAPair similarQna :
                             similarQnAPairs) {
-                        instance = createInstance(qna, similarQna);
-                        instance.setLabel(false);
-                        dataset.add(instance);
+                        RVFDatum<Boolean, String> negativeInstance =
+                                createInstance(qna, similarQna);
+
+                        dataset.add(StanfordClassifierUtils.createDiffInstance(
+                                positiveInstance, negativeInstance, true));
+                        dataset.add(StanfordClassifierUtils.createDiffInstance(
+                                negativeInstance, positiveInstance, false));
                     }
 
                 } catch (Exception e) {
@@ -73,7 +76,7 @@ public class TrainAnswerSelectionModel {
                     System.err.println(
                             String.format("%d qna processed", docid));
                 }
-                if (docid > 100000) break;
+                if (docid > 10000) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -83,12 +86,12 @@ public class TrainAnswerSelectionModel {
         System.err.println(dataset.toSummaryString());
 
         LinearClassifierFactory<Boolean, String> classifierFactory_ =
-                new LinearClassifierFactory<>(1e-4, false, 0.1);
+                new LinearClassifierFactory<>(1e-4, false, 1.0);
         //classifierFactory_.setTuneSigmaCV(10);
         //classifierFactory_.setRetrainFromScratchAfterSigmaTuning(true);
         classifierFactory_.setMinimizerCreator(() -> {
             QNMinimizer min = new QNMinimizer(15);
-            min.useOWLQN(true, 0.1);
+            min.useOWLQN(true, 1.0);
             return min;
         });
         classifierFactory_.setVerbose(true);
@@ -105,7 +108,7 @@ public class TrainAnswerSelectionModel {
     private static FeatureGeneration getFeatureGenerator(
             IndexReader indexReader) throws IOException {
         return new CombinerFeatureGenerator(
-                new LemmaPairsFeatureGenerator(),
+                //new LemmaPairsFeatureGenerator(),
                 new BM25FeatureGenerator(indexReader),
                 new NamedEntityTypesFeatureGenerator()
         );

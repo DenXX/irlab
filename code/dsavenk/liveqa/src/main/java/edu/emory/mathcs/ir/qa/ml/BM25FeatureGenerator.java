@@ -21,15 +21,22 @@ import java.util.stream.Collectors;
  * Outputs BM25 score for answer matching the question.
  */
 public class BM25FeatureGenerator implements FeatureGeneration {
-    public static final String TITLE_ANSWER_BM_25_FEATURENAME =
+    public static final String TITLE_ANSWER_BM25_FEATURENAME =
             "title_answer_bm25";
-    public static final String BODY_ANSWER_BM_25_FEATURENAME =
+    public static final String BODY_ANSWER_BM25_FEATURENAME =
             "body_answer_bm25";
-    public static final String TITLEBODY_ANSWER_BM_25_FEATURENAME =
+    public static final String TITLEBODY_ANSWER_BM25_FEATURENAME =
             "titlebody_answer_bm25";
+    public static final String TITLEBODY_ANSWER_BM25_ZERO_FEATURENAME =
+            "titlebody_answer_bm25=0";
+    private static final String TITLE_ANSWER_BM25_ZERO_FEATURENAME =
+            "title_answer_bm25=0";
+    private static final String BODY_ANSWER_BM25_ZERO_FEATURENAME =
+            "body_answer_bm25=0";
     private static final double K1 = 1.2;
     private static final double B = 0.75;
     private static final double DEFAULT_AVG_ANSWER_LENGTH = 50;
+    private static final double EPS = 0.0001;
     private final IndexReader indexReader_;
     private final double averageAnswerLength_;
     private final int docCount_;
@@ -62,13 +69,30 @@ public class BM25FeatureGenerator implements FeatureGeneration {
     public Map<String, Double> generateFeatures(
             Question question, Answer answer) {
         Map<String, Double> features = new HashMap<>();
-        features.put(TITLE_ANSWER_BM_25_FEATURENAME,
-                getBM25(question.getTitle(), answer.getAnswer()));
-        features.put(BODY_ANSWER_BM_25_FEATURENAME,
-                getBM25(question.getBody(), answer.getAnswer()));
-        features.put(TITLEBODY_ANSWER_BM_25_FEATURENAME,
-                getBM25(question.getTitle().concat(question.getBody()),
-                        answer.getAnswer()));
+        final double titleAnswerBm25 =
+                getBM25(question.getTitle(), answer.getAnswer());
+        if (titleAnswerBm25 > EPS) {
+            features.put(TITLE_ANSWER_BM25_FEATURENAME, titleAnswerBm25);
+        } else {
+            features.put(TITLE_ANSWER_BM25_ZERO_FEATURENAME, 1.0);
+        }
+
+        final double bodyAnswerBm25 =
+                getBM25(question.getBody(), answer.getAnswer());
+        if (bodyAnswerBm25 > EPS) {
+            features.put(BODY_ANSWER_BM25_FEATURENAME, bodyAnswerBm25);
+        } else {
+            features.put(BODY_ANSWER_BM25_ZERO_FEATURENAME, 1.0);
+        }
+
+        final double allAnswerBm25 = getBM25(
+                question.getTitle().concat(question.getBody()),
+                answer.getAnswer());
+        if (allAnswerBm25 > EPS) {
+            features.put(TITLEBODY_ANSWER_BM25_FEATURENAME, allAnswerBm25);
+        } else {
+            features.put(TITLEBODY_ANSWER_BM25_ZERO_FEATURENAME, 1.0);
+        }
         return features;
     }
 

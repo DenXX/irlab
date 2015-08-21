@@ -98,18 +98,18 @@ public class BM25FeatureGeneratorTest extends TestCase {
         // body matches are lower, but overall title-body score is again better.
         assertTrue(
                 features1.get(
-                        BM25FeatureGenerator.TITLE_ANSWER_BM_25_FEATURENAME) <
+                        BM25FeatureGenerator.TITLE_ANSWER_BM25_FEATURENAME) <
                         features2.get(
-                                BM25FeatureGenerator.TITLE_ANSWER_BM_25_FEATURENAME));
+                                BM25FeatureGenerator.TITLE_ANSWER_BM25_FEATURENAME));
         assertTrue(
                 features1.get(
-                        BM25FeatureGenerator.BODY_ANSWER_BM_25_FEATURENAME) >
+                        BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME) >
                         features2.get(
-                                BM25FeatureGenerator.BODY_ANSWER_BM_25_FEATURENAME));
+                                BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME));
         assertTrue(features1.get(
-                BM25FeatureGenerator.TITLEBODY_ANSWER_BM_25_FEATURENAME) <
+                BM25FeatureGenerator.TITLEBODY_ANSWER_BM25_FEATURENAME) <
                 features2.get(
-                        BM25FeatureGenerator.TITLEBODY_ANSWER_BM_25_FEATURENAME
+                        BM25FeatureGenerator.TITLEBODY_ANSWER_BM25_FEATURENAME
                 ));
     }
 

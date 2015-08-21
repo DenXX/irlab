@@ -160,7 +160,7 @@ public class Text {
      */
     public Text concat(Text text) {
         // TODO(denxx): Make concatenation similar to subtext.
-        return new Text(String.join("\n", this.text, text.text));
+        return new Text(String.join(" \n", this.text, text.text));
     }
 
     /**
@@ -268,6 +268,18 @@ public class Text {
                 .map(StringUtils::normalizeString)
                 .filter(token -> !removeStopwords ||
                         !StopAnalyzer.ENGLISH_STOP_WORDS_SET.contains(token));
+    }
+
+    /**
+     * Returns array of all tokens in the text.
+     *
+     * @return Array of tokens.
+     */
+    public Token[] getTokens() {
+        List<Token> tokens = Arrays.stream(getSentences())
+                .flatMap(sent -> Arrays.stream(sent.tokens))
+                .collect(Collectors.toList());
+        return tokens.toArray(new Token[tokens.size()]);
     }
 
     /**

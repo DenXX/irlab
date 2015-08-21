@@ -8,7 +8,10 @@ import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.ling.Datum;
 
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Candidate answer ranking based on the machine learning feature-based model.
@@ -48,17 +51,20 @@ public class FeatureBasedAnswerSelector implements AnswerSelection {
     @Override
     public Optional<Answer> chooseBestAnswer(
             Question question, Answer[] answers) {
-        return Arrays.stream(answers)
+        List<AnswerScorePair> answerScores = Arrays.stream(answers)
                 .map(answer -> {
                     final Datum<Boolean, String> instance =
                             StanfordClassifierUtils.createInstance(
                                     featureGenerator_.generateFeatures(
                                             question, answer));
-                    return new AnswerScorePair(
-                            answer, model_.scoreOf(instance, true));
+                    final double score = model_.scoreOf(instance, true);
+                    return new AnswerScorePair(answer, score);
                 })
-                .max(AnswerScorePair::compareTo)
-                .map(as -> as.answer);
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        return answerScores.size() > 0 ?
+                Optional.of(answerScores.get(0).answer) : Optional.empty();
     }
 
     /**

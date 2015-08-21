@@ -106,4 +106,23 @@ public class TextTest extends TestCase {
                 .map(e -> e.mentions.get(0).endToken)
                 .get().intValue());
     }
+
+    public void testConcat() throws Exception {
+        Text text1 = new Text("This is first text");
+        Text text2 = new Text("This is second text");
+        Text concat = text1.concat(text2);
+        assertEquals(2, concat.getSentences().length);
+        assertTrue(concat.text.contains("first"));
+        assertTrue(concat.text.contains("second"));
+    }
+
+    public void testGetTokens() throws Exception {
+        Text text = new Text("This is the first sentence. " +
+                "This is the second sentence.");
+        assertEquals(12, text.getTokens().length);
+        assertTrue(Arrays.stream(text.getTokens()).anyMatch(
+                token -> token.text.contains("first")));
+        assertTrue(Arrays.stream(text.getTokens()).anyMatch(
+                token -> token.text.contains("second")));
+    }
 }
