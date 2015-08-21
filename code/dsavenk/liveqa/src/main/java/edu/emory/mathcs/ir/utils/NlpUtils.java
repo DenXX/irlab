@@ -26,6 +26,8 @@ public class NlpUtils {
         properties.setProperty("annotators",
                 "tokenize, ssplit, pos, lemma, ner, entitymentions, parse");
         properties.setProperty("ssplit.newlineIsSentenceBreak", "always");
+        properties.setProperty("parse.model",
+                "edu/stanford/nlp/models/srparser/englishSR.ser.gz");
         return properties;
     }
 

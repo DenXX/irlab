@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>edu.emory.mathcs.ir</groupId>
@@ -49,6 +50,14 @@
             <artifactId>stanford-corenlp</artifactId>
             <version>3.5.2</version>
             <classifier>models</classifier>
+        </dependency>
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>srparser</artifactId>
+            <scope>system</scope>
+            <systemPath>
+                ${project.basedir}/library/stanford-srparser-2014-10-23-models.jar
+            </systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>

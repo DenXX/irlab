@@ -78,7 +78,7 @@ public class TrainAnswerSelectionModel {
                     System.err.println(
                             String.format("%d qna processed", docid));
                 }
-                if (docid > 10000) break;
+                if (docid > 100) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
