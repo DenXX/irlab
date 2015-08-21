@@ -55,6 +55,7 @@
             <groupId>edu.stanford.nlp</groupId>
             <artifactId>srparser</artifactId>
             <scope>system</scope>
+            <version>1.0</version>
             <systemPath>
                 ${project.basedir}/library/stanford-srparser-2014-10-23-models.jar
             </systemPath>
