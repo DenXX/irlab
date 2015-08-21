@@ -32,6 +32,13 @@ public class Text {
      */
     private Entity[] entities_;
 
+    // TODO(denxx): This should have connection to tokens and sentences, similar
+    // to entities.
+    /**
+     * List of VP and NP chunks in the text.
+     */
+    private String[] chunks_;
+
     /**
      * Creates an annotated text from its string representation.
      * @param text The content of the text.
@@ -137,6 +144,10 @@ public class Text {
                 ++entityIndex;
             }
         }
+
+        // Get chunks
+        List<String> chunks = NlpUtils.getChunks(annotation);
+        chunks_ = chunks.toArray(new String[chunks.size()]);
     }
 
     /**
@@ -151,6 +162,13 @@ public class Text {
      */
     public Entity[] getEntities() {
         return entities_;
+    }
+
+    /**
+     * @return Returns an array of VP and NP chunks in the text.
+     */
+    public String[] getChunks() {
+        return chunks_;
     }
 
     /**
