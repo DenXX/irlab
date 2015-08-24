@@ -41,6 +41,10 @@ public class AppConfig {
             "The list of Yahoo! Answers top-level categories selected for " +
                     "the LiveQA TREC";
 
+    public static final String ANNOTATORS_PARAMETER = "ANNOTATORS";
+    public static final String ANNOTATORS_PARAMETER_DESCRIPTION =
+            "The list of Stanford CoreNLP annotators to apply to text";
+
     static {
         Init();
     }
@@ -104,6 +108,9 @@ public class AppConfig {
                 .desc(BING_API_KEY_PARAMETER_DESCRIPTION).hasArg().build());
         options.addOption(Option.builder(LIVEQA_CATEGORIES_PARAMETER)
                 .desc(LIVEQA_CATEGORIES_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(ANNOTATORS_PARAMETER)
+                .desc(ANNOTATORS_PARAMETER_DESCRIPTION).hasArg()
                 .build());
         return options;
     }

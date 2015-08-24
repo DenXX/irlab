@@ -242,6 +242,9 @@ public class Text {
         }
         res.entities_ = entities.toArray(new Entity[entities.size()]);
 
+        // TODO(denxx): Chunks are not copied, but needs to.
+        res.chunks_ = new String[0];
+
         return res;
     }
 
@@ -371,7 +374,7 @@ public class Text {
         public Token(String text, String lemma, String pos, int charBeginOffset,
                      int charEndOffset) {
             this.text = text;
-            this.lemma = lemma;
+            this.lemma = StringUtils.normalizeString(lemma);
             this.pos = pos;
             this.charBeginOffset = charBeginOffset;
             this.charEndOffset = charEndOffset;

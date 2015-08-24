@@ -4,7 +4,7 @@ import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.passage.SentenceBasedPassageRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.query.TitleOnlyQueryFormulator;
-import edu.emory.mathcs.ir.qa.answerer.ranking.FeatureBasedAnswerSelector;
+import edu.emory.mathcs.ir.qa.answerer.ranking.BM25AnswerSelector;
 import edu.emory.mathcs.ir.qa.answerer.web.WebSearchBasedAnswerer;
 import edu.emory.mathcs.ir.qa.ml.*;
 import edu.emory.mathcs.ir.search.BingWebSearch;
@@ -13,7 +13,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 
 /**
@@ -31,16 +33,20 @@ public class TestTrainedAnswerSelectionModel {
                 new CombinerFeatureGenerator(
                         new LemmaPairsFeatureGenerator(),
                         new BM25FeatureGenerator(indexReader),
-                        new NamedEntityTypesFeatureGenerator());
+                        new NamedEntityTypesFeatureGenerator(),
+                        new AnswerStatsFeatureGenerator(),
+                        new ReverbTriplesFeatureGenerator(args[2]));
         final WebSearchBasedAnswerer answerer =
                 new WebSearchBasedAnswerer(new TitleOnlyQueryFormulator(),
-                        new FeatureBasedAnswerSelector(modelPath,
-                                featureGenerator),
+                        new BM25AnswerSelector(indexReader),
                         new BingWebSearch(),
                         new SentenceBasedPassageRetrieval());
-        final Question q = new Question(
-                "", " What type of sugar can you use if diabetic?", "", "General Knowledge");
-        final Answer answer = answerer.GetAnswer(q);
-        System.out.println(answer.toString());
+        BufferedReader input = new BufferedReader(
+                new InputStreamReader(System.in));
+        while (true) {
+            final Question q = new Question("", input.readLine(), "", "General Knowledge");
+            final Answer answer = answerer.GetAnswer(q);
+            System.out.println(answer.toString());
+        }
     }
 }

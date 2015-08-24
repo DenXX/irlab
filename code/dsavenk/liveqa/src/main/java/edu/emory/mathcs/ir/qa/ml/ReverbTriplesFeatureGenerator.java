@@ -49,17 +49,17 @@ public class ReverbTriplesFeatureGenerator implements FeatureGeneration {
         final String[] answerChunks = answer.getAnswer().getChunks();
 
         for (String answerChunk : answerChunks) {
-            Query subjAnswerQuery = queryBuilder_.createMinShouldMatchQuery(
-                    OBJECT_FIELDNAME, answerChunk, 0.8f);
-            Query objAnswerQuery = queryBuilder_.createMinShouldMatchQuery(
-                    OBJECT_FIELDNAME, answerChunk, 0.8f);
+            Query subjAnswerQuery = queryBuilder_.createPhraseQuery(
+                    SUBJECT_FIELDNAME, answerChunk);
+            Query objAnswerQuery = queryBuilder_.createPhraseQuery(
+                    OBJECT_FIELDNAME, answerChunk);
             if (subjAnswerQuery == null || objAnswerQuery == null) continue;
 
             for (String titleChunk : titleChunks) {
-                Query subjTitleQuery = queryBuilder_.createMinShouldMatchQuery(
-                        SUBJECT_FIELDNAME, titleChunk, 0.8f);
-                Query objTitleQuery = queryBuilder_.createMinShouldMatchQuery(
-                        OBJECT_FIELDNAME, titleChunk, 0.8f);
+                Query subjTitleQuery = queryBuilder_.createPhraseQuery(
+                        SUBJECT_FIELDNAME, titleChunk);
+                Query objTitleQuery = queryBuilder_.createPhraseQuery(
+                        OBJECT_FIELDNAME, titleChunk);
                 if (subjTitleQuery == null || objTitleQuery == null) continue;
 
                 // Skip same queries.
@@ -72,12 +72,18 @@ public class ReverbTriplesFeatureGenerator implements FeatureGeneration {
                 BooleanQuery q2 = new BooleanQuery();
                 q1.add(objTitleQuery, BooleanClause.Occur.MUST);
                 q1.add(subjAnswerQuery, BooleanClause.Occur.MUST);
-                TopDocs docs = null;
                 try {
-                    docs = searcher_.search(q1, 1);
-                    if (docs.scoreDocs.length > 0) ++countRelations;
-                    docs = searcher_.search(q2, 1);
-                    if (docs.scoreDocs.length > 0) ++countRelations;
+                    TopDocs docs1 = searcher_.search(q1, 1);
+                    TopDocs docs2 = searcher_.search(q2, 1);
+                    if (docs1.totalHits > 0 || docs2.totalHits > 0) {
+                        ++countRelations;
+                        int docid = docs1.scoreDocs.length > 0 ? docs1.scoreDocs[0].doc : docs2.scoreDocs[0].doc;
+                        System.err.println(
+                                titleChunk + "\t-\t" + answerChunk + "\t-\t" +
+                                        searcher_.doc(docid).get(SUBJECT_FIELDNAME) +
+                                        "\t-\t" + searcher_.doc(docid).get(PREDICATE_FIELDNAME) +
+                                        "\t-\t" + searcher_.doc(docid).get(OBJECT_FIELDNAME));
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

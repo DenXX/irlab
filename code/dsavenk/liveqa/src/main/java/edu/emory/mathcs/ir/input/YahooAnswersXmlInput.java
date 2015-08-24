@@ -1,5 +1,7 @@
 package edu.emory.mathcs.ir.input;
 
+import edu.emory.mathcs.ir.qa.Question;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -23,43 +25,8 @@ public class YahooAnswersXmlInput
      */
     public static final String EXPIRED_QUESTION_MARKER =
             "question period has expired";
-
-    /**
-     * Represents a QnA pair read from Yahoo! Answers XML data.
-     */
-    public static class QnAPair {
-        public final String id;
-        public final String questionTitle;
-        public final String questionBody;
-        public final String[] categories;
-        public final String bestAnswer;
-        public final Map<String, String> attributes;
-
-        /**
-         * Creates a new QnA pair with the given values.
-         * @param id Unique Id of the QnA pair.
-         * @param questionTitle The title of the question.
-         * @param questionBody The body of the question.
-         * @param mainCategory The main category of the question.
-         * @param subcategory The subcategory of the question.
-         * @param bestAnswer The best answer to the question if specified or
-         *                   the first answer in the list.
-         */
-        public QnAPair(String id, String questionTitle, String questionBody,
-                       String[] categories,  String bestAnswer,
-                       Map<String, String> attributes) {
-            this.id = id;
-            this.questionTitle = questionTitle;
-            this.questionBody = questionBody;
-            this.categories = categories;
-            this.bestAnswer = bestAnswer;
-            this.attributes = attributes;
-        }
-    }
-
     private final String inputFilename_;
     private int counter_ = 0;
-
     /**
      * Creates an iterable Yahoo! Answers Webscope XML input to read the data
      * from the given file.
@@ -77,6 +44,48 @@ public class YahooAnswersXmlInput
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Represents a QnA pair read from Yahoo! Answers XML data.
+     */
+    public static class QnAPair {
+        public final String id;
+        public final String questionTitle;
+        public final String questionBody;
+        public final String[] categories;
+        public final String bestAnswer;
+        public final Map<String, String> attributes;
+        private Question question;
+
+        /**
+         * Creates a new QnA pair with the given values.
+         *
+         * @param id            Unique Id of the QnA pair.
+         * @param questionTitle The title of the question.
+         * @param questionBody  The body of the question.
+         * @param categories    Array of question categories.
+         * @param bestAnswer    The best answer to the question if specified or
+         *                      the first answer in the list.
+         */
+        public QnAPair(String id, String questionTitle, String questionBody,
+                       String[] categories, String bestAnswer,
+                       Map<String, String> attributes) {
+            this.id = id;
+            this.questionTitle = questionTitle;
+            this.questionBody = questionBody;
+            this.categories = categories;
+            this.bestAnswer = bestAnswer;
+            this.attributes = attributes;
+        }
+
+        /**
+         * @return A question object filled with data from the current QnA.
+         */
+        public Question getQuestion() {
+            return new Question(id, questionTitle, questionBody,
+                    categories.length > 0 ? categories[0]: "");
+        }
     }
 
     public class YahooAnswersXmlInputIterator implements Iterator<QnAPair> {

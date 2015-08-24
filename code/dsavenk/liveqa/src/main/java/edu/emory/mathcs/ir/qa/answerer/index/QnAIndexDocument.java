@@ -1,11 +1,14 @@
 package edu.emory.mathcs.ir.qa.answerer.index;
 
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
+import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
+import edu.emory.mathcs.ir.utils.NlpUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -42,7 +45,8 @@ public class QnAIndexDocument {
     };
 
     private static final QueryBuilder queryBuilder_ =
-            new QueryBuilder(new EnglishAnalyzer());
+            new QueryBuilder(new EnglishAnalyzer(
+                    CharArraySet.copy(NlpUtils.getStopwords())));
 
     /**
      * Creates Lucene IndexWriter for building QnA document index. The analyzers
@@ -57,12 +61,16 @@ public class QnAIndexDocument {
         analyzers.put(QnAIndexDocument.ID_FIELD_NAME,
                 new KeywordAnalyzer());
         analyzers.put(QnAIndexDocument.QTITLE_FIELD_NAME,
-                new EnglishAnalyzer());
-        analyzers.put(QnAIndexDocument.QBODY_FIELD_NAME, new EnglishAnalyzer());
+                new EnglishAnalyzer(
+                        CharArraySet.copy(NlpUtils.getStopwords())));
+        analyzers.put(QnAIndexDocument.QBODY_FIELD_NAME, new EnglishAnalyzer(
+                CharArraySet.copy(NlpUtils.getStopwords())));
         analyzers.put(QnAIndexDocument.QTITLEBODY_FIELD_NAME,
-                new EnglishAnalyzer());
+                new EnglishAnalyzer(
+                        CharArraySet.copy(NlpUtils.getStopwords())));
         analyzers.put(QnAIndexDocument.ANSWER_FIELD_NAME,
-                new EnglishAnalyzer());
+                new EnglishAnalyzer(
+                        CharArraySet.copy(NlpUtils.getStopwords())));
         analyzers.put(QnAIndexDocument.MAIN_CATEGORY_FIELD_NAME,
                 new KeywordAnalyzer());
         analyzers.put(QnAIndexDocument.SUB_CATEGORY_FIELD_NAME,
@@ -143,13 +151,16 @@ public class QnAIndexDocument {
      * @throws IOException
      */
     public static YahooAnswersXmlInput.QnAPair[] getSimilarQnAPairs(
-            IndexSearcher searcher, YahooAnswersXmlInput.QnAPair qna, int topn)
+            IndexSearcher searcher, YahooAnswersXmlInput.QnAPair qna,
+            QueryFormulation queryFormulation, int topn)
             throws IOException {
         List<YahooAnswersXmlInput.QnAPair> results = new ArrayList<>();
 
+
         // Search for similar questions in the index.
+        final String query = queryFormulation.getQuery(qna.getQuestion());
         final Query q = queryBuilder_.createBooleanQuery(
-                QnAIndexDocument.QTITLE_FIELD_NAME, qna.questionTitle);
+                QnAIndexDocument.QTITLE_FIELD_NAME, query);
         final TopDocs serp = searcher.search(q, topn);
         for (final ScoreDoc doc : serp.scoreDocs) {
             final int retrievedDocid = doc.doc;

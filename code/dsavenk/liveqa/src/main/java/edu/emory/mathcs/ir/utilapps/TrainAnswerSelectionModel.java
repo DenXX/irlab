@@ -4,6 +4,8 @@ import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
 import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
+import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
+import edu.emory.mathcs.ir.qa.answerer.query.TitleNoStopwordsQueryFormulator;
 import edu.emory.mathcs.ir.qa.ml.*;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
@@ -35,6 +37,9 @@ public class TrainAnswerSelectionModel {
         final String modelLocation = args[1];
         final String reverbIndexLocation = args[2];
 
+        QueryFormulation queryFormulator =
+                new TitleNoStopwordsQueryFormulator();
+
         RVFDataset<Boolean, String> dataset = new RVFDataset<>();
         final Directory directory;
         try {
@@ -58,7 +63,7 @@ public class TrainAnswerSelectionModel {
                     // Get similar QnA pairs.
                     final YahooAnswersXmlInput.QnAPair[] similarQnAPairs =
                             QnAIndexDocument.getSimilarQnAPairs(
-                                    searcher, qna, TOPN);
+                                    searcher, qna, queryFormulator, TOPN);
                     for (final YahooAnswersXmlInput.QnAPair similarQna :
                             similarQnAPairs) {
                         RVFDatum<Boolean, String> negativeInstance =
@@ -78,7 +83,7 @@ public class TrainAnswerSelectionModel {
                     System.err.println(
                             String.format("%d qna processed", docid));
                 }
-                if (docid > 100) break;
+                //if (docid > 100) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -113,8 +118,9 @@ public class TrainAnswerSelectionModel {
         return new CombinerFeatureGenerator(
                 new LemmaPairsFeatureGenerator(),
                 new BM25FeatureGenerator(indexReader),
-                new NamedEntityTypesFeatureGenerator(),
-                new ReverbTriplesFeatureGenerator(reverbIndexLocation)
+                //new NamedEntityTypesFeatureGenerator(),
+                // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
+                new AnswerStatsFeatureGenerator()
         );
     }
 
