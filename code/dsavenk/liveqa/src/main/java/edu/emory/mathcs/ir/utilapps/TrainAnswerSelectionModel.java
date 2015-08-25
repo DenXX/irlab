@@ -83,7 +83,6 @@ public class TrainAnswerSelectionModel {
                     System.err.println(
                             String.format("%d qna processed", docid));
                 }
-                //if (docid > 100) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -116,7 +115,8 @@ public class TrainAnswerSelectionModel {
             IndexReader indexReader, String reverbIndexLocation)
             throws IOException {
         return new CombinerFeatureGenerator(
-                new LemmaPairsFeatureGenerator(),
+                //new LemmaPairsFeatureGenerator(),
+                new MatchesFeatureGenerator(),
                 new BM25FeatureGenerator(indexReader),
                 //new NamedEntityTypesFeatureGenerator(),
                 // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
