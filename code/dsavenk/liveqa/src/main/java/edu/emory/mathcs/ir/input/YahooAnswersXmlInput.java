@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.input;
 
+import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 
 import javax.xml.stream.XMLEventReader;
@@ -56,7 +57,6 @@ public class YahooAnswersXmlInput
         public final String[] categories;
         public final String bestAnswer;
         public final Map<String, String> attributes;
-        private Question question;
 
         /**
          * Creates a new QnA pair with the given values.
@@ -85,6 +85,13 @@ public class YahooAnswersXmlInput
         public Question getQuestion() {
             return new Question(id, questionTitle, questionBody,
                     categories.length > 0 ? categories[0]: "");
+        }
+
+        /**
+         * @return best answer for the QnA as an instance of the Answer class.
+         */
+        public Answer getAnswer() {
+            return new Answer(bestAnswer, id);
         }
     }
 
