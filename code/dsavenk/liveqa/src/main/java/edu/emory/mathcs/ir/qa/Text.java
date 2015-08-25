@@ -95,10 +95,8 @@ public class Text {
             for (CoreMap token : tokens) {
                 final String tokenText =
                         token.get(CoreAnnotations.TextAnnotation.class);
-                final String posTag =
-                        token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
-                final String lemma =
-                        token.get(CoreAnnotations.LemmaAnnotation.class);
+                final String posTag = getPosTag(token);
+                final String lemma = getLemma(token);
                 final int tokenBeginOffset = token.get(
                         CoreAnnotations.CharacterOffsetBeginAnnotation.class);
                 final int tokenEndOffset = token.get(
@@ -147,6 +145,22 @@ public class Text {
         // Get chunks
         List<String> chunks = NlpUtils.getChunks(annotation);
         chunks_ = chunks.toArray(new String[chunks.size()]);
+    }
+
+    private String getLemma(CoreMap token) {
+        if (token.containsKey(CoreAnnotations.LemmaAnnotation.class)) {
+            return token.get(CoreAnnotations.LemmaAnnotation.class);
+        } else {
+            return token.get(CoreAnnotations.TextAnnotation.class);
+        }
+    }
+
+    private String getPosTag(CoreMap token) {
+        if (token.has(CoreAnnotations.PartOfSpeechAnnotation.class)) {
+            return token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
+        } else {
+            return "UNKNOWN";
+        }
     }
 
     /**
