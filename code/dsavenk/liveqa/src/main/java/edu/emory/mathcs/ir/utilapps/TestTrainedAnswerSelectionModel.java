@@ -4,7 +4,8 @@ import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.passage.SentenceBasedPassageRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.query.TitleOnlyQueryFormulator;
-import edu.emory.mathcs.ir.qa.answerer.ranking.BM25AnswerSelector;
+import edu.emory.mathcs.ir.qa.answerer.ranking.BM25AnswerScorer;
+import edu.emory.mathcs.ir.qa.answerer.ranking.ScorerBasedAnswerSelector;
 import edu.emory.mathcs.ir.qa.answerer.web.WebSearchBasedAnswerer;
 import edu.emory.mathcs.ir.qa.ml.*;
 import edu.emory.mathcs.ir.search.BingWebSearch;
@@ -38,7 +39,8 @@ public class TestTrainedAnswerSelectionModel {
                         new ReverbTriplesFeatureGenerator(args[2]));
         final WebSearchBasedAnswerer answerer =
                 new WebSearchBasedAnswerer(new TitleOnlyQueryFormulator(),
-                        new BM25AnswerSelector(indexReader),
+                        new ScorerBasedAnswerSelector(
+                                new BM25AnswerScorer(indexReader)),
                         new BingWebSearch(),
                         new SentenceBasedPassageRetrieval());
         BufferedReader input = new BufferedReader(

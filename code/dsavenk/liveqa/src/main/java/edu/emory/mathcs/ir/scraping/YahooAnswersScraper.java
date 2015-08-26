@@ -9,9 +9,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 /**
  * Extracts data from the Yahoo Answers QnA pages.
@@ -28,7 +28,7 @@ public class YahooAnswersScraper {
      * Base url for similar questions search page.
      */
     public static final String SEARCH_BASE_URL =
-            "https://answers.yahoo.com/search/search_result?p=";
+            "https://answers.yahoo.com/search/search_result?p=%s&s=%s";
 
     /**
      * Returns URL of a webpage for the question with the given id.
@@ -42,14 +42,17 @@ public class YahooAnswersScraper {
     /**
      * Returns the URL for a related questions search page with the given query.
      * @param searchQuery The query to search for.
+     * @param page
      * @return URL of the search page with the given query.
      */
-    public static String getRelatedQuestionsSearchUrl(String searchQuery) {
+    public static String getRelatedQuestionsSearchUrl(String searchQuery,
+                                                      int page) {
         try {
-            return SEARCH_BASE_URL.concat(URLEncoder.encode(
-                    searchQuery, "UTF-8"));
+            return String.format(SEARCH_BASE_URL, URLEncoder.encode(
+                    searchQuery, "UTF-8"), Integer.toString(page));
         } catch (UnsupportedEncodingException e) {
-            return SEARCH_BASE_URL.concat(URLEncoder.encode(searchQuery));
+            return String.format(SEARCH_BASE_URL,
+                    URLEncoder.encode(searchQuery), Integer.toString(page));
         }
     }
 
@@ -139,7 +142,7 @@ public class YahooAnswersScraper {
      * Object that implements a callback to extract list of similar questions
      * from Yahoo! Answers search results.
      */
-    public static class SearchResultsExtractor
+    public static class YahooAnswersSearchResultsExtractor
             implements WebPageScraper.ProcessElementCallback {
 
         private List<String> qids_ = new ArrayList<>();
@@ -166,6 +169,13 @@ public class YahooAnswersScraper {
          */
         public String[] GetQids() {
             return qids_.toArray(new String[qids_.size()]);
+        }
+
+        /**
+         * @return Returns the number of qids extracted.
+         */
+        public int length() {
+            return qids_.size();
         }
     }
 
@@ -209,16 +219,29 @@ public class YahooAnswersScraper {
      * Returns the list of ids of questions related to the given query using
      * Yahoo! Answers search functionality.
      * @param searchQuery A query to submit to Yahoo! Answers.
+     * @param similarQuestionsCount The number of similar questions to retrieve.
      * @return An array of string question identifiers.
      */
-    public static String[] GetRelatedQuestionIds(String searchQuery) {
-        SearchResultsExtractor extractor = new SearchResultsExtractor();
+    public static String[] GetRelatedQuestionIds(String searchQuery,
+                                                 int similarQuestionsCount) {
+        YahooAnswersSearchResultsExtractor extractor =
+                new YahooAnswersSearchResultsExtractor();
         extractor.Init();
         try {
-            WebPageScraper.scrape(new URL(
-                            getRelatedQuestionsSearchUrl(searchQuery)),
-                    new WebPageScraper.ProcessElementCallback[] {extractor});
-            return extractor.GetQids();
+            int lastIterQidsCount = -1;
+            for (int page = 1;
+                 extractor.length() < similarQuestionsCount &&
+                         extractor.length() > lastIterQidsCount; ++page) {
+                lastIterQidsCount = extractor.length();
+                WebPageScraper.scrape(new URL(
+                                getRelatedQuestionsSearchUrl(
+                                        searchQuery, page)),
+                        new WebPageScraper.ProcessElementCallback[]{extractor});
+            }
+            String[] res = extractor.GetQids();
+            return extractor.length() > similarQuestionsCount ?
+                    Arrays.copyOfRange(res, 0, similarQuestionsCount) :
+                    res;
         } catch (IOException e) {
             LiveQaLogger.LOGGER.warning(e.getMessage());
             return new String[0];
@@ -247,6 +270,47 @@ public class YahooAnswersScraper {
     private static boolean isAnswerBodyNode(Element node) {
         return node.nodeName().equals("meta") &&
                 node.attr("name").equals("description");
+    }
+
+    /**
+     * Object that implements a callback to extract list of similar questions
+     * from Yahoo! Answers search results.
+     */
+    public static class YahooAnswersSearchResultsExtractor
+            implements WebPageScraper.ProcessElementCallback {
+
+        private List<String> qids_ = new ArrayList<>();
+
+        /**
+         * Initialized extractor. This method needs to be called before
+         * processing new search results page.
+         */
+        void Init() {
+            qids_ = new ArrayList<>();
+        }
+
+        @Override
+        public void processElement(Element e) {
+            if (e.nodeName().equals("li") &&
+                    e.parent().id().equals("yan-questions")) {
+                qids_.add(e.id().replace("q-", ""));
+            }
+        }
+
+        /**
+         * @return array of query ids extracted from Yahoo! Answers search
+         * results page.
+         */
+        public String[] GetQids() {
+            return qids_.toArray(new String[qids_.size()]);
+        }
+
+        /**
+         * @return Returns the number of qids extracted.
+         */
+        public int length() {
+            return qids_.size();
+        }
     }
 
     private static boolean isQuestionTitleNode(Element node) {

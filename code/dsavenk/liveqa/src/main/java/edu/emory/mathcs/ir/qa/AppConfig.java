@@ -45,6 +45,16 @@ public class AppConfig {
     public static final String ANNOTATORS_PARAMETER_DESCRIPTION =
             "The list of Stanford CoreNLP annotators to apply to text";
 
+    public static final String RANKING_MODEL_PATH_PARAMETER =
+            "ANSWER_RANKING_MODEL";
+    public static final String RANKING_MODEL_PATH_PARAMETER_DESCRIPTION =
+            "Trained model for answer ranking";
+
+    public static final String QA_INDEX_DIRECTORY_PARAMETER =
+            "QA_INDEX_DIRECTORY";
+    public static final String QA_INDEX_DIRECTORY_PARAMETER_DESCRIPTION =
+            "Location of QnA index to use for various statistics";
+
     static {
         Init();
     }
@@ -111,6 +121,12 @@ public class AppConfig {
                 .build());
         options.addOption(Option.builder(ANNOTATORS_PARAMETER)
                 .desc(ANNOTATORS_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(RANKING_MODEL_PATH_PARAMETER)
+                .desc(RANKING_MODEL_PATH_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(QA_INDEX_DIRECTORY_PARAMETER)
+                .desc(QA_INDEX_DIRECTORY_PARAMETER_DESCRIPTION).hasArg()
                 .build());
         return options;
     }

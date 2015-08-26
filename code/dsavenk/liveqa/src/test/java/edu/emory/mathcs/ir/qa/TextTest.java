@@ -26,46 +26,49 @@ public class TextTest extends TestCase {
     }
 
     public void testGetEntities() throws Exception {
-        Text text = new Text("Freelance photographer Ben Adkison stayed " +
-                "up long into the night to catch this time-lapse " +
-                "video of the Perseid Meteor Shower. The video was shot " +
-                "at Brown Lake in western Montana's remote Blackfoot Valley.");
-        assertTrue(Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Blackfoot Valley"))
-                .findFirst()
-                .isPresent());
-        assertTrue(Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Montana"))
-                .findFirst()
-                .isPresent());
-        assertTrue(Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .isPresent());
-        assertTrue(Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Ben Adkison"))
-                .findFirst()
-                .isPresent());
-        assertEquals(0, Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Ben Adkison"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).sentenceIndex)
-                .get().intValue());
-        assertEquals(1, Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).sentenceIndex)
-                .get().intValue());
-        assertEquals(5, Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).beginToken)
-                .get().intValue());
-        assertEquals(7, Arrays.stream(text.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).endToken)
-                .get().intValue());
+        if (AppConfig.PROPERTIES.getProperty(
+                AppConfig.ANNOTATORS_PARAMETER).contains("ner")) {
+            Text text = new Text("Freelance photographer Ben Adkison stayed " +
+                    "up long into the night to catch this time-lapse " +
+                    "video of the Perseid Meteor Shower. The video was shot " +
+                    "at Brown Lake in western Montana's remote Blackfoot Valley.");
+            assertTrue(Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Blackfoot Valley"))
+                    .findFirst()
+                    .isPresent());
+            assertTrue(Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Montana"))
+                    .findFirst()
+                    .isPresent());
+            assertTrue(Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .isPresent());
+            assertTrue(Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Ben Adkison"))
+                    .findFirst()
+                    .isPresent());
+            assertEquals(0, Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Ben Adkison"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).sentenceIndex)
+                    .get().intValue());
+            assertEquals(1, Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).sentenceIndex)
+                    .get().intValue());
+            assertEquals(5, Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).beginToken)
+                    .get().intValue());
+            assertEquals(7, Arrays.stream(text.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).endToken)
+                    .get().intValue());
+        }
     }
 
     public void testSubtext() throws Exception {
@@ -77,34 +80,37 @@ public class TextTest extends TestCase {
         assertEquals(1, subtext.getSentences().length);
         assertTrue(subtext.getSentences()[0].text.startsWith("The video"));
         assertEquals(subtext.text, subtext.getSentences()[0].text);
-        assertEquals(3, subtext.getEntities().length);
-        assertTrue(!Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Ben Adkison"))
-                .findFirst()
-                .isPresent());
-        assertTrue(Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .isPresent());
-        assertTrue(Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Montana"))
-                .findFirst()
-                .isPresent());
-        assertEquals(0, Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).sentenceIndex)
-                .get().intValue());
-        assertEquals(5, Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).beginToken)
-                .get().intValue());
-        assertEquals(7, Arrays.stream(subtext.getEntities())
-                .filter(e -> e.name.equals("Brown Lake"))
-                .findFirst()
-                .map(e -> e.mentions.get(0).endToken)
-                .get().intValue());
+        if (AppConfig.PROPERTIES.getProperty(
+                AppConfig.ANNOTATORS_PARAMETER).contains("ner")) {
+            assertEquals(3, subtext.getEntities().length);
+            assertTrue(!Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Ben Adkison"))
+                    .findFirst()
+                    .isPresent());
+            assertTrue(Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .isPresent());
+            assertTrue(Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Montana"))
+                    .findFirst()
+                    .isPresent());
+            assertEquals(0, Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).sentenceIndex)
+                    .get().intValue());
+            assertEquals(5, Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).beginToken)
+                    .get().intValue());
+            assertEquals(7, Arrays.stream(subtext.getEntities())
+                    .filter(e -> e.name.equals("Brown Lake"))
+                    .findFirst()
+                    .map(e -> e.mentions.get(0).endToken)
+                    .get().intValue());
+        }
     }
 
     public void testConcat() throws Exception {

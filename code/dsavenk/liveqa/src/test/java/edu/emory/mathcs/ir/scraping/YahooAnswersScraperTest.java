@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * Created by dsavenk on 8/6/15.
@@ -42,8 +43,8 @@ public class YahooAnswersScraperTest extends TestCase {
         InputStream resourceStream =
                 this.getClass().getResourceAsStream(
                         "/yahoo_answers_search.html");
-        YahooAnswersScraper.SearchResultsExtractor extractor =
-                new YahooAnswersScraper.SearchResultsExtractor();
+        YahooAnswersScraper.YahooAnswersSearchResultsExtractor extractor =
+                new YahooAnswersScraper.YahooAnswersSearchResultsExtractor();
         extractor.Init();
         Document document = Jsoup.parse(resourceStream, "UTF-8", "test");
         WebPageScraper.processDocument(document,
@@ -53,5 +54,13 @@ public class YahooAnswersScraperTest extends TestCase {
         Assert.assertEquals(10, qids.length);
         Assert.assertEquals("20090301162622AAmYBdX", qids[0]);
         Assert.assertEquals("20090516135743AAQrVRt", qids[7]);
+    }
+
+    public void testGetRelatedQuestionIds() throws Exception {
+        int count = 25;
+        String[] qids = YahooAnswersScraper.GetRelatedQuestionIds(
+                "test", count);
+        assertEquals(count, qids.length);
+        assertEquals(count, Arrays.stream(qids).distinct().count());
     }
 }

@@ -97,6 +97,7 @@ public class BM25FeatureGenerator implements FeatureGeneration {
         return features;
     }
 
+    // TODO(denxx): Make this static or move to a separate class.
     private double getBM25(Text question, Text answer) {
         final Set<String> questionTerms = question.getLemmaSet(false);
         final List<String> answerLemmas = answer.getLemmaList(false);
@@ -115,7 +116,7 @@ public class BM25FeatureGenerator implements FeatureGeneration {
                             (K1 + 1) / denom;
                 }
             }
-            return bm25 / questionTerms.size();
+            return bm25;
         }
         return 0;
     }
