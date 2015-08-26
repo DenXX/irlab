@@ -27,7 +27,8 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
                 AppConfig.RANKING_MODEL_PATH_PARAMETER);
         final Directory directory = FSDirectory.open(
                 FileSystems.getDefault().getPath(
-                        AppConfig.QA_INDEX_DIRECTORY_PARAMETER));
+                        AppConfig.PROPERTIES.getProperty(
+                                AppConfig.QA_INDEX_DIRECTORY_PARAMETER)));
         final IndexReader indexReader = DirectoryReader.open(directory);
         qa_ = new YahooAnswersBasedQuestionAnswerer(indexReader, modelPath);
     }
