@@ -88,9 +88,9 @@ public class BM25FeatureGeneratorTest extends TestCase {
             throws Exception {
         final FeatureGeneration f = new BM25FeatureGenerator(reader_);
         Question q = new Question(
-                "", "Who is the president of the US?", "I mean in 2015", "");
+                "", "Who is the president of the USA?", "I mean in 2015", "");
         Answer a1 = new Answer("I think the president is Barack Obama", "");
-        Answer a2 = new Answer("The president of the US is Barack Obama", "");
+        Answer a2 = new Answer("The president of the USA is Barack Obama", "");
         Map<String, Double> features1 = f.generateFeatures(q, a1);
         Map<String, Double> features2 = f.generateFeatures(q, a2);
 
@@ -103,9 +103,9 @@ public class BM25FeatureGeneratorTest extends TestCase {
                                 BM25FeatureGenerator.TITLE_ANSWER_BM25_FEATURENAME));
         assertTrue(
                 features1.get(
-                        BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME) >
-                        features2.get(
-                                BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME));
+                        BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME) > 0);
+        assertTrue(features2.containsKey(
+                BM25FeatureGenerator.BODY_ANSWER_BM25_ZERO_FEATURENAME));
         assertTrue(features1.get(
                 BM25FeatureGenerator.TITLEBODY_ANSWER_BM25_FEATURENAME) <
                 features2.get(
@@ -119,6 +119,11 @@ public class BM25FeatureGeneratorTest extends TestCase {
         Answer a = new Answer("I think the president is Barack Obama", "");
         Map<String, Double> features = f.generateFeatures(q, a);
         assertEquals(3, features.size());
-        assertTrue(features.values().stream().allMatch(x -> x == 0.0));
+        assertTrue(features.containsKey(
+                BM25FeatureGenerator.TITLE_ANSWER_BM25_ZERO_FEATURENAME));
+        assertTrue(features.containsKey(
+                BM25FeatureGenerator.BODY_ANSWER_BM25_ZERO_FEATURENAME));
+        assertTrue(features.containsKey(
+                BM25FeatureGenerator.TITLEBODY_ANSWER_BM25_ZERO_FEATURENAME));
     }
 }

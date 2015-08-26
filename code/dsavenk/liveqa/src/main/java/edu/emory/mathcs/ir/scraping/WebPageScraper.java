@@ -1,7 +1,5 @@
 package edu.emory.mathcs.ir.scraping;
 
-import de.l3s.boilerpipe.document.TextBlock;
-import de.l3s.boilerpipe.document.TextDocument;
 import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -109,12 +107,7 @@ public class WebPageScraper {
                 new BodyContentHandler());
         AutoDetectParser parser = new AutoDetectParser();
         parser.parse(stream, handler, new Metadata());
-        TextDocument doc = handler.toTextDocument();
-        System.out.println(doc.getTitle());
-        for (TextBlock block : doc.getTextBlocks()) {
-            System.out.println(block.toString());
-        }
-        return doc.getContent();
+        return handler.toTextDocument().getContent();
     }
 
     /**

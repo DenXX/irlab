@@ -21,10 +21,10 @@ public class FeatureBasedAnswerSelectorTest extends TestCase {
         Counter<Pair<String, Boolean>> weights = new ClassicCounter<>();
         weights.setCount(new Pair<>("title:president_president", true), 1.0);
         weights.setCount(new Pair<>("title:president_president", false), -1.0);
-        weights.setCount(new Pair<>("title:us_us", true), 1.0);
-        weights.setCount(new Pair<>("title:us_us", false), -1.0);
-        weights.setCount(new Pair<>("title:us_russia", true), -1.0);
-        weights.setCount(new Pair<>("title:us_russia", false), 1.0);
+        weights.setCount(new Pair<>("title:usa_usa", true), 1.0);
+        weights.setCount(new Pair<>("title:usa_usa", false), -1.0);
+        weights.setCount(new Pair<>("title:usa_russia", true), -1.0);
+        weights.setCount(new Pair<>("title:usa_russia", false), 1.0);
         model_ = new LinearClassifier<>(weights);
     }
 
@@ -34,10 +34,10 @@ public class FeatureBasedAnswerSelectorTest extends TestCase {
                         new LemmaPairsFeatureGenerator());
 
         Question q = new Question(
-                "", "Who is the president of the US?", "I mean in 2015", "");
+                "", "Who is the president of the USA?", "I mean in 2015", "");
         Answer[] answers = new Answer[]{
                 new Answer("The president of the Russia is Vladimir Putin", ""),
-                new Answer("The president of the US is Barack Obama", ""),
+                new Answer("The president of the USA is Barack Obama", ""),
                 new Answer("I think he had a cancer", ""),
         };
         final Optional<Answer> bestAnwer =

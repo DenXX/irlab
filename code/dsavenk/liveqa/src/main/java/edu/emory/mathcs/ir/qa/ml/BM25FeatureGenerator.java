@@ -29,10 +29,11 @@ public class BM25FeatureGenerator implements FeatureGeneration {
             "titlebody_answer_bm25";
     public static final String TITLEBODY_ANSWER_BM25_ZERO_FEATURENAME =
             "titlebody_answer_bm25=0";
-    private static final String TITLE_ANSWER_BM25_ZERO_FEATURENAME =
+    public static final String TITLE_ANSWER_BM25_ZERO_FEATURENAME =
             "title_answer_bm25=0";
-    private static final String BODY_ANSWER_BM25_ZERO_FEATURENAME =
+    public static final String BODY_ANSWER_BM25_ZERO_FEATURENAME =
             "body_answer_bm25=0";
+
     private static final double K1 = 1.2;
     private static final double B = 0.75;
     private static final double DEFAULT_AVG_ANSWER_LENGTH = 50;
@@ -97,8 +98,8 @@ public class BM25FeatureGenerator implements FeatureGeneration {
     }
 
     private double getBM25(Text question, Text answer) {
-        final Set<String> questionTerms = question.getLemmaSet(true);
-        final List<String> answerLemmas = answer.getLemmaList(true);
+        final Set<String> questionTerms = question.getLemmaSet(false);
+        final List<String> answerLemmas = answer.getLemmaList(false);
         final Map<String, Long> answerTerms = answerLemmas
                 .stream()
                 .collect(Collectors.groupingBy(Function.identity(),
