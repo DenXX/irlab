@@ -57,6 +57,103 @@ public class YahooAnswersScraper {
     }
 
     /**
+     * Extracts question-answer pair information from the given Yahoo! Answers
+     * page.
+     * @param qnaUrl Url of the document to extract data from.
+     * @return QuestionAnswer data extracted from the web page.
+     */
+    public static Optional<QuestionAnswer> GetQuestionAnswerData(URL qnaUrl) {
+        try {
+            QuestionAnswerExtractor extractor =
+                    new QuestionAnswerExtractor();
+            extractor.Init();
+            WebPageScraper.scrape(qnaUrl,
+                    new WebPageScraper.ProcessElementCallback[]
+                            {extractor});
+            return Optional.of(extractor.getQuestionAnswer());
+        } catch (IOException e) {
+            LiveQaLogger.LOGGER.warning(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Extracts question-answer pair information from a web page corresponding
+     * to the given question id.
+     * @param qid Id of the question of interest.
+     * @return QuestionAnswer data extracted from the web page.
+     */
+    public static Optional<QuestionAnswer> GetQuestionAnswerData(String qid) {
+        try {
+            return GetQuestionAnswerData(new URL(GetQuestionAnswerUrl(qid)));
+        } catch (MalformedURLException e) {
+            LiveQaLogger.LOGGER.warning(e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Returns the list of ids of questions related to the given query using
+     * Yahoo! Answers search functionality.
+     * @param searchQuery A query to submit to Yahoo! Answers.
+     * @param similarQuestionsCount The number of similar questions to retrieve.
+     * @return An array of string question identifiers.
+     */
+    public static String[] GetRelatedQuestionIds(String searchQuery,
+                                                 int similarQuestionsCount) {
+        YahooAnswersSearchResultsExtractor extractor =
+                new YahooAnswersSearchResultsExtractor();
+        extractor.Init();
+        try {
+            int lastIterQidsCount = -1;
+            for (int page = 1;
+                 extractor.length() < similarQuestionsCount &&
+                         extractor.length() > lastIterQidsCount; ++page) {
+                lastIterQidsCount = extractor.length();
+                WebPageScraper.scrape(new URL(
+                                getRelatedQuestionsSearchUrl(
+                                        searchQuery, page)),
+                        new WebPageScraper.ProcessElementCallback[]{extractor});
+            }
+            String[] res = extractor.GetQids();
+            return extractor.length() > similarQuestionsCount ?
+                    Arrays.copyOfRange(res, 0, similarQuestionsCount) :
+                    res;
+        } catch (IOException e) {
+            LiveQaLogger.LOGGER.warning(e.getMessage());
+            return new String[0];
+        }
+    }
+
+    // Predicates that check if a particular DOM tree node is answer node,
+    // title node, etc.
+    private static boolean isAnswerNode(Element node) {
+        return node.nodeName().equals("span") &&
+                node.hasClass("ya-q-full-text");
+    }
+
+    private static boolean isQidNode(Element node) {
+        return node.nodeName().equals("div") &&
+                node.hasAttr("data-ya-question-id");
+    }
+
+    private static boolean isCategoryNode(Element node) {
+        return node.nodeName().equals("a") &&
+                node.className().contains("Clr-b") &&
+                node.parent().id().equals("brdCrb");
+    }
+
+    private static boolean isAnswerBodyNode(Element node) {
+        return node.nodeName().equals("meta") &&
+                node.attr("name").equals("description");
+    }
+
+    private static boolean isQuestionTitleNode(Element node) {
+        return node.nodeName().equals("meta") &&
+                node.attr("name").equals("title");
+    }
+
+    /**
      * Stores information about a particular question-answer pair.
      */
     public static class QuestionAnswer {
@@ -177,144 +274,5 @@ public class YahooAnswersScraper {
         public int length() {
             return qids_.size();
         }
-    }
-
-    /**
-     * Extracts question-answer pair information from the given Yahoo! Answers
-     * page.
-     * @param qnaUrl Url of the document to extract data from.
-     * @return QuestionAnswer data extracted from the web page.
-     */
-    public static Optional<QuestionAnswer> GetQuestionAnswerData(URL qnaUrl) {
-        try {
-            QuestionAnswerExtractor extractor =
-                    new QuestionAnswerExtractor();
-            extractor.Init();
-            WebPageScraper.scrape(qnaUrl,
-                    new WebPageScraper.ProcessElementCallback[]
-                            {extractor});
-            return Optional.of(extractor.getQuestionAnswer());
-        } catch (IOException e) {
-            LiveQaLogger.LOGGER.warning(e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Extracts question-answer pair information from a web page corresponding
-     * to the given question id.
-     * @param qid Id of the question of interest.
-     * @return QuestionAnswer data extracted from the web page.
-     */
-    public static Optional<QuestionAnswer> GetQuestionAnswerData(String qid) {
-        try {
-            return GetQuestionAnswerData(new URL(GetQuestionAnswerUrl(qid)));
-        } catch (MalformedURLException e) {
-            LiveQaLogger.LOGGER.warning(e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * Returns the list of ids of questions related to the given query using
-     * Yahoo! Answers search functionality.
-     * @param searchQuery A query to submit to Yahoo! Answers.
-     * @param similarQuestionsCount The number of similar questions to retrieve.
-     * @return An array of string question identifiers.
-     */
-    public static String[] GetRelatedQuestionIds(String searchQuery,
-                                                 int similarQuestionsCount) {
-        YahooAnswersSearchResultsExtractor extractor =
-                new YahooAnswersSearchResultsExtractor();
-        extractor.Init();
-        try {
-            int lastIterQidsCount = -1;
-            for (int page = 1;
-                 extractor.length() < similarQuestionsCount &&
-                         extractor.length() > lastIterQidsCount; ++page) {
-                lastIterQidsCount = extractor.length();
-                WebPageScraper.scrape(new URL(
-                                getRelatedQuestionsSearchUrl(
-                                        searchQuery, page)),
-                        new WebPageScraper.ProcessElementCallback[]{extractor});
-            }
-            String[] res = extractor.GetQids();
-            return extractor.length() > similarQuestionsCount ?
-                    Arrays.copyOfRange(res, 0, similarQuestionsCount) :
-                    res;
-        } catch (IOException e) {
-            LiveQaLogger.LOGGER.warning(e.getMessage());
-            return new String[0];
-        }
-    }
-
-
-    // Predicates that check if a particular DOM tree node is answer node,
-    // title node, etc.
-    private static boolean isAnswerNode(Element node) {
-        return node.nodeName().equals("span") &&
-                node.hasClass("ya-q-full-text");
-    }
-
-    private static boolean isQidNode(Element node) {
-        return node.nodeName().equals("div") &&
-                node.hasAttr("data-ya-question-id");
-    }
-
-    private static boolean isCategoryNode(Element node) {
-        return node.nodeName().equals("a") &&
-                node.className().contains("Clr-b") &&
-                node.parent().id().equals("brdCrb");
-    }
-
-    private static boolean isAnswerBodyNode(Element node) {
-        return node.nodeName().equals("meta") &&
-                node.attr("name").equals("description");
-    }
-
-    /**
-     * Object that implements a callback to extract list of similar questions
-     * from Yahoo! Answers search results.
-     */
-    public static class YahooAnswersSearchResultsExtractor
-            implements WebPageScraper.ProcessElementCallback {
-
-        private List<String> qids_ = new ArrayList<>();
-
-        /**
-         * Initialized extractor. This method needs to be called before
-         * processing new search results page.
-         */
-        void Init() {
-            qids_ = new ArrayList<>();
-        }
-
-        @Override
-        public void processElement(Element e) {
-            if (e.nodeName().equals("li") &&
-                    e.parent().id().equals("yan-questions")) {
-                qids_.add(e.id().replace("q-", ""));
-            }
-        }
-
-        /**
-         * @return array of query ids extracted from Yahoo! Answers search
-         * results page.
-         */
-        public String[] GetQids() {
-            return qids_.toArray(new String[qids_.size()]);
-        }
-
-        /**
-         * @return Returns the number of qids extracted.
-         */
-        public int length() {
-            return qids_.size();
-        }
-    }
-
-    private static boolean isQuestionTitleNode(Element node) {
-        return node.nodeName().equals("meta") &&
-                node.attr("name").equals("title");
     }
 }
