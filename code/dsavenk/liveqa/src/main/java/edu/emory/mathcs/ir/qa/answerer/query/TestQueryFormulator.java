@@ -3,12 +3,17 @@ package edu.emory.mathcs.ir.qa.answerer.query;
 import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.Text;
+import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
 import edu.emory.mathcs.ir.utils.NlpUtils;
 import opennlp.tools.chunker.Chunker;
 import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.util.Span;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 
 import java.io.IOException;
@@ -21,6 +26,8 @@ import java.util.stream.Collectors;
 public class TestQueryFormulator implements QueryFormulation {
     private Chunker chunker_;
     private IndexSearcher indexSearcher_;
+    private Analyzer analyzer_ = new EnglishAnalyzer(
+            CharArraySet.copy(NlpUtils.getStopwords()));
 
     public TestQueryFormulator(IndexReader reader) {
         try {
@@ -38,6 +45,7 @@ public class TestQueryFormulator implements QueryFormulation {
     @Override
     public String getQuery(Question question) {
         String query = removeStopwords(question.getTitle());
+        weightIdf(question.getTitle());
         if (query.isEmpty()) {
             query = removeStopwords(question.getBody());
         }
@@ -74,8 +82,31 @@ public class TestQueryFormulator implements QueryFormulation {
     private void weightIdf(Text text) {
         for (Text.Sentence sent : text.getSentences()) {
             for (Text.Token token : sent.tokens) {
-
+                if (token.isWord()) {
+                    String term = QnAIndexDocument.getAnalyzedTerm(token.text);
+                    if (!term.isEmpty()) {
+                        System.err.println(term + "\t" + idf(term));
+                    }
+                }
             }
+        }
+    }
+
+    private double idf(String term) {
+        int termFreq = getTermDocFreq(term);
+        return Math.log(1 + (
+                indexSearcher_.getIndexReader().numDocs() - termFreq + 0.5D) /
+                (termFreq + 0.5D));
+    }
+
+    private int getTermDocFreq(String termText) {
+        try {
+            final Term t =
+                    new Term(QnAIndexDocument.QTITLEBODY_FIELD_NAME,
+                            termText);
+            return indexSearcher_.getIndexReader().docFreq(t);
+        } catch (IOException e) {
+            return 0;
         }
     }
 }

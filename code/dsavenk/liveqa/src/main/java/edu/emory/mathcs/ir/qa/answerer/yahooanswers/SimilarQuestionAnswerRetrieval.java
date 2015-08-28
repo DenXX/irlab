@@ -46,12 +46,16 @@ public class SimilarQuestionAnswerRetrieval implements AnswerRetrieval {
             // answers.
             int index = 0;
             for (String qid : relatedQuestionIds) {
+                // Skip retrieved answer if it is the same as the query.
+                if (question.getId().equals(qid)) continue;
+
                 // We only need to take top similarQuestionsCount_ questions.
                 if (index++ > similarQuestionsCount_) break;
                 YahooAnswersScraper.GetQuestionAnswerData(qid)
                         .ifPresent(qa -> {
                             final String url =
-                                    YahooAnswersScraper.GetQuestionAnswerUrl(qid);
+                                    YahooAnswersScraper.GetQuestionAnswerUrl(
+                                            qid);
                             String answer = qa.bestAnswer;
                             if (answer.isEmpty() && qa.answers.length > 0) {
                                 answer = qa.answers[0];

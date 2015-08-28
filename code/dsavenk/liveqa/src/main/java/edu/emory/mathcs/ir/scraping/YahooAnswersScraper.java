@@ -1,6 +1,8 @@
 package edu.emory.mathcs.ir.scraping;
 
+import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.LiveQaLogger;
+import edu.emory.mathcs.ir.qa.Question;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Extracts data from the Yahoo Answers QnA pages.
@@ -163,6 +166,66 @@ public class YahooAnswersScraper {
         public String[] categories = new String[0];
         public String bestAnswer = "";
         public String[] answers = new String[0];
+
+        /**
+         * Parses QnA pair from a string representation produced by
+         * the toString method.
+         *
+         * @param line The line containing the QnA pair.
+         * @return Parsed QuestionAnswer object.
+         */
+        public static QuestionAnswer parseFromString(String line) {
+            QuestionAnswer res = new QuestionAnswer();
+            String[] fields = line.split("\t", -1);
+            res.qid = fields[0];
+            res.title = fields[1];
+            res.body = fields[2];
+            res.bestAnswer = fields[3];
+            res.categories = Arrays.stream(fields[4].split(","))
+                    .filter(a -> a.length() > 0)
+                    .toArray(String[]::new);
+            res.answers = Arrays.stream(fields, 5, fields.length)
+                    .filter(a -> a.length() > 0)
+                    .toArray(String[]::new);
+            return res;
+        }
+
+        private static String removeTabsAndNl(String str) {
+            return str.replace("\t", "").replace("\n", " ").replace("\r", " ")
+                    .replace(" +", " ");
+        }
+
+        @Override
+        public String toString() {
+            String cat = Arrays.stream(categories)
+                    .map(QuestionAnswer::removeTabsAndNl)
+                    .collect(Collectors.joining(","));
+            String ans = Arrays.stream(answers)
+                    .map(QuestionAnswer::removeTabsAndNl)
+                    .collect(Collectors.joining("\t"));
+            String mainPart = Arrays.stream(
+                    new String[]{qid, title, body, bestAnswer})
+                    .map(QuestionAnswer::removeTabsAndNl)
+                    .collect(Collectors.joining("\t"));
+            return String.format("%s\t%s\t%s", mainPart, cat, ans);
+        }
+
+        /**
+         * @return Returns the question part of the QuestionAnswer.
+         */
+        public Question getQuestion() {
+            return new Question(qid, title, body,
+                    String.join("\t", categories));
+        }
+
+        /**
+         * @return Returns the answer part of the given QuestionAnswer.
+         */
+        public Answer getAnswer() {
+            return new Answer(bestAnswer,
+                    YahooAnswersScraper.GetQuestionAnswerUrl(qid));
+        }
+
     }
 
     /**

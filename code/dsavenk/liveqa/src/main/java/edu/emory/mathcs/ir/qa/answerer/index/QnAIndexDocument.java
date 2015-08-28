@@ -1,13 +1,16 @@
 package edu.emory.mathcs.ir.qa.answerer.index;
 
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.utils.NlpUtils;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -47,6 +50,8 @@ public class QnAIndexDocument {
     private static final QueryBuilder queryBuilder_ =
             new QueryBuilder(new EnglishAnalyzer(
                     CharArraySet.copy(NlpUtils.getStopwords())));
+    private static final Analyzer analyzer_ = new EnglishAnalyzer(
+            CharArraySet.copy(NlpUtils.getStopwords()));
 
     /**
      * Creates Lucene IndexWriter for building QnA document index. The analyzers
@@ -172,6 +177,37 @@ public class QnAIndexDocument {
         }
         return results.toArray(
                 new YahooAnswersXmlInput.QnAPair[results.size()]);
+    }
+
+    /**
+     * Returns term after applying Lucene analyzer. This is the version of the
+     * term that was used for indexing. If the returned value is empty, the
+     * term is ignored for indexing.
+     *
+     * @param term The term to analyze.
+     * @return The analyzed version of the term or empty if the term was ignored
+     * for indexing.
+     */
+    public static String getAnalyzedTerm(String term) {
+        try {
+            TokenStream tokenStream =
+                    analyzer_.tokenStream(
+                            QnAIndexDocument.QTITLEBODY_FIELD_NAME, term);
+            tokenStream.reset();
+            if (tokenStream.incrementToken()) {
+                tokenStream.close();
+                term = tokenStream.addAttribute(CharTermAttribute.class)
+                        .toString();
+            } else {
+                term = "";
+            }
+            tokenStream.end();
+            tokenStream.close();
+            return term;
+        } catch (IOException e) {
+            LiveQaLogger.LOGGER.warning(e.getMessage());
+        }
+        return term;
     }
 
 }

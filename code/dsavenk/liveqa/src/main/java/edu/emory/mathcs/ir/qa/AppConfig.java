@@ -55,6 +55,24 @@ public class AppConfig {
     public static final String QA_INDEX_DIRECTORY_PARAMETER_DESCRIPTION =
             "Location of QnA index to use for various statistics";
 
+    public static final String LSTM_MODEL_SERVER_PARAMETER =
+            "LSTM_MODEL_SERVER";
+    public static final String LSTM_MODEL_SERVER_PARAMETER_DESCRIPTION =
+            "The name of the server where LSTM model is launched";
+
+    public static final String LSTM_MODEL_PORT_PARAMETER =
+            "LSTM_MODEL_PORT";
+    public static final String LSTM_MODEL_PORT_PARAMETER_DESCRIPTION =
+            "The port number on the server where LSTM model is launched";
+
+    public static final String KB_MODEL_PARAMETER = "KB_MODEL";
+    public static final String KB_MODEL_PARAMETER_DESCRIPTION =
+            "Location of Freebase Jena model";
+
+    public static final String KB_INDEX_PARAMETER = "KB_INDEX";
+    public static final String KB_INDEX_PARAMETER_DESCRIPTION =
+            "Location of Freebase names index";
+
     static {
         Init();
     }
@@ -127,6 +145,18 @@ public class AppConfig {
                 .build());
         options.addOption(Option.builder(QA_INDEX_DIRECTORY_PARAMETER)
                 .desc(QA_INDEX_DIRECTORY_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(LSTM_MODEL_SERVER_PARAMETER)
+                .desc(LSTM_MODEL_SERVER_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(LSTM_MODEL_PORT_PARAMETER)
+                .desc(LSTM_MODEL_PORT_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(KB_MODEL_PARAMETER)
+                .desc(KB_MODEL_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(KB_MODEL_PARAMETER)
+                .desc(KB_MODEL_PARAMETER_DESCRIPTION).hasArg()
                 .build());
         return options;
     }

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -97,23 +96,30 @@ public class BM25FeatureGenerator implements FeatureGeneration {
         return features;
     }
 
-    // TODO(denxx): Make this static or move to a separate class.
+    // TODO(denxx): Make this static or move to a separate class
     private double getBM25(Text question, Text answer) {
-        final Set<String> questionTerms = question.getLemmaSet(false);
-        final List<String> answerLemmas = answer.getLemmaList(false);
-        final Map<String, Long> answerTerms = answerLemmas
+        final Text.Token[] questionTokens = question.getTokens();
+        final List<String> answerLemmas = answer.getLemmaList(true);
+        final Map<String, Long> answerTermsCount = answerLemmas
                 .stream()
                 .collect(Collectors.groupingBy(Function.identity(),
                         Collectors.counting()));
         double bm25 = 0;
-        if (questionTerms.size() > 0) {
-            for (String term : questionTerms) {
-                if (answerTerms.containsKey(term)) {
-                    final double denom = answerTerms.get(term) +
-                            K1 * (1 - B + B * answerLemmas.size() /
-                                    averageAnswerLength_);
-                    bm25 += idf(term) * answerTerms.get(term) *
-                            (K1 + 1) / denom;
+        if (questionTokens.length > 0) {
+            for (Text.Token token : questionTokens) {
+                if (token.isWord() &&
+                        answerTermsCount.containsKey(token.lemma)) {
+                    final String analyzedTerm =
+                            QnAIndexDocument.getAnalyzedTerm(token.text);
+                    if (!analyzedTerm.isEmpty()) {
+                        final double denominator = answerTermsCount.get(
+                                token.lemma) + K1 *
+                                (1 - B + B * answerLemmas.size() /
+                                        averageAnswerLength_);
+                        bm25 += idf(analyzedTerm) *
+                                answerTermsCount.get(token.lemma) *
+                                (K1 + 1) / denominator;
+                    }
                 }
             }
             return bm25;

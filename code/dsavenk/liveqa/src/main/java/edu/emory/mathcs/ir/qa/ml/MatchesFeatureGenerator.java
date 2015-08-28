@@ -50,6 +50,8 @@ public class MatchesFeatureGenerator implements FeatureGeneration {
                     if (!matchedTerms.contains(token.lemma)) {
                         matchedTerms.add(token.lemma);
                     }
+                    features.put(
+                            featurePrefix + "matched_term=" + token.lemma, 1.0);
                 } else {
                     maximumMatchSpan = Math.max(maximumMatchSpan,
                             matchSpanLength);

@@ -29,9 +29,10 @@ public class FeatureBasedAnswerSelectorTest extends TestCase {
     }
 
     public void testChooseBestAnswer() throws Exception {
-        FeatureBasedAnswerSelector selector =
-                new FeatureBasedAnswerSelector(model_,
-                        new LemmaPairsFeatureGenerator());
+        AnswerSelection selector =
+                new ScorerBasedAnswerSelector(
+                        new MaxentModelAnswerScorer(model_,
+                                new LemmaPairsFeatureGenerator()));
 
         Question q = new Question(
                 "", "Who is the president of the USA?", "I mean in 2015", "");
@@ -47,9 +48,10 @@ public class FeatureBasedAnswerSelectorTest extends TestCase {
     }
 
     public void testChooseBestAnswerWithNoAnswers() throws Exception {
-        FeatureBasedAnswerSelector selector =
-                new FeatureBasedAnswerSelector(model_,
-                        new LemmaPairsFeatureGenerator());
+        AnswerSelection selector =
+                new ScorerBasedAnswerSelector(
+                        new MaxentModelAnswerScorer(
+                                model_, new LemmaPairsFeatureGenerator()));
 
         Question q = new Question(
                 "", "Who is the president of the US?", "I mean in 2015", "");

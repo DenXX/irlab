@@ -101,9 +101,8 @@ public class BM25FeatureGeneratorTest extends TestCase {
                         BM25FeatureGenerator.TITLE_ANSWER_BM25_FEATURENAME) <
                         features2.get(
                                 BM25FeatureGenerator.TITLE_ANSWER_BM25_FEATURENAME));
-        assertTrue(
-                features1.get(
-                        BM25FeatureGenerator.BODY_ANSWER_BM25_FEATURENAME) > 0);
+        assertTrue(features1.containsKey(
+                BM25FeatureGenerator.BODY_ANSWER_BM25_ZERO_FEATURENAME));
         assertTrue(features2.containsKey(
                 BM25FeatureGenerator.BODY_ANSWER_BM25_ZERO_FEATURENAME));
         assertTrue(features1.get(

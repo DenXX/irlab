@@ -275,7 +275,7 @@ public class Text {
      * @return A set of lemmas of terms in the text.
      */
     public Set<String> getLemmaSet(boolean removeStopwords) {
-        return getLemmaStream(removeStopwords)
+        return getTermStream(removeStopwords, true)
                 .collect(Collectors.toSet());
     }
 
@@ -285,7 +285,18 @@ public class Text {
      * @return A list of lemmas of terms in the text.
      */
     public List<String> getLemmaList(boolean removeStopwords) {
-        return getLemmaStream(removeStopwords)
+        return getTermStream(removeStopwords, true)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns a list of normalized terms in the text.
+     *
+     * @param removeStopwords Whether to remove stopwords.
+     * @return A list of terms in the text.
+     */
+    public List<String> getTermList(boolean removeStopwords) {
+        return getTermStream(removeStopwords, false)
                 .collect(Collectors.toList());
     }
 
@@ -294,14 +305,16 @@ public class Text {
         return text;
     }
 
-    private Stream<String> getLemmaStream(boolean removeStopwords) {
+    private Stream<String> getTermStream(boolean removeStopwords,
+                                         boolean takeLemmas) {
         return Arrays.stream(this.getSentences())
                 .flatMap(sentence -> Arrays.stream(sentence.tokens))
                 .filter(token -> Character.isAlphabetic(token.pos.charAt(0)))
                 .filter(token -> !removeStopwords ||
                         !NlpUtils.getStopwords().contains(token.lemma) ||
                         token.pos.startsWith("W"))
-                .map(token -> token.lemma);
+                .map(token -> takeLemmas ? token.lemma :
+                        StringUtils.normalizeString(token.text));
     }
 
     /**
@@ -414,6 +427,14 @@ public class Text {
             this(copy.text, copy.lemma, copy.pos,
                     copy.charBeginOffset + characterOffsetCorrection,
                     copy.charEndOffset + characterOffsetCorrection);
+        }
+
+        /**
+         * @return Returns true if the current term is a word and not
+         * a punctuation sign.
+         */
+        public boolean isWord() {
+            return pos.length() == 0 || Character.isAlphabetic(pos.charAt(0));
         }
     }
 

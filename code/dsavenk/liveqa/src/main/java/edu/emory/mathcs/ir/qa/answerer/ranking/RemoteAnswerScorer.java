@@ -5,10 +5,11 @@ import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.Question;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.stream.Collectors;
 
 /**
@@ -39,18 +40,21 @@ public class RemoteAnswerScorer implements AnswerScoring {
             socket = new Socket(host_, port_);
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-            PrintWriter out =
-                    new PrintWriter(socket.getOutputStream(), true);
-            out.println(
+            DataOutputStream out =
+                    new DataOutputStream(socket.getOutputStream());
+            out.write(Charset.forName("UTF-8").encode(
                     question.getTitle().concat(
                             question.getBody()).getLemmaList(false).stream()
                             .collect(Collectors.joining(" "))
                             + "\t" +
                             answer.getAnswer().getLemmaList(false).stream()
-                                    .collect(Collectors.joining(" ")));
+                                    .collect(Collectors.joining(" "))).array());
             String scoreStr = in.readLine();
             socket.close();
-            return Double.parseDouble(scoreStr);
+            return Double.parseDouble(scoreStr
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace(" ", ""));
         } catch (IOException e) {
             LiveQaLogger.LOGGER.warning(e.getMessage());
         }

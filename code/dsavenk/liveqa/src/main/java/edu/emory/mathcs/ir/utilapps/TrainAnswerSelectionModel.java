@@ -2,10 +2,12 @@ package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.input.YahooAnswersXmlInput;
 import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.AppConfig;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.qa.answerer.query.TitleNoStopwordsQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.ranking.RemoteAnswerScorer;
 import edu.emory.mathcs.ir.qa.ml.*;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
@@ -52,7 +54,7 @@ public class TrainAnswerSelectionModel {
             featureGenerator = getFeatureGenerator(
                     indexReader, reverbIndexLocation);
 
-            for (int docid = 0; docid < indexReader.maxDoc(); ++docid) {
+            for (int docid = 500000; docid < indexReader.maxDoc(); ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
                         QnAIndexDocument.getQnAPair(
                                 indexReader.document(docid));
@@ -83,12 +85,14 @@ public class TrainAnswerSelectionModel {
                     System.err.println(
                             String.format("%d qna processed", docid));
                 }
+
+                if (docid > 500000 + 100) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.err.println(dataset.toSummaryString());
-        dataset.applyFeatureCountThreshold(10);
+        dataset.applyFeatureCountThreshold(20);
         System.err.println(dataset.toSummaryString());
 
         LinearClassifierFactory<Boolean, String> classifierFactory_ =
@@ -114,13 +118,23 @@ public class TrainAnswerSelectionModel {
     private static FeatureGeneration getFeatureGenerator(
             IndexReader indexReader, String reverbIndexLocation)
             throws IOException {
+        final String lstmModelServer =
+                AppConfig.PROPERTIES.getProperty(
+                        AppConfig.LSTM_MODEL_SERVER_PARAMETER);
+        final int lstmModelServerPort =
+                Integer.parseInt(AppConfig.PROPERTIES.getProperty(
+                        AppConfig.LSTM_MODEL_PORT_PARAMETER));
+
         return new CombinerFeatureGenerator(
                 //new LemmaPairsFeatureGenerator(),
-                new MatchesFeatureGenerator(),
-                new BM25FeatureGenerator(indexReader),
+                new MatchesFeatureGenerator()
+                , new BM25FeatureGenerator(indexReader)
                 //new NamedEntityTypesFeatureGenerator(),
                 // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
-                new AnswerStatsFeatureGenerator()
+                , new AnswerStatsFeatureGenerator()
+                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
+                new RemoteAnswerScorer(
+                        lstmModelServer, lstmModelServerPort))
         );
     }
 
