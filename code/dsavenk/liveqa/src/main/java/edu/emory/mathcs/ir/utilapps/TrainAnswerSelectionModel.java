@@ -86,7 +86,7 @@ public class TrainAnswerSelectionModel {
                             String.format("%d qna processed", docid));
                 }
 
-                if (docid > 500000 + 100) break;
+                if (docid > 500000 + 1000) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -132,9 +132,9 @@ public class TrainAnswerSelectionModel {
                 //new NamedEntityTypesFeatureGenerator(),
                 // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
                 , new AnswerStatsFeatureGenerator()
-                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
-                new RemoteAnswerScorer(
-                        lstmModelServer, lstmModelServerPort))
+//                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
+//                new RemoteAnswerScorer(
+//                        lstmModelServer, lstmModelServerPort))
         );
     }
 

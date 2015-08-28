@@ -3,6 +3,7 @@ package edu.emory.mathcs.ir.utilapps;
 import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerScoring;
+import edu.emory.mathcs.ir.qa.answerer.ranking.BM25AnswerScorer;
 import edu.emory.mathcs.ir.qa.answerer.ranking.MaxentModelAnswerScorer;
 import edu.emory.mathcs.ir.qa.answerer.ranking.RemoteAnswerScorer;
 import edu.emory.mathcs.ir.qa.ml.*;
@@ -66,10 +67,13 @@ public class TestTrainedAnswerSelectionModelApp {
                     .sorted(Collections.reverseOrder())
                     .toArray(AnswerScore[]::new);
 
-            for (int rank = 1; rank <= rankedList.length; ++rank) {
-                out.println(
-                        String.format("%s\tQ0\t%s\t%d\t0\tEmoryIrLab",
-                                question.getId(), rankedList[rank - 1].id, rank));
+            if (rankedList.length > 1) {
+                for (int rank = 1; rank <= rankedList.length; ++rank) {
+                    out.println(
+                            String.format("%s\tQ0\t%s\t%d\t%.5f\tEmoryIrLab",
+                                    question.getId(), rankedList[rank - 1].id,
+                                    rank, rankedList[rank - 1].score));
+                }
             }
         }
         out.close();
@@ -111,8 +115,11 @@ public class TestTrainedAnswerSelectionModelApp {
             String modelPath, String indexPath) throws IOException {
         IndexReader reader = DirectoryReader.open(
                 FSDirectory.open(FileSystems.getDefault().getPath(indexPath)));
-        return new MaxentModelAnswerScorer(modelPath,
-                getFeatureGenerator(reader));
+        //return new BM25AnswerScorer(reader);
+        return new RemoteAnswerScorer("octiron", 8080);
+
+//        return new MaxentModelAnswerScorer(modelPath,
+//                getFeatureGenerator(reader));
     }
 
     private static FeatureGeneration getFeatureGenerator(
@@ -124,9 +131,6 @@ public class TestTrainedAnswerSelectionModelApp {
                 //new NamedEntityTypesFeatureGenerator(),
                 // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
                 , new AnswerStatsFeatureGenerator()
-                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
-                new RemoteAnswerScorer(
-                        "octiron", 8080))
         );
     }
 
