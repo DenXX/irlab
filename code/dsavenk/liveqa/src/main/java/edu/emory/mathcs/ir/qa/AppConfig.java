@@ -5,6 +5,7 @@ import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
 import edu.emory.mathcs.ir.qa.answerer.query.TopIdfTermsQueryFormulator;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
 import edu.emory.mathcs.ir.qa.answerer.ranking.FeatureBasedAnswerSelector;
+import edu.emory.mathcs.ir.qa.answerer.ranking.RemoteAnswerScorer;
 import edu.emory.mathcs.ir.qa.ml.*;
 import org.apache.commons.cli.*;
 import org.apache.lucene.index.DirectoryReader;
@@ -210,6 +211,8 @@ public class AppConfig {
     }
 
     public static FeatureGeneration getFeatureGenerator() throws IOException {
+        int lstmPort = Integer.parseInt(AppConfig.PROPERTIES.getProperty(
+                AppConfig.LSTM_MODEL_PORT_PARAMETER));
         return new CombinerFeatureGenerator(
                 new LemmaPairsFeatureGenerator(),
                 new BM25FeatureGenerator(getQuestionAnswerIndexReader()),
@@ -221,10 +224,12 @@ public class AppConfig {
                 new PageTitleMatchFeatureGenerator(),
                 //new NamedEntityTypesFeatureGenerator(),
                 // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
-                new AnswerStatsFeatureGenerator()
-//                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
-//                new RemoteAnswerScorer(
-//                        lstmModelServer, lstmModelServerPort))
+                new AnswerStatsFeatureGenerator(),
+                new AnswerScorerBasedFeatureGenerator("lstm_score=",
+                        new RemoteAnswerScorer(
+                                AppConfig.PROPERTIES.getProperty(
+                                        AppConfig.LSTM_MODEL_SERVER_PARAMETER),
+                                lstmPort))
         );
     }
 
