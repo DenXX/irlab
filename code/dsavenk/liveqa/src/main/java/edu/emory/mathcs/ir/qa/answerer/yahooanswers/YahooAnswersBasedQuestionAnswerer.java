@@ -4,10 +4,7 @@ import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.Text;
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
-import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
-import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
-import edu.emory.mathcs.ir.qa.answerer.query.TitleNoStopwordsQueryFormulator;
-import edu.emory.mathcs.ir.qa.answerer.query.TitleOnlyQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.query.*;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
 import edu.emory.mathcs.ir.qa.answerer.ranking.FeatureBasedAnswerSelector;
 import edu.emory.mathcs.ir.qa.ml.*;
@@ -32,11 +29,7 @@ public class YahooAnswersBasedQuestionAnswerer implements QuestionAnswering {
             new Answer(new Text("I don't know"), "");
     private IndexReader indexReader_;
 
-    private QueryFormulation[] queryFormulator_ = new QueryFormulation[]{
-            new SimpleQueryFormulator(),
-            new TitleOnlyQueryFormulator(),
-            new TitleNoStopwordsQueryFormulator(),
-    };
+    private QueryFormulation[] queryFormulator_;
     private SimilarQuestionAnswerRetrieval answerRetrieval_ =
             new SimilarQuestionAnswerRetrieval(queryFormulator_,
                     TOPN_SIMILAR_QUESTIONS);
@@ -47,6 +40,14 @@ public class YahooAnswersBasedQuestionAnswerer implements QuestionAnswering {
         indexReader_ = indexReader;
         answerRanker_ = new FeatureBasedAnswerSelector(modelPath,
                 getFeatureGenerator());
+        queryFormulator_ = new QueryFormulation[]{
+                new SimpleQueryFormulator(true, false),
+                new SimpleQueryFormulator(false, false),
+                new SimpleQueryFormulator(true, true),
+                new SimpleQueryFormulator(false, true),
+                new TopIdfTermsQueryFormulator(indexReader_, true, 0.5),
+                new TopIdfTermsQueryFormulator(indexReader_, false, 0.5),
+        };
     }
 
     @Override

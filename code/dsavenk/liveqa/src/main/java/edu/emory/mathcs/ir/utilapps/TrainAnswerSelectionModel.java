@@ -6,8 +6,7 @@ import edu.emory.mathcs.ir.qa.AppConfig;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
-import edu.emory.mathcs.ir.qa.answerer.query.TitleNoStopwordsQueryFormulator;
-import edu.emory.mathcs.ir.qa.answerer.ranking.RemoteAnswerScorer;
+import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
 import edu.emory.mathcs.ir.qa.ml.*;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
@@ -40,7 +39,7 @@ public class TrainAnswerSelectionModel {
         final String reverbIndexLocation = args[2];
 
         QueryFormulation queryFormulator =
-                new TitleNoStopwordsQueryFormulator();
+                new SimpleQueryFormulator(false, true);
 
         RVFDataset<Boolean, String> dataset = new RVFDataset<>();
         final Directory directory;

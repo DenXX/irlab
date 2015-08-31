@@ -3,6 +3,7 @@ package edu.emory.mathcs.ir.utilapps;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.qa.answerer.query.TestQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.query.TopIdfTermsQueryFormulator;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
@@ -23,7 +24,7 @@ public class Question2QueryTestApp {
                 DirectoryReader.open(FSDirectory.open(
                         FileSystems.getDefault().getPath(args[0])));
         QueryFormulation queryFormulation =
-                new TestQueryFormulator(indexReader);
+                new TopIdfTermsQueryFormulator(indexReader, false, 0.5);
 
         String line;
         while ((line = input.readLine()) != null) {
