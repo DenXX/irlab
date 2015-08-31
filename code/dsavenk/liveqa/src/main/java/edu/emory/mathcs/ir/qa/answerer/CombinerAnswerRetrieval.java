@@ -25,6 +25,7 @@ public class CombinerAnswerRetrieval implements AnswerRetrieval {
     @Override
     public Answer[] retrieveAnswers(Question question) {
         return Arrays.stream(answerRetrievals_)
+                .parallel()
                 .flatMap(ar -> Arrays.stream(ar.retrieveAnswers(question)))
                 .toArray(Answer[]::new);
     }
