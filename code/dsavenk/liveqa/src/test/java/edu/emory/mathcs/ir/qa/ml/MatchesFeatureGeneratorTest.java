@@ -19,7 +19,6 @@ public class MatchesFeatureGeneratorTest extends TestCase {
         Map<String, Double> features = f.generateFeatures(q, a);
 
         // Test some features for presence.
-        assertEquals(8, features.size());
         assertEquals(1.0, features.get("title:total_matches="));
         assertEquals(1.0, features.get("all:matched_terms_pos=NN="));
         assertEquals(1.0, features.get("title:matched_terms_pos=NN="));
