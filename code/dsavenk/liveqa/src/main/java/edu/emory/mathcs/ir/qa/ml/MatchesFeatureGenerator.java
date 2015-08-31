@@ -18,7 +18,7 @@ public class MatchesFeatureGenerator implements FeatureGeneration {
     public Map<String, Double> generateFeatures(Question question,
                                                 Answer answer) {
         Set<String> titleTerms = question.getTitle().getLemmaSet(true);
-        Set<String> bodyTerms = question.getTitle().getLemmaSet(true);
+        Set<String> bodyTerms = question.getBody().getLemmaSet(true);
         Set<String> titleAndBodyTerms = Sets.union(titleTerms, bodyTerms);
 
         Map<String, Double> features = new HashMap<>();
