@@ -1,10 +1,7 @@
 package edu.emory.mathcs.ir.search;
 
 import edu.emory.mathcs.ir.qa.AppConfig;
-import org.carrot2.core.Controller;
-import org.carrot2.core.ControllerFactory;
-import org.carrot2.core.Document;
-import org.carrot2.core.ProcessingResult;
+import org.carrot2.core.*;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.carrot2.source.microsoft.Bing3WebDocumentSource;
 import org.carrot2.source.microsoft.Bing3WebDocumentSourceDescriptor;
@@ -19,24 +16,44 @@ import java.util.Map;
 public class BingWebSearch implements WebSearch {
     private static final Controller controller_ =
             ControllerFactory.createSimple();
+    private static final String[] apiKeys;
+    private static int currentApiKeyIndex = 0;
+
+    static {
+        apiKeys = AppConfig.PROPERTIES.getProperty(
+                AppConfig.BING_API_KEY_PARAMETER).split("\t");
+        currentApiKeyIndex = 0;
+    }
 
     @Override
     public SearchResult[] search(String query, int top) {
         final Map<String, Object> attributes = new HashMap<>();
-        final String apiKey = AppConfig.PROPERTIES.getProperty(
-                AppConfig.BING_API_KEY_PARAMETER);
         Bing3WebDocumentSourceDescriptor.attributeBuilder(attributes)
-                .appid(apiKey);
+                .appid(apiKeys[currentApiKeyIndex]);
         /* Query and the required number of results */
         attributes.put(CommonAttributesDescriptor.Keys.QUERY, query);
         attributes.put(CommonAttributesDescriptor.Keys.RESULTS, top);
-        final ProcessingResult result = controller_.process(attributes,
-                Bing3WebDocumentSource.class);
-        final List<Document> documents = result.getDocuments();
-        final SearchResult[] res = new SearchResult[documents.size()];
-        for (int rank = 0; rank < documents.size(); ++rank) {
-            res[rank] = SearchResult.create(rank, documents.get(rank));
+        ProcessingResult result = null;
+        try {
+            result = controller_.process(attributes,
+                    Bing3WebDocumentSource.class);
+        } catch (ProcessingException ex) {
+            // This exception is probably caused by the fact, API rate limit
+            // was exceeded. Use the new key and continue.
+            currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.length;
+            Bing3WebDocumentSourceDescriptor.attributeBuilder(attributes)
+                    .appid(apiKeys[currentApiKeyIndex + 1]);
+            result = controller_.process(attributes,
+                    Bing3WebDocumentSource.class);
         }
-        return res;
+        if (result != null) {
+            final List<Document> documents = result.getDocuments();
+            final SearchResult[] res = new SearchResult[documents.size()];
+            for (int rank = 0; rank < documents.size(); ++rank) {
+                res[rank] = SearchResult.create(rank, documents.get(rank));
+            }
+            return res;
+        }
+        return new SearchResult[0];
     }
 }

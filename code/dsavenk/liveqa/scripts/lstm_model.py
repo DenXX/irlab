@@ -9,16 +9,15 @@ import numpy as np
 
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.embeddings import Embedding
-from keras.layers.recurrent import LSTM, GRU
+from keras.layers.recurrent import LSTM
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
-from keras.utils import np_utils
 
 '''
     Train a LSTM on the Yahoo! Answers reranking task,
 
     GPU command:
-        THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32,nvcc.fastmath=True python yahoo_answers.py
+        THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32,nvcc.fastmath=True python lstm_model.py ~/ir/data/liveqa/FullOct2007_lstm_train_smalltrain.txt ~/ir/data/liveqa/FullOct2007_lstm_train_smalltest.txt model_10K_64_1Mwords test
 '''
 
 MAX_TOKEN_LENGTH = 100

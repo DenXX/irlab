@@ -128,6 +128,20 @@ public class YahooAnswersScraper {
         }
     }
 
+    /**
+     * Returns the categories of the given question in Yahoo! Answers categories
+     * hierarchy.
+     * @param question The question to get categories for.
+     * @return Array of categories of the given question.
+     */
+    public static String[] getQuestionCategories(Question question) {
+        Optional<YahooAnswersScraper.QuestionAnswer> qna =
+                YahooAnswersScraper.GetQuestionAnswerData(question.getId());
+        return qna.isPresent() ?
+                qna.get().categories :
+                new String[] { question.getCategory() };
+    }
+
     // Predicates that check if a particular DOM tree node is answer node,
     // title node, etc.
     private static boolean isAnswerNode(Element node) {

@@ -1,15 +1,10 @@
 package edu.emory.mathcs.ir.qa;
 
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
-import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
+import edu.emory.mathcs.ir.qa.answerer.YahooAnswersAndWebQuestionsAnswerer;
 import org.trec.liveqa.TrecLiveQaDemoServer;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 
 /**
  * Created by dsavenk on 8/5/15.
@@ -23,14 +18,8 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
 
     public LiveQaServer(String hostname, int port) throws IOException {
         super(hostname, port);
-        final String modelPath = AppConfig.PROPERTIES.getProperty(
-                AppConfig.RANKING_MODEL_PATH_PARAMETER);
-        final Directory directory = FSDirectory.open(
-                FileSystems.getDefault().getPath(
-                        AppConfig.PROPERTIES.getProperty(
-                                AppConfig.QA_INDEX_DIRECTORY_PARAMETER)));
-        final IndexReader indexReader = DirectoryReader.open(directory);
-        qa_ = new YahooAnswersBasedQuestionAnswerer(indexReader, modelPath);
+        qa_ = new YahooAnswersAndWebQuestionsAnswerer(
+                AppConfig.getAnswerSelector());
     }
     public LiveQaServer(int port) throws IOException {
         super(port);

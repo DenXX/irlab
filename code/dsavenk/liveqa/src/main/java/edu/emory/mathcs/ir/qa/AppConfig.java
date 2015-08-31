@@ -1,8 +1,18 @@
 package edu.emory.mathcs.ir.qa;
 
+import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
+import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.query.TopIdfTermsQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
+import edu.emory.mathcs.ir.qa.answerer.ranking.FeatureBasedAnswerSelector;
+import edu.emory.mathcs.ir.qa.ml.*;
 import org.apache.commons.cli.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -73,6 +83,25 @@ public class AppConfig {
     public static final String KB_INDEX_PARAMETER_DESCRIPTION =
             "Location of Freebase names index";
 
+    public static final String SIMILAR_QUESTIONS_COUNT_PARAMETER =
+            "SIMILAR_QUESTIONS_COUNT";
+    public static final String SIMILAR_QUESTIONS_COUNT_PARAMETER_DESCRIPTION =
+            "The number of similar questions to retrieve using Yahoo!Answers " +
+                    "search";
+
+    public static final String WEB_SEARCH_TOPN_PARAMETER =
+            "WEB_SEARCH_TOPN";
+    public static final String WEB_SEARCH_TOPN_PARAMETER_DESCRIPTION =
+            "The number of web search results to retrieve";
+
+    public static final String NPMI_DICTIONARY_LOCATION_PARAMETER =
+            "NPMI_DICTIONARY_LOCATION";
+    public static final String NPMI_DICTIONARY_LOCATION_PARAMETER_DESCRIPTION =
+            "Location of <question term>\t<answer term>\t<npmi> dictionary";
+
+
+    private static IndexReader qaIndexReader_;
+
     static {
         Init();
     }
@@ -82,6 +111,11 @@ public class AppConfig {
         try {
             PROPERTIES.load(AppConfig.class.getResourceAsStream(
                     "/qa-config.properties"));
+            qaIndexReader_ = DirectoryReader.open(
+                    FSDirectory.open(
+                            FileSystems.getDefault().getPath(
+                                    PROPERTIES.getProperty(
+                                            QA_INDEX_DIRECTORY_PARAMETER))));
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -158,11 +192,62 @@ public class AppConfig {
         options.addOption(Option.builder(KB_MODEL_PARAMETER)
                 .desc(KB_MODEL_PARAMETER_DESCRIPTION).hasArg()
                 .build());
+        options.addOption(Option.builder(SIMILAR_QUESTIONS_COUNT_PARAMETER)
+                .desc(SIMILAR_QUESTIONS_COUNT_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(WEB_SEARCH_TOPN_PARAMETER)
+                .desc(WEB_SEARCH_TOPN_PARAMETER_DESCRIPTION).hasArg()
+                .build());
+        options.addOption(Option.builder(NPMI_DICTIONARY_LOCATION_PARAMETER)
+                .desc(NPMI_DICTIONARY_LOCATION_PARAMETER_DESCRIPTION).hasArg()
+                .build());
         return options;
     }
 
     private static CommandLine parseCommandLine(Options options, String[] args)
             throws ParseException {
         return new DefaultParser().parse(options, args);
+    }
+
+    public static FeatureGeneration getFeatureGenerator() throws IOException {
+        return new CombinerFeatureGenerator(
+                new LemmaPairsFeatureGenerator(),
+                new BM25FeatureGenerator(getQuestionAnswerIndexReader()),
+                new MatchesFeatureGenerator(),
+                new NpmiDictionaryMatchesFeatureGenerator(
+                        AppConfig.PROPERTIES.getProperty(
+                                NPMI_DICTIONARY_LOCATION_PARAMETER)),
+                new CategoryMatchFeatureGenerator(),
+                new PageTitleMatchFeatureGenerator(),
+                //new NamedEntityTypesFeatureGenerator(),
+                // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
+                new AnswerStatsFeatureGenerator()
+//                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
+//                new RemoteAnswerScorer(
+//                        lstmModelServer, lstmModelServerPort))
+        );
+    }
+
+    private static IndexReader getQuestionAnswerIndexReader() {
+        return qaIndexReader_;
+    }
+
+    public static AnswerSelection getAnswerSelector() throws IOException {
+        return new FeatureBasedAnswerSelector(
+                PROPERTIES.getProperty(RANKING_MODEL_PATH_PARAMETER),
+                getFeatureGenerator());
+    }
+
+    public static QueryFormulation[] getQueryFormulators() {
+        return new QueryFormulation[] {
+                new SimpleQueryFormulator(true, false),
+                new SimpleQueryFormulator(false, false),
+                new SimpleQueryFormulator(true, true),
+                new SimpleQueryFormulator(false, true),
+                new TopIdfTermsQueryFormulator(
+                        getQuestionAnswerIndexReader(), true, 0.5),
+                new TopIdfTermsQueryFormulator(
+                        getQuestionAnswerIndexReader(), false, 0.5),
+        };
     }
 }

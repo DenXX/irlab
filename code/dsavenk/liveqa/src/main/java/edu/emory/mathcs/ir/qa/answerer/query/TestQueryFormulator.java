@@ -32,7 +32,7 @@ public class TestQueryFormulator implements QueryFormulation {
     public TestQueryFormulator(IndexReader reader) {
         try {
             chunker_ = new ChunkerME(new ChunkerModel(
-                    TitleNoStopwordsQueryFormulator.class.getResourceAsStream(
+                    TestQueryFormulator.class.getResourceAsStream(
                             "/en-chunker.bin")));
         } catch (IOException e) {
             LiveQaLogger.LOGGER.warning(e.getMessage());

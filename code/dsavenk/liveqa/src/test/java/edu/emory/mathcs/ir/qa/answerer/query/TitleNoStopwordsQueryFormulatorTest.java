@@ -12,8 +12,8 @@ public class TitleNoStopwordsQueryFormulatorTest extends TestCase {
         Question q = new Question("",
                 "What is the average salary of the software developer in GA?",
                 "", "");
-        TitleNoStopwordsQueryFormulator queryFormulator =
-                new TitleNoStopwordsQueryFormulator();
+        QueryFormulation queryFormulator =
+                new SimpleQueryFormulator(false, true);
         String query = queryFormulator.getQuery(q);
         assertTrue(query.contains("software"));
         assertTrue(query.contains("developer"));

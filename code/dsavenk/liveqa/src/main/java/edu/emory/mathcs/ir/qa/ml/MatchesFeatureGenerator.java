@@ -18,11 +18,12 @@ public class MatchesFeatureGenerator implements FeatureGeneration {
     public Map<String, Double> generateFeatures(Question question,
                                                 Answer answer) {
         Set<String> titleTerms = question.getTitle().getLemmaSet(true);
-        Set<String> titleAndBodyTerms = Sets.union(titleTerms,
-                question.getBody().getLemmaSet(true));
+        Set<String> bodyTerms = question.getTitle().getLemmaSet(true);
+        Set<String> titleAndBodyTerms = Sets.union(titleTerms, bodyTerms);
 
         Map<String, Double> features = new HashMap<>();
         outputMatchFeatures(titleTerms, answer.getAnswer(), "title:", features);
+        outputMatchFeatures(bodyTerms, answer.getAnswer(), "body:", features);
         outputMatchFeatures(titleAndBodyTerms,
                 answer.getAnswer(), "all:", features);
 
@@ -38,20 +39,22 @@ public class MatchesFeatureGenerator implements FeatureGeneration {
         Set<String> matchedTerms = new HashSet<>();
         Map<String, Integer> posMatchCounts = new HashMap<>();
         int maximumMatchSpan = 0;
+        int[] matchesLengthCounts = new int[10];
         for (Text.Sentence sentence : passage.getSentences()) {
             int matchSpanLength = 0;
             for (Text.Token token : sentence.tokens) {
                 if (terms.contains(token.lemma)) {
                     ++totalMatches;
                     ++matchSpanLength;
+                    ++matchesLengthCounts[Math.min(9, matchSpanLength)];
                     posMatchCounts.putIfAbsent(token.pos, 0);
                     posMatchCounts.put(token.pos,
                             posMatchCounts.get(token.pos) + 1);
                     if (!matchedTerms.contains(token.lemma)) {
                         matchedTerms.add(token.lemma);
                     }
-                    //features.put(
-                    //        featurePrefix + "matched_term=" + token.lemma, 1.0);
+                    features.put(
+                            featurePrefix + "matched_term=" + token.lemma, 1.0);
                 } else {
                     maximumMatchSpan = Math.max(maximumMatchSpan,
                             matchSpanLength);
@@ -69,6 +72,16 @@ public class MatchesFeatureGenerator implements FeatureGeneration {
         for (Map.Entry<String, Integer> entry : posMatchCounts.entrySet()) {
             features.put(featurePrefix + "matched_terms_pos=" + entry.getKey()
                     + "=", Double.valueOf(entry.getValue()));
+        }
+
+        int accumulatedCount = 0;
+        for (int matches = matchesLengthCounts.length - 1; matches > 1;
+             --matches) {
+            accumulatedCount += matchesLengthCounts[matches];
+            if (accumulatedCount > 0) {
+                features.put(featurePrefix + "matched_sequence >= " +
+                        matches + " terms=", (double) accumulatedCount);
+            }
         }
     }
 }

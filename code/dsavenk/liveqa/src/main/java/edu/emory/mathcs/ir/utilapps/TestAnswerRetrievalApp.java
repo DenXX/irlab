@@ -1,20 +1,17 @@
 package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.AppConfig;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
-import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
+import edu.emory.mathcs.ir.qa.answerer.YahooAnswersAndWebQuestionsAnswerer;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
 import edu.stanford.nlp.util.Sets;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.store.FSDirectory;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.FileSystems;
 import java.util.*;
 
 /**
@@ -24,11 +21,8 @@ public class TestAnswerRetrievalApp {
     public static void main(String[] args) throws IOException {
         final String qaDataFile = args[0];
         final String retrivedQaFile = args[1];
-        final String modelPath = args[2];
-        final String indexPath = args[3];
 
-        final QuestionAnswering questionAnswerer =
-                getQuestionAnswerer(indexPath, modelPath);
+        final QuestionAnswering questionAnswerer = getQuestionAnswerer();
 
         Map<String, YahooAnswersScraper.QuestionAnswer> qaById =
                 readQaData(qaDataFile);
@@ -95,11 +89,9 @@ public class TestAnswerRetrievalApp {
         return res;
     }
 
-    private static QuestionAnswering getQuestionAnswerer(
-            String indexPath, String modelPath)
+    private static QuestionAnswering getQuestionAnswerer()
             throws IOException {
-        IndexReader reader = DirectoryReader.open(
-                FSDirectory.open(FileSystems.getDefault().getPath(indexPath)));
-        return new YahooAnswersBasedQuestionAnswerer(reader, modelPath);
+        return new YahooAnswersAndWebQuestionsAnswerer(
+                AppConfig.getAnswerSelector());
     }
 }

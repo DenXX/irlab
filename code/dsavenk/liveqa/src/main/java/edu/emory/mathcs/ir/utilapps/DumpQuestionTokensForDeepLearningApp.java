@@ -5,7 +5,7 @@ import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
-import edu.emory.mathcs.ir.qa.answerer.query.TitleNoStopwordsQueryFormulator;
+import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
@@ -32,7 +32,7 @@ public class DumpQuestionTokensForDeepLearningApp {
                     new BufferedOutputStream(new FileOutputStream(args[1])));
 
             QueryFormulation queryFormulator =
-                    new TitleNoStopwordsQueryFormulator();
+                    new SimpleQueryFormulator(false, true);
             final Directory directory;
             directory = FSDirectory.open(
                     FileSystems.getDefault().getPath(indexLocation));
