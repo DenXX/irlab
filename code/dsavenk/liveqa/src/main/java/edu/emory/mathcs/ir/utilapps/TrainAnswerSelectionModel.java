@@ -39,6 +39,8 @@ public class TrainAnswerSelectionModel {
     public static void main(String[] args) {
         final String indexLocation = args[0];
         final String modelLocation = args[1];
+        final int startDocumentIndex = Integer.parseInt(args[2]);
+        final int numberOfExamples = Integer.parseInt(args[3]);
 
         QueryFormulation queryFormulator =
                 new SimpleQueryFormulator(false, true);
@@ -54,7 +56,8 @@ public class TrainAnswerSelectionModel {
             // Create feature generator.
             featureGenerator = AppConfig.getFeatureGenerator();
 
-            for (int docid = 800000; docid < indexReader.maxDoc(); ++docid) {
+            for (int docid = startDocumentIndex; docid < indexReader.maxDoc();
+                 ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
                         QnAIndexDocument.getQnAPair(
                                 indexReader.document(docid));
@@ -86,7 +89,7 @@ public class TrainAnswerSelectionModel {
                             String.format("%d qna processed", docid));
                 }
 
-                if (docid > 800000 + 5000) break;
+                if (docid > startDocumentIndex + numberOfExamples) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
