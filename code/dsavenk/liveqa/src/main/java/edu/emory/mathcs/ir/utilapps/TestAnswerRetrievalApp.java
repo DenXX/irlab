@@ -3,7 +3,7 @@ package edu.emory.mathcs.ir.utilapps;
 import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
-import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
+import edu.emory.mathcs.ir.qa.answerer.YahooAnswersAndWebQuestionsAnswerer;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
 import edu.stanford.nlp.util.Sets;
 import org.apache.lucene.index.DirectoryReader;
@@ -100,6 +100,6 @@ public class TestAnswerRetrievalApp {
             throws IOException {
         IndexReader reader = DirectoryReader.open(
                 FSDirectory.open(FileSystems.getDefault().getPath(indexPath)));
-        return new YahooAnswersBasedQuestionAnswerer(reader, modelPath);
+        return new YahooAnswersAndWebQuestionsAnswerer(reader, modelPath);
     }
 }

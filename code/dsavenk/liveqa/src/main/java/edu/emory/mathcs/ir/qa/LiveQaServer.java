@@ -1,7 +1,7 @@
 package edu.emory.mathcs.ir.qa;
 
 import edu.emory.mathcs.ir.qa.answerer.QuestionAnswering;
-import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersBasedQuestionAnswerer;
+import edu.emory.mathcs.ir.qa.answerer.YahooAnswersAndWebQuestionsAnswerer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.Directory;
@@ -30,7 +30,7 @@ public class LiveQaServer extends TrecLiveQaDemoServer {
                         AppConfig.PROPERTIES.getProperty(
                                 AppConfig.QA_INDEX_DIRECTORY_PARAMETER)));
         final IndexReader indexReader = DirectoryReader.open(directory);
-        qa_ = new YahooAnswersBasedQuestionAnswerer(indexReader, modelPath);
+        qa_ = new YahooAnswersAndWebQuestionsAnswerer(indexReader, modelPath);
     }
     public LiveQaServer(int port) throws IOException {
         super(port);

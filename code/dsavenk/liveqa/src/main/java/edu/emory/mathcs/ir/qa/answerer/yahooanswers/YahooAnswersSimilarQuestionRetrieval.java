@@ -15,7 +15,7 @@ import java.util.List;
  * Uses Yahoo! Answers similar questions search to retrieve the answers to
  * related questions.
  */
-public class SimilarQuestionAnswerRetrieval implements AnswerRetrieval {
+public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
     private final QueryFormulation[] queryFormulators_;
     private final int similarQuestionsCount_;
 
@@ -25,7 +25,7 @@ public class SimilarQuestionAnswerRetrieval implements AnswerRetrieval {
      *                         queries for the provided questions.
      * @param similarQuestionsCount The number of similar questions to consider.
      */
-    public SimilarQuestionAnswerRetrieval(
+    public YahooAnswersSimilarQuestionRetrieval(
             final QueryFormulation[] queryFormulators,
             int similarQuestionsCount) {
         queryFormulators_ = queryFormulators;

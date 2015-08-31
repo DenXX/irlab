@@ -1,6 +1,11 @@
 package edu.emory.mathcs.ir.qa;
 
+import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
+import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
+import edu.emory.mathcs.ir.qa.answerer.ranking.FeatureBasedAnswerSelector;
+import edu.emory.mathcs.ir.qa.ml.*;
 import org.apache.commons.cli.*;
+import org.apache.lucene.index.IndexReader;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -164,5 +169,32 @@ public class AppConfig {
     private static CommandLine parseCommandLine(Options options, String[] args)
             throws ParseException {
         return new DefaultParser().parse(options, args);
+    }
+
+    public static FeatureGeneration getFeatureGenerator() throws IOException {
+        return new CombinerFeatureGenerator(
+                new LemmaPairsFeatureGenerator(),
+                new BM25FeatureGenerator(getQuestionAnswerIndexReader()),
+                new MatchesFeatureGenerator()
+                //new NamedEntityTypesFeatureGenerator(),
+                // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
+                , new AnswerStatsFeatureGenerator()
+//                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
+//                new RemoteAnswerScorer(
+//                        lstmModelServer, lstmModelServerPort))
+        );
+    }
+
+    private static IndexReader getQuestionAnswerIndexReader() {
+        return null;
+    }
+
+    public static AnswerSelection getAnswerSelector() throws IOException {
+        return new FeatureBasedAnswerSelector(model, getFeatureGenerator());
+    }
+
+    public QueryFormulation[] getQueryFormulators() {
+        return new QueryFormulation[] {
+        };
     }
 }

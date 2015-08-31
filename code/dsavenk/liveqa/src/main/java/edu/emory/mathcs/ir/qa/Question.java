@@ -11,6 +11,7 @@ public class Question {
     private Text title_;
     private Text body_;
     private String category_;
+    private String[] categories_;
     private ClassToInstanceMap<QuestionAnnotation> annotations_ =
             MutableClassToInstanceMap.create();
 
@@ -26,6 +27,7 @@ public class Question {
         title_ = new Text(title);
         body_ = new Text(body);
         category_ = category;
+        categories_ = new String[] {category};
     }
 
     /**
@@ -61,5 +63,22 @@ public class Question {
         return String.join("\t", new String[] {
                 getId(), getCategory(), getTitle().toString(),
                 getBody().toString()});
+    }
+
+    /**
+     * @return Returns categories of the question. Unlike the
+     * {@link Question::getCategory} method, the categories also contain main
+     * and subcategories of the question.
+     */
+    public String[] getCategories() {
+        return categories_;
+    }
+
+    /**
+     * Sets the categories of the given question.
+     * @param categories The categories of the question.
+     */
+    public void setCategories(String[] categories) {
+        categories_ = categories;
     }
 }
