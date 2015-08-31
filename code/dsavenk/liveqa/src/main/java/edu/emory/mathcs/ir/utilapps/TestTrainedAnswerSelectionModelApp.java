@@ -1,19 +1,13 @@
 package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.AppConfig;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerScoring;
-import edu.emory.mathcs.ir.qa.answerer.ranking.BM25AnswerScorer;
 import edu.emory.mathcs.ir.qa.answerer.ranking.MaxentModelAnswerScorer;
-import edu.emory.mathcs.ir.qa.answerer.ranking.RemoteAnswerScorer;
-import edu.emory.mathcs.ir.qa.ml.*;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.store.FSDirectory;
 
 import java.io.*;
-import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -113,25 +107,11 @@ public class TestTrainedAnswerSelectionModelApp {
 
     private static AnswerScoring getAnswerScorer(
             String modelPath, String indexPath) throws IOException {
-        IndexReader reader = DirectoryReader.open(
-                FSDirectory.open(FileSystems.getDefault().getPath(indexPath)));
         //return new BM25AnswerScorer(reader);
-        return new RemoteAnswerScorer("octiron", 8080);
+        //return new RemoteAnswerScorer("octiron", 8080);
 
-//        return new MaxentModelAnswerScorer(modelPath,
-//                getFeatureGenerator(reader));
-    }
-
-    private static FeatureGeneration getFeatureGenerator(
-            IndexReader indexReader) throws IOException {
-        return new CombinerFeatureGenerator(
-                //new LemmaPairsFeatureGenerator(),
-                new MatchesFeatureGenerator()
-                , new BM25FeatureGenerator(indexReader)
-                //new NamedEntityTypesFeatureGenerator(),
-                // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
-                , new AnswerStatsFeatureGenerator()
-        );
+        return new MaxentModelAnswerScorer(modelPath,
+                AppConfig.getFeatureGenerator());
     }
 
     private static class AnswerScore implements Comparable<AnswerScore> {

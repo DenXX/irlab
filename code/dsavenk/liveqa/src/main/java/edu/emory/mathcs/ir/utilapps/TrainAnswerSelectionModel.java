@@ -7,7 +7,10 @@ import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.index.QnAIndexDocument;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
-import edu.emory.mathcs.ir.qa.ml.*;
+import edu.emory.mathcs.ir.qa.answerer.web.WebSearchAnswerRetrieval;
+import edu.emory.mathcs.ir.qa.answerer.yahooanswers.YahooAnswersSimilarQuestionRetrieval;
+import edu.emory.mathcs.ir.qa.ml.FeatureGeneration;
+import edu.emory.mathcs.ir.qa.ml.StanfordClassifierUtils;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.classify.LinearClassifierFactory;
 import edu.stanford.nlp.classify.RVFDataset;
@@ -36,7 +39,6 @@ public class TrainAnswerSelectionModel {
     public static void main(String[] args) {
         final String indexLocation = args[0];
         final String modelLocation = args[1];
-        final String reverbIndexLocation = args[2];
 
         QueryFormulation queryFormulator =
                 new SimpleQueryFormulator(false, true);
@@ -50,10 +52,9 @@ public class TrainAnswerSelectionModel {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
 
             // Create feature generator.
-            featureGenerator = getFeatureGenerator(
-                    indexReader, reverbIndexLocation);
+            featureGenerator = AppConfig.getFeatureGenerator();
 
-            for (int docid = 500000; docid < indexReader.maxDoc(); ++docid) {
+            for (int docid = 800000; docid < indexReader.maxDoc(); ++docid) {
                 final YahooAnswersXmlInput.QnAPair qna =
                         QnAIndexDocument.getQnAPair(
                                 indexReader.document(docid));
@@ -85,7 +86,7 @@ public class TrainAnswerSelectionModel {
                             String.format("%d qna processed", docid));
                 }
 
-                if (docid > 500000 + 1000) break;
+                if (docid > 800000 + 5000) break;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,36 +115,18 @@ public class TrainAnswerSelectionModel {
                 model.getTopFeatures(positive, 0.0001, false, 1000, true));
     }
 
-    private static FeatureGeneration getFeatureGenerator(
-            IndexReader indexReader, String reverbIndexLocation)
-            throws IOException {
-        final String lstmModelServer =
-                AppConfig.PROPERTIES.getProperty(
-                        AppConfig.LSTM_MODEL_SERVER_PARAMETER);
-        final int lstmModelServerPort =
-                Integer.parseInt(AppConfig.PROPERTIES.getProperty(
-                        AppConfig.LSTM_MODEL_PORT_PARAMETER));
-
-        return new CombinerFeatureGenerator(
-                //new LemmaPairsFeatureGenerator(),
-                new MatchesFeatureGenerator()
-                , new BM25FeatureGenerator(indexReader)
-                //new NamedEntityTypesFeatureGenerator(),
-                // new ReverbTriplesFeatureGenerator(reverbIndexLocation),
-                , new AnswerStatsFeatureGenerator()
-//                , new AnswerScorerBasedFeatureGenerator("lstm_score=",
-//                new RemoteAnswerScorer(
-//                        lstmModelServer, lstmModelServerPort))
-        );
-    }
-
     private static RVFDatum<Boolean, String> createInstance(
             YahooAnswersXmlInput.QnAPair targetQna,
             YahooAnswersXmlInput.QnAPair instanceQna) {
         final Question question =
                 new Question("", targetQna.questionTitle,
-                        targetQna.questionBody, "");
+                        targetQna.questionBody,
+                        String.join("\t", targetQna.categories));
         final Answer answer = new Answer(instanceQna.bestAnswer, "");
+        answer.setAttribute(YahooAnswersSimilarQuestionRetrieval.CATEGORY_ANSWER_ATTRIBUTE,
+                String.join("\t", instanceQna.categories));
+        answer.setAttribute(WebSearchAnswerRetrieval.PAGE_TITLE_ATTRIBUTE,
+                instanceQna.questionTitle);
 
         return StanfordClassifierUtils.createInstance(
                 featureGenerator.generateFeatures(question, answer));
