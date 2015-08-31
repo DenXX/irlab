@@ -59,14 +59,16 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
             final SearchResult[] results = search_.search(query, topN_);
 
             // Process results and add content to each document.
-            Arrays.stream(results).forEach(res -> {
-                try {
-                    res.content = WebPageScraper.getDocumentContent(
-                            new URL(res.url));
-                } catch (Exception e) {
-                    LiveQaLogger.LOGGER.warning(e.getMessage());
-                }
-            });
+            Arrays.stream(results)
+                    .parallel()
+                    .forEach(res -> {
+                        try {
+                            res.content = WebPageScraper.getDocumentContent(
+                                    new URL(res.url));
+                        } catch (Exception e) {
+                            LiveQaLogger.LOGGER.warning(e.getMessage());
+                        }
+                    });
 
             // Generate passages from all retrieved documents.
             for (SearchResult result : results) {
