@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.scraping;
 
+import de.l3s.boilerpipe.document.TextDocument;
 import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -107,7 +108,8 @@ public class WebPageScraper {
                 new BodyContentHandler());
         AutoDetectParser parser = new AutoDetectParser();
         parser.parse(stream, handler, new Metadata());
-        return handler.toTextDocument().getContent();
+        final TextDocument doc = handler.toTextDocument();
+        return doc.getContent();
     }
 
     /**

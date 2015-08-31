@@ -6,6 +6,7 @@ import edu.emory.mathcs.ir.qa.Text;
 import edu.emory.mathcs.ir.qa.answerer.AnswerFormatter;
 import edu.emory.mathcs.ir.qa.answerer.AnswerRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
+import edu.emory.mathcs.ir.qa.answerer.web.WebSearchAnswerRetrieval;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
 
 import java.util.ArrayList;
@@ -16,6 +17,11 @@ import java.util.List;
  * related questions.
  */
 public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
+    /**
+     * The name of the category attribute that can be attached to candidate
+     * answer.
+     */
+    public static final String CATEGORY_ANSWER_ATTRIBUTE = "category";
     private final QueryFormulation[] queryFormulators_;
     private final int similarQuestionsCount_;
 
@@ -62,8 +68,16 @@ public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
                             }
                             if (!answer.isEmpty()) {
                                 answer = AnswerFormatter.formatAnswer(answer);
-                                bestRelatedAnswers.add(
-                                        new Answer(new Text(answer), url));
+                                Answer answerObj =
+                                        new Answer(new Text(answer), url);
+                                answerObj.setAttribute(
+                                        CATEGORY_ANSWER_ATTRIBUTE,
+                                        String.join("\t", qa.categories));
+                                answerObj.setAttribute(
+                                        WebSearchAnswerRetrieval
+                                                .PAGE_TITLE_ATTRIBUTE,
+                                        qa.title);
+                                bestRelatedAnswers.add(answerObj);
                             }
                         });
             }

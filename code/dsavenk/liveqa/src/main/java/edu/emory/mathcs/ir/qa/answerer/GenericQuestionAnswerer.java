@@ -18,10 +18,14 @@ public class GenericQuestionAnswerer implements QuestionAnswering {
      * @param answerRetrieval The candidate answer retrieval object.
      * @param answerSelector Candidate answer selection object.
      */
-    GenericQuestionAnswerer(AnswerRetrieval answerRetrieval,
+    public GenericQuestionAnswerer(AnswerRetrieval answerRetrieval,
                             AnswerSelection answerSelector) {
         answerRetrieval_ = answerRetrieval;
         answerSelector_ = answerSelector;
+    }
+
+    private static Answer getDefaultAnswer() {
+        return new Answer("I don't know :(", "");
     }
 
     @Override
@@ -29,9 +33,5 @@ public class GenericQuestionAnswerer implements QuestionAnswering {
         return answerSelector_.chooseBestAnswer(question,
                 answerRetrieval_.retrieveAnswers(question))
                 .orElse(getDefaultAnswer());
-    }
-
-    private static Answer getDefaultAnswer() {
-        return new Answer("I don't know :(", "");
     }
 }

@@ -2,6 +2,10 @@ package edu.emory.mathcs.ir.qa;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 /**
  * Stores the answer to a question along with some meta-information.
  */
@@ -11,6 +15,11 @@ public class Answer {
 
     // Source of the answer, e.g. URL of a webpage.
     private final String source_;
+
+    // Some attributes of the answer.
+    // TODO(denxx): Refactor this, need to have a better way to query and set
+    // this attributes.
+    private final Map<String, String> attributes_ = new HashMap<>();
 
     /**
      * Creates the answer with the given text.
@@ -43,6 +52,28 @@ public class Answer {
      */
     public String getSource() {
         return source_;
+    }
+
+    /**
+     * Returns the attribute with the given name if present or empty.
+     *
+     * @param attribute The name of the attribute to return.
+     * @return The value of the attribute or empty.
+     */
+    public Optional<String> getAttribute(String attribute) {
+        return attributes_.containsKey(attribute) ?
+                Optional.of(attributes_.get(attribute)) :
+                Optional.empty();
+    }
+
+    /**
+     * Sets the value of the attribute with the given name.
+     *
+     * @param attribute The name of the attribute.
+     * @param value     The value of the attribute.
+     */
+    public void setAttribute(String attribute, String value) {
+        attributes_.put(attribute, value);
     }
 
     @Override
