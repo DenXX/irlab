@@ -46,9 +46,13 @@ public class YahooAnswersAndWebQuestionsAnswerer implements QuestionAnswering {
         question.setCategories(
                 YahooAnswersScraper.getQuestionCategories(question));
 
-        return answerSelector_.chooseBestAnswer(question,
-                answerRetrieval_.retrieveAnswers(question))
-                .orElse(getDefaultAnswer());
+        try {
+            return answerSelector_.chooseBestAnswer(question,
+                    answerRetrieval_.retrieveAnswers(question))
+                    .orElse(getDefaultAnswer());
+        } catch (Exception e) {
+            return getDefaultAnswer();
+        }
     }
 
     private Answer getDefaultAnswer() {
