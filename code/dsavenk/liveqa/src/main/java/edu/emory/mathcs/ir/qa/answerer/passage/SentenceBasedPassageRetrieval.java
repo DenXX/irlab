@@ -17,6 +17,8 @@ public class SentenceBasedPassageRetrieval implements PassageRetrieval {
 
         for (int startSentence = 0; startSentence < text.getSentences().length;
              ++startSentence) {
+            if (text.getSentences()[startSentence].tokens.length < 3) continue;
+
             final int startCharOffset =
                     text.getSentences()[startSentence].charBeginOffset;
             int endSentence = startSentence;
