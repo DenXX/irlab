@@ -244,7 +244,7 @@ public class AppConfig {
                 getFeatureGenerator());
     }
 
-    public static QueryFormulation[] getQueryFormulators() {
+    public static QueryFormulation[] getYaQueryFormulators() {
         return new QueryFormulation[] {
                 new SimpleQueryFormulator(true, false),
                 new SimpleQueryFormulator(false, false),
@@ -256,6 +256,13 @@ public class AppConfig {
                         getQuestionAnswerIndexReader(), true, 5),
                 new TopIdfTermsQueryFormulator(
                         getQuestionAnswerIndexReader(), false, 5),
+        };
+    }
+
+    public static QueryFormulation[] getWebQueryFormulators() {
+        return new QueryFormulation[]{
+                new SimpleQueryFormulator(true, false),
+                new SimpleQueryFormulator(false, false),
         };
     }
 }

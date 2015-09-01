@@ -24,18 +24,19 @@ public class YahooAnswersAndWebQuestionsAnswerer implements QuestionAnswering {
             throws IOException {
         answerRetrieval_ = new CombinerAnswerRetrieval(
                 getYaAnswerRetrieval(),
-                getWebAnswerRetrieval());
+                getWebAnswerRetrieval()
+        );
         answerSelector_ = answerSelector;
     }
 
     private AnswerRetrieval getWebAnswerRetrieval() {
-        return new WebSearchAnswerRetrieval(AppConfig.getQueryFormulators(),
+        return new WebSearchAnswerRetrieval(AppConfig.getWebQueryFormulators(),
                 new BingWebSearch(), new SentenceBasedPassageRetrieval());
     }
 
     private AnswerRetrieval getYaAnswerRetrieval() {
         return new YahooAnswersSimilarQuestionRetrieval(
-                AppConfig.getQueryFormulators(),
+                AppConfig.getYaQueryFormulators(),
                 Integer.parseInt(AppConfig.PROPERTIES.getProperty(
                         AppConfig.SIMILAR_QUESTIONS_COUNT_PARAMETER)));
     }
