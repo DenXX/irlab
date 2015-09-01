@@ -1,5 +1,6 @@
 package edu.emory.mathcs.ir.qa;
 
+import edu.emory.mathcs.ir.qa.answerer.query.AddCategoryNameToQuery;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
 import edu.emory.mathcs.ir.qa.answerer.query.SimpleQueryFormulator;
 import edu.emory.mathcs.ir.qa.answerer.query.TopIdfTermsQueryFormulator;
@@ -249,10 +250,12 @@ public class AppConfig {
                 new SimpleQueryFormulator(false, false),
                 new SimpleQueryFormulator(true, true),
                 new SimpleQueryFormulator(false, true),
+                new AddCategoryNameToQuery(new SimpleQueryFormulator(false, true)),
+                new AddCategoryNameToQuery(new SimpleQueryFormulator(true, true)),
                 new TopIdfTermsQueryFormulator(
-                        getQuestionAnswerIndexReader(), true, 0.5),
+                        getQuestionAnswerIndexReader(), true, 5),
                 new TopIdfTermsQueryFormulator(
-                        getQuestionAnswerIndexReader(), false, 0.5),
+                        getQuestionAnswerIndexReader(), false, 5),
         };
     }
 }
