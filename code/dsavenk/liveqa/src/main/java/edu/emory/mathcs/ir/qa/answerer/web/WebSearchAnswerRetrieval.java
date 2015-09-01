@@ -86,7 +86,7 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
                                 .filter(p -> question.getTitle()
                                         .getLemmaSet(true)
                                         .stream()
-                                        .anyMatch(p.getAnswer().text::contains))
+                                        .anyMatch(p.getAnswer().getLemmaSet(true)::contains))
                                 .map(a -> {
                                     a.setAttribute(PAGE_TITLE_ATTRIBUTE, result.title);
                                     return a;
