@@ -436,6 +436,14 @@ public class Text {
         public boolean isWord() {
             return pos.length() == 0 || Character.isAlphabetic(pos.charAt(0));
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Token) {
+                return lemma.equals(((Token) obj).lemma);
+            }
+            return false;
+        }
     }
 
     /**

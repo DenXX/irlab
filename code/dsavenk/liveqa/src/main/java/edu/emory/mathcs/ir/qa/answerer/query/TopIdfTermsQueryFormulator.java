@@ -10,8 +10,9 @@ import org.apache.lucene.search.IndexSearcher;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -21,14 +22,14 @@ import java.util.stream.Collectors;
 public class TopIdfTermsQueryFormulator implements QueryFormulation {
     private final IndexSearcher searcher_;
     private boolean includeBody_;
-    private double idfMaxRatioThreshold_;
+    private int topN_;
 
     public TopIdfTermsQueryFormulator(IndexReader reader,
                                       boolean includeBody,
-                                      double idfMaxRatioThreshold) {
+                                      int topN) {
         searcher_ = new IndexSearcher(reader);
         includeBody_ = includeBody;
-        idfMaxRatioThreshold_ = idfMaxRatioThreshold;
+        topN_ = topN;
     }
 
     @Override
@@ -41,20 +42,40 @@ public class TopIdfTermsQueryFormulator implements QueryFormulation {
     }
 
     private String[] getTopTermsByIdfRatio(Text text) {
-        List<ObjectWithScore<String>> termsScores =
+        Map<String, Double> termsIdfScores =
                 Arrays.stream(text.getTokens())
-                .map(token -> QnAIndexDocument.getAnalyzedTerm(token.text))
-                .filter(term -> !term.isEmpty())
-                .map(term -> new ObjectWithScore<>(term, idf(term)))
-                .sorted(Collections.reverseOrder())
-                .collect(Collectors.toList());
+                        .filter(term ->
+                                !QnAIndexDocument.getAnalyzedTerm(
+                                        term.text).isEmpty())
+                        .collect(Collectors.toMap(term -> term.lemma,
+                                term -> idf(QnAIndexDocument.getAnalyzedTerm(
+                                        term.text)), (e1, e2) -> e1));
 
-        if (!termsScores.isEmpty()) {
-            final double maxScore = termsScores.get(0).score;
-            return termsScores.stream().filter(termIdf ->
-                    termIdf.score / maxScore < idfMaxRatioThreshold_)
-                    .map(termIdf -> termIdf.object)
-                    .toArray(String[]::new);
+        Map<String, Long> termsTfScores =
+                Arrays.stream(text.getTokens())
+                        .filter(term -> !QnAIndexDocument.getAnalyzedTerm(
+                                term.text).isEmpty())
+                        .collect(Collectors.groupingBy(term -> term.lemma,
+                                Collectors.counting()));
+
+        if (!termsIdfScores.isEmpty()) {
+            final long maxTf = termsTfScores.entrySet()
+                    .stream()
+                    .max((e1, e2) -> e1.getValue().compareTo(e2.getValue()))
+                    .get().getValue();
+
+            List<String> termScores =
+                    termsIdfScores.entrySet()
+                            .stream()
+                            .map(e -> new ObjectWithScore<>(e.getKey(),
+                                    e.getValue() * (0.5 + 0.5 *
+                                            termsTfScores.get(e.getKey()) / maxTf)))
+                            .sorted(Comparator.reverseOrder())
+                            .map(term -> term.object)
+                            .collect(Collectors.toList());
+
+            return termScores.subList(0, Math.min(termScores.size(), topN_))
+                    .toArray(new String[Math.min(termScores.size(), topN_)]);
         }
         return new String[0];
     }

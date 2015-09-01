@@ -2,7 +2,6 @@ package edu.emory.mathcs.ir.utilapps;
 
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
-import edu.emory.mathcs.ir.qa.answerer.query.TestQueryFormulator;
 import edu.emory.mathcs.ir.qa.answerer.query.TopIdfTermsQueryFormulator;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -24,7 +23,7 @@ public class Question2QueryTestApp {
                 DirectoryReader.open(FSDirectory.open(
                         FileSystems.getDefault().getPath(args[0])));
         QueryFormulation queryFormulation =
-                new TopIdfTermsQueryFormulator(indexReader, false, 0.5);
+                new TopIdfTermsQueryFormulator(indexReader, false, 5);
 
         String line;
         while ((line = input.readLine()) != null) {
@@ -32,7 +31,7 @@ public class Question2QueryTestApp {
             final Question question =
                     new Question("", lineFields[0],
                             lineFields.length > 1 ? lineFields[1] : "", "");
-            queryFormulation.getQuery(question);
+            System.out.println(queryFormulation.getQuery(question));
         }
     }
 }
