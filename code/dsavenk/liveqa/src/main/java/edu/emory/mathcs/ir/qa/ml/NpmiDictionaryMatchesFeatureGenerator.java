@@ -74,7 +74,7 @@ public class NpmiDictionaryMatchesFeatureGenerator implements FeatureGeneration 
                         }
                         avgNpmi += score;
                         minNpmi = Math.min(minNpmi, score);
-                        maxNpmi = Math.min(maxNpmi, score);
+                        maxNpmi = Math.max(maxNpmi, score);
 
                         if (!term.equals(token.lemma)) {
                             maxNotSameTokenNpmi =

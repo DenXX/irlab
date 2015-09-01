@@ -10,6 +10,7 @@ import edu.emory.mathcs.ir.qa.answerer.web.WebSearchAnswerRetrieval;
 import edu.emory.mathcs.ir.scraping.YahooAnswersScraper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -40,49 +41,51 @@ public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
 
     @Override
     public Answer[] retrieveAnswers(Question question) {
-        final List<Answer> bestRelatedAnswers = new ArrayList<>();
-        for (QueryFormulation queryFormulator : queryFormulators_) {
-            final String query = queryFormulator.getQuery(question);
+        return Arrays.stream(queryFormulators_)
+                .parallel()
+                .flatMap(queryFormulator -> {
+                    List<Answer> bestRelatedAnswers = new ArrayList<>();
+                    final String query = queryFormulator.getQuery(question);
 
-            final String[] relatedQuestionIds =
-                    YahooAnswersScraper.GetRelatedQuestionIds(
-                            query, similarQuestionsCount_);
+                    final String[] relatedQuestionIds =
+                            YahooAnswersScraper.GetRelatedQuestionIds(
+                                    query, similarQuestionsCount_);
 
-            // Get over the list of related questions and retrieve their best
-            // answers.
-            int index = 0;
-            for (String qid : relatedQuestionIds) {
-                // Skip retrieved answer if it is the same as the query.
-                if (question.getId().equals(qid)) continue;
+                    // Get over the list of related questions and retrieve their best
+                    // answers.
+                    int index = 0;
+                    for (String qid : relatedQuestionIds) {
+                        // Skip retrieved answer if it is the same as the query.
+                        if (question.getId().equals(qid)) continue;
 
-                // We only need to take top similarQuestionsCount_ questions.
-                if (index++ > similarQuestionsCount_) break;
-                YahooAnswersScraper.GetQuestionAnswerData(qid)
-                        .ifPresent(qa -> {
-                            final String url =
-                                    YahooAnswersScraper.GetQuestionAnswerUrl(
-                                            qid);
-                            String answer = qa.bestAnswer;
-                            if (answer.isEmpty() && qa.answers.length > 0) {
-                                answer = qa.answers[0];
-                            }
-                            if (!answer.isEmpty()) {
-                                answer = AnswerFormatter.formatAnswer(answer);
-                                Answer answerObj =
-                                        new Answer(new Text(answer), url);
-                                answerObj.setAttribute(
-                                        CATEGORY_ANSWER_ATTRIBUTE,
-                                        String.join("\t", qa.categories));
-                                answerObj.setAttribute(
-                                        WebSearchAnswerRetrieval
-                                                .PAGE_TITLE_ATTRIBUTE,
-                                        qa.title);
-                                bestRelatedAnswers.add(answerObj);
-                            }
-                        });
-            }
-        }
-        return bestRelatedAnswers.toArray(
-                new Answer[bestRelatedAnswers.size()]);
+                        // We only need to take top similarQuestionsCount_ questions.
+                        if (index++ > similarQuestionsCount_) break;
+                        YahooAnswersScraper.GetQuestionAnswerData(qid)
+                                .ifPresent(qa -> {
+                                    final String url =
+                                            YahooAnswersScraper.GetQuestionAnswerUrl(
+                                                    qid);
+                                    String answer = qa.bestAnswer;
+                                    if (answer.isEmpty() && qa.answers.length > 0) {
+                                        answer = qa.answers[0];
+                                    }
+                                    if (!answer.isEmpty()) {
+                                        answer = AnswerFormatter.formatAnswer(answer);
+                                        Answer answerObj =
+                                                new Answer(new Text(answer), url);
+                                        answerObj.setAttribute(
+                                                CATEGORY_ANSWER_ATTRIBUTE,
+                                                String.join("\t", qa.categories));
+                                        answerObj.setAttribute(
+                                                WebSearchAnswerRetrieval
+                                                        .PAGE_TITLE_ATTRIBUTE,
+                                                qa.title);
+                                        bestRelatedAnswers.add(answerObj);
+                                    }
+                                });
+                    }
+                    return bestRelatedAnswers.stream();
+                })
+                .toArray(Answer[]::new);
     }
 }
