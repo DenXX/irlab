@@ -78,12 +78,15 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
                         // Generate passages from the current documents.
                         final Text[] currentPassages =
                                 passageRetrieval_.getPassages(
-                                        new Text(AnswerFormatter.formatAnswer(
-                                                result.content)), maxLength_);
+                                        new Text(result.content), maxLength_);
 
                         // Add passages to the list of answers.
                         Arrays.stream(currentPassages)
                                 .map(p -> new Answer(p, result.url))
+                                .filter(p -> question.getTitle()
+                                        .getLemmaSet(true)
+                                        .stream()
+                                        .anyMatch(p.getAnswer().text::contains))
                                 .map(a -> {
                                     a.setAttribute(PAGE_TITLE_ATTRIBUTE, result.title);
                                     return a;
