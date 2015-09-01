@@ -10,7 +10,7 @@ import java.io.IOException;
  * Created by dsavenk on 8/5/15.
  */
 public class LiveQaServer extends TrecLiveQaDemoServer {
-    public static final String PARTICIPANT_ID = "emory-test-01";
+    public static final String PARTICIPANT_ID = "emory-irlab";
     private static final String HOST = "0.0.0.0";
 
     // QA system.
