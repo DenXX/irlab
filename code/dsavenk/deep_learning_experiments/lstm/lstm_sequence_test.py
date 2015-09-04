@@ -64,8 +64,5 @@ def main():
     score, acc = model.evaluate(X_test, y_test, batch_size=BATCH_SIZE,
                                 show_accuracy=True)
 
-
-    model.fit(X, y)
-
 if __name__ == "__main__":
     main()
