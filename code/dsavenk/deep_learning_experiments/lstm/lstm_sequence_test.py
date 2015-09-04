@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 __author__ = 'dsavenk'
 
 import sys
@@ -14,10 +16,10 @@ from keras.preprocessing.sequence import pad_sequences
 VOCABULARY_SIZE = 100
 EMBEDDING_DIMENSION = 32
 HIDDEN_DIMENSION = 32
-TRAINING_SIZE = 10000
+TRAINING_SIZE = 100000
 TEST_SIZE = 1000
-BATCH_SIZE = 100
-EPOCHS = 20
+BATCH_SIZE = 200
+EPOCHS = 50
 
 
 def generate_sequence(label, length):
@@ -63,6 +65,7 @@ def main():
     print("Testing...", file=sys.stderr)
     score, acc = model.evaluate(X_test, y_test, batch_size=BATCH_SIZE,
                                 show_accuracy=True)
+    print("Testing performance = " + score + ", acc = " + acc)
 
 if __name__ == "__main__":
     main()
