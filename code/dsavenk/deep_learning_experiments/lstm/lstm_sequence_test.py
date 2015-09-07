@@ -56,17 +56,17 @@ def generate_data(size):
     return pad_sequences(X, maxlen=21), np.array(y)
 
 
-def generate_data2(size):
+def generate_data2(size, length=20):
     X1 = []
     X2 = []
     y = []
     for i in range(size):
         label = random.random() > 0.5
-        X = generate_sequence2(label, 20)
+        X = generate_sequence2(label, length)
         X1.append(X[0])
-        X2.append(X[0])
+        X2.append(X[1])
         y.append(1 if label else -1)
-    return pad_sequences(X1, maxlen=10), pad_sequences(X2, maxlen=10), np.array(y)
+    return pad_sequences(X1, maxlen=int(length/2)), pad_sequences(X2, maxlen=int(length/2)), np.array(y)
 
 
 def main_singlemodel():
@@ -99,16 +99,15 @@ def main_separatemodels():
     print('Defining network...', file=sys.stderr)
     firstlstm = Sequential()
     firstlstm.add(Embedding(VOCABULARY_SIZE, EMBEDDING_DIMENSION))
-    firstlstm.add(LSTM(EMBEDDING_DIMENSION, HIDDEN_DIMENSION))
+    firstlstm.add(LSTM(EMBEDDING_DIMENSION, HIDDEN_DIMENSION, return_sequences=False))
 
     secondlstm = Sequential()
     secondlstm.add(Embedding(VOCABULARY_SIZE, EMBEDDING_DIMENSION))
-    secondlstm.add(LSTM(EMBEDDING_DIMENSION, HIDDEN_DIMENSION))
+    secondlstm.add(LSTM(EMBEDDING_DIMENSION, HIDDEN_DIMENSION, return_sequences=False))
 
     model = Sequential()
     model.add(Merge([firstlstm, secondlstm], mode='concat'))
-    model.add(Dense(HIDDEN_DIMENSION + HIDDEN_DIMENSION, 1))
-    model.add(Activation('sigmoid'))
+    model.add(Dense(HIDDEN_DIMENSION + HIDDEN_DIMENSION, 1, activation='sigmoid'))
     print('Compiling...', file=sys.stderr)
     model.compile(loss='binary_crossentropy', optimizer='adam', class_mode="binary")
 
