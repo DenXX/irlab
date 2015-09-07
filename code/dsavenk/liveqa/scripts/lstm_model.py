@@ -24,7 +24,7 @@ MAX_TOKEN_LENGTH = 100
 EMBEDDING_DIMENSION = 128
 HIDDEN_DIMENSION = 128
 BATCH_SIZE = 200
-EPOCHS = 50
+EPOCHS = 100
 VOCABULARY_SIZE = 1000000
 
 
@@ -119,9 +119,10 @@ def score_qa_pairs_from_socket(model):
 def main(train_dataset, test_dataset, model_file, do_train):
     np.random.seed(1337)  # for reproducibility
 
-    print("Reading training file...", file=sys.stderr)
-    with open(sys.argv[1]) as train_input:
-        train = get_stories(train_input)
+    if do_train:
+        print("Reading training file...", file=sys.stderr)
+        with open(sys.argv[1]) as train_input:
+            train = get_stories(train_input)
 
     print("Reading test file...", file=sys.stderr)
     with open(sys.argv[2]) as test_input:
@@ -129,7 +130,8 @@ def main(train_dataset, test_dataset, model_file, do_train):
 
     # word_idx = dict((c, i + 1) for i, c in enumerate(vocab))
     print("Vectorizing data...", file=sys.stderr)
-    X_train, Y_train = vectorize_stories(train)
+    if do_train:
+        X_train, Y_train = vectorize_stories(train)
     X_test, Y_test = vectorize_stories(test)
 
     print('Defining layers...', file=sys.stderr)
@@ -171,4 +173,7 @@ def main(train_dataset, test_dataset, model_file, do_train):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4] == "train")
+    EMBEDDING_DIMENSION = int(sys.argv[4])
+    HIDDEN_DIMENSION = int(sys.argv[5])
+    BATCH_SIZE = int(sys.argv[6])
+    main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[7] == "train")
