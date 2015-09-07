@@ -14,12 +14,12 @@ from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 
 VOCABULARY_SIZE = 100
-EMBEDDING_DIMENSION = 32
+EMBEDDING_DIMENSION = 64
 HIDDEN_DIMENSION = 32
 TRAINING_SIZE = 100000
-TEST_SIZE = 1000
-BATCH_SIZE = 200
-EPOCHS = 50
+TEST_SIZE = 10000
+BATCH_SIZE = 500
+EPOCHS = 5000
 
 
 def generate_sequence(label, length):
