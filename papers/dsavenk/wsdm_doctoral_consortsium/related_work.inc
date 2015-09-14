@@ -37,10 +37,15 @@ Despite the pioneering works in question answering as a tool for natural languag
 Review first collection algorithms.
 Review AskMSR, AskMSR+ and redundancy-based techniques.
 
+
 \subsection{KB-based QA}
 Review QALD and work on webquestions dataset.
 
+
 WebQuestions \cite{BerantCFL13:sempre}, \cite{YaoD14}, \cite{BerantL14:parasempre}, \cite{ReddyLS14}, \cite{BordesCW14:emnlp}, \cite{yao-scratch-qa-naacl2015}, \cite{bastmore:cikm:2015:aquu}, \cite{yih:ACL:2015:STAGG}
+
+
+
 
 
 \subsection{Hybrid techniques}
