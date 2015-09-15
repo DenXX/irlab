@@ -83,5 +83,5 @@ For example, in Table \ref{table:kbqa_example} we can find a sentence from Wikip
 \end{figure}
 
 
-\textbf{Don't have a good idea what to do. Need to remove semantic ungrounded graph, but what to replace it with...}
-Finally, to solve the problem of compositionality of questions .... following the idea proposed in \cite{ReddyLS14} learn lexical features from raw sentences and their distantly supervised alignments to a KB, but avoid expensive and innaccurate semantic parsing step and learn direct associations between surface features and KB elements
+Finally, to solve the problem of compositionality of queries following the idea proposed in \cite{ReddyLS14} learn lexical features from raw sentences and their distantly supervised alignments to a KB, but avoid expensive and innaccurate semantic parsing step and learn direct associations between surface features and KB elements.
+\textbf{Actually I don't have a very good idea how to do this, probably need to remove this paragraph}.
