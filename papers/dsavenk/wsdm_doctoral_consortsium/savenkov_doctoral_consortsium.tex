@@ -96,11 +96,13 @@ Denis Savenkov\\
 
 \maketitle
 \begin{abstract}
-Modern question answering systems employ a variety of different data sources (such as unstructured natural language text paragraphs, existing question-answer (QnA) pairs and structured knowledge bases (KB)) for candidate generation.
-However, typically each data source is used independently by different components to generate answer candidates, which are then jointly ranked and the best answer is selected.
-I propose to enrich the expressiveness of data representation of each of the data sources with other available information for joint reasoning.
-More specifically, KB entity and relation annotations can be very useful for question answering systems over text fragments, and unstructured textual data can help to connect structured knowledge representation in a KB with natural language text of the question.
-I also propose to use existing QnA pairs from community question answering (CQA) websites both as training data for both text- and KB-based question answering systems.
+Modern question answering (QA) systems employ a variety of different unstructured (text documents), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases) data sources.
+However, a typical system usually generates candidate answers from each of them independently and merges and ranks them afterwards.
+The idea proposed in this work is combine all the available data sources together on the candidate generation stage and enrich each of the data representation with the information available through the other data sources.
+More specifically, text documents that mention entities from a knowledge base (KB) can be extended with the information about properties and connections of these entities, and text fragments mentioning the entities and relations can help question answering systems over knowledge bases to bridge the lexical gap between natural language questions and structured query representation.
+
+% This is probably not that related.
+% I also propose to use existing QnA pairs from community question answering (CQA) websites both as training data for both text- and KB-based question answering systems.
 
 \end{abstract}
 
@@ -142,6 +144,13 @@ I also propose to use existing QnA pairs from community question answering (CQA)
 %\balancecolumns
 \appendix
 %Appendix A
+During the course of my studies I've worked on a number of different topics, starting from click log analysis, mobile user behavior, search user assistance and recently I've pivoted to information extraction and question answering.
+I've decided to focus on question answering for my research even though so far I haven't got much experience in the area.
+Having decided on a general direction of my future research I would definitely benefit from attending the WSDM Doctoral Consortium, which would let me get an extended feedback from experienced researchers with experience related to different sides of the direction of the proposed research.
+
+
+
+
 The second part, limited to one (1) page, describes benefits that would be obtained by attending the Consortium. It should be added as an appendix to the research statement and include:
 
 A statement by the student saying why they want to attend the Consortium.

@@ -1,6 +1,6 @@
-To enrich the data representation for QA systems I propose to combine available structured, semi-structured and unstructured data sources and do joint inference to improve question answering over both natural language text collections and knowledge bases.
+In this work I propose to enrich the input data representation for QA systems by combining available unstructured, semi-structured and unstructured data sources for joint reasoning, which can improve the performance of question answering over both text collections and knowledge bases.
 
-\subsection{Text-based question answering}
+\subsection{Unstructured data QA}
 \subsubsection{Using Knowledge Base for text-based QA}
 
 \begin{figure}
@@ -10,26 +10,21 @@ To enrich the data representation for QA systems I propose to combine available 
 \label{fig:text_kb}
 \end{figure}
 
-
-For question answering over natural language document collections I propose to extend the text representation with annotations about mentioned entities and their relations from structured knowledge bases such as Freebase.
-For example, below is one of the questions from TREC QA 2007:\\
-\textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''}\\
-A candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''} mentions a senator ``Harry Reid'' and clearly says about his support of the nomination.
-However, ``Harry Reid'' is not a correct answer to the question because he is a democrat.
-This information is not available in the text fragment and a QA system needs to employ external information, such as knowledge present in a KB.
-Similar to \cite{Sun:2015:ODQ:2736277.2741651} existing entity linking approaches can be used to find KB entities mentioned in the text and enrich the unstructured text with the corresponding subgraph from the knowledge base (see Figure \ref{fig:text_kb}).
-For the provided example we can discover a triple [Harry Reid, politician party, Democratic Party], which give us an evidence that this candidate is not a match for a ``republican senator'' in the question.
-
+For question answering over natural language document collections I propose to extend the text representation with annotations about mentioned entities and their relations from open \cite{Fader:2014:OQA:2623330.2623677} or schema-based knowledge bases (e.g. dbPedia or Freebase).
+Such representation allows not only find different mentions of the same entity, but also look into the connections of the mentioned entities in order to learn more about the candidate answer, i.e. whether there is a certain property that is related to phrases in the question, or is there a connection between entities mentioned in the question and what predicate does it relate to.
+For example, for the question mentioned in the introduction \textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''} and a candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''}, which mentions a senator ``Harry Reid'' the joint text-KB representation looks like Figure \ref{fig:text_kb}.
+And a QA system can discover that ``Harry Reid'' political affiliation is with the Democratic Party, and he cannot be referred to as ``republican senator'' as expected in the question.
 In other cases using a KB as additional source of information may reveal specific connections between entities in the question and in the answer candidates.
-For example, for another TREC QA 2007 question \textit{``For which newspaper does Krugman write?''} and an answer \textit{New York Times} a path between ``Paul Krugman'' and ``New York Times'' in the knowledge graph gives an evidence in support of the candidate.
+For example, for another TREC QA 2007 question \textit{``For which newspaper does Krugman write?''} and retrieved candidate answer \textit{New York Times} a path between ``Paul Krugman'' and ``New York Times'' in the knowledge graph gives an evidence in support of the candidate.
 
 To do this kind of inference I propose:
 \begin{itemize}
-\item use existing entity linking approaches to find KB entities mentioned in question and answer candidates
-\item follow machine learning approach for candidate answer ranking and extend the feature representation with features derived from the KB subgraph analysis
+\item use existing entity linking approaches to find KB entities mentioned in a question and corresponding answer candidates
+\item for each mentioned entities extract a subgraph containing its neighbourhood up to certain number of edges away and paths to other mentioned entities
+\item follow maching learning approach for candidate answer ranking and extend the feature representaion with features derived from the subgraph analysis. Example of features are:
 	\begin{itemize}
-	\item check if there are any connections between entities mentioned in the question and in a candidate answer and output features including connecting path, its combination with words and n-grams from the question, etc.
-	\item output similarity features between entities connected to entities mentioned in a candidate answer and the text of the question. This similarity can be computed using either either textual representation such as tf-idf (obtained from the available textual description of predicates and entities or from surface patterns learned with distant supervision \cite{MintzBSJ09} over a large corpus of text) or using embeddings \cite{BordesCW14:emnlp}.
+	\item features describing discovered connections between entities mentioned in a question and a candidate answer, such as indicators of the relations, combination of relations with words and n-grams from the questions, similarity between the relations and the question text (using tf-idf or embeddings representation), etc. Textual representation of the predicates in structured knowledge bases can be obtained either from its description or using patterns learned from a large collection using distant supervision \cite{MintzBSJ09}.
+	\item features describing the entities mentioned in the answer, i.e. similarities between entity properties and question words, n-grams and phrases, etc.
 	\end{itemize}
 \end{itemize}
 
