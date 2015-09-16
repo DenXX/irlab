@@ -34,7 +34,7 @@ Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007db
 Developed models can be compared on annual QALD shared task \footnote{http://greententacle.techfak.uni-bielefeld.de/~cunger/qald/} and on a number of available benchmark datasets, among which one of the most popular dataset is called WebQuestions \cite{BerantCFL13:sempre}.
 In the last couple of years many different approaches were tested on the later dataset, and can be classified into information extraction and semantic parsing based approaches based on whether the system generates and ranks a set of candidates first or builds an accurate semantic parse from the beginning.
 A number of different lexical resources have been used, e.g. alignment of Freebase to a large text collection such as ClueWeb \cite{BerantCFL13:sempre, YaoD14, ReddyLS14}, question paraphrases clusters from WikiAnswers \cite{BerantL14:parasempre}, Freebase triples rephrased as questions \cite{BordesCW14:emnlp}.
-In some approaches embeddings of text and/or knowledge base predicates are used instead of word and phrase matches \cite{BordesCW14:emnlp,yih:ACL:2015:STAGG).
+In some approaches embeddings of text and/or knowledge base predicates are used instead of word and phrase matches \cite{BordesCW14:emnlp,yih:ACL:2015:STAGG}).
 
 However, most of the models are trained on the QnA pairs from the WebQuestions dataset and are somewhat biased towards the questions patterns present in the training set.
 Alternatively, \cite{ReddyLS14} proposed to train a question answering system from sentences in a text corpus containing KB entities and not using any training question-answer corpora.
