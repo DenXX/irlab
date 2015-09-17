@@ -1,9 +1,10 @@
 The ability to answer user questions with precise and concise information is a hard problem with a long history of research.
 Recently we witnesses some successes of QA systems, i.e. IBM Watson winning the Jeopardy! TV show, major companies adapting question answering technologies (Apple Siri, Google Now, Microsoft Cortana, etc). 
 However, these systems are still very limited and we have a lot to do to move beyond these 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
-One of the main challenges for question answering systems is \textbf{DESCRIBE THE GLOBAL PROBLEM}.
 
+One of the main challenges for question answering systems is to leverage all various available sources of knowledge in order to find the correct answer to the given question.
 There are two main approaches to question answering: question over unstructured text collections, and over structured knowledge bases (e.g. dpPedia, Freebase, etc. \cite{auer2007dbpedia,Bollacker:2008:FCC:1376616.1376746}).
+The main idea of the proposed research is to enrich unstructed data with available structured knowledge and vice versa to give the candidate answer ranking model more information to reason with.
 
 Text-bases QA systems were shown to be quite effective on the TREC QA tasks as well as on other benchmark datasets \cite{dang2007overview}.
 These systems first retrieve a set of documents using the question or some transformation of the question as the query \cite{AgichteinLG01}, and then extract entities, phrases, sentences or paragraphs believed to be the answer to the question.

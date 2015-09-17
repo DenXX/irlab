@@ -1,7 +1,6 @@
 In this work I propose to enrich the input data representation for QA systems by combining available unstructured, semi-structured and unstructured data sources for joint reasoning, which can improve the performance of question answering over both text collections and knowledge bases.
 
 \subsection{Unstructured data QA}
-\subsubsection{Using Knowledge Base for text-based QA}
 
 \begin{figure}
 \centering
@@ -19,8 +18,9 @@ For example, for another TREC QA 2007 question \textit{``For which newspaper doe
 
 To do this kind of inference I propose:
 \begin{itemize}
-\item use existing entity linking approaches to find KB entities mentioned in a question and corresponding answer candidates
-\item for each mentioned entities extract a subgraph containing its neighbourhood up to certain number of edges away and paths to other mentioned entities
+\item use existing approaches for document retrieval (e.g. web search usign question as a query as in \cite{tsai2015web}) and extracting answer candidates.
+\item use existing entity linking approaches to find KB entities mentioned in a question and corresponding answer candidates.
+\item for each mentioned entities extract a subgraph containing its neighbourhood up to certain number of edges away and paths to other mentioned entities.
 \item follow maching learning approach for candidate answer ranking and extend the feature representaion with features derived from the subgraph analysis. Example of features are:
 	\begin{itemize}
 	\item features describing discovered connections between entities mentioned in a question and a candidate answer, such as indicators of the relations, combination of relations with words and n-grams from the questions, similarity between the relations and the question text (using tf-idf or embeddings representation), etc. Textual representation of the predicates in structured knowledge bases can be obtained either from its description or using patterns learned from a large collection using distant supervision \cite{MintzBSJ09}.
@@ -28,14 +28,10 @@ To do this kind of inference I propose:
 	\end{itemize}
 \end{itemize}
 
-\subsubsection{Using CQA data for text-based QA}
-For non-factoid questions it is important to understand the language used in answers to express certain types of information.
-Question answering systems benefit from more training data and I propose to use QnA pairs available on CQA websites as a training data for a model, which will learn associations between question intent and words and phrases used in the answer text.
-Associations can be learned using word representation in a form of conditional probabilities ($p(w_a|w_{q_1},...,w_{q_n}$) or pointwise mutual information.
-Another approach is to employ the deep learning models and information about question and answer phrases with embeddings \cite{WangN15}.
+For training text-based QA model I propose to use available QnA pairs from community question answering websites, which represent real user tasks and after certain filtering can be a good fit for learning both factoid and non-factoid question answering systems.
+The data can help learn more associations between the language used in questions and their corresponding answers, which can be encoded as conditional probabilities (e.g. $p(w_a|w_{q_1},...,w_{q_n}$, where $w_a$ is a word of the answer and $w_{q_i}$ is some subset of the question words), pointwise mutual information or by employing deep learning techniques \cite{WangN15}.
 
-
-\subsection{Question Answering over linked data}
+\subsection{Structured data QA}
 
 \begin{table}
 \centering
@@ -47,28 +43,36 @@ Provided answer & ``Writer'', ``Politician'', ``Lawyer'', ``Attorneys in the Uni
 \hline
 Correct answer & Rielle Hunter\\
 \hline
-QnA pair from Yahoo! Answers & Who was it that John Edwards had an affair with? Today, John Edwards admitted to having an affair with filmmaker Rielle Hunter.\\
-\hline
 Phrase from Wikipedia & John Edwards had engaged in an affair with Rielle Hunter...\\
+\hline
+QnA pair from Yahoo! Answers & Who was it that John Edwards had an affair with? Today, John Edwards admitted to having an affair with filmmaker Rielle Hunter.\\
 \hline
 \end{tabular}
 \label{table:kbqa_example}
 \end{table}
 
-
-Systems for question answering over linked data need to have a big lexicon to be able to connect unstructured text with the corresponding parts of a structured query and they benefit from more training data.
-I propose to use large collections of QnA pairs available on various CQA websites both for training and as additional signal for best answer selection.
+Systems for knowledge base question answering usually are based upon a lexicon, that helps them to map natural language question into the structured knowledge base query.
+In some cases the lexicon is encoded into the features of the trained model, that ranks candidate structured queries \cite{yao-scratch-qa-naacl2015}.
+I propose to extend candidate answers and the corresponding structured queries with the available unstructured data, e.g. include relation extraction patterns for used predicates, paragraphs of text mentioning involed entities, etc (see Figure \ref{fig:kb_text}).
 For example, Table \ref{table:kbqa_example} shows an example of question from popular WebQuestions dataset \cite{BerantCFL13:sempre}, that is answered incorrectly by a state-of-the-art system.
-A similar training example is missing in the dataset, however one (in this case even about the same entities) can be found on Yahoo! Answers.
-For training, existing entity linking approaches can be used to find mentions of KB entities.
-For QnA pairs with at least one entity in the question and answer it is possible to generate candidate structured queries given the question and treat the ones that produce the entities mentioned in the answer as correct ones (after some noise filtering).
+A similar question is missing from the training set, however, an easy web search can retrieve a sentence that mention question and answer entities and give enough supporting evidence to answer this question correctly.
 
-However, the amount of labelled or weakly labelled information available for training is still very limited compared to the the amount of data available on the web.
-Training also ``compresses'' the information present in the training set and some rare signals might get lost (e.g. due to feature selection).
-For example, in some cases even if a question similar to the given test question was present during training, the model might not include enough information to answer it correctly.
-This information can be used during testing as additional features.
-The proposal is to extend the knowledge base representation with available textual information (Figure \ref{fig:kb_text}) by retrieving a set of existing QnA pairs, sentences or phrases mentionining question and candidate answers, as well as patterns used to expressed predicates from the constructed candidate KB query.
-For example, in Table \ref{table:kbqa_example} we can find a sentence from Wikipedia, that may be used to support the candidate generating ``Rielle Hunter'' as the answer.
+More speficically, I propose:
+\begin{itemize}
+\item Use one of the available state of the art systems, such as \cite{bastmore:cikm:2015:aquu}, as a baseline
+\item Extend a set of features representing a candidate answer with features derived from retrieved unstructured data sources, for example:
+	\begin{itemize}
+	\item from large document collection (such as the web) retrieve a set of passages by querying a search system with question, question + answer, question and answer entities as queries.
+	\item find mentions of answer entities in the passages and use some aggregated statistics as features for the corresponding candidates.
+	\item for each candidate answer retrieve a set of patterns used to express the corresponding relation obtained using distant supervision from a large text collection and compute the similarities between these patterns and the question text to use as features.
+	\end{itemize}
+\end{itemize}
+
+In addition, I propose to include QnA pairs from CQA websites as weakly labelled training data.
+The example in \ref{table:kbqa_example} shows that systems trained on small labelled dataset might not generalize well to question not seen during training.
+However, a similar quesition is actually present in Yahoo! Answers\footnote{http://answers.yahoo.com/}.
+Therefore, using weakly labelled corpus derived from QnA pairs from a CQA websites can help a system to learn to answer questions of different type.
+To do this, for QnA pairs with at least one entity in the question and answer it is possible to generate candidate structured queries given the question and treat the ones that produce the entities mentioned in the answer as correct ones (after some noise filtering).
 
 \begin{figure}
 \centering
@@ -78,5 +82,5 @@ For example, in Table \ref{table:kbqa_example} we can find a sentence from Wikip
 \end{figure}
 
 
-Finally, to solve the problem of compositionality of queries following the idea proposed in \cite{ReddyLS14} learn lexical features from raw sentences and their distantly supervised alignments to a KB, but avoid expensive and innaccurate semantic parsing step and learn direct associations between surface features and KB elements.
-\textbf{Actually I don't have a very good idea how to do this, probably need to remove this paragraph}.
+% Finally, to solve the problem of compositionality of queries following the idea proposed in \cite{ReddyLS14} learn lexical features from raw sentences and their distantly supervised alignments to a KB, but avoid expensive and innaccurate semantic parsing step and learn direct associations between surface features and KB elements.
+% \textbf{Actually I don't have a very good idea how to do this, probably need to remove this paragraph}.

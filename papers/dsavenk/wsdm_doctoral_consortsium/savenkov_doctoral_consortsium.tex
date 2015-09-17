@@ -50,7 +50,7 @@
 \begin{document}
 %
 % --- Author Metadata here ---
-\conferenceinfo{WSDM}{'2016 Montreal, Canada}
+\conferenceinfo{WSDM}{'2016 San Francisco, USA}
 %\CopyrightYear{2007} % Allows default copyright year (20XX) to be over-ridden - IF NEED BE.
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
@@ -96,10 +96,10 @@ Denis Savenkov\\
 
 \maketitle
 \begin{abstract}
-Modern question answering (QA) systems employ a variety of different unstructured (text documents), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases) data sources.
-However, a typical system usually generates candidate answers from each of them independently and merges and ranks them afterwards.
-The idea proposed in this work is combine all the available data sources together on the candidate generation stage and enrich each of the data representation with the information available through the other data sources.
-More specifically, text documents that mention entities from a knowledge base (KB) can be extended with the information about properties and connections of these entities, and text fragments mentioning the entities and relations can help question answering systems over knowledge bases to bridge the lexical gap between natural language questions and structured query representation.
+Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases) data sources for candidate generation.
+However, typically each of the data sources is processed independently and the merging of the results happen only after the candidates are generated.
+I propose to enrich the expressiveness of data representation of each of the data sources with complimentary information for joint reasoning.
+More specifically, text documents that mention entities from a knowledge base (KB) can be extended with the information about properties and connections of these entities, and text fragments mentioning the entities and relations can help knowledge base question answering systems to find a good mapping between natural language questions and the corresponding structured query representations.
 
 % This is probably not that related.
 % I also propose to use existing QnA pairs from community question answering (CQA) websites both as training data for both text- and KB-based question answering systems.
@@ -144,16 +144,14 @@ More specifically, text documents that mention entities from a knowledge base (K
 %\balancecolumns
 \appendix
 %Appendix A
-During the course of my studies I've worked on a number of different topics, starting from click log analysis, mobile user behavior, search user assistance and recently I've pivoted to information extraction and question answering.
-I've decided to focus on question answering for my research even though so far I haven't got much experience in the area.
-Having decided on a general direction of my future research I would definitely benefit from attending the WSDM Doctoral Consortium, which would let me get an extended feedback from experienced researchers with experience related to different sides of the direction of the proposed research.
+\section{Why I want to attend the doctoral consortium}
+During the course of my studies I've worked on a number of different topics, starting from click log analysis, mobile user behavior analysis, search user assistance and recently I've pivoted to information extraction and question answering.
+Having focused on a general direction of my future research I would definitely benefit from attending the WSDM Doctoral Consortium, which would let me get an extended feedback from experienced researchers with potentially different views of the problem.
+The topic of the proposed research involves several related areas, namely information retrieval, natural language processing, web search and mining, knowledge representation and knowledge base construction and querying.
+Therefore, I would greatly appreciate a chance to discuss the proposed direction with researchers with experience in these areas.
+This would complement the experience of my advisor and hopefully make my thesis work more useful for the community.
 
-
-
-
-The second part, limited to one (1) page, describes benefits that would be obtained by attending the Consortium. It should be added as an appendix to the research statement and include:
-
-A statement by the student saying why they want to attend the Consortium.
+\section{A paragraph from the advisor}
 A brief statement (1 paragraph) by their advisor saying how the student would benefit by attending the Consortium. Advisors should also specifically state whether the student has written, or is close to completing, a thesis proposal (or equivalent), and when they expect the student would defend their dissertation if they progress at a typical rate.
 
 \end{document}
