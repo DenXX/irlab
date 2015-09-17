@@ -96,10 +96,11 @@ Denis Savenkov\\
 
 \maketitle
 \begin{abstract}
-Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases) data sources for candidate generation.
-However, typically each of the data sources is processed independently and the merging of the results happen only after the candidates are generated.
-I propose to enrich the expressiveness of data representation of each of the data sources with complimentary information for joint reasoning.
-More specifically, text documents that mention entities from a knowledge base (KB) can be extended with the information about properties and connections of these entities, and text fragments mentioning the entities and relations can help knowledge base question answering systems to find a good mapping between natural language questions and the corresponding structured query representations.
+Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases - KB) data sources for candidate generation.
+However, typically each of the data sources is processed independently and the merging of the results happens only after the candidates are generated.
+I propose to enrich the expressiveness of data representation of each of the data sources with complementary information for joint reasoning.
+Text documents can be annotated with the information about properties and connections between mentioned entities.
+On the other hand for knowledge base question answering systems passages and text fragments retrieved for a candidate answer can help the system to find a good mapping between a natural language question and the corresponding structured query representation.
 
 % This is probably not that related.
 % I also propose to use existing QnA pairs from community question answering (CQA) websites both as training data for both text- and KB-based question answering systems.
@@ -142,16 +143,31 @@ More specifically, text documents that mention entities from a knowledge base (K
 %
 %APPENDICES are optional
 %\balancecolumns
+\newpage
+
 \appendix
 %Appendix A
-\section{Why I want to attend the doctoral consortium}
-During the course of my studies I've worked on a number of different topics, starting from click log analysis, mobile user behavior analysis, search user assistance and recently I've pivoted to information extraction and question answering.
-Having focused on a general direction of my future research I would definitely benefit from attending the WSDM Doctoral Consortium, which would let me get an extended feedback from experienced researchers with potentially different views of the problem.
-The topic of the proposed research involves several related areas, namely information retrieval, natural language processing, web search and mining, knowledge representation and knowledge base construction and querying.
-Therefore, I would greatly appreciate a chance to discuss the proposed direction with researchers with experience in these areas.
-This would complement the experience of my advisor and hopefully make my thesis work more useful for the community.
+\section{Student statement}
+I'm a 5th year PhD student at Emory University and during the course of my studies I've worked on a number of different topics, starting from click log analysis, study of mobile users behavior, search user assistance for difficult search tasks, information extraction and now question answering.
+In addition I've spent 4 wonderful summers in Microsoft and Google working on search results diversity, entity linking, information extraction and coreference resolution.
+From a wide range of topics I've worked on, I've decided to focus my thesis on question answering.
+In several month I'm going to do a thesis proposal and WSDM Doctoral Consortium presents a great chance to discuss the proposed direction with experienced researchers with various background.
+I hope to make a valuable contribution to the area and discussion with the experts will help me polish the plan for the future thesis.
+The proposed topic involves several related areas, such as information retrieval, natural language processing, web search and mining, knowledge representation, knowledge base construction and semantic parsing.
+Most of my work was in the information retrieval area, and I have less experience with knowledge representation and natural language processing.
+Therefore, I would greatly appreciate a chance to attend the consortium and discuss the potential challenges and ways to improve the work with researches with complementary experiences, which can make my work more interesting for different communities.
 
-\section{A paragraph from the advisor}
-A brief statement (1 paragraph) by their advisor saying how the student would benefit by attending the Consortium. Advisors should also specifically state whether the student has written, or is close to completing, a thesis proposal (or equivalent), and when they expect the student would defend their dissertation if they progress at a typical rate.
+\section{Advisor statement}
+My name is Eugene Agichtein\footnote{http://www.mathcs.emory.edu/$\sim$eugene/}, and I am Denis Savenkov's Ph.D. advisor.
+Denis is entering his 5th year as a PhD student at the Emory Mathematics \& Computer Science department. He is expected to present his thesis proposal in the next few months, and to defend his thesis within a year, likely by December 2016.
+Denis has broad interests within Information Retrieval, and has done excellent work on a number of topics in IR.
+In particular, he and his team placed in the top 3 teams at the Yandex Click prediction challenge, and subsequently won the "Search Engine Prediction" challenge, publishing a full SIGIR paper on the novel techniques they developed.
+Denis has also done in-depth studies of community question answering data, resulting in a full ICWSM paper as well as interesting analysis of how (not) to support searchers during complex tasks.
+The analysis of difficult, or failed, searches, led Denis to become interested in question answering, as a way of attacking some of the long standing challenges in search.
+I believe Denis has the skills and the creativity to tackle the ambitious task he proposes, on combining information from unstructured text and knowledge bases for question answering.
+Attending the doctoral consortium at WSDM will give Denis a chance to interact with leading experts in Web search, social media analysis and data mining, and especially those with complementary expertise to mine.
+As an IR researcher, I am reasonably confident on advising Denis on the aspects of his thesis related to IR and QA over unstructured (text) data, but am less familiar with the work done in KD and linked data communities, both in academia or industry.
+As Denis' thesis spans both areas, input from researchers who work on constructing and utilizing KBs, knowledge graphs and other structured sources is critical.
+Participating in DC would be particularly beneficial to Denis this year, as he is at the stage of developing his thesis proposal.
 
 \end{document}
