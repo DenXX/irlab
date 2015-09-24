@@ -1,6 +1,9 @@
 package edu.emory.mathcs.ir.search
 
+import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.LazyLogging
 import dispatch._, Defaults._
+import scala.collection.JavaConverters._
 import org.json4s._
 
 
@@ -18,8 +21,7 @@ class BingSearch(private val apiKey:String) {
     val queryString = parameterMap.map { case (k, v) => k + "=" + v }
       .mkString("&")
     val requestUrl = url(baseUrl + queryString).as_!("", apiKey)
-    val http = new Http
-    val response = http(requestUrl OK as.json4s.Json)
+    val response = Http(requestUrl OK as.json4s.Json)
     val results = response.map(
       json => {
         val response = json.extract[BingResponse]
@@ -33,6 +35,10 @@ class BingSearch(private val apiKey:String) {
       }
     )
     results.either()
+  }
+
+  def close(): Unit = {
+    Http.shutdown()
   }
 
   private def getQueryParameterMap(query: String, topN:Int, offset:Int = 0) =
@@ -52,11 +58,38 @@ case class BingMetadata(uri: String, `type`: String)
 /**
  * An object to perform a search over some collection, e.g. Web.
  */
-object Search {
-  def apply(query:String) : Either[Throwable, Seq[SearchResult]] = {
-    // TODO(denxx): Move the actual key to resources.
-    val search = new BingSearch("ua4NbbaJUUabS47ZzGM2VANoW3s+EdogrHxbtRRsg1Y")
-    search(query, 50)
+object Search extends LazyLogging {
+  private val apiKeys =
+    ConfigFactory.load().getStringList("BING_API_KEYS").asScala.toArray
+  private var currentKey = 0
+  private var search = updateSearch()
+
+  /**
+   * Returns search results for the given query.
+   * @param query Search query.
+   * @param retryNumber The current retry attempt number. By default it is 0.
+   * @return Search results. Search can throw an exception, that's why
+   *         the method actually returns Either.
+   */
+  def apply(query:String, retryNumber:Int = 0)
+      : Either[Throwable, Seq[SearchResult]] = {
+    val result = search(query, 50)
+    // Search can fail due to request limit exceeded. In this case try to switch
+    // API keys and redo.
+    if (result.isLeft && retryNumber < apiKeys.length) {
+      logger.warn(result.left.get.getMessage)
+      currentKey = (currentKey + 1) % apiKeys.length
+      search = updateSearch()
+      apply(query, retryNumber + 1)
+    } else result
+  }
+
+  def close(): Unit = {
+    search.close()
+  }
+
+  private def updateSearch(): BingSearch = {
+    new BingSearch(apiKeys(currentKey))
   }
 }
 

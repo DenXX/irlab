@@ -19,7 +19,7 @@ class WebquestionsTest extends FlatSpec with Matchers {
       "brother?")
     qnaPairs.head.url should be ("http://www.freebase.com/view/en/" +
       "justin_bieber")
-    val answers = Webquestions.decodeTargetValue(qnaPairs.head.targetValue)
+    val answers = qnaPairs.head.answer
     answers.length should be (2)
     answers(0) should be ("Jazmyn Bieber")
     answers(1) should be ("Jaxon Bieber")
