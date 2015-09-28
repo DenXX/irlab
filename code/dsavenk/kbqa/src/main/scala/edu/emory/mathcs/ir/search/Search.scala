@@ -2,7 +2,7 @@ package edu.emory.mathcs.ir.search
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import dispatch._, Defaults._
+import dispatch._, dispatch.Defaults._
 import scala.collection.JavaConverters._
 import org.json4s._
 

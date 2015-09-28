@@ -74,7 +74,7 @@ Another relevant line of work is answer tagging. IR based QA systems extract sen
 - **Freebase** - triples are converted to questions automatically and used for training by Bordes et al.
 
 # Approach
-Reimplement the AQQU system and extend it with features derived from text-based resources:
+Reimplement the ACCU system and extend it with features derived from text-based resources:
 - snippets and documents retrieved by querying a web search using question, question and answer entities
 
 # TODO

@@ -3,7 +3,6 @@ package edu.emory.mathcs.ir
 import java.nio.file.FileSystems
 
 import com.typesafe.scalalogging.LazyLogging
-import dispatch.Http
 import edu.emory.mathcs.ir.datasets.Webquestions
 import edu.emory.mathcs.ir.search._
 import scala.pickling.Defaults._, scala.pickling.json._
