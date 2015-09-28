@@ -39,4 +39,5 @@ TODO:
 
 Commands:
 > sbt compile
-> sbt -mem 9096 "run-main edu.emory.mathcs.ir.DownloadSerpDocumentsApp /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results.json /home/dsavenk/ir/data/WebQuestions/train_bing_results_documents/ /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results_documents.json"
+> sbt -mem 180000 "run-main edu.emory.mathcs.ir.DownloadSerpDocumentsApp /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results.json /home/dsavenk/ir/data/WebQuestions/bing_results_documents/ /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results_documents.json"
+> sbt -mem 180000 "run-main edu.emory.mathcs.ir.DownloadSerpDocumentsApp /home/dsavenk/ir/data/WebQuestions/webquestions.examples.test.bing_results.json /home/dsavenk/ir/data/WebQuestions/bing_results_documents/ /home/dsavenk/ir/data/WebQuestions/webquestions.examples.test.bing_results_documents.json"

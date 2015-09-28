@@ -29,7 +29,7 @@ If no answers are provided precision is considered to be 1. It has no effect on 
 | 7) Ensemble of 6 and 5 | 41.8 |
 | 8) DeepQA from MSFT | 45.3 (77.3 upper bound) |
 | 9) Lean QA (Yao)          | 44.3 |
-| 10) Aqqu (Bass, Haussman) | 49.4 | 
+| 10) Accu (Bass, Haussman) | 49.4 | 
 | 11) STAGG from MSFT | 52.5 | 
 |-----------------------------------------|-----------|
 
@@ -76,6 +76,26 @@ Another relevant line of work is answer tagging. IR based QA systems extract sen
 # Approach
 Reimplement the ACCU system and extend it with features derived from text-based resources:
 - snippets and documents retrieved by querying a web search using question, question and answer entities
+
+# ACCU code details
+translator - translates an utterance into a set of queries. The main function to do this is `translator.translate_and_execute_query`
+
+There are different classes for rankers. The main one is AccuModel, RelationNGramScorer and CandidatePruner. Each of the rankers have an instance of class FeatureGenerator. The set of features is different. RelationNGramScorer contains ngram features only. AccuModel ranker and CandidatePruner each have generic features, no ngrams, relation model is set and entity features are on. The difference between pruner and ranker is that pruner is trained in pointwise fashion and with higher weight for the positive class to increase the recall. For ranker instances are transformed to pairs.
+
+Sparql returns a list of lists, where each list contains requested columns. For candidate queries the first field is usually mid (as far as I understand) and the second is name, therefore to get the name we need:
+```
+if len(r) > 1 and r[1]:
+	result_strs.append(r[1])
+else:
+	result_strs.append(r[0])
+```
+
+## Data files
+word-type-counts: word -> relation counts obtained via distant supervision on Wikipedia
+entity-surface-map: phrase -> mid with score based on CrossWikis
+entity-list: list of mid with entity name and some number (often 0, not sure what this is, some kind of popularity)
+mediator*: various files for mediated relations and facts. 
+relation* : same for relations
 
 # TODO
 1. Scrape Bing Search API for all questions from the webquestions dataset
