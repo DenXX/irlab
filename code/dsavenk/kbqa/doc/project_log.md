@@ -31,3 +31,12 @@
  2015-09-25 11:48:18,822 : INFO : learner : oracle_top_5: 0.7761
  2015-09-25 11:48:18,822 : INFO : learner : precision_kw: 0.3768
  2015-09-25 11:48:18,822 : INFO : learner : recall_kw: 0.3701
+
+# 28 September 2015
+TODO:
+- figure out how different feature sets are used in Accu
+- download web pages for serps scraped for Webquestions questions
+
+Commands:
+> sbt compile
+> sbt -mem 9096 "run-main edu.emory.mathcs.ir.DownloadSerpDocumentsApp /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results.json /home/dsavenk/ir/data/WebQuestions/train_bing_results_documents/ /home/dsavenk/ir/data/WebQuestions/webquestions.examples.train.bing_results_documents.json"

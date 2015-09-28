@@ -67,6 +67,7 @@ object DownloadSerpDocumentsApp extends LazyLogging {
       }
       .force
       .pickleTo(out)
+    out.close()
 
     // Terminate the pool after all requests are complete.
     dispatch.Future.sequence(futures) onComplete {
