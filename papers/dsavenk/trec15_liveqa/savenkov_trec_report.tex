@@ -15,6 +15,56 @@ This is an abstract.
 \section{Introduction}
 
 \section{Approach}
+First, we attempt to get all the categories of the posted question from Yahoo!Answers website. I actually don't know if this is successful, the question might not be on the website yet. The reason for this step is that in the input we only get one category from the tree. I didn't have the tree myself, therefore I attempted to get the path from Yahoo!Answers.
+
+Then we get the candidate answers from two sources independently: Yahoo!Answers similar questions search and Bing Web Search API.
+For each of the sources we have separate query formulators.
+From Yahoo! Answers we retrieve top 10 similar questions (for each query), for Web Search we retrieve top 5 documents.
+
+For Yahoo! Answers we have many different query formulators:
+\begin{itemize}
+\item title + body
+\item title
+\item title + body without stopwords
+\item title without stopwords
+\item title + category name and without stopwords
+\item title + body + category name without stopwords
+\item top 5 tf-idf (based on Yahoo!Answers WebScope dataset) terms from the title
+\item top 5 tf-idf (based on Yahoo!Answers WebScope dataset) terms from the title and body
+\end{itemize}
+
+For Web Search we only use the first two\footnote{we can cite AskMSR+, which showed that search already does a lot}.
+
+For each retrieved web document we generate a set of candidate answers. We take snippet as candidate and also we generate fragments from contiguous sentences until the maximum length is reached (we only keep those that have non-zero term overlap with the question text).
+
+Then for each candidate we generate a set of features and rank them with a linear ML model.
+
+\begin{table}[t]
+\label{table:features}
+\caption{Features used to rank candidate answers}
+\begin{tabular}{|c|p{10cm}|}
+\hline
+Feature name & Description \\
+\hline
+\hline
+q-a lemma pairs & Concatenation of lemmas from question and answer texts\\
+BM25 & BM25 scores of the candidate answer computed for the question title, body and concatenation of both. Collection statistics is taken from WebScope dataset of QnA pairs. \\
+term matches & Outputs lemmas of terms matched in the question and answer text as well as percent and the total number of matched terms, POS tags of matched terms, length of the maximum span of matched terms\\
+npmi & average, maximum and minimum normalized PMI scores between question and answer terms. NPMI scores are computed based on the WebScope collection of QnA pairs.\\
+category match & boolean feature which is one if category of retrieved Yahoo! Answers QnA pair matches one asked\\
+page title & Matches between question lemmas and lemmas of the retrieved page title. For Yahoo! Answers question text is used as the title.\\
+answer stats & Statistics of the answer text, such as length in sentences in tokens, etc.\\
+LSTM model & score returned for QnA pair by an LSTM model trained to predict the correct question-best answer pair\\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Model Training}
+How did I train my models
+
+\subsection{Logistic regression model}
+
+\subsection{LSTM model}
 
 \section{Results}
 
