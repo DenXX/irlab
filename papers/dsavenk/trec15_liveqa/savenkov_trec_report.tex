@@ -34,43 +34,72 @@ The goal was to see how well a general purpose system with simple feature can do
 
 \section{Approach}
 
-The architecture of our system is presented on Figure \ref{figure:qa_model}.
-
 \begin{figure}
-\includegraphics[width=450px]{img/qa_model}
-\caption{Architecture of our question answering system}
-\label{figure:qa_model}
+	\includegraphics[width=450px]{img/qa_model}
+	\caption{Architecture of our question answering system}
+	\label{figure:qa_model}
 \end{figure}
 
+The general architecture of our question answering system is presented on Figure \ref{figure:qa_model}.
+The system uses two primary data sources for generating answer candidates.
+People often have similar tasks and situations which generate similar questions, therefore, it's frequently the case that a similar question was already asked by someone and potentially even received a good answer.
+Previous research have explored using such data to answer new questions (e.g. \cite{Shtok:2012:LPA:2187836.2187939}), therefore we decided to use answers to previously posted similar questions as the first source of candidates.
+However, many questions are still unique and in addition it is often hard to find similar questions in a large collection.
+Therefore we also use web search to retrieve some possibly relevant documents and extract candidates from them.
+After a set of candidates is generated from both sources, they are combined together in a single pool, features are generated for every one of them and the candidates are ranked with a trained model.
+The top candidate is returned as the answer.
+Now we will describe all stages in more detail.
 
-First, we attempt to get all the categories of the posted question from Yahoo!Answers website. I actually don't know if this is successful, the question might not be on the website yet. The reason for this step is that in the input we only get one category from the tree. I didn't have the tree myself, therefore I attempted to get the path from Yahoo!Answers.
+\subsection{Candidate generation}
+ 
+Each question issued to a QA system in LiveQA TREC consists of 3 main parts: question title, question body and question category.
+For example:
 
-Then we get the candidate answers from two sources independently: Yahoo!Answers similar questions search and Bing Web Search API.
-For each of the sources we have separate query formulators.
-From Yahoo! Answers we retrieve top 10 similar questions (for each query), for Web Search we retrieve top 5 documents.
+\vspace{0.3cm}
+\begin{tabular}{|p{15cm}|}
+\hline
+\textbf{Question category}: Astronomy \& Space\\
+\textbf{Question title}: Why do people claim the Earth isn't the center of the universe?\\
+\textbf{Question body}: Clearly the sun and moon are moving around the Earth otherwise we wouldn't have night and day.\\
+\hline
+\end{tabular}
+\vspace{0.3cm}
 
+When our QA system receives a question it first generates a set of candidate answers from Yahoo! Answers and regular web search.
+To generate a set of candidates the system produces one or more search queries and issues them to both resources.
+
+To find similar questions and extract the corresponding answers from Yahoo! Answers we use the search functionality already available on the website.
+Some questions are very concise while the others provide many useful as well as redundant details.
+For many long queries the search doesn't return any results, therefore our system generates a set of search queries of various detail level and issues them all to Yahoo! Answers search and collects top 10 responses from all of them.
+Here is the list of queries that our system generates:
 For Yahoo! Answers we have many different query formulators:
 \begin{itemize}
-\item title + body
-\item title
-\item title + body without stopwords
-\item title without stopwords
-\item title + category name and without stopwords
-\item title + body + category name without stopwords
-\item top 5 tf-idf (based on Yahoo!Answers WebScope dataset) terms from the title
-\item top 5 tf-idf (based on Yahoo!Answers WebScope dataset) terms from the title and body
+	\setlength\itemsep{0mm}
+	\item Concatenation of question title and question body (with and without stopwords)
+	\item Question title only (with and without stopwords)
+	\item Question title concatenated with question body and question category
+	\item Question title concatenated with the name of the question category
+	\item Top 5 terms from question title scored by tf-idf\footnote{Document frequency is computed on WebScope collection of QnA pairs from Yahoo! Answers}
+	\item Top 5 terms from question title and body scored by tf-idf
 \end{itemize}
 
-For Web Search we only use the first two\footnote{we can cite AskMSR+, which showed that search already does a lot}.
+For top-10 unique retrieved questions the system extracts the top answer if provided and puts it into the candidate pool along with some information about the corresponding question and its category.
 
-For each retrieved web document we generate a set of candidate answers. We take snippet as candidate and also we generate fragments from contiguous sentences until the maximum length is reached (we only keep those that have non-zero term overlap with the question text).
+Web search candidate generation is more expensive and we only try two queries for each question: question title and concatenation of title and body.
+Recently it was shown \cite{askmsr_plus15} that search engines have improved in processing verbose queries and reformulations are not necessary.
+We use Bing Web Search API\footnote{http://datamarket.azure.com/dataset/bing/searchweb} and the system downloads top-10 retrieved documents, parses HTML code and extracts the main content text \cite{Kohlschutter_2010}.
+Document content is further split into sentences \cite{manning2014stanford} and candidates are built by taking contiguous sequence of sentences no longer than the answer character limit\footnote{In the final run the limit was 1000 characters}.
+We only keep passages that contain at least one non-stopword from the question.
 
-Then for each candidate we generate a set of features and rank them with a linear ML model.
+\subsection{Candidate ranking}
+
+To rank the candidate answers we adopt machine learning approach and train a single linear model that scores candidates represented by a set of features (the list of features is given in Table \ref{table:features}).
+The candidate with the highest score is returned as the answer to the question.
+If something goes wrong and no candidates were generated the system returns ``I don't know'' as the default answer.
 
 \begin{table}[t]
-\label{table:features}
 \caption{Features used to rank candidate answers}
-\begin{tabular}{|c|p{10cm}|}
+\begin{tabular}{|c|p{13cm}|}
 \hline
 Feature name & Description \\
 \hline
@@ -85,38 +114,47 @@ answer stats & Statistics of the answer text, such as length in sentences in tok
 LSTM model & score returned for QnA pair by an LSTM model trained to predict the correct question-best answer pair\\
 \hline
 \end{tabular}
+\label{table:features}
 \end{table}
 
-\section{Model Training}
+\subsection{Model Training}
 
-\subsection{Logistic regression model}
-To train the model I used WebScope dataset of QnA pairs from Yahoo. I built a search index with Apache Lucene and trained a linear ranking model. I took question + best selected answer and also retrieved answers to 10 most similar questions (by question title only) using Lucene BM25 retrieval model. Then I constructed training instances as pairwise feature differences for pairs of correct-retrieved answers. An instance is positive if we subtract features of the incorrect answer from features of the correct one. And instance is incorrect otherwise. We take all pairs. 
-We train L2-regularized logistic regression.
+There are two trained models used in the system: LSTM recurrent neural network based model, which is used as one of the features for the final logistic regression model that scores all of the candidate answers.
 
-\subsection{LSTM model}
-LSTM model was also trained on WebScope dataset and in a similar way.
-More specifically for each question from the dataset we use question title to retrieve similar questions using Lucene and then output 11 instances: one correct for question-best answer pair and then 10 question-retrieved answer. LSTM model (Figure \ref{figure:lstm_model}) is trained to classify correct QnA pairs.
-Tokens of questions and answers are restricted to be at most 100 tokens. Then question and answer text are split using a sentinel separator token.
-To make a binary prediction we used hidden state of the LSTM model after the whole QnA sequence is processed.
+\subsubsection{LSTM model}
+
+After a huge success of deep learning models in image and speech problems, researchers started to look deeper into applying these techniques to natural language processing and question answering, e.g. \cite{yu2014deep,diwang_lstm_2015}.
+We decided to try to build a similar model to produce a score, which can be used as one of the features for the final ranking model.
+We chose LSTM recurrent neural network architecture to produce a vector representation of question and answer pair, which is used to make a binary prediction of whether this is a good answer for the question.
+Figure \ref{figure:lstm_model} shows a structure of the model.
 
 \begin{figure}
-\includegraphics[width=450px]{img/qa_lstm}
-\caption{LSTM model for predicting the correct answer}
-\label{figure:lstm_model}
+	\includegraphics[width=470px]{img/qa_lstm}
+	\caption{LSTM model for predicting the correct answer}
+	\label{figure:lstm_model}
 \end{figure}
 
-We train the model using Adam stochastic gradient descent method \cite{kingma2014adam} with mini batches of size 200 instances for 100 epochs.
+Question and answer are tokenized, stopwords and punctuation are removed.
+The sequences of tokens are limited to 100 elements and concatenated through a sentinel separator character so the model knew where the question finishes and the answer starts.
+The hidden state of the model after it finishes processing a sequence is fed to a logistic unit for a binary class prediction (class 1 represents a good answer for the question and -1 something that doesn't fit well).
 
-Parameters of the LSTM model:
-\begin{itemize}
-\item Embedding dimension 128
-\item Hidden state size 128
-\item Batch size 200
-\item Epochs 100
-\item Vocabulary size 1M
-\end{itemize}
+To train the model we used a collection of Yahoo! Answers QnA pairs from WebScope dataset.
+Each question and the corresponding best answer was used as a positive training example.
+To generate negative example we didn't take random example as they will be totally unrelated, and instead we take answers to similar questions.
+All questions were indexed with Lucene library and for each question we took answers to 10 other retrieved questions (using BM25 retrieval model) as negative examples.
+However, it is true, that a fraction of these answers might as well answer the given question.
 
-The model was implemented using Keras\footnote{http://keras.io/} library.
+The model was implemented using Keras\footnote{http://keras.io} library.
+We used an embedding and hidden layers of dimension 128 and the vocabulary size of 1M words (we used hashing to generate word ids).
+The model was trained using Adam optimization technique \cite{kingma2014adam} with mini batches of size 200 instances for 100 epochs.
+
+\subsubsection{Logistic regression model}
+
+The final model that ranks all answer candidates is a linear L2-regularized logistic regression model.
+To train the model we use a similar setup and also use QnA pairs from Yahoo! Answers WebScope dataset (we use different subsets for training LSTM and logistic regression models). 
+For each question and the corresponding correct answer we use Lucene index to retrieve answers to 10 most similar questions.
+To train the model we took pairwise approach for learning to rank and generate a training example for pairs of different answers to the same question, where one answer is the correct one.
+Each such pair is represented with differences of features of the original answers and an instance is assigned to class 1 if the first answer in the pair is the correct one and to class -1 otherwise.
 
 \section{Results}
 
@@ -154,6 +192,7 @@ prec@i+ - number of questions with i+ score (i=2..4) divided by number of answer
 
 \section{Conclusion}
 
+\bibliographystyle{unsrt}
 \bibliography{bibliography.bib}
 
 \end{document}
