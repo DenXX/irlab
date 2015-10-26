@@ -158,35 +158,44 @@ Each such pair is represented with differences of features of the original answe
 
 \section{Results}
 
-Table \ref{table:liveqa-results} gives the results of Emory run and average scores for all runs.
+Table \ref{table:liveqa-results} provides the official results our run and average scores for all runs.
 
 \begin{table}
-\caption{Results of the LiveQA evaluation}
+\caption{Results of the LiveQA evaluation of Emory University QA system and average results of all systems. $\uparrow$ means that results of Emory system in this metric is higher than average, and $\downarrow$ means that results are below average}
 \label{table:liveqa-results}
-\begin{tabular}{|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|p{1.2cm}|}
+\begin{tabular}{|p{2cm}|p{1.4cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|}
 \hline
 name & avg score (0-3) & succ@1+ & succ@2+ & succ@3+ & succ@4+ & prec@2+ &
  prec@3+ & prec@4+ \\
- \hline
-Emory run & 0.605 & 0.812 & 0.332 & 0.190 & 0.086 & 0.408 & 0.233 & 0.106\\
 \hline
 Average of all runs & 0.465 & 0.925 & 0.262 & 0.146 & 0.060 & 0.284 & 0.159 & 0.065\\
+ \hline
+Emory run & 0.605$\uparrow$ & 0.812$\downarrow$ & 0.332$\uparrow$ & 0.190$\uparrow$ & 0.086$\uparrow$ & 0.408$\uparrow$ & 0.233$\uparrow$ & 0.106$\uparrow$\\
 \hline
 \end{tabular}
 \end{table}
 
-General statistics:
-Overall, 1087 questions were judged and scored using 4-level scale:\\
-4: Excellent -- a significant amount of useful information, fully answers the question\\
-3: Good – partially answers the question\\
-2: Fair -- marginally useful information\\
-1: Bad – contains no useful information for the question\\
--2: the answer is unreadable  (only 15 answers from all runs were judged as unreadable)
+From the final run of the system 1087 questions were judged on a scale from 1 to 4, where each of the scores mean:\\
+\textbf{4: Excellent} - a significant amount of useful information, fully answers the question\\
+\textbf{3: Good} - partially answers the question\\
+\textbf{2: Fair} - marginally useful information\\
+\textbf{1: Bad} – contains no useful information for the question\\
+\textbf{-2}: the answer is unreadable  (only 15 answers from all runs were judged as unreadable)
 
-The performance measures are:\\
-avg-score(0-3) - average score over all queries (transferring 1-4 level scores to 0-3, hence comparing 1-level score with no-answer score, also considering -2-level score as 0)\\
-succ@i+ - number of questions with i+ score (i=1..4) divided by number of all questions\\
-prec@i+ - number of questions with i+ score (i=2..4) divided by number of answered only questions\\
+The following performance metrics were reported:
+\begin{itemize}
+\setlength\itemsep{0mm}
+\item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions as having score 0
+\item \textbf{succ@i+}: the fraction of answers with score i or greater (i=1..4)
+\item \textbf{prec@i+}: the number of questions with score i or greater (i=2..4) divided by the number of answered questions
+\end{itemize}
+
+As we can see from Table \ref{table:liveqa-results} for most of the metrics except succ@1+ results of our run is above average.
+The metric succ@1+ shows that our system had larger number of unanswered questions.
+This fact is caused by a couple of technical issues that happened during the final run day.
+One of these issues resulted in the system log to be deleted, which makes a more detailed analysis of system behavior impossible.
+
+
 
 \section{Related Work}
 
