@@ -215,7 +215,7 @@ public class AppConfig {
         int lstmPort = Integer.parseInt(AppConfig.PROPERTIES.getProperty(
                 AppConfig.LSTM_MODEL_PORT_PARAMETER));
         return new CombinerFeatureGenerator(
-                new LemmaPairsFeatureGenerator(),
+                //new LemmaPairsFeatureGenerator(),
                 new BM25FeatureGenerator(getQuestionAnswerIndexReader()),
                 new MatchesFeatureGenerator(),
                 new NpmiDictionaryMatchesFeatureGenerator(

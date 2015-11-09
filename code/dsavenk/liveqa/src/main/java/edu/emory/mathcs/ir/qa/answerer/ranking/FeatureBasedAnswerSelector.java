@@ -1,6 +1,7 @@
 package edu.emory.mathcs.ir.qa.answerer.ranking;
 
 import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.ml.FeatureGeneration;
 import edu.emory.mathcs.ir.qa.ml.StanfordClassifierUtils;
@@ -58,11 +59,18 @@ public class FeatureBasedAnswerSelector implements AnswerSelection {
                                     featureGenerator_.generateFeatures(
                                             question, answer));
                     final double score = model_.scoreOf(instance, true);
+                    LiveQaLogger.LOGGER.fine(String.format("SCORING\t%s\t%s\t%.5f",
+                            answer.getSource(), answer.getAttribute("source").orElse("ya"),
+                            score));
                     return new AnswerScorePair(answer, score);
                 })
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
-
+        if (answerScores.size() > 0) {
+            LiveQaLogger.LOGGER.fine(String.format("BEST_SCORE\t%s\t%.5f",
+                    answerScores.get(0).answer.getSource(),
+                    answerScores.get(0).score));
+        }
         return answerScores.size() > 0 ?
                 Optional.of(answerScores.get(0).answer) : Optional.empty();
     }

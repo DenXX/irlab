@@ -18,4 +18,9 @@ public class AddCategoryNameToQuery implements QueryFormulation {
         return queryFormulator_.getQuery(question) + " " +
                 question.getCategory();
     }
+
+    @Override
+    public String toString() {
+        return queryFormulator_.toString() + "+category";
+    }
 }

@@ -2,6 +2,7 @@ package edu.emory.mathcs.ir.qa;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -21,6 +22,7 @@ public class LiveQaLogger {
             fileHandler.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(fileHandler);
             LOGGER.setUseParentHandlers(false);
+            LOGGER.setLevel(Level.ALL);
         } catch (IOException e) {
             e.printStackTrace();
         }

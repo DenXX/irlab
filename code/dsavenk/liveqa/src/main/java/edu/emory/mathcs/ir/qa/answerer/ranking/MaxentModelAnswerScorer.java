@@ -1,6 +1,7 @@
 package edu.emory.mathcs.ir.qa.answerer.ranking;
 
 import edu.emory.mathcs.ir.qa.Answer;
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.ml.FeatureGeneration;
 import edu.emory.mathcs.ir.qa.ml.StanfordClassifierUtils;
@@ -48,6 +49,7 @@ public class MaxentModelAnswerScorer implements AnswerScoring {
                 StanfordClassifierUtils.createInstance(
                         featureGenerator_.generateFeatures(
                                 question, answer));
-        return model_.scoreOf(instance, true);
+        double score = model_.scoreOf(instance, true);
+        return score;
     }
 }

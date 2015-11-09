@@ -97,4 +97,9 @@ public class TopIdfTermsQueryFormulator implements QueryFormulation {
             return 0;
         }
     }
+
+    @Override
+    public String toString() {
+        return "tf-idf";
+    }
 }

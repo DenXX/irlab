@@ -14,12 +14,12 @@ from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 
 VOCABULARY_SIZE = 100
-EMBEDDING_DIMENSION = 64
-HIDDEN_DIMENSION = 32
-TRAINING_SIZE = 1000
-TEST_SIZE = 100
+EMBEDDING_DIMENSION = 32
+HIDDEN_DIMENSION = 128
+TRAINING_SIZE = 100000
+TEST_SIZE = 1000
 BATCH_SIZE = 500
-EPOCHS = 5000
+EPOCHS = 50000
 
 
 def generate_sequence(label, length):
@@ -28,9 +28,10 @@ def generate_sequence(label, length):
     seq = seq[:length + 1]
     seq[int(length / 2)] = "0"
     if label:
-        repetition = random.choice(seq[:int(length / 2)])
-        position = random.randint(int(length / 2) + 2, length)
-        seq[position] = repetition
+        #repetition = random.choice(seq[:int(length / 2)])
+        #position = random.randint(int(length / 2) + 2, length)
+        #seq[position] = repetition
+        seq[0] = 0
     return seq
 
 
@@ -83,8 +84,7 @@ def main_singlemodel():
     model.compile(loss='binary_crossentropy', optimizer='adam', class_mode="binary")
 
     print('Training...', file=sys.stderr)
-    model.fit(X, y, batch_size=BATCH_SIZE, nb_epoch=EPOCHS,
-              validation_split=0.05, show_accuracy=True)
+    model.fit(X, y, batch_size=BATCH_SIZE, nb_epoch=EPOCHS, show_accuracy=True)
 
     print("Testing...", file=sys.stderr)
     score, acc = model.evaluate(X_test, y_test, batch_size=BATCH_SIZE,
@@ -121,4 +121,4 @@ def main_separatemodels():
     print("Testing performance = " + str(score) + ", acc = " + str(acc))
 
 if __name__ == "__main__":
-    main_separatemodels()
+    main_singlemodel()

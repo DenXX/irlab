@@ -1,8 +1,6 @@
 package edu.emory.mathcs.ir.qa.answerer.yahooanswers;
 
-import edu.emory.mathcs.ir.qa.Answer;
-import edu.emory.mathcs.ir.qa.Question;
-import edu.emory.mathcs.ir.qa.Text;
+import edu.emory.mathcs.ir.qa.*;
 import edu.emory.mathcs.ir.qa.answerer.AnswerFormatter;
 import edu.emory.mathcs.ir.qa.answerer.AnswerRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.query.QueryFormulation;
@@ -23,6 +21,7 @@ public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
      * answer.
      */
     public static final String CATEGORY_ANSWER_ATTRIBUTE = "category";
+    private static final String QID = "qid";
     private final QueryFormulation[] queryFormulators_;
     private final int similarQuestionsCount_;
 
@@ -42,14 +41,23 @@ public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
     @Override
     public Answer[] retrieveAnswers(Question question) {
         return Arrays.stream(queryFormulators_)
-                .parallel()
                 .flatMap(queryFormulator -> {
                     List<Answer> bestRelatedAnswers = new ArrayList<>();
                     final String query = queryFormulator.getQuery(question);
 
+                    LiveQaLogger.LOGGER.fine(
+                            String.format("YA_QUERY_REFORMULATION\t%s\t%s\t%s",
+                                    question.getId(),
+                                    queryFormulator, query));
+
                     final String[] relatedQuestionIds =
                             YahooAnswersScraper.GetRelatedQuestionIds(
                                     query, similarQuestionsCount_);
+
+                    LiveQaLogger.LOGGER.fine(
+                            String.format("YA_SIMILAR_QUESTIONS\t%s\t%s",
+                                    query,
+                                    String.join("\t", relatedQuestionIds)));
 
                     // Get over the list of related questions and retrieve their best
                     // answers.
@@ -80,6 +88,7 @@ public class YahooAnswersSimilarQuestionRetrieval implements AnswerRetrieval {
                                                 WebSearchAnswerRetrieval
                                                         .PAGE_TITLE_ATTRIBUTE,
                                                 qa.title);
+                                        answerObj.setAttribute(QID, qid);
                                         bestRelatedAnswers.add(answerObj);
                                     }
                                 });

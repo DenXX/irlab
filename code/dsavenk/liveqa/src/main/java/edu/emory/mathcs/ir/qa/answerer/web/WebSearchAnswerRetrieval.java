@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Uses web search for question answering by retrieving passages from the
@@ -23,6 +24,7 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
      * The title of the webpage, where the answer was generated from.
      */
     public static final String PAGE_TITLE_ATTRIBUTE = "page_title";
+    private static final String SOURCE = "source";
     private final QueryFormulation[] queryFormulators_;
     private final WebSearch search_;
     private final PassageRetrieval passageRetrieval_;
@@ -53,16 +55,26 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
     @Override
     public Answer[] retrieveAnswers(Question question) {
         return Arrays.stream(queryFormulators_)
-                .parallel()
                 .flatMap(queryFormulator -> {
                     List<Answer> answers = new ArrayList<>();
                     // Get search results for the query.
                     final String query = queryFormulator.getQuery(question);
+
+                    LiveQaLogger.LOGGER.fine(
+                            String.format("WEB_QUERY_REFORMULATION\t%s\t%s\t%s",
+                                    question.getId(), queryFormulator, query));
+
                     final SearchResult[] results = search_.search(query, topN_);
+
+                    LiveQaLogger.LOGGER.fine(
+                            String.format("WEB_SEARCH_RESULTS\t%s\t%s",
+                                    query, String.join("\t",
+                                            Arrays.stream(results)
+                                                    .map(Object::toString)
+                                                    .collect(Collectors.toList()))));
 
                     // Process results and add content to each document.
                     Arrays.stream(results)
-                            .parallel()
                             .forEach(res -> {
                                 try {
                                     res.content =
@@ -89,6 +101,7 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
                                         .anyMatch(p.getAnswer().getLemmaSet(true)::contains))
                                 .map(a -> {
                                     a.setAttribute(PAGE_TITLE_ATTRIBUTE, result.title);
+                                    a.setAttribute(SOURCE, "fragment");
                                     return a;
                                 })
                                 .forEach(answers::add);
@@ -96,6 +109,7 @@ public class WebSearchAnswerRetrieval implements AnswerRetrieval {
                                 AnswerFormatter.formatAnswer(result.snippet),
                                 result.url);
                         snippetAnswer.setAttribute(PAGE_TITLE_ATTRIBUTE, result.title);
+                        snippetAnswer.setAttribute(SOURCE, "snippet");
                         answers.add(snippetAnswer);
                     }
                     return answers.stream();
