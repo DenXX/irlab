@@ -37,4 +37,11 @@ public class SimpleQueryFormulator implements QueryFormulation {
                 .map(token -> StringUtils.normalizeString(token.text))
                 .collect(Collectors.joining(" ")).trim();
     }
+
+    @Override
+    public String toString() {
+        return String.format("simple:%d:%d",
+                removeStopwords_ ? 1 : 0,
+                includeBody_ ? 1 : 0);
+    }
 }

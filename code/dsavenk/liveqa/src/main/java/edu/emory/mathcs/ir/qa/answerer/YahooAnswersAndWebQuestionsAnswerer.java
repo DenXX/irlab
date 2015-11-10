@@ -2,6 +2,7 @@ package edu.emory.mathcs.ir.qa.answerer;
 
 import edu.emory.mathcs.ir.qa.Answer;
 import edu.emory.mathcs.ir.qa.AppConfig;
+import edu.emory.mathcs.ir.qa.LiveQaLogger;
 import edu.emory.mathcs.ir.qa.Question;
 import edu.emory.mathcs.ir.qa.answerer.passage.SentenceBasedPassageRetrieval;
 import edu.emory.mathcs.ir.qa.answerer.ranking.AnswerSelection;
@@ -43,6 +44,8 @@ public class YahooAnswersAndWebQuestionsAnswerer implements QuestionAnswering {
 
     @Override
     public Answer GetAnswer(Question question) {
+        LiveQaLogger.LOGGER.fine("------------- QUESTION ----------------");
+        LiveQaLogger.LOGGER.fine("QID:\t" + question.getId());
         // Get all question categories, not only the selected one.
         question.setCategories(
                 YahooAnswersScraper.getQuestionCategories(question));

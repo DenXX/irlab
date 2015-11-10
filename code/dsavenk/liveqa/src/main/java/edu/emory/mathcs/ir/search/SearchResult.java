@@ -32,4 +32,9 @@ public class SearchResult {
                 document.getField(Document.TITLE),
                 document.getField(Document.SUMMARY));
     }
+
+    @Override
+    public String toString() {
+        return url;
+    }
 }
