@@ -29,6 +29,9 @@
 			document.getElementsByTagName( 'head' )[0].appendChild( link );
 		</script>
 
+		<style type="text/css">
+		.reveal section img { background:none; border:none; box-shadow:none; }
+		</style>
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
@@ -58,8 +61,8 @@
 					## TREC LiveQA
 					- "live" question answering for real-user questions
 					- questions extracted from a stream of Yahoo! Answers questions
-					- systems need to provide an answer in real-time (1 minute time limit)
-					- no limit on a source of answers
+					- systems need to provide an answer (< 1000 chars) in real-time (1 minute time limit)
+					- no limit on sources of answers
 				</section>
 
 				<section data-markdown>
@@ -85,8 +88,8 @@
 				<section data-markdown>
 					## Observations
 					1. Most questions seek advice and include some personal situation
-					1. Many questions are near duplicates
-					1. Answers to similar questions (if any) are usually better in quality than paragraphs from the web.
+					1. Many questions are near duplicates of previously posted questions
+					1. Answers to similar questions (if any) are often better in quality than paragraphs from the web
 				</section>
 
 				<section data-markdown>
@@ -110,29 +113,193 @@
 						1. question title & body
 				</section>
 
-				<section data-markdown>
-					## Query generation strategies
-					CREATE AN IMAGE SHOWING HOW EACH QUERY IS GENERATED
-				</section>
-
-				<section data-markdown>
-					## Ranking
-					CREATE AN IMAGE SHOWING HIGH LEVEL OF FEATURE GENERATION
-				</section>
-
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Features
-					
-				</section>
+					- answer statistics (length in chars, tokens, sents, etc) <!-- .element: class="fragment" -->
+					- BM25 scores (using title or title + body as query) <!-- .element: class="fragment" -->
+					- term matches features (number of matches, maximum spans of matched terms, etc.) <!-- .element: class="fragment" -->
+					- question and retrieved question categories match <!-- .element: class="fragment" -->
+					- bag of word pairs from question and candidate answer <!-- .element: class="fragment" -->
+					- statistics of NPMI between question and answer terms <!-- .element: class="fragment" -->
+					- score computed by an LSTM neural network model <!-- .element: class="fragment" -->
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
+					## Normalized PMI
+					> $\operatorname{npmi}(q_i;a_j) = \frac{pmi(q_i;a_j)}{-\log p(q_i,a_j)}$
+					> $\operatorname{pmi}(q_i;a_j) = \log\frac{p(a_j|q_i)}{p(a_j)}$
+
+					- computed on WebScope Yahoo! Answers collection
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## NPMI scores: diabetes
+
+					term               |     score    
+					------------------ | ------------
+					diabetes           |    0.70858  
+					insulin            |    0.62824  
+					glucose            |    0.55582  
+					niddm              |    0.55183  
+					hyperglycemia      |    0.54767  
+					mellitus           |    0.54400  
+					insulin-dependent  |    0.54332  
+					pancreas           |    0.54290  
+
+				</script></section>
+				<section data-markdown><script type="text/template">
+					## NPMI scores: install
+
+					term           |  score 
+					-------------- | --------
+					install        |  0.52456
+					setup.exe      |  0.44842
+					partition      |  0.40844
+					xp             |  0.39632
+					ubuntu         |  0.38734
+					bootable       |  0.37943
+					distros        |  0.36809
+					windows        |  0.35734
+
+				</script></section>
+
+				<section data-markdown><script type="text/template">
 					## LSTM model
-					![LSTM model architecture](img/lstm_model.png)
-				</section>
+					* Simple NN to produce a joint representation of QnA pair
+					* This representation is used to predict how likely the candidate answers the question
 
-				<section data-markdown>
-					HOW DO WE TRAIN THE SYSTEM
-				</section>
+					![LSTM model architecture](img/lstm_model.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Training
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## LSTM network training
+					![LSTM training](img/lstm_training.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## LSTM network training
+					* Implemented using Keras library
+					* Trained using stochastic gradient descent with Adam optimization technique
+					* Embedding and hidden layer of size 128
+					* Vocabulary of 1M words
+					* Total of 10K QnA pairs, batch size of 200 for 100 epochs
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Logistic regression training
+					![LR training](img/lr_training.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Evaluation
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Answer candidates
+
+					.			    | Yahoo!Answers | Web
+					--------------- | ------------- | ----
+					Average # of candidates | 33.63 | 67.50
+					Average model score | -15.18 | -20.50
+					How often no candidates | 0.14 | 0.02
+
+					![Candidate ranks](img/candidate_ranks.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Avg number of candidates: Y!A
+
+					![Number of candidates per query type](img/query_candidate_count.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Rank of the best candidate: Y!A
+
+					![Best rank per query type](img/query_candidate_bestrank.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## How often the candidate was selected: Y!A
+
+					![How often the candidate was selected: Y!A](img/selected_candidate.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Fraction of questions without candidates: Y!A
+
+					![Fraction of questions without candidates](img/query_candidate_nocandidate.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Query generation statistics for web 
+					![Number of candidates per query type](img/query_candidate_count_web.png) ![Best rank per query type](img/query_candidate_bestrank_web.png) ![Fraction of questions without candidates](img/query_candidate_nocandidate_web.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Feature importance
+
+					![Feature importance](img/features.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Evaluation run statistics
+					> 1087 questions were judged
+
+					score | explanation
+					----- | ------------
+					4 Excellent | fully answers the question
+					3 Good | partially answers the question
+					2 Fair | marginally useful information
+					1 Bad | contains no useful information for the question
+					-2 | the answer is unreadable
+
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Scores
+					![Scores](img/scores.png)
+					
+					- avg-score(0-3) - average score over all queries
+					- succ@i+ - fraction of questions with i+ score
+					- prec@i+ - fraction of answers with i+ score
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Majority of answers came from Yahoo! Answers
+					![Answer sources](img/answer_source.png)
+
+					- the main reason for "no answers" is technical issues that happen on the official run day
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Many other CQA website domains
+					![Domains frequency](img/domains_count.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Quality of answers from Y!A is better
+					![Answer sources scores](img/scores_per_type.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Conclusions
+					- Answers to similar questions can be reused
+					- Full question is less effective in similar questions retrieval than key terms
+
+					## Future work
+					- better question reformulation strategies for search (key phrases)
+					- better question similarity
+					- improved neural network architecture
+					- more features (translation model)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Questions?
+				</script></section>
 
 			</div>
 
@@ -150,6 +317,7 @@
 				progress: true,
 				history: true,
 				center: true,
+				slideNumber: 'c/t',
 
 				transition: 'none', // none/fade/slide/convex/concave/zoom
 
