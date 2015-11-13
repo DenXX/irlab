@@ -43,65 +43,68 @@
 
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Combining answers and web fragments for non-factoid question answering
-					#### Emory University @ TREC LiveQA'15
+					#### Emory University @ TREC LiveQA 2015
 					---
 					presenter: Denis Savenkov
 
 					PhD student, Emory University
 					[http://mathcs.emory.edu/~dsavenk](http://mathcs.emory.edu/~dsavenk)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<!--
+				<section data-markdown><script type="text/template">
 					# TREC LiveQA Task
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## TREC LiveQA
 					- "live" question answering for real-user questions
 					- questions extracted from a stream of Yahoo! Answers questions
 					- systems need to provide an answer (< 1000 chars) in real-time (1 minute time limit)
 					- no limit on sources of answers
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Example of a question
 					![Example of Yahoo! Answers questions](img/ya_example.png)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Question categories
 					![Categories distribution](img/categories_stats.png)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Question length
 					![Length of title](img/words_per_title.png) ![Length of body](img/words_per_body.png)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Question words
 					![Question words frequency](img/question_words.png)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Observations
 					1. Most questions seek advice and include some personal situation
 					1. Many questions are near duplicates of previously posted questions
 					1. Answers to similar questions (if any) are often better in quality than paragraphs from the web
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				-->
+
+				<section data-markdown><script type="text/template">
 					# System Architecture
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## System overview
 					![QA model architecture](img/qa_model.png)
-				</section>
+				</script></section>
 
-				<section data-markdown>
+				<section data-markdown><script type="text/template">
 					## Query generation strategies
 					- **Yahoo! Answers**
 						1. question title (with and without stopwords)
@@ -111,7 +114,7 @@
 					- **Web search**
 						1. question title
 						1. question title & body
-				</section>
+				</script></section>
 
 				<section data-markdown><script type="text/template">
 					## Features
