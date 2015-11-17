@@ -44,8 +44,8 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section data-markdown><script type="text/template">
-					## Combining answers and web fragments for non-factoid question answering
-					#### Emory University @ TREC LiveQA 2015
+					## Ranking answers and web passages for non-factoid question answering
+					#### Emory IR Lab @ TREC LiveQA 2015
 					---
 					presenter: Denis Savenkov
 
@@ -114,6 +114,14 @@
 					- **Web search**
 						1. question title
 						1. question title & body
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Candidate Ranking
+					- candidates are ranked using linear logistic regression model
+					- the model is trained on a pairwise ranking objective
+					- ...
+
 				</script></section>
 
 				<section data-markdown><script type="text/template">
@@ -274,8 +282,6 @@
 				<section data-markdown><script type="text/template">
 					## Majority of answers came from Yahoo! Answers
 					![Answer sources](img/answer_source.png)
-
-					- the main reason for "no answers" is technical issues that happen on the official run day
 				</script></section>
 
 				<section data-markdown><script type="text/template">
