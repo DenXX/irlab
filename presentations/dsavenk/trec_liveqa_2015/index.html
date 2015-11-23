@@ -86,14 +86,26 @@
 					![Question words frequency](img/question_words.png)
 				</script></section>
 
+				-->
+
 				<section data-markdown><script type="text/template">
-					## Observations
-					1. Most questions seek advice and include some personal situation
-					1. Many questions are near duplicates of previously posted questions
-					1. Answers to similar questions (if any) are often better in quality than paragraphs from the web
+					# Observations
 				</script></section>
 
-				-->
+				<section data-markdown><script type="text/template">
+					## Many questions are similar to previously posted questions
+					![Similar questions](img/similar_questions.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Most questions are based on a "user story"
+					![Similar questions](img/personal_stories.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Some questions are unique or it is hard to find similar questions
+					![Similar questions](img/hard_to_find.png)
+				</script></section>
 
 				<section data-markdown><script type="text/template">
 					# System Architecture
@@ -119,9 +131,8 @@
 				<section data-markdown><script type="text/template">
 					## Candidate Ranking
 					- candidates are ranked using linear logistic regression model
-					- the model is trained on a pairwise ranking objective
-					- ...
-
+					- the model is trained on WebScope collection of Yahoo! Answers pairs with pairwise ranking objective
+					- no distinction between candidates from different sources
 				</script></section>
 
 				<section data-markdown><script type="text/template">
@@ -254,6 +265,8 @@
 					## Feature importance
 
 					![Feature importance](img/features.png)
+
+					<small><em>* category match feature is overfitted as in training category always match</em></small>
 				</script></section>
 
 				<section data-markdown><script type="text/template">
@@ -300,21 +313,43 @@
 				</script></section>
 
 				<section data-markdown><script type="text/template">
-					## Conclusions
-					- Answers to similar questions can be reused
-					- Full question is less effective in similar questions retrieval than key terms
+					# Examples
+				</script></section>				
 
-					## Future work
-					- better question reformulation strategies for search (key phrases)
-					- better question similarity
-					- improved neural network architecture
-					- more features (translation model)
+				<section data-markdown><script type="text/template">
+					## Similar questions
+					![Example similar questions](img/example_q.png)
 				</script></section>
 
 				<section data-markdown><script type="text/template">
-					# Questions?
+					## Non-similar questions
+					![Example similar questions](img/example_q_bad.png)
 				</script></section>
 
+				<section data-markdown><script type="text/template">
+					## Non-similar questions
+					![Example similar questions](img/example_q_bad2.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Not-useful answer
+					![Example similar questions](img/example_a_bad.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Answer from the web
+					![Example similar questions](img/example_web.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Conclusions
+					- answers to previously posted similar questions can be effectively reused to answer new questions
+					- query generation strategies for CQA and web search are important as LiveQA questions are long
+					- term matches-based features are the most useful in our model. It will most likely benefit from “better” text similarity features: translation models, n-grams, tree kernels, etc.4
+					- there is a huge room for improvement: only ~20% of questions were answered fully or partially
+
+					## Thank you! Questions?
+				</script></section>
 			</div>
 
 		</div>
