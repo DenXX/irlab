@@ -1,0 +1,168 @@
+% thesis_main.tex
+%
+% You don't need to change this file unless you use a different number
+% of chapters than the template. See the EDIT HERE line below.
+%
+% 
+%\documentclass[12pt,dblspace]{report}
+\documentclass[12pt]{report}
+
+\newcommand{\comment}[1]{}
+\newcommand{\YA}{Yahoo!\ Answers}
+\newcommand{\eg}[1]{{\em e.g.}}
+\newcommand{\ie}[1]{{\em i.e.}}
+\newcommand{\wex}[1]{`{\em #1}'}
+\newcommand{\shortcite}[1]{\cite{#1}}
+%\usepackage{url}
+\usepackage[hyphens]{url}
+\usepackage{subfigure}
+\usepackage{multirow}
+\usepackage[show]{chato-notes}
+\usepackage{pdfpages}
+
+\usepackage{natbib}
+\usepackage[nottoc]{tocbibind}
+\usepackage{datetime}
+\usepackage{caption}
+
+%\usepackage{geometry} 
+\usepackage[margin=.8in]{geometry}
+%\usepackage[margin=.98in]{geometry}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{epstopdf}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{url}
+\usepackage{float}
+\floatstyle{plain} 
+%\floatstyle{boxed} 
+\restylefloat{figure}
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\hsize=5in
+\vsize=7.5in
+%\hoffset=.05in
+\voffset=.0in
+%\hoffset=.25in
+%\voffset=.25in
+\renewcommand{\baselinestretch}{1}
+%\renewcommand{\baselinestretch}{2}
+
+%
+% To get page numbering exactly right (not really needed),
+% Uncomment next line after editing toc and lof files appropriately.
+%\nofiles
+%
+
+
+
+
+
+\newcommand{\mychapter}[1]{\newpage \vspace*{0.00mm} \refstepcounter{chapter} 
+	
+	{\LARGE \bf  \noindent \thechapter \hspace*{0.5em}   
+		#1\baselineskip=1.0\normalbaselineskip\par}
+	
+			\vspace*{3ex} \par 
+\addcontentsline{toc}{chapter}{\protect \numberline{\thechapter}{#1}}   }
+
+
+%\newcommand{\mychapter}[1]{\newpage \vspace*{0.01mm} \refstepcounter{chapter} 
+%	\begin{center}
+%	{\huge \bf Chapter \space  \thechapter \vspace*{1em}  \par 
+%		#1\baselineskip=1.0\normalbaselineskip\par}
+%		 \end{center} 
+%			\vspace*{3ex} \par 
+%\addcontentsline{toc}{chapter}{\protect \numberline{\thechapter}{#1}}   }
+
+
+%\newcommand{\myappendix}[1]{\newpage \vspace*{0.01mm} \refstepcounter{chapter}
+%        \begin{center}
+%        {\LARGE \bf Appendix \space  \thechapter \vspace*{1em}  \par
+%                #1\baselineskip=1.0\normalbaselineskip\par}
+%                 \end{center}
+%                        \vspace*{3ex} \par
+%\addcontentsline{toc}{chapter}{Appendix \protect \numberline{\thechapter} - {#1} } }
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{myheadings}
+\begin{document}
+\renewcommand{\baselinestretch}{1.3}
+%\renewcommand{\baselinestretch}{1.3}
+
+\input epsf
+
+\setlength{\headsep}{0.15in}
+%\setlength{\headsep}{1.15in}
+\setlength{\topmargin}{-.5in}
+\pagenumbering{roman}
+\pagestyle{empty}
+
+
+
+\title{
+\textbf{Question Answering Using Structured and Semi-Structured User Generated Content} \\
+%\textbf{Improving Information Access with Community Question Answering} \\
+\normalfont Doctoral thesis proposal}
+\author{\textbf{Denis Savenkov}\\
+      Dept. of Math \& Computer Science\\
+      Emory University\\
+      denis.savenkov@emory.edu
+}
+
+
+\newdateformat{mydate}{\monthname[\THEMONTH], \THEYEAR}
+
+\mydate
+
+\maketitle
+
+
+\begin{abstract}
+
+Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases - KB) data sources for candidate generation.
+However, typically each of the data sources is processed independently and the merging of the results happens only after the candidates are generated.
+I propose to enrich the expressiveness of data representation of each of the data sources with complementary information for joint reasoning.
+Text documents can be annotated with the information about properties and connections between mentioned entities.
+On the other hand for knowledge base question answering systems passages and text fragments retrieved for a candidate answer can help the system to find a good mapping between a natural language question and the corresponding structured query representation.
+
+\end{abstract}
+
+
+\tableofcontents
+%\listoffigures
+%\listoftables
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%% EDIT HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Change these lines to adjust for different numbers of chapters /
+% appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{chap1}
+\include{chap2}
+\include{chap3}
+\include{chap4}
+\include{chap5}
+%\include{chap6}
+%\include{chap7}
+%\appendix
+%\include{appendixa}
+%\include{appendixb}
+%\include{appendixc}
+%%%%%%%%%%%%%%%%%%%%%%%% STOP EDITING HERE %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\include{mybib}
+
+
+\bibliographystyle{abbrv}\small 
+\setlength{\bibsep}{2pt}
+\singlespacing
+\bibliography{References}
+%\bibliography{References,searchAsk,sigproc,questionIntent,reranking}
+\end{document}
