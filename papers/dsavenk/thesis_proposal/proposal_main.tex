@@ -124,11 +124,19 @@
 
 \begin{abstract}
 
-Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases - KB) data sources for candidate generation.
-However, typically each of the data sources is processed independently and the merging of the results happens only after the candidates are generated.
-I propose to enrich the expressiveness of data representation of each of the data sources with complementary information for joint reasoning.
-Text documents can be annotated with the information about properties and connections between mentioned entities.
-On the other hand for knowledge base question answering systems passages and text fragments retrieved for a candidate answer can help the system to find a good mapping between a natural language question and the corresponding structured query representation.
+Question answering (QA) research has come a long way from small closed domain systems to IBM Watson, who defeated best human competitors on the Jeopardy! TV show.
+However, we are still far from being able to build a system that can answer all kinds of user questions automatically.
+Over the years most efforts in QA research were focused on so called factoid questions, where the answer is typically a short phrase, such as an entity, date, number, etc.
+Modern QA systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases - KB) data sources for candidate generation.
+However, these data sources are usually used independently to generate a set of candidate answers, which are then ranked and the best candidate is selected.
+Each of the data sources has its limitations, in particular the amount of information encoded in a text fragment is very limited, which makes inference and reasoning hard.
+On the other hand, modern large scale knowledge bases encode vast amount of information about various entities and can answer all sorts of questions asked using structured query languages such as SPARQL.
+However, question answering over such linked data is complicated as we need to translate natural language questions into the structured form.
+In addition, knowledge base are incomplete and many entities, predicates and triples are simply missing.
+I propose to bridge the gap between the structured knowledge bases and unstructured text data for question answering by annotating documents with mentioned entities and extending the set of operations involved in question answering with operations traversing these links between knowledge base and text collections.
+
+TODO: Non-factoid question answering and LiveQA.
+
 
 \end{abstract}
 
@@ -149,7 +157,7 @@ On the other hand for knowledge base question answering systems passages and tex
 \include{chap3}
 \include{chap4}
 \include{chap5}
-%\include{chap6}
+\include{chap6}
 %\include{chap7}
 %\appendix
 %\include{appendixa}

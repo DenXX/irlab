@@ -17,77 +17,69 @@
 
 \section{Motivation}
 
+% Information retrieval approaches for question answering over text collections were shown to be quite effective for factoid questions answering. However, the amount of information encoded in a text fragment is very limited, which makes inference and reasoning hard. 
+% On the other hand, modern large scale knowledge bases encode vast amount of information about various entities and can answer all sorts of questions asked using structured query languages such as SPARQL. However, question answering over such linked data is complicated as we need to translate natural language questions into the structured form. In addition, knowledge base are incomplete and many entities, predicates and triples are simply missing.
+% I propose to bridge the gap between the structured knowledge bases and unstructured text data for question answering by annotating documents with mentioned entities and extending the set of operations involved in question answering with operations traversing these links between knowledge base and text collections. For example, exploring the neighborhood of candidate answers from text documents in a KB brings additional information about the candidate, which can be matched against the parts of the question that is not stated in text. Alternatively, text fragments mentioning a given entity and some question terms can provide a link to another entity, that is currently missing in KB as well as additional signal for ranking.
+
+% FROM WSDM DC
+
+% Recently we witnessed some successes of QA systems, i.e. IBM Watson winning the Jeopardy! TV show, major companies adapting question answering technologies (Apple Siri, Google Now, Microsoft Cortana, etc). 
+% However, these systems are still very limited and we have a lot to do to move beyond these 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
+
+The ability to answer user questions with precise and concise information is a hard problem with a long history of research.
+Various data sources are available for candidate answer generation, two major ones are unstructured text corpora, and structured knowledge bases (e.g. dpPedia \cite{auer2007dbpedia} and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}).
+A hybrid approach to question answering \cite{baudivs2015modeling,Ferrucci10:DeepQA} generates candidates from multiple sources, however each of them is typically processed separately and results are merged on the scoring and ranking stage when some information is already lost.
+Efficient combination of different information sources has potential to improve both text and knowledge base question answering systems.
+I propose to combine all the available sources together and do joint reasoning to generate better answer candidates and improve the overall question answering performance.
+
+% Text-bases QA systems were shown to be quite effective on the TREC QA tasks as well as on other benchmark datasets \cite{dang2007overview}.
+Question answering from text corpora typically starts by retrieving a set of potentially relevant documents using the question (or some transformation of the question \cite{AgichteinLG01}) as the query, and then extracting entities, phrases, sentences or paragraphs believed to be the answer to the question.
+However, the information available in the retrieved pieces of text is very limited and often not enough to decide whether it can be the answer to the given question.
+For example, below is one of the questions from TREC QA 2007 dataset:\\
+\textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''}\\
+A candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''} mentions a senator ``Harry Reid'' and clearly says about his support of the nomination.
+However, ``Harry Reid'' is not a correct answer to the question because he is a member of the Democratic party.
+This information is not available in the answer candidate sentence, but it is present as one of the properties in Freebase: [Harry Reid, political\_party, Democratic party]\footnote{Actually, in Freebase the entities are connected by a path of length 2 through a mediator node. The predicates on the path are: /government/politician/party and /government/political\_party\_tenure/party}.
+Therefore, by looking into the knowledge available about the mentioned entities a QA system can make a better judgment about the candidate answer.
+
+Question answering over linked data (knowledge bases) converts a natural language question into a structured query, such as SPARQL.
+The main challenge for such systems is to map words and phrases from the question to the corresponding entities and predicates from a KB.
+Usually, such lexicon is built during training using ground truth question-query pairs \cite{CaiY13} or question-answer pairs \cite{BerantCFL13:sempre}.
+Improvements were made by extending the lexicon using Wikipedia and patterns expressing certain predicates obtained via distant supervision \cite{bastmore:cikm:2015:aquu,BordesCW14:emnlp,ReddyLS14,yih:ACL:2015:STAGG,YaoD14}.
+But still, the amount of available labeled or weakly labeled training data is much smaller than the amount of unstructured data.
+This unstructured data will complement the learned lexicon, e.g. even if a question about a certain predicate wasn't seen during training, a set of text paragraphs mentioning both of the related entities can provide a QA system with enough evidence to make the correct decision.
+
 
 \section{Research Questions}
 
 
-
-%\section{Contributions}
-%
-%\begin{itemize}
-%\item Modeling Answerer Behavior in CQA
-%
-%-- why? to improve effectiveness of CQA system, e.g. motivating answerers and improve answer quality.
-%
-%-- Exploring Web Browsing Context for Collaborative Question Answering
-%
-%-- why? to help answerers better answer questions and save effort.
-%
-%\item Predicting Web Searcher Satisfaction with Existing Community-based Answers
-%
-%-- why? to predict usefulness of CQA answers for satisfying web searchers' needs 
-%
-%-- considered queries that resulted in question clicks
-%
-%-- considered query clarity, query-question relevance, answer quality
-%
-%\item When Web Search Fails, Searchers Become Askers: Understanding the Transition
-%
-%-- why? to predict when searchers fail and suggesting asking questions would be helpful 
-%
-%-- considered characteristics of queries and sessions (and users TODO)
-%
-%-- considered query-question relations (explicit user feedback of questions)
-%
-%-- considered characteristics of questions posted by searchers
-%
-%\item use question clicks to improve ranking of general search results
-%
-%-- why? to make use of searchers' clicks on questions to better understand their needs and improve ranking
-%
-%-- considering queries that have question results in SERP
-%
-%-- considering using explicit feedback (e.g. questions) as well as implicit feedback (e.g. clicks)?
-%
-%\end{itemize}
-
-
-
 \section{Research Plan}
 
-%In what follows, the status of the proposed work along with the corresponding references is listed.
-
-\subsection{Understanding Answer Contributions in CQA (Chapter 3)}
+\subsection{Step 1 (Chapter 3)}
 \label{sec:plan1}
 
+\subsection{Step 2 (Chapter 4)}
+\label{sec:plan2}
 
-\subsection{Improving Search Quality with CQA Data (Chapter 5)}
+\subsection{Step 3 (Chapter 5)}
 \label{sec:plan3}
-
 
 \subsection{Research Timeline}
 
-\noindent A tentative timeline for the work that needs to be done is shown below:
+% \noindent A tentative timeline for the work that needs to be done is shown below:
 
-\begin{itemize}
-\item Completing the work proposed in Section \ref{sec:plan2} (10/2013 - 11/2013): For detecting implicit question intent in web search, build a better evaluation set, develop more features for the classifier and compare with more baselines.
-\item Completing the work proposed in Section \ref{sec:plan3} (12/2013 - 04/2014): For improving question search for queries with question intent, develop models that build better query model and learn better word-to-word translation relationships based on the query-question click data and question category information.
-\item \textbf{If time permits}, extending the work proposed in Section \ref{sec:plan3} (03/2014 - 04/2014): Extend the methods developed above for question search to achieve better query expansion and results ranking for general web search.
-\item Thesis writing (05/2014 - 08/2014) 
-\item Thesis defense (08/2014)
-\end{itemize}
+%\begin{itemize}
+%\item Completing the work proposed in Section \ref{sec:plan2} (10/2013 - 11/2013): For detecting implicit question intent in web search, build a better evaluation set, develop more features for the classifier and compare with more baselines.
+%\item Completing the work proposed in Section \ref{sec:plan3} (12/2013 - 04/2014): For improving question search for queries with question intent, develop models that build better query model and learn better word-to-word translation relationships based on the query-question click data and question category information.
+%\item \textbf{If time permits}, extending the work proposed in Section \ref{sec:plan3} (03/2014 - 04/2014): Extend the methods developed above for question search to achieve better query expansion and results ranking for general web search.
+%\item Thesis writing (05/2014 - 08/2014) 
+%\item Thesis defense (08/2014)
+%\end{itemize}
 
 
 \section{Contributions and Implications}
 
-
+The key contributions of the proposed research are:
+1. New hybrid KB-text question answering algorithm, that is based on graph search, which includes both KB links as well as text search edges to follow.
+2. New labelled dataset for question answering (???)
+3. New features for ranking answer candidates ???
