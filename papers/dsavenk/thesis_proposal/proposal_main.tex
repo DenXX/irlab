@@ -1,0 +1,192 @@
+% thesis_main.tex
+%
+% You don't need to change this file unless you use a different number
+% of chapters than the template. See the EDIT HERE line below.
+%
+% 
+%\documentclass[12pt,dblspace]{report}
+\documentclass[12pt]{report}
+
+\newcommand{\comment}[1]{}
+\newcommand{\YA}{Yahoo!\ Answers}
+\newcommand{\eg}[0]{{\em e.g. }}
+\newcommand{\etc}[0]{{\em etc. }}
+\newcommand{\ie}[0]{{\em i.e. }}
+\newcommand{\wex}[1]{`{\em #1}'}
+\newcommand{\shortcite}[1]{\cite{#1}}
+%\usepackage{url}
+\usepackage[hyphens]{url}
+\usepackage{subfigure}
+\usepackage{multirow}
+\usepackage[show]{chato-notes}
+\usepackage{pdfpages}
+
+\usepackage{natbib}
+\usepackage[nottoc]{tocbibind}
+\usepackage{datetime}
+\usepackage{caption}
+
+%\usepackage{geometry} 
+\usepackage[margin=.8in]{geometry}
+%\usepackage[margin=.98in]{geometry}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{epstopdf}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{url}
+\usepackage{float}
+\floatstyle{plain} 
+%\floatstyle{boxed} 
+\restylefloat{figure}
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\hsize=5in
+\vsize=7.5in
+%\hoffset=.05in
+\voffset=.0in
+%\hoffset=.25in
+%\voffset=.25in
+\renewcommand{\baselinestretch}{1}
+%\renewcommand{\baselinestretch}{2}
+
+%
+% To get page numbering exactly right (not really needed),
+% Uncomment next line after editing toc and lof files appropriately.
+%\nofiles
+%
+
+
+
+
+
+\newcommand{\mychapter}[1]{\newpage \vspace*{0.00mm} \refstepcounter{chapter} 
+	
+	{\LARGE \bf  \noindent \thechapter \hspace*{0.5em}   
+		#1\baselineskip=1.0\normalbaselineskip\par}
+	
+			\vspace*{3ex} \par 
+\addcontentsline{toc}{chapter}{\protect \numberline{\thechapter}{#1}}   }
+
+
+%\newcommand{\mychapter}[1]{\newpage \vspace*{0.01mm} \refstepcounter{chapter} 
+%	\begin{center}
+%	{\huge \bf Chapter \space  \thechapter \vspace*{1em}  \par 
+%		#1\baselineskip=1.0\normalbaselineskip\par}
+%		 \end{center} 
+%			\vspace*{3ex} \par 
+%\addcontentsline{toc}{chapter}{\protect \numberline{\thechapter}{#1}}   }
+
+
+%\newcommand{\myappendix}[1]{\newpage \vspace*{0.01mm} \refstepcounter{chapter}
+%        \begin{center}
+%        {\LARGE \bf Appendix \space  \thechapter \vspace*{1em}  \par
+%                #1\baselineskip=1.0\normalbaselineskip\par}
+%                 \end{center}
+%                        \vspace*{3ex} \par
+%\addcontentsline{toc}{chapter}{Appendix \protect \numberline{\thechapter} - {#1} } }
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{myheadings}
+\begin{document}
+\renewcommand{\baselinestretch}{1.3}
+%\renewcommand{\baselinestretch}{1.3}
+
+\input epsf
+
+\setlength{\headsep}{0.15in}
+%\setlength{\headsep}{1.15in}
+\setlength{\topmargin}{-.5in}
+\pagenumbering{roman}
+\pagestyle{empty}
+
+
+
+\title{
+\textbf{Question Answering Using Structured and Semi-Structured User Generated Content} \\
+%\textbf{Improving Information Access with Community Question Answering} \\
+\normalfont Doctoral thesis proposal}
+\author{\textbf{Denis Savenkov}\\
+      Dept. of Math \& Computer Science\\
+      Emory University\\
+      denis.savenkov@emory.edu
+}
+
+
+\newdateformat{mydate}{\monthname[\THEMONTH], \THEYEAR}
+
+\mydate
+
+\maketitle
+
+
+\begin{abstract}
+Question answering (QA) research has come a long way from closed domain small systems to IBM Watson, who defeated best human competitors on the Jeopardy! TV show.
+However, an ultimate human assistant, who can automatically answer all kinds of questions one have is still just a dream.
+Over the year of research most efforts were put on factoid questions, which can be answered with a short phrase, \eg an entity name, date, number, etc.
+Modern QA systems employ a variety of different unstructured (text-corpora), semi-structured (tables, Wikipedia infoboxes, question-answer pairs) and structured (databases, knowledge bases) data sources to generate candidate answers.
+Each of the data sources has its own advantages and limitations, in particular a text fragment encodes very limited amount of information about the entities involved in the statements, which complicates the reasoning about the answer correctness.
+For example, most factoid QA systems tries to substitute missing information with a prediction, \ie predict an expected lexical answer type (LAT) from the question and match it against the also predicted answer entity type.
+On the other side of the spectrum knowledge bases (KB) aggregate all available information about entities and support effective querying with a structured query language, such as SPARQL.
+The problem comes when we need to translate natural language information need to a structured query.
+Modern knowledge base question answering (KBQA) systems use question-answer pairs (QnA), question paraphrases and other resources to learn a lexicon to map from natural language phrases to knowledge base objects, which is still limited and works well for relatively popular simple questions.
+In addition knowledge bases are inherently incomplete and many entities, predicates and facts are simply missing.
+Therefore, it make sense to combine different data sources for question answering, and this approach was already shown to be successful by systems such as IBM Watson, but they treat different data sources mostly independently and use them to produce as a set of candidates, which are then ranked and the best answer is selected.
+% However, for many questions it might be hard to find good candidates in the first place, and one would benefit from utilizing all available resources together at this stage.
+In my dissertation I propose to consider unstructured textual and structured knowledge base resources, connected via entity linking, together for joint reasoning on the candidate generation stage.
+Existing datasets for question answering are either relatively small (QALD tasks), focused on text (TREC QA) or on knowledge bases only (\eg WebQuestions).
+To evaluate the approach I'm going to build a new realistic dataset extracted from Yahoo! Answers question-answer pairs.
+
+Beyond factoid questions we have a plethora of different information needs, that require more than a simple fact to answer.
+Such questions are usually called non-factoid and more and more research effort is devoted to answering such questions.
+In 2015 Text REtrieval Conference (TREC) pioneered LiveQA shared task track, which targets automatic question answering of various types of questions user post on Yahoo! Answers Community Question Answering (CQA) website.
+Existing research has demonstrated the effectiveness of reusing answers to similar previously posted questions, but in many cases such questions are not available or challenging to find.
+Alternatively, existing systems rank passages extracted from regular web pages.
+However, ranking is complicated due to the lexical gap between question and answer text.
+Knowledge about what question does a paragraph of text answers would be very useful signal for ranking, which is supported by the results of the winning TREC LiveQA approach.
+In my thesis I propose to make a step further and automatically extract candidates text passages along with questions which they answers.
+This can be done by automatically detecting question-answer pairs from certain web pages (\eg forums, FAQ, \etc).
+In addition, we can build upon the recent success with automatic text generation by recurrent neural networks and train a model to predict a question for a given text fragment.
+
+In summary, this dissertation aims to improve the performance of automatic question answering systems for both factoid and non-factoid question answering.
+
+
+\end{abstract}
+
+
+\tableofcontents
+%\listoffigures
+%\listoftables
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%% EDIT HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Change these lines to adjust for different numbers of chapters /
+% appendices
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\include{chap1}
+\include{chap2}
+\include{chap3}
+\include{chap4}
+\include{chap5}
+\include{chap6}
+%\include{chap7}
+%\appendix
+%\include{appendixa}
+%\include{appendixb}
+%\include{appendixc}
+%%%%%%%%%%%%%%%%%%%%%%%% STOP EDITING HERE %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\include{mybib}
+
+
+\bibliographystyle{abbrv}\small 
+\setlength{\bibsep}{2pt}
+\singlespacing
+\bibliography{References}
+%\bibliography{References,searchAsk,sigproc,questionIntent,reranking}
+\end{document}

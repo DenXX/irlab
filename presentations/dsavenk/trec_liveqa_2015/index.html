@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Emory University @ TREC LiveQA'15</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<style type="text/css">
+		.reveal section img { background:none; border:none; box-shadow:none; }
+		</style>
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section data-markdown><script type="text/template">
+					## Ranking answers and web passages for non-factoid question answering
+					#### Emory IR Lab @ TREC LiveQA 2015
+					---
+					presenter: Denis Savenkov
+
+					PhD student, Emory University
+					[http://mathcs.emory.edu/~dsavenk](http://mathcs.emory.edu/~dsavenk)
+				</script></section>
+
+				<!--
+				<section data-markdown><script type="text/template">
+					# TREC LiveQA Task
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## TREC LiveQA
+					- "live" question answering for real-user questions
+					- questions extracted from a stream of Yahoo! Answers questions
+					- systems need to provide an answer (< 1000 chars) in real-time (1 minute time limit)
+					- no limit on sources of answers
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Example of a question
+					![Example of Yahoo! Answers questions](img/ya_example.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Question categories
+					![Categories distribution](img/categories_stats.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Question length
+					![Length of title](img/words_per_title.png) ![Length of body](img/words_per_body.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Question words
+					![Question words frequency](img/question_words.png)
+				</script></section>
+
+				-->
+
+				<section data-markdown><script type="text/template">
+					# Observations
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Many questions are similar to previously posted questions
+					![Similar questions](img/similar_questions.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Most questions are based on a "user story"
+					![Similar questions](img/personal_stories.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Some questions are unique or it is hard to find similar questions
+					![Similar questions](img/hard_to_find.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# System Architecture
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## System overview
+					![QA model architecture](img/qa_model.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Query generation strategies
+					- **Yahoo! Answers**
+						1. question title (with and without stopwords)
+						1. question title & body
+						1. question title (w/ body) & question category
+						1. top 5 tf-idf terms from title (w/ body)
+					- **Web search**
+						1. question title
+						1. question title & body
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Candidate Ranking
+					- candidates are ranked using linear logistic regression model
+					- the model is trained on WebScope collection of Yahoo! Answers pairs with pairwise ranking objective
+					- no distinction between candidates from different sources
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Features
+					- answer statistics (length in chars, tokens, sents, etc) <!-- .element: class="fragment" -->
+					- BM25 scores (using title or title + body as query) <!-- .element: class="fragment" -->
+					- term matches features (number of matches, maximum spans of matched terms, etc.) <!-- .element: class="fragment" -->
+					- question and retrieved question categories match <!-- .element: class="fragment" -->
+					- bag of word pairs from question and candidate answer <!-- .element: class="fragment" -->
+					- statistics of NPMI between question and answer terms <!-- .element: class="fragment" -->
+					- score computed by an LSTM neural network model <!-- .element: class="fragment" -->
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Normalized PMI
+					> $\operatorname{npmi}(q_i;a_j) = \frac{pmi(q_i;a_j)}{-\log p(q_i,a_j)}$
+					> $\operatorname{pmi}(q_i;a_j) = \log\frac{p(a_j|q_i)}{p(a_j)}$
+
+					- computed on WebScope Yahoo! Answers collection
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## NPMI scores: diabetes
+
+					term               |     score    
+					------------------ | ------------
+					diabetes           |    0.70858  
+					insulin            |    0.62824  
+					glucose            |    0.55582  
+					niddm              |    0.55183  
+					hyperglycemia      |    0.54767  
+					mellitus           |    0.54400  
+					insulin-dependent  |    0.54332  
+					pancreas           |    0.54290  
+
+				</script></section>
+				<section data-markdown><script type="text/template">
+					## NPMI scores: install
+
+					term           |  score 
+					-------------- | --------
+					install        |  0.52456
+					setup.exe      |  0.44842
+					partition      |  0.40844
+					xp             |  0.39632
+					ubuntu         |  0.38734
+					bootable       |  0.37943
+					distros        |  0.36809
+					windows        |  0.35734
+
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## LSTM model
+					* Simple NN to produce a joint representation of QnA pair
+					* This representation is used to predict how likely the candidate answers the question
+
+					![LSTM model architecture](img/lstm_model.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Training
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## LSTM network training
+					![LSTM training](img/lstm_training.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## LSTM network training
+					* Implemented using Keras library
+					* Trained using stochastic gradient descent with Adam optimization technique
+					* Embedding and hidden layer of size 128
+					* Vocabulary of 1M words
+					* Total of 10K QnA pairs, batch size of 200 for 100 epochs
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Logistic regression training
+					![LR training](img/lr_training.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Evaluation
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Answer candidates
+
+					.			    | Yahoo!Answers | Web
+					--------------- | ------------- | ----
+					Average # of candidates | 33.63 | 67.50
+					Average model score | -15.18 | -20.50
+					How often no candidates | 0.14 | 0.02
+
+					![Candidate ranks](img/candidate_ranks.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Avg number of candidates: Y!A
+
+					![Number of candidates per query type](img/query_candidate_count.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Rank of the best candidate: Y!A
+
+					![Best rank per query type](img/query_candidate_bestrank.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## How often the candidate was selected: Y!A
+
+					![How often the candidate was selected: Y!A](img/selected_candidate.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Fraction of questions without candidates: Y!A
+
+					![Fraction of questions without candidates](img/query_candidate_nocandidate.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Query generation statistics for web 
+					![Number of candidates per query type](img/query_candidate_count_web.png) ![Best rank per query type](img/query_candidate_bestrank_web.png) ![Fraction of questions without candidates](img/query_candidate_nocandidate_web.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Feature importance
+
+					![Feature importance](img/features.png)
+
+					<small><em>* category match feature is overfitted as in training category always match</em></small>
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Evaluation run statistics
+					> 1087 questions were judged
+
+					score | explanation
+					----- | ------------
+					4 Excellent | fully answers the question
+					3 Good | partially answers the question
+					2 Fair | marginally useful information
+					1 Bad | contains no useful information for the question
+					-2 | the answer is unreadable
+
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Scores
+					![Scores](img/scores.png)
+					
+					- avg-score(0-3) - average score over all queries
+					- succ@i+ - fraction of questions with i+ score
+					- prec@i+ - fraction of answers with i+ score
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Majority of answers came from Yahoo! Answers
+					![Answer sources](img/answer_source.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## For some categories web search was more useful
+					![Answer sources](img/number_of_answers_per_category.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Many other CQA website domains
+					![Domains frequency](img/domains_count.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Quality of answers from Y!A is better
+					![Answer sources scores](img/scores_per_type.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					# Examples
+				</script></section>				
+
+				<section data-markdown><script type="text/template">
+					## Similar questions
+					![Example similar questions](img/example_q.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Non-similar questions
+					![Example similar questions](img/example_q_bad.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Non-similar questions
+					![Example similar questions](img/example_q_bad2.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Not-useful answer
+					![Example similar questions](img/example_a_bad.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Answer from the web
+					![Example similar questions](img/example_web.png)
+				</script></section>
+
+				<section data-markdown><script type="text/template">
+					## Conclusions
+					- answers to previously posted similar questions can be effectively reused to answer new questions
+					- query generation strategies for CQA and web search are important as LiveQA questions are long
+					- term matches-based features are the most useful in our model. It will most likely benefit from “better” text similarity features: translation models, n-grams, tree kernels, etc.4
+					- there is a huge room for improvement: only ~20% of questions were answered fully or partially
+
+					## Thank you! Questions?
+				</script></section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				slideNumber: 'c/t',
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+
+			    math: {
+			        mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+			        config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+			    },
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/math/math.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
