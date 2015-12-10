@@ -3,7 +3,9 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by dsavenk on 5/1/15.
@@ -22,19 +24,41 @@ public class FilterQuestionsProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        int questionSentences = new DocumentWrapper(document).getQuestionSentenceCount();
-        boolean hasNerInQuestions = false;
+        DocumentWrapper docWrapper = new DocumentWrapper(document);
+        int questionSentences = docWrapper.getQuestionSentenceCount();
+        if (questionSentences != 1) return null;
+        if (!document.getToken(document.getSentence(0).getFirstToken()).getPos().startsWith("W") ||
+                document.getToken(document.getSentence(0).getFirstToken()).getLemma().toLowerCase().equals("why")) return null;
+
+        for (int token = document.getSentence(0).getFirstToken(); token < document.getSentence(0).getLastToken(); ++token) {
+            if (document.getToken(token).getLemma().toLowerCase().equals("you") ||
+                    document.getToken(token).getLemma().toLowerCase().equals("i") ||
+                    document.getToken(token).getLemma().toLowerCase().equals("we")) {
+                return null;
+            }
+
+            if (document.getToken(token).getPos().equals("JJR") ||
+                    document.getToken(token).getPos().equals("JJS")) {
+                return null;
+            }
+        }
+
+
+        Set<String> questionEntityMids = new HashSet<>();
+        Set<String> answerEntityMids = new HashSet<>();
         for (Document.Span span : document.getSpanList()) {
-            if (span.getType().equals("ENTITY")) {
+            if (span.getType().equals("ENTITY") && span.hasEntityId()) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentences) {
-                        if (document.getToken(document.getSentence(mention.getSentenceIndex()).getFirstToken()).getPos().startsWith("W"))
-                            hasNerInQuestions = true;
+                        questionEntityMids.add(span.getEntityId());
+                    } else {
+                        answerEntityMids.add(span.getEntityId());
                     }
                 }
             }
         }
-        if (!hasNerInQuestions) return null;
+        answerEntityMids.removeAll(questionEntityMids);
+        if (questionEntityMids.isEmpty() || answerEntityMids.isEmpty()) return null;
 
         return document;
     }

@@ -8,10 +8,10 @@ import edu.emory.mathcs.ir.qa.ml.StanfordClassifierUtils;
 import edu.stanford.nlp.classify.LinearClassifier;
 import edu.stanford.nlp.ling.Datum;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +46,15 @@ public class FeatureBasedAnswerSelector implements AnswerSelection {
             LinearClassifier<Boolean, String> model,
             FeatureGeneration featureGenerator) {
         model_ = model;
+        try (PrintWriter out = new PrintWriter(new FileOutputStream("model.txt"))) {
+            Set<Boolean> s = new HashSet<>();
+            s.add(true);
+            out.print(model_.topFeaturesToString(model_.getTopFeatures(s, 0, false, 1000000, true)));
+            out.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         featureGenerator_ = featureGenerator;
     }
 

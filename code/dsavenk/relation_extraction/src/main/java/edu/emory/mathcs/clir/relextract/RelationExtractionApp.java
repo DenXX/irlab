@@ -77,6 +77,9 @@ public class RelationExtractionApp {
                 case "serialize":
                     workflow.addProcessor(new SerializerProcessor(props));
                     break;
+                case "textserialize":
+                    workflow.addProcessor(new TextSerializerProcessor(props));
+                    break;
                 case "batchserialize":
                     workflow.addProcessor(new BatchSerializerProcessor(props));
                     break;
