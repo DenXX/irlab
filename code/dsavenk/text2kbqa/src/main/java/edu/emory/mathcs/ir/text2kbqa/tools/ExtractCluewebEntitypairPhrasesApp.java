@@ -1,12 +1,9 @@
 package edu.emory.mathcs.ir.text2kbqa.tools;
 
-import edu.cmu.lemurproject.WarcHTMLResponseRecord;
 import edu.cmu.lemurproject.WarcRecord;
 
 import java.io.*;
-import java.text.BreakIterator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -15,15 +12,24 @@ import java.util.zip.GZIPInputStream;
  */
 public class ExtractCluewebEntitypairPhrasesApp {
     private static final String CLUEWEB_PATH_TEMPLATE =
-            "/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            //"/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            "/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
 
     public static void main(String[] args) throws IOException {
         String entityPairsFile=args[0];
 
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(
-                    new GZIPInputStream(
-                        new FileInputStream(entityPairsFile))))) {
+        long nullPhrases = 0;
+
+        try (BufferedReader reader =
+                     new BufferedReader(
+                             new InputStreamReader(
+                                     new GZIPInputStream(
+                                             new FileInputStream(
+                                                     entityPairsFile))));
+             BufferedWriter out =
+                     new BufferedWriter(
+                             new OutputStreamWriter(System.out))
+        ) {
             String line;
             String currentWarcFile = "";
             DataInputStream warcStream = null;
@@ -32,45 +38,66 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
             List<EntityPairRecord> currentDocumentRecords = new ArrayList<>();
 
+            long index = 0;
             while ((line = reader.readLine()) != null) {
-                EntityPairRecord rec = EntityPairRecord.parseRecord(line);
-                String newWarcFile = getWarcFilePath(rec.documentId);
-
-                // If the name of the file of the current document changed from
-                // the previous one, we need to open another Clueweb web
-                // archive.
-                if (!newWarcFile.equals(currentWarcFile)) {
-                    if (warcStream != null) {
-                        warcStream.close();
-                    }
-                    currentWarcFile = newWarcFile;
-                    warcStream = new DataInputStream(
-                            new GZIPInputStream(
-                                    new FileInputStream(currentWarcFile)));
-                }
+                EntityPairRecord currentEntityPairRecord =
+                        EntityPairRecord.parseRecord(line);
+                if (currentEntityPairRecord == null) continue;
 
                 // We keep aggregating records for the same document, after that
                 // we will read this document and extract phrases of interest.
                 if (currentWarcDocumentId != null &&
-                        !currentWarcDocumentId.equals(rec.documentId)) {
+                        !currentWarcDocumentId.equals(
+                                currentEntityPairRecord.documentId)) {
+                    // If the name of the file of the current document changed from
+                    // the previous one, we need to open another Clueweb web
+                    // archive.
+                    String warcFile = getWarcFilePath(currentWarcDocumentId);
+                    if (!warcFile.equals(currentWarcFile)) {
+                        if (warcStream != null) {
+                            warcStream.close();
+                        }
+                        currentWarcFile = warcFile;
+                        warcStream = new DataInputStream(
+                                new GZIPInputStream(
+                                        new FileInputStream(currentWarcFile)));
+                    }
+
                     WarcRecord thisWarcRecord = readDocumentFromWarc(
                             warcStream, currentWarcDocumentId);
                     if (thisWarcRecord != null) {
                         for (EntityPairRecord record : currentDocumentRecords) {
                             String phrase = extractPhrasesAroundEntityPairs(
                                     record, thisWarcRecord);
+
                             if (phrase != null) {
-                                System.out.println(phrase);
+                                out.write(String.format(
+                                        "%s\t%s\t%s\t%s\t%s\n",
+                                        record.firstEntityMid,
+                                        record.firstEntityName,
+                                        record.secondEntityMid,
+                                        record.secondEntityName,
+                                        phrase));
+                            } else {
+                                ++nullPhrases;
                             }
                         }
                     }
                     currentDocumentRecords.clear();
                 }
 
-                currentWarcDocumentId = rec.documentId;
+                currentWarcDocumentId = currentEntityPairRecord.documentId;
                 // Add record to the list.
-                currentDocumentRecords.add(rec);
+                currentDocumentRecords.add(currentEntityPairRecord);
+
+                if (++index % 100000 == 0) {
+                    System.err.println(String.format(
+                            "%d lines processed, %d lines skipped",
+                            index, nullPhrases));
+                }
             }
+        } catch (Exception ex) {
+            System.err.println(ex.getMessage());
         }
     }
 
@@ -79,15 +106,35 @@ public class ExtractCluewebEntitypairPhrasesApp {
             WarcRecord thisWarcRecord) {
         int start = Math.max(0,
                 Math.min(record.firstEntityBegin,
-                        record.secondEntityBegin) - 200);
+                        record.secondEntityBegin) - 100);
         int end = Math.min(thisWarcRecord.getContent().length,
                 Math.max(record.firstEntityEnd,
-                        record.secondEntityEnd) + 200);
+                        record.secondEntityEnd) + 100);
         try {
-            return new String(
-                    thisWarcRecord.getContent(), start, end - start, "UTF8")
-                    .replace("\n", " ");
-        } catch (UnsupportedEncodingException e) {
+            String wholePhrase =
+                new String(thisWarcRecord.getContent(), start, end - start, "UTF8");
+            String phrase = wholePhrase
+                    .replaceAll("&[a-zA-Z#0-9]{1,5};", " ")
+                    .replaceAll("^[^\\s>]*?(\\s|>)","")
+                    .replaceAll("(\\s|<)[^\\s<]*?$","")
+                    .replaceAll("<.*?>","")
+                    .replaceAll("^.*?>","")
+                    .replaceAll("<.*?$","")
+                    .replaceAll("\\s+", " ");
+
+            // Check that the phrase actually contains the names.
+            String phraseToCheck =
+                    phrase.replaceAll("[^a-zA-Z]*", "").toLowerCase();
+            String firstEntityName = record.firstEntityName
+                    .replaceAll("[^a-zA-Z]*", "").toLowerCase();
+            String secondEntityName = record.secondEntityName
+                    .replaceAll("[^a-zA-Z]*", "").toLowerCase();
+            if (!phraseToCheck.contains(firstEntityName) ||
+                    !phraseToCheck.contains(secondEntityName)) {
+                return null;
+            }
+            return phrase;
+        } catch (UnsupportedEncodingException | IndexOutOfBoundsException e) {
             System.err.println(e.getMessage());
         }
         return null;
@@ -142,15 +189,29 @@ class EntityPairRecord {
     static EntityPairRecord parseRecord(String line) {
         EntityPairRecord rec = new EntityPairRecord();
         String[] fields = line.split("\t");
-        rec.documentId = fields[0];
-        rec.firstEntityMid = fields[1];
-        rec.firstEntityName = fields[2];
-        rec.secondEntityMid = fields[3];
-        rec.secondEntityName = fields[4];
-        rec.firstEntityBegin = Integer.parseInt(fields[5]);
-        rec.firstEntityEnd = Integer.parseInt(fields[6]);
-        rec.secondEntityBegin = Integer.parseInt(fields[7]);
-        rec.secondEntityEnd = Integer.parseInt(fields[8]);
+        try {
+            rec.documentId = fields[0];
+            rec.firstEntityMid = fields[1];
+            rec.firstEntityName = fields[2];
+            rec.secondEntityMid = fields[3];
+            rec.secondEntityName = fields[4];
+            rec.firstEntityBegin = Integer.parseInt(fields[5]);
+            rec.firstEntityEnd = Integer.parseInt(fields[6]);
+            rec.secondEntityBegin = Integer.parseInt(fields[7]);
+            rec.secondEntityEnd = Integer.parseInt(fields[8]);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(line);
+	        return null;
+	    }
         return rec;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t",
+                this.documentId, this.firstEntityMid, this.firstEntityName,
+                this.secondEntityMid, this.secondEntityName, firstEntityBegin,
+                firstEntityEnd, secondEntityBegin, secondEntityEnd);
     }
 }
