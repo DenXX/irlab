@@ -8,10 +8,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.io.*;
-import java.text.Normalizer;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -52,8 +49,11 @@ public class AggregateEntityPairPhrasesApp {
 
                 for (String token :
                         getTokens(phrase, firstName, secondName, nlp)) {
-                    Integer oldCount = tokenCounts.putIfAbsent(token, 0);
-                    tokenCounts.put(token, oldCount == null ? 1 : oldCount + 1);
+                    if (!tokenCounts.containsKey(token)) {
+                        tokenCounts.put(token, 0);
+                    }
+                    Integer oldCount = tokenCounts.get(token);
+                    tokenCounts.put(token, oldCount + 1);
                 }
             }
 
@@ -70,13 +70,19 @@ public class AggregateEntityPairPhrasesApp {
             throws IOException {
         out.write(String.format("%s\t%s\t%s\t%s\t",
                 firstMid, firstName, secondMid, secondName));
-        String tokensStr =
-                tokenCounts.entrySet()
-                .stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                .map(e -> e.getKey() + ":" + e.getValue())
-                .collect(Collectors.joining("\t"));
-        out.write(tokensStr);
+
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(tokenCounts.entrySet());
+
+        Collections.sort(entries, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> e1, Map.Entry<String, Integer> e2) {
+                return e2.getValue().compareTo(e1.getValue());
+            }
+        });
+
+        for (Map.Entry<String, Integer> entry: entries) {
+            out.write(entry.getKey() + ":" + entry.getValue() + "\t");
+        }
         out.newLine();
     }
 
@@ -98,13 +104,14 @@ public class AggregateEntityPairPhrasesApp {
         nlp.annotate(phraseAnnotation);
         for (CoreMap sentence : phraseAnnotation.get(
                 CoreAnnotations.SentencesAnnotation.class)) {
-            tokens.addAll(sentence.get(
-                    CoreAnnotations.TokensAnnotation.class).stream()
-                    .map(token -> token.word().toLowerCase())
-                    .filter(token -> !token.isEmpty() &&
-                            Character.isLetterOrDigit(token.charAt(0)) &&
-                            !Stopwords.isStopword(token))
-                    .collect(Collectors.toList()));
+            for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
+                String tokenStr = token.word().toLowerCase();
+                if (!tokenStr.isEmpty() &&
+                        Character.isLetterOrDigit(tokenStr.charAt(0)) &&
+                        !Stopwords.isStopword(tokenStr)) {
+                    tokens.add(tokenStr);
+                }
+            }
         }
         return tokens.toArray(new String[tokens.size()]);
     }
