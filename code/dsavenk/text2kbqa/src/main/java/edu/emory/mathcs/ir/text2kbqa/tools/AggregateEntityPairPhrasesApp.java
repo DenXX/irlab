@@ -27,7 +27,8 @@ public class AggregateEntityPairPhrasesApp {
                      new BufferedWriter(
                              new OutputStreamWriter(System.out))
         ) {
-            String[] currentEntityPair = new String[2];
+            String[] currentEntityPairMids = new String[2];
+            String[] currentEntityPairNames = new String[2];
             Map<String, Integer> tokenCounts = new HashMap<>();
             String line;
             while ((line = input.readLine()) != null) {
@@ -38,13 +39,16 @@ public class AggregateEntityPairPhrasesApp {
                 String secondName = fields[3];
                 String phrase = fields[4];
 
-                if (!firstMid.equals(currentEntityPair[0]) ||
-                        !secondMid.equals(currentEntityPair[1])) {
-                    writeEntityPairTokens(out, tokenCounts, firstMid, firstName,
-                            secondMid, secondName);
+                if (!firstMid.equals(currentEntityPairMids[0]) ||
+                        !secondMid.equals(currentEntityPairMids[1])) {
+                    writeEntityPairTokens(out, tokenCounts,
+                            currentEntityPairMids[0], currentEntityPairNames[0],
+                            currentEntityPairMids[1], currentEntityPairNames[1]);
                     tokenCounts.clear();
-                    currentEntityPair[0] = firstMid;
-                    currentEntityPair[1] = secondMid;
+                    currentEntityPairMids[0] = firstMid;
+                    currentEntityPairMids[1] = secondMid;
+                    currentEntityPairNames[0] = firstName;
+                    currentEntityPairMids[1] = secondName;
                 }
 
                 for (String token :
