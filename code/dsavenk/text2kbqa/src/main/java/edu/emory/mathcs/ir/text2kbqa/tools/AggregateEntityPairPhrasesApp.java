@@ -48,7 +48,7 @@ public class AggregateEntityPairPhrasesApp {
                     currentEntityPairMids[0] = firstMid;
                     currentEntityPairMids[1] = secondMid;
                     currentEntityPairNames[0] = firstName;
-                    currentEntityPairMids[1] = secondName;
+                    currentEntityPairNames[1] = secondName;
                 }
 
                 for (String token :
@@ -68,10 +68,13 @@ public class AggregateEntityPairPhrasesApp {
 
     private static void writeEntityPairTokens(BufferedWriter out,
                                               Map<String, Integer> tokenCounts,
-                                              String firstMid, String firstName,
+                                              String firstMid,
+                                              String firstName,
                                               String secondMid,
                                               String secondName)
             throws IOException {
+        if (firstMid == null) return;
+
         out.write(String.format("%s\t%s\t%s\t%s\t",
                 firstMid, firstName, secondMid, secondName));
 
