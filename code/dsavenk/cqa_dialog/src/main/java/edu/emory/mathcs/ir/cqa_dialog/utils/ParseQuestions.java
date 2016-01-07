@@ -8,9 +8,12 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.Properties;
 
 /**
@@ -19,7 +22,7 @@ import java.util.Properties;
 public class ParseQuestions {
     public static void main(String[] args) throws IOException {
         Properties props = new Properties();
-        props.setProperty("annotators", "tokenize, ssplit, pos, lemma, depparse");
+        props.setProperty("annotators", "tokenize, ssplit, pos, lemma, depparse, parse");
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
         try (BufferedReader reader = new BufferedReader(
@@ -42,6 +45,18 @@ public class ParseQuestions {
                 for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
                     SemanticGraph graph = sentence.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
                     System.out.println(graph.toString());
+
+                    Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
+                    for (Tree subtree : tree) {
+                        if (subtree.isPhrasal() &&
+                                subtree.label().value().equals("NP")) {
+                            for (Tree leaf : subtree.getLeaves()) {
+                                System.out.print(" " + leaf.label().value());
+                            }
+                            System.out.print("\t");
+                        }
+                    }
+                    System.out.println();
                 }
                 if (index++ % 1000 == 0) {
                     System.err.println(String.format("%d questions parsed.", index));
