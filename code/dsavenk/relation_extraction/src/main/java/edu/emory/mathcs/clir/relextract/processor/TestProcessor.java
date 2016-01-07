@@ -2,28 +2,17 @@ package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
-import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created by dsavenk on 10/17/14.
  */
 public class TestProcessor extends Processor {
-    private int count = 0;
-    private int count2 = 0;
-    private int total = 0;
 
-    private boolean flag = false;
-
-    private final Random rnd;
-
-    private final KnowledgeBase kb_;
-
-    BufferedWriter out_ = new BufferedWriter(new OutputStreamWriter(System.out));
+    Map<String, Map<String, Integer>> tokenRelationCounts = new HashMap<>();
+    Map<String, Integer> relationCounts = new HashMap<>();
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -34,16 +23,39 @@ public class TestProcessor extends Processor {
      */
     public TestProcessor(Properties properties) throws IOException {
         super(properties);
-        rnd = new Random(42);
-        kb_ = null; //KnowledgeBase.getInstance(properties);
-        flag = properties.containsKey(QAModelTrainerProcessor.QA_DEBUG_PARAMETER);
     }
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
-        String questionText = document.getText().toLowerCase();
-        if (questionText.contains("restaurant") && questionText.contains("thai")) {
-            System.out.println(questionText);
+        DocumentWrapper doc = new DocumentWrapper(document);
+        int questionSentences = doc.getQuestionSentenceCount();
+        if (document.getRelationCount() > 0) {
+            for (int sentenceIndex = 0; sentenceIndex < questionSentences; ++sentenceIndex) {
+                Document.Sentence sent = document.getSentence(sentenceIndex);
+                for (int tokenIndex = sent.getFirstToken();
+                     tokenIndex < sent.getLastToken(); ++tokenIndex) {
+                    String token = document.getToken(tokenIndex)
+                            .getText().toLowerCase();
+                    if (!Character.isLetterOrDigit(token.charAt(0))) continue;
+
+                    if (!tokenRelationCounts.containsKey(token)) {
+                        tokenRelationCounts.put(token, new HashMap<>());
+                        tokenRelationCounts.get(token).put("*", 0);
+                    }
+                    for (Document.Relation rel : document.getRelationList()) {
+                        String relation = rel.getRelation();
+                        Integer oldCount = tokenRelationCounts.get(token).getOrDefault(relation, 0);
+                        tokenRelationCounts.get(token).put(relation, oldCount + 1);
+                        tokenRelationCounts.get(token).put("*", tokenRelationCounts.get(token).get("*") + 1);
+
+                        Integer relOldCount = relationCounts.getOrDefault(relation, 0);
+                        relationCounts.put(relation, relOldCount + 1);
+                        relOldCount = relationCounts.getOrDefault("*", 0);
+                        relationCounts.put("*", relOldCount + 1);
+                    }
+                }
+            }
+            return document;
         }
         return null;
 
@@ -269,9 +281,38 @@ public class TestProcessor extends Processor {
 
     @Override
     public void finishProcessing() {
-        System.out.println("Resolved entities: " + count);
-        System.out.println("Total: " + total);
-        System.out.println("Entities per document: " + 1.0 * count / total);
-        System.out.println("QnA with answer without verbs: " + count2);
+        try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("token_relation.txt")))) {
+            Integer totalCount = relationCounts.get("*");
+            for (String token : tokenRelationCounts.keySet()) {
+                Integer tokenCount = tokenRelationCounts.get(token).get("*");
+                for (String relation : tokenRelationCounts.get(token).keySet()) {
+                    if (relation.equals("*")) continue;
+                    Integer tokenRelationCount = tokenRelationCounts.get(token).get(relation);
+                    Integer relationCount = relationCounts.get(relation);
+                    double pmiScore = Math.log(1.0 * tokenRelationCount / tokenCount) - Math.log(1.0 * relationCount / totalCount);
+                    out.write(String.format("%s\t%s\t%d\t%d\t%d\t%d\t",
+                            token, relation, tokenRelationCount, tokenCount,
+                            relationCount, totalCount));
+                    out.write(Double.toString(pmiScore));
+                    out.newLine();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+//        System.out.println(tokenRelationCounts.size());
+//        Map<String, Map<String, Double>> pmi = new HashMap<>();
+//
+//        for (Map.Entry<String, Map<String, Integer>> tokenRelations : tokenRelationCounts.entrySet()) {
+//            pmi.put(tokenRelations.getKey(), new HashMap<>());
+//            for (Map.Entry<String, Integer> relCounts : tokenRelations.getValue().entrySet()) {
+//                if (relCounts.getKey().equals("*")) continue;
+//                double pmiScore = Math.log(1.0 * relCounts.getValue() / tokenRelations.getValue().get("*"))
+//                        - Math.log(1.0 * relationCounts.get(relCounts.getKey()) / relationCounts.get("*"));
+//                pmi.get(tokenRelations.getKey()).put(relCounts.getKey(), pmiScore);
+//            }
+//        }
+//        System.out.println(pmi.size());
     }
 }

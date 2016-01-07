@@ -30,10 +30,16 @@ public class FilterQuestionsProcessor extends Processor {
         if (!document.getToken(document.getSentence(0).getFirstToken()).getPos().startsWith("W") ||
                 document.getToken(document.getSentence(0).getFirstToken()).getLemma().toLowerCase().equals("why")) return null;
 
+        if (document.getToken(document.getSentence(0).getFirstToken()).getLemma().toLowerCase().equals("how")) {
+            if (document.getToken(document.getSentence(0).getFirstToken() + 1).getPos().equals("TO") ||
+                        document.getToken(document.getSentence(0).getFirstToken() + 1).getPos().startsWith("V") ||
+                        document.getToken(document.getSentence(0).getFirstToken() + 1).getPos().startsWith("MD")) {
+                return null;
+            }
+        }
+
         for (int token = document.getSentence(0).getFirstToken(); token < document.getSentence(0).getLastToken(); ++token) {
-            if (document.getToken(token).getLemma().toLowerCase().equals("you") ||
-                    document.getToken(token).getLemma().toLowerCase().equals("i") ||
-                    document.getToken(token).getLemma().toLowerCase().equals("we")) {
+            if (shouldSkipByLemma(document.getToken(token).getLemma().toLowerCase())) {
                 return null;
             }
 
@@ -61,5 +67,20 @@ public class FilterQuestionsProcessor extends Processor {
         if (questionEntityMids.isEmpty() || answerEntityMids.isEmpty()) return null;
 
         return document;
+    }
+
+    private static Set<String> stopLemmas = new HashSet<>();
+
+    static {
+        stopLemmas.add("you");
+        stopLemmas.add("i");
+        stopLemmas.add("we");
+        stopLemmas.add("good");
+        stopLemmas.add("will");
+        stopLemmas.add("'ll");
+    }
+
+    private boolean shouldSkipByLemma(String lemma) {
+        return stopLemmas.contains(lemma);
     }
 }
