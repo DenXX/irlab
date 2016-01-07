@@ -7,6 +7,19 @@
     <groupId>edu.emory.mathcs.ir</groupId>
     <artifactId>text2kbqa</artifactId>
     <version>0.1-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.stanford.nlp</groupId>
+            <artifactId>stanford-corenlp</artifactId>
+            <version>3.4.1</version>
+            <classifier>models</classifier>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
