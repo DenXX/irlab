@@ -1,8 +1,24 @@
-Test
+
 
 \subsection{Motivation}
 
 I have collected predicates, that were never seen during training.
-These are cases, which are harder to predict.
+These are cases, which are harder to predict. NOTE: There are just a few examples that look good. Others are mostly labeling mistakes and shouldn't be considered.
+
+There are many problems in KBQA:
+\begin{itemize}
+\item lexical variations, we can call the same thing in million ways
+\item representation variation - similar data can be represented in multiple ways, e.g. capital of the state in Australia location.australian\_state.capital\_city, while in the US you will have totally different predicate. HOWEVER, these are old predicate and marked deprecated. There is another predicate that should be the same for both cases.
+\item Incomplete, some data is simply missing or details are not present. E.g. who is the woman that john edwards had an affair with?, there is a triple that says that he had sexual relationships with Rielle Hunter, but there is no details...
+\item Related to the previous - many predicates are simply not present. There is something related, but not exactly what is asked about. Example: where did andy murray started playing tennis? We can find the answer entity, but the triple won't say that he started playing there.
+\end{itemize}
 
 In \cite{Sun:2015:ODQ:2736277.2741651} authors report pretty low score for Sempre on TREC and Bing QA datasets.
+
+This work makes the following contributions:
+\begin{itemize}
+\item A novel hybrid QA system, which uses both structured knowledge data and unstructured natural language text documents connected via entity links. We show that unstructured data is very useful for KBQA and significantly improves its performance.
+\item Distant supervision to generate features from CQA and text documents mentioning pairs of entities.
+\item Something else?..
+\end{itemize}
+
