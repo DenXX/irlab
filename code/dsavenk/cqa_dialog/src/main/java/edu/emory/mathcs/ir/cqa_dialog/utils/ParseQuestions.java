@@ -18,6 +18,7 @@ import edu.stanford.nlp.util.CoreMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,26 @@ import java.util.stream.Collectors;
  * Created by dsavenk on 12/10/15.
  */
 public class ParseQuestions {
+
+    private static boolean extractTemplate(Tree tree, Set<String> nps) {
+        boolean isNp = tree.isPhrasal() && tree.label().value().equals("NP");
+        boolean hasChildNp = false;
+        for (Tree subtree : tree.children()) {
+            hasChildNp |= extractTemplate(subtree, nps);
+        }
+        if (isNp && !hasChildNp) {
+            // Get np phrase.
+            String np = tree.getLeaves()
+                    .stream()
+                    .map(leaf -> leaf.label().value())
+                    .collect(Collectors.joining(" "));
+            if (!np.toLowerCase().equals("you")) {
+                nps.add(np);
+            }
+        }
+        return isNp | hasChildNp;
+    }
+
     public static void main(String[] args) throws IOException {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize, ssplit, pos, lemma, depparse, parse");
@@ -41,6 +62,9 @@ public class ParseQuestions {
 //                System.out.println("--------------------------");
 //                System.out.println(fields[0] + "\t" + fields[1]);
 //                System.out.println(fields[2]);
+                String question = fields[2];
+
+
 
 //                for (CoreLabel token : document.get(CoreAnnotations.TokensAnnotation.class)) {
 //                    System.out.print(token.originalText() + "/" + token.tag() + "/" + token.lemma() + "\t");
@@ -72,40 +96,77 @@ public class ParseQuestions {
                     }
 
                     Tree tree = sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
-                    Set<String> orParts = new HashSet<>();
-                    for (Tree subtree : tree) {
-                        if (subtree.isPhrasal() &&
-                                subtree.label().value().equals("NP")) {
 
-                            // Get np phrase.
-                            String np = subtree.getLeaves()
-                                    .stream()
-                                    .map(leaf -> leaf.label().value())
-                                    .collect(Collectors.joining(" "));
+                    Set<String> nps = new HashSet<>();
+                    extractTemplate(tree, nps);
+                    if (!nps.isEmpty()) {
+                        String patternString = String.join("|", nps)
+                                .replace("?", "\\?")
+                                .replace("+", "\\+")
+                                .replace("^", "\\^")
+                                .replace("!", "\\!")
+                                .replace("[", "\\[")
+                                .replace("]", "\\]")
+                                .replace("(", "\\(")
+                                .replace(")", "\\)")
+                                .replace("{", "\\{")
+                                .replace("}", "\\}")
+                                .replace("\\", "\\\\")
+                                .replace("*", "\\*");
+                        Pattern ptrn = Pattern.compile(patternString);
+                        Matcher mtch = ptrn.matcher(question);
 
-                            if (np.contains(" or ")) {
-                                Collections.addAll(orParts,
-                                        np.split("\\sor\\s"));
-                            } else {
-                                System.out.print(np + "\t");
-                                int npBeginning = ((CoreLabel) subtree.label()).get(CoreAnnotations.BeginIndexAnnotation.class);
-
-                                int i = 0;
-                                for (List<CoreMap> match : matches) {
-                                    int beginMatch = match.get(match.size() - 1).get(CoreAnnotations.BeginIndexAnnotation.class);
-                                    int endMatch = match.get(match.size() - 1).get(CoreAnnotations.EndIndexAnnotation.class);
-                                    if (npBeginning - beginMatch >= 0 &&
-                                            (npBeginning - endMatch <= 1 || orParts.contains(np))) {
-                                        System.out.print(matchesStr.get(i));
-                                        System.out.print("\t");
-                                    }
-                                    ++i;
-                                }
-
-                                System.out.println();
-                            }
+                        StringBuffer sb = new StringBuffer();
+                        while (mtch.find()) {
+                            mtch.appendReplacement(sb, "<NP>");
                         }
+                        mtch.appendTail(sb);
+
+                        mtch = ptrn.matcher(question);
+                        StringBuffer sb2 = new StringBuffer();
+                        while (mtch.find()) {
+                            String str = mtch.group();
+                            mtch.appendReplacement(sb2, "<" + str + ">");
+                        }
+                        mtch.appendTail(sb2);
+
+                        System.out.println(sb.toString() + "\t" + sb2.toString());
                     }
+
+                    Set<String> orParts = new HashSet<>();
+//                    for (Tree subtree : tree) {
+//                        if (subtree.isPhrasal() &&
+//                                subtree.label().value().equals("NP")) {
+//
+//                            // Get np phrase.
+//                            String np = subtree.getLeaves()
+//                                    .stream()
+//                                    .map(leaf -> leaf.label().value())
+//                                    .collect(Collectors.joining(" "));
+//
+//                            if (np.contains(" or ")) {
+//                                Collections.addAll(orParts,
+//                                        np.split("\\sor\\s"));
+//                            } else {
+//                                System.out.print(np + "\t");
+//                                int npBeginning = ((CoreLabel) subtree.label()).get(CoreAnnotations.BeginIndexAnnotation.class);
+//
+//                                int i = 0;
+//                                for (List<CoreMap> match : matches) {
+//                                    int beginMatch = match.get(match.size() - 1).get(CoreAnnotations.BeginIndexAnnotation.class);
+//                                    int endMatch = match.get(match.size() - 1).get(CoreAnnotations.EndIndexAnnotation.class);
+//                                    if (npBeginning - beginMatch >= 0 &&
+//                                            (npBeginning - endMatch <= 1 || orParts.contains(np))) {
+//                                        System.out.print(matchesStr.get(i));
+//                                        System.out.print("\t");
+//                                    }
+//                                    ++i;
+//                                }
+//
+//                                System.out.println();
+//                            }
+//                        }
+//                    }
                 }
                 if (index++ % 1000 == 0) {
                     System.err.println(String.format("%d questions parsed.", index));
