@@ -81,7 +81,8 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Text2KB: Using Text Document Collections for Knowledge Base Question Answering}
+\title{When a Knowledge Base Is Not Enough: Question Answering over Knowledge Bases with External Text Data}
+
 
 %
 % You need the command \numberofauthors to handle the 'placement
@@ -137,11 +138,13 @@ Eugene Agichtein\\
 \maketitle
 \begin{abstract}
 
-One of the major challenges for knowledge base question answering systems (KBQA) is to map phrases from natural language questions to knowledge base (KB) entities and predicates.
-Existing models are typically based on a lexicon built from a limited data during training and ignore the vast amount of text data, effectively used by traditional document-based question answering systems.
-In this work we propose to use entity linking to connect structured KB with unstructured text data, which opens up an opportunity to combine QA approaches.
-Our system utilizes various different text resources for candidate generation as well as ranking and achieves a state-of-the-art performance of \textbf{XX.XX} average F1 score on WebQuestions knowledge base question answering dataset.
-
+One of the major challenges for knowledge base question answering systems (KBQA) is to translate a natural language question to knowledge base (KB) entities and predicates.
+Previous systems have used a limited amount of training data to learn a lexicon that is later used for question answering.
+This approach does not make use of other potentially relevant text data, outside the KB, which could enrich the available information.
+We introduce a new system, Text2KB, that connects a KB with external text, specifically, we revisit different phases in the KBQA process and demonstrate that text resources improve question interpretation, candidate generation, filtering and ranking.
+Starting with the best publicly available system, Text2KB utilizes web search results, community question answering and text document collection data, to detect question topic entities and enrich the features of the candidates derived from the KB.
+Text2KB significantly improves on the initial KBQA system, and reaches the best known state of the art performance on a popular WebQuestions knowledge base question answering dataset.
+The results and insights developed in this work are both practically useful, and can guide future efforts on combining textual and structured KB data for question answering.
 
 
 \end{abstract}
