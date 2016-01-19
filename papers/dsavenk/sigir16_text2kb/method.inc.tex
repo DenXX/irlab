@@ -60,29 +60,13 @@ Therefore, we decided to use it as well.
 Analogously, we can use entity Wikipedia profile pages.
 
 \subsubsection{Web search results}
-
-Traditional text-based question answering systems usually retrieve text passages relevant to the question from a large collection of documents, \eg the internet.
-The same information in a large collection appears many times and often in it is expressed in different ways.
-Question answering benefit from this redundancy \cite{Lin:2007:EPU:1229179.1229180} as it increases the chances of good lexical match between question and answer sentences, and makes some simple counting-based techniques quite effective \cite{brill2002analysis}.
-Therefore, it's reasonable to assume that these ideas can be adopted for knowledge base question answering.
+\label{section:method:web}
 
 Our model issues the question as a query to a web search engine\footnote{https://datamarket.azure.com/dataset/bing/search} and extract top 10 results, \ie search snippets and corresponding documents.
 Next, the system identifies KB entity mentions in both snippets and documents texts using the same method as used for question processing.
 We use these data in two different ways: to extend the set of question entities and to generate features for candidate answer ranking.
 
 \textbf{Question entity identification}.
-Question test is often quite short, may contain typos and other problems, that complicate identification of question entities.
-Entity detection is a crucial step in the process, because it makes it impossible to generate the correct answer candidate.
-By retrieving relevant text documents it is possible to improve entity identification, as demonstrated (\cite{SMAPH_ERD:2014}) by the results of the short track in Entity Recognition and Disambiguation Challenge 2014\footnote{http://web-ngram.research.microsoft.com/ERD2014/}. 
-For example, one of the questions, for which the baseline system were unable to find the correct question entity mention is \emph{``what year did tut became king?''}.
-However, search results for this question (Figure \ref{fig:web_search_entitylink}) mentions the full name of the entity ``Tutankhamun'' and ``King Tut'' multiple times, which can be a good signal to add this entity to the list of detected question entities.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{img/web_search_entitylink}
-\caption{Search results for the question ``what year did tut became king?''}
-\label{fig:web_search_entitylink}
-\end{figure}
 
 In our system, Text2KB, we follow the following procedure to extend a set of identified KB entities identified from the question:
 \begin{enumerate}
@@ -106,6 +90,7 @@ More specifically Text2KB computes the following:
 \end{enumerate}
 
 \subsubsection{Community Question Answering data}
+\label{section:method:cqa}
 
 Modern knowledge base question answering systems are typically trained from $<$question, answer entities$>$ pairs \cite{Berant:EMNLP13}, which are much easier to obtain than ground truth logical forms \cite{cai2013large}.
 However, the sizes of available datasets are still rather small, \ie WebQuestions dataset of \cite{Berant:EMNLP13} contains only 5810 questions.
@@ -188,6 +173,7 @@ Term statistics, however, is rather sparse, therefore for each predicate we also
 In testing time, for each question token we compute cosine similarity between its embedding vector and average predicate embedding vector and take minimum, maximum and average cosine similarity as features.
 
 \subsubsection{Entity-linked collection of documents}
+\label{section:method:clueweb}
 
 Predicate in so called closed knowledge bases (such as dbPedia and Freebase) are represented with special identifiers, which while solving some problems complicates their mapping with natural language phrases.
 Alternatively, open knowledge bases, such as ReVerb \cite{fader2011identifying}, extract information automatically from text sources and represent entities and predicate with natural language phrases.
