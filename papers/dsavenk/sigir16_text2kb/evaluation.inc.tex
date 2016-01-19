@@ -38,17 +38,48 @@ The following notations are used to represent different components of our system
 \hline
 System & avg Re & avg Pr &  avg F1 \\
 \hline
-baseline & 0.604 & 0.498 & 0.494\\
-baseline +E & & & \\
-baseline +E+T & & & \\
-baseline +E+T+W & & & \\
-baseline +E+T+CQA & & & \\
-baseline +E+T+CW & & & \\
+AQQU & 0.604 & 0.498 & 0.494\\
+Text2KB -TF & 0.6429 & 0.5030 & 0.5220 \\
 \hline
-Text2KB -E & & & \\
-Text2KB -W & & & \\
-Text2KB -CQA & & & \\
-Text2KB -CL & & & \\
+% THIS PART SHOULD ANSWER HOW TEXT BASED FEATURED COMPARE TO EXTERNAL ENTITIES
+% web_cqa_clueweb_typemodel_rf100.log : web+cqa+clueweb+typemodel -external-dates
+Text2KB +W+CQA+CW+T-E & 0.6351 & 0.4933 & 0.5104 \\
+% web_cqa_clueweb_noext_rf100.log : web+cqa+clueweb -external-dates-typemodel
+Text2KB +W+CQA+CW-E & 0.6414 & 0.4981 & 0.5160 \\
+% typemodel_rf100.log : type model only
+Text2KB +T-W-CQA-CL-E &  &  & \\
+\hline
+\multicolumn{4}{|c|}{Features from which data source are the most useful} \\
+\hline
+% THIS PART ANSWERS HOW GOOD ARE EACH OF THE PROPOSED DATASETS
+% extent_cqa_clueweb_dates_typemodel_rf100.log : -web
+Text2KB -W & 0.6327 & 0.4960 & 0.5126 \\
+% extent_web_clueweb_dates_typemodel_rf100.log : -cqa
+Text2KB -CQA & 0.6420 & 0.4987 & 0.5185 \\
+% extent_web_cqa_dates_typemodel_rf100.log : -clueweb
+Text2KB -CL & 0.6444 & 0.5047 & 0.5228 \\
+\hline
+% extent_web_dates_typemodel_rf100.log : -clueweb-cqa
+Text2KB -CQA-CL & 0.6423 & 0.5028 & 0.5216 \\
+% extent_clue_dates_typemodel_rf100.log : -web-cqa
+Text2KB -W-CQA & 0.6307 & 0.4978 & 0.5138 \\
+% extent_cqa_dates_typemodel_rf100.log : -web-clueweb
+Text2KB -W-CL & 0.6224 & 0.4928 & 0.5077 \\
+\hline
+\multicolumn{4}{|c|}{Effect on top of types model and dates filter improvement} \\
+\hline
+% THIS TELLS HOW MUCH EXTERNAL ENTITIES GIVE COMPARED TO MY OTHER IMPROVEMENTS
+AQQU & 0.604 & 0.498 & 0.494\\
+% baseline_typemodel_dates.log : baseline with types model +dates, but without any text-based data
+Text2KB -W-CQA-CL-E &  &  & \\
+% extent_dates_typemodel_rf100.log : -web-cqa-clueweb
+Text2KB -W-CQA-CL & 0.6272 & 0.4920 & 0.5083 \\  % AND FEATURES GIVE THE REST
+% web_cqa_clueweb_typemodel_dates.log : -external entities (Text features on top my other improvements)
+Text2KB -E &  &  &  \\  % AND FEATURES GIVE THE REST
+
+\hline
+% extent_web_cqa_clueweb_dates_types_typemodel_rf100.log : everything, including type filters
+Text2KB all & 0.6354 & 0.5059 & 0.5223 \\
 \hline
 \end{tabular}
 \end{table}
