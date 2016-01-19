@@ -1,13 +1,56 @@
 
-We will evaluate on WebQuestions dataset, presented in \cite{Berant:EMNLP13}.
-Hopefully we will show state of the art performance.
+The experiments in this work were conducted on WebQuestions dataset, presented in \cite{Berant:EMNLP13}.
+Recently, it gained a lot of attention and became the benchmark dataset for KBQA.
+The performance of existing systems and our Text2KB is presented in Table \ref{table:webquestions_results}.
 
-I will insert all results on WebQuestions from Codalab: https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a/
+\begin{table}
+\caption{Performance of the Text2KB system on WebQuestions dataset}
+\label{table:webquestions_results}
+\begin{tabular}{| p{2.7cm} | c | c | c | c | }
+\hline
+System & avg Re & avg Pr & F1 of avg & avg F1 \\
+\hline
+SemPre \cite{Berant:EMNLP13} & 0.413 & 0.480 & 0.444 & 0.357\\
+Subgraph Embeddings \cite{BordesCW14:emnlp} & - & - & 0.432 & 0.392\\
+ParaSemPre \cite{berant2014semantic} & 0.466 & 0.405 & 0.433 & 0.399\\
+Jacana \cite{yao2014information} & 0.458 & 0.517 & 0.486 & 0.330\\
+Kitt AI \cite{yao-scratch-qa-naacl2015} & 0.545 & 0.526 & 0.535 & 0.443\\
+AgendaIL \cite{berant2015imitation} & 0.557 & 0.505 & 0.530 & 0.497\\
+STAGG \cite{yih2015semantic} & 0.607 & 0.528 & 0.565 & 0.525\\
+\hline
+Our baseline \cite{ACCU:2015} & 0.604 & 0.498 & 0.546 & 0.494\\
+Text-only baseline & & & & \\
+Text2KB & & & & \\
+\hline
+\end{tabular}
+\end{table}
 
-
-I also need to get text-only baseline (something similar to AskMSR++).
 
 \subsection{Ablation Study}
 
-We need to run our system without each of the major components and report results.
+To study the effect of different components we made an ablation study, and the results are presented in Table \ref{table:webquestions_ablation}.
+The following notations are used to represent different components of our system: T - notable type model, DF - using date range filter, TF - using notable type based filter, E - using web search results to detect question entities, W - using web search snippets and documents features, CQA - using cqa term-relation scores to generate features, CW - using entity pair language model from ClueWeb for feature generation.
 
+\begin{table}
+\caption{Ablation study}
+\label{table:webquestions_ablation}
+\begin{tabular}{| p{4cm} | c | c | c | }
+\hline
+System & avg Re & avg Pr &  avg F1 \\
+\hline
+baseline & 0.604 & 0.498 & 0.494\\
+baseline +E & & & \\
+baseline +E+T & & & \\
+baseline +E+T+W & & & \\
+baseline +E+T+CQA & & & \\
+baseline +E+T+CW & & & \\
+\hline
+Text2KB -E & & & \\
+Text2KB -W & & & \\
+Text2KB -CQA & & & \\
+Text2KB -CL & & & \\
+\hline
+\end{tabular}
+\end{table}
+
+As we can see ...

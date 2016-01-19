@@ -1,4 +1,32 @@
 
-Knowledge base data was found useful for question answering using text collections \cite{Sun:2015:ODQ:2736277.2741651}.
+Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
 
-Open QA uses open IE extractions as an intermediate representation between KB and natural language text \cite{Fader:2014:OQA:2623330.2623677}.
+In 2011 a series of QALD (Question Answering over Linked Data) evaluation campaigns has started, report on the last one, QALD-5, can be found in \cite{UngerFLNCCW15}.
+These benchmarks target dbPedia as a knowledge base and provide a rather small (50-350) training set of questions, annotated with correct SPARQL queries.
+In QALD-3 a multilingual task has been introduced, and since QALD-4 it includes the hybrid task, that asks participants to build systems that can use both structured data and free form text available in dbPedia abstracts.
+The formulation of the hybrid task is the most relevant to our work, however, there are a couple of key differences: unlike this work the hybrid task questions are manually created so that they could \emph{only} be answered by combining RDF and text data.
+The second difference lies in the nature of text data used for question answering.
+In this work we use a broad spectrum of various text resources, such as web search results, CQA archives and semantically enriched text documents, while the focus of the task is on relatively short abstracts.
+Lastly, because of the expensive labeling process QALD datasets are small, for example, QALD-5 training set for multilingual question answering included 300 examples and hybrid - 40 examples (the evaluation was done on 50 questions for multilingual task and just 10 for hybrid).
+The scale of the datasets makes it hard to use machine learning, which lies in the heart of this work.
+For these reasons, we didn't include QALD in our evaluation experiments.
+However, we acknowledge the importance of QALD and intend to look into it and especially into the hybrid track in the future.
+
+WebQuestions benchmark dataset was developed in \cite{Berant:EMNLP13} and since triggered a number of works that explored both semantic parsing and information extraction approaches for KBQA \cite{yao2014freebase}.
+Developed system differ in ways question entity is detected, candidate answers are generated, features used and the answer is selected.
+The most interesting aspect for this work is the use of external resources, that help translate natural language text into KB properties and entities.
+Such a lexicon can be learned from a labeled training set \cite{Berant:EMNLP13},  ClueWeb collection aligned to Freebase \cite{yao2014information}, question paraphrases clusters from WikiAnswers \cite{berant2014semantic}, Freebase triples rephrased as questions \cite{BordesCW14:emnlp}, and can be based on the embeddings of questions and knowledge base entities and predicates \cite{BordesCW14:emnlp,yih2015semantic}.
+However, most of the models are still biased towards the types of questions present in the training set and would benefit from more training data.
+In this work I propose to extend the training set with question-answer pairs available on CQA websites, which were shown to be useful for relation extraction \cite{savenkov-EtAl:2015:SRW}.
+In addition, I propose to use unlabeled text resources for candidate query ranking, which can help to generalize to unseen types of questions and questions about predicates never mentioned in the training set.
+
+In general, combination of different data sources, such as text documents and knowledge bases, for question answering is not a novel idea and it has been already implemented in hybrid QA systems \cite{baudivs2015modeling}, \eg IBM! Watson combined text and structured data resources in their Jeopardy! winning system \cite{Barker12}.
+The key difference of our approach is that such hybrid systems typically have separate pipelines to generate candidate answers from different data sources and only rank them together to select the best one.
+In this work we attempt to integrate text resources inside the KBQA answer generation and scoring.
+
+Another interesting attempt to combine the data sources has been made by  \cite{Sun:2015:ODQ:2736277.2741651}, who showed that entity types and descriptions can be effectively used by text-based question answering systems.
+In this work, we focus on the inverse problem of improving knowledge base question answering by incorporating natural language text resources.
+
+Open IE extractions \cite{fader2011identifying} represent an interesting mixture between text and structured data and can be considered as an intermediate step between raw text and structured KB.
+Such knowledge repositories can be queried using structured query languages such as SPARQL and at the same time allows text matching against entities as predicates.
+One can easily transform an existing KB to such a form by replacing predicates and entities with their names and  \cite{Fader:2014:OQA:2623330.2623677} demonstrated that even though such an approach looses to existing baselines on WebQuestions dataset, where questions are known to be answerable from KB, achieves higher scores on TREC and WikiAnswers benchmarks.
