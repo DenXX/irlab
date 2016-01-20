@@ -113,7 +113,7 @@ On the other hand, community question answering (CQA) websites contain millions 
 \label{fig:cqa_example}
 \end{figure}
 
-For our experiments we took 4,483,032 questions from Yahoo! Comprehensive Questions and Answers WebScope dataset\footnote(https://webscope.sandbox.yahoo.com/catalog.php?datatype=l).
+For our experiments we took 4,483,032 questions from Yahoo! Comprehensive Questions and Answers WebScope dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l}.
 Texts of each question and answer pair were run through an entity linker, which detected mentions of Freebase entities.
 Next, following the distant supervision heuristic, which were applied to CQA data for relation extraction \cite{savenkov-EtAl:2015:SRW}, we labeled each QnA pair with relations between entities mentioned in questions and answers.
 To learn associations between predicates and questions that ask about these predicates, we compute pointwise mutual information scores (PMI) for pairs of question terms and predicates.
@@ -214,5 +214,5 @@ John Edwards & Frances Quinn Hunter & daughter, john, rielle, father, child, for
 Given an answer candidate we compute language model score for every answer candidate $$p(Q|e_1, e_2) = \prod_{t\in Q} p(t | e_1, e_2)$$ and use minimum, average and maximum score as features.
 In addition, we compute weighted average embedding vector for a pair of entities by averaging the corresponding terms using their probabilities as weights and use minimum, average and maximum cosine similarity as features.
 
-\subsubsection{Wikipedia profile}
-It would be nice to have Wikipedia pages for entities and use something like SDM score or something else as feature.
+%\subsubsection{Wikipedia profile}
+%It would be nice to have Wikipedia pages for entities and use something like SDM score or something else as feature.
