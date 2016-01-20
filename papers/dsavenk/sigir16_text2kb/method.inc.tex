@@ -1,11 +1,15 @@
 
-For our experiments we chose to use WebQuestions dataset, which become a standard benchmark for KBQA in recent years and a lot of work has been published on this dataset.
-The dataset used Freebase as a KB of choice, therefore our system is based on this knowledge base despite the fact that its support has been shut down.
-This means that the KB will no longer be updated, but the data is publicly available.
+Since the focus of this work is on the fusion between structured KB and unstructured text data, we chose to extend an existing KBQA system to show the effect of additional resources on its performance.
+One of the most popular benchmark datasets for knowledge base question answering is WebQuestions \cite{Berant:EMNLP13}, which has attracted a lot of attention recently and as a result the performance increased from 0.357 \cite{Berant:EMNLP13} to 0.525 \cite{yih2015semantic} in average F1 over test questions.
+The dataset is based on Freebase knowledge base, which has been recently shut down\footnote{https://plus.google.com/109936836907132434202/posts/bu3z2wVqcQc}.
+Because of this we should make a remark, that the methods designed in this work are independent from a KB and can be applied to WikiData or dbPedia.
+However, to the best of our knowledge at the moment WebQuestions is the most popular and the largest KBQA benchmark, therefore we made a decision to base our work on it.
 
-The overall architecture of the our model is presented on Figure \ref{fig:model}, and it's based on a model proposed in \cite{ACCU:2015}.
-We will first describe the baseline system and then present our way of utilizing unstructured text resources on different stages of the QA process.
-As an example we will take one of the questions from the WebQuestions dataset: \emph{Who is the woman that john edwards had an affair with?}.
+The architecture of our system, called Text2KB, is presented on Figure \ref{fig:model}. 
+The left part of the picture roughly corresponds to the architecture of existing information extraction approaches to knowledge base question answering.
+In particular we based on system on the model developed in \cite{ACCU:2015}, which at the moment achieves the highest performance among the publicly available systems.
+The right part of the figure shows examples of text resources that we use on different stages of the question answering process.
+We will first describe the baseline system and then present extensions introduced in this work.
 
 \begin{figure*}[t]
 \centering
@@ -15,6 +19,9 @@ As an example we will take one of the questions from the WebQuestions dataset: \
 \end{figure*}
 
 \subsection{Baseline method}
+
+Let's consider a question \textit{``who is the woman that john edwards had an affair with?''}.
+At the first step the baseline system analyzes the question text and identifies mentions of KB entities....
 
 The baseline system starts answering a question by \textbf{identifying KB entities} that are mentioned in the question.
 In our example, entity John Edwards (/m/01651q)\footnote{This is an identifier of the entity in Freebase} is the main question entity.
