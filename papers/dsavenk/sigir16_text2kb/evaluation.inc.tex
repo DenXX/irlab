@@ -32,12 +32,11 @@ Our system: Text2KB & 0.6354 & 0.5059 & 0.5633 & 0.5223 \\
 \end{tabular}
 \end{table*}
 
-As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}.
-However, we believe that this system will also benefit from the ideas of our work, and we will explore this question in Section \ref{section:analysis}.
+As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}, and we believe that this system will also benefit from the ideas of our work, and we will explore this question in Section \ref{section:analysis}.
 
 \subsection{Ablation Study}
 
-To study individual effects of different components we made an ablation study.
+To study effects of different components in isolation we made a series of ablation studies.
 For convenience, we introduce the following notations for different components introduced in our system:
 \vspace{-0.1cm}
 \begin{itemize}
@@ -46,21 +45,21 @@ For convenience, we introduce the following notations for different components i
 \item DF - date range filter-based query template
 % \item TF - using notable type based filter
 \item E - using web search result snippets for question entity identification
-\item W - using web search result snippets and documents to generate features for candidate ranking
-\item CQA - using \texttt{[question term, KB predicate]} PMI scores, computed from CQA collection of question-answer pairs, to generate features for candidate ranking
-\item CW - using entity pairs language model, computed on a large text collection, to generate features for candidates ranking
+\item W - using web search results for feature generation
+\item CQA - using CQA-based \texttt{[question term, KB predicate]} PMI scores for feature generation
+\item CW - features, computed from entity pairs language model, estimated on ClueWeb
 \end{itemize}
 
-In our results table we will use the notation \texttt{+$<$component$>$} to denote a system with a certain component added, and \texttt{-$<$component$>$} when the component is removed.
+In our results table we will use the notation \texttt{+$<$component$>$} to for a system with a certain component added, and \texttt{-$<$component$>$} when the component is removed.
 For example, the baseline system will be denoted as ``\texttt{Accu}'' according the authors notation.
 The same system with additional date range filter query templates and notable types score model is denoted as ``\texttt{Accu +DF+T}'', which represents the same system as ``\texttt{Text2KB -E-W-CQA-CL}''.
 Our full system ``\texttt{Text2KB}'' can be also denoted as ``\texttt{Accu +DF+T+E+W+CQA+CL}''.
 
 The first question that we are asking is what are the improvements, introduced by adding date range filter templates, notable type model, entity linking from web search results and text-based features generated from all the different sources.
 Results of this ablation experiment are presented in Table \ref{table:ablation:entities_vs_features}.
-As we can see, additional date range filters and notable types model (Text2KB -E-W-CQA-CL) are responsible for an increased recall and a drop in precision compared to the baseline model.
-Detecting question entities (Text2KB -W-CQA-CL) help improve both precision and recall, and therefore average F1 score by 0.096 points.
-An even bigger improvement is achieved by introducing features based on external free text data, and since these improvements are independent, their combination boost the performance even bigger.
+As we can see, additional date range filters and notable types model (\texttt{Text2KB -E-W-CQA-CL}) are responsible for an increased recall and a drop in precision compared to the baseline model.
+Detecting question entities (\texttt{Text2KB -W-CQA-CL}) help improve both precision and recall, and therefore average F1 score by 0.096 points.
+An even bigger improvement is achieved by introducing all our external text-based features, and since these improvements are independent, their combination boosts the performance even more.
 
 \begin{table}
 \caption{Evaluation results for the baseline system and various subsystems introduced in Text2KB}
@@ -70,22 +69,22 @@ An even bigger improvement is achieved by introducing features based on external
 System & avg R & avg Pr &  avg F1 \\
 \hline
 % THIS TELLS HOW MUCH EXTERNAL ENTITIES GIVE COMPARED TO MY OTHER IMPROVEMENTS
-Accu (baseline) & 0.604 & 0.498 & 0.494\\
+\texttt{Accu} (baseline) & 0.604 & 0.498 & 0.494\\
 % baseline_typemodel_dates.log : baseline with types model +dates, but without any text-based data
-Text2KB -E-W-CQA-CL= =Accu +DF+T & 0.6169 & 0.4807 & 0.4987 \\
+\texttt{Text2KB -E-W-CQA-CL}= =\texttt{Accu +DF+T} & 0.6169 & 0.4807 & 0.4987 \\
 % extent_dates_typemodel_rf100.log : -web-cqa-clueweb
-Text2KB -W-CQA-CL & 0.6272 & 0.4920 & 0.5083 \\  % AND FEATURES GIVE THE REST
+\texttt{Text2KB -W-CQA-CL} & 0.6272 & 0.4920 & 0.5083 \\  % AND FEATURES GIVE THE REST
 % web_cqa_clueweb_typemodel_dates.log : -external entities (Text features on top my other improvements)
-Text2KB -E & 0.6344 & 0.4966 & 0.5140 \\  % AND FEATURES GIVE THE REST
+\texttt{Text2KB -E} & 0.6344 & 0.4966 & 0.5140 \\  % AND FEATURES GIVE THE REST
 \hline
 % extent_web_cqa_clueweb_dates_types_typemodel_rf100.log : everything, including type filters
-Text2KB & 0.6354 & 0.5059 & 0.5223 \\
+\texttt{Text2KB} & 0.6354 & 0.5059 & 0.5223 \\
 \hline
 \end{tabular}
 \end{table}
 
-Let's look into the different text data sources that we used to generate features and study their relative effectiveness.
-Table \ref{table:ablation:features} summarizes the results of test runs with different combinations of data sources used to generate candidate answer ranking features.
+Now, let's look into the relative importance of each of the data sources, we will remove or use a group of web search, cqa or clueweb-based features and see how the performance of the whole system change.
+Table \ref{table:ablation:features} summarizes the results of these experiments.
 
 \begin{table}
 \caption{Evaluation study for our system with different text-based data sources used to generate features}
@@ -96,21 +95,21 @@ System & avg R & avg Pr &  avg F1 \\
 \hline
 % THIS PART ANSWERS HOW GOOD ARE EACH OF THE PROPOSED DATASETS
 % extent_cqa_clueweb_dates_typemodel_rf100.log : -web
-Text2KB -W & 0.6327 & 0.4960 & 0.5126 \\
+\texttt{Text2KB -W} & 0.6327 & 0.4960 & 0.5126 \\
 % extent_web_clueweb_dates_typemodel_rf100.log : -cqa
-Text2KB -CQA & 0.6420 & 0.4987 & 0.5185 \\
+\texttt{Text2KB -CQA} & 0.6420 & 0.4987 & 0.5185 \\
 % extent_web_cqa_dates_typemodel_rf100.log : -clueweb
-Text2KB -CL & 0.6444 & 0.5047 & 0.5228 \\
+\texttt{Text2KB -CL} & 0.6444 & 0.5047 & 0.5228 \\
 \hline
 % extent_web_dates_typemodel_rf100.log : -clueweb-cqa
-Text2KB (Web search results only) & 0.6423 & 0.5028 & 0.5216 \\
+\texttt{Text2KB} (Web search results only) & 0.6423 & 0.5028 & 0.5216 \\
 % extent_clue_dates_typemodel_rf100.log : -web-cqa
-Text2KB (ClueWeb only) & 0.6307 & 0.4978 & 0.5138 \\
+\texttt{Text2KB} (ClueWeb only) & 0.6307 & 0.4978 & 0.5138 \\
 % extent_cqa_dates_typemodel_rf100.log : -web-clueweb
-Text2KB (CQA only) & 0.6224 & 0.4928 & 0.5077 \\
+\texttt{Text2KB} (CQA only) & 0.6224 & 0.4928 & 0.5077 \\
 \hline
 % extent_web_cqa_clueweb_dates_types_typemodel_rf100.log : everything, including type filters
-Text2KB & 0.6354 & 0.5059 & 0.5223 \\
+\texttt{Text2KB} & 0.6354 & 0.5059 & 0.5223 \\
 \hline
 \end{tabular}
 \end{table}
@@ -121,29 +120,30 @@ With CQA and ClueWeb based features the results are not that straightforward.
 Even though if used alone CQA-based features give us the lowest average F1 score among all the data sources, without these features the quality decreases.
 Whereas, removing ClueWeb-based features didn't cause a drop of the performance.
 
-\begin{table}
-\caption{Evaluation study for our system with different text-based data sources used to generate features}
-\label{table:ablation:other}
-\begin{tabular}{| p{4cm} | c | c | c | }
-\hline
-System & avg Re & avg Pr &  avg F1 \\
-\hline
-AQQU & 0.604 & 0.498 & 0.494\\
-Text2KB -TF & 0.6429 & 0.5030 & 0.5220 \\
-\hline
+% THIS EXPERIMENTS ARE REDUNDANT
+%\begin{table}
+%\caption{Evaluation study for our system with different text-based data sources used to generate features}
+%\label{table:ablation:other}
+%\begin{tabular}{| p{4cm} | c | c | c | }
+%\hline
+%System & avg Re & avg Pr &  avg F1 \\
+%\hline
+%AQQU & 0.604 & 0.498 & 0.494\\
+%Text2KB -TF & 0.6429 & 0.5030 & 0.5220 \\
+%\hline
 % THIS PART SHOULD ANSWER HOW TEXT BASED FEATURED COMPARE TO EXTERNAL ENTITIES
 % web_cqa_clueweb_typemodel_rf100.log : web+cqa+clueweb+typemodel -external-dates
-Text2KB +W+CQA+CW+T-E & 0.6351 & 0.4933 & 0.5104 \\
+%Text2KB +W+CQA+CW+T-E & 0.6351 & 0.4933 & 0.5104 \\
 % web_cqa_clueweb_noext_rf100.log : web+cqa+clueweb -external-dates-typemodel
-Text2KB +W+CQA+CW-E & 0.6414 & 0.4981 & 0.5160 \\
+%Text2KB +W+CQA+CW-E & 0.6414 & 0.4981 & 0.5160 \\
 % typemodel_rf100.log : type model only
-Text2KB +T-W-CQA-CL-E & 0.6131 & 0.4747 & 0.4918 \\
-\hline
-\end{tabular}
-\end{table}
+%Text2KB +T-W-CQA-CL-E & 0.6131 & 0.4747 & 0.4918 \\
+%\hline
+%\end{tabular}
+%\end{table}
 
-Since we used each data source to generate multiple different features for candidate ranking, it is interesting to see which particular features are found more useful than other in the ranking machine learning model.
-Figure \ref{fig:feature_importances} plots different features ranked by their Gini index based feature importances in the final answer candidate ranking random forest model.
+Since we used each data source to generate multiple different features for candidate ranking, it is interesting to see which particular features are  more useful than others by the ranking machine learning algorithm (we used random forest).
+Figure \ref{fig:feature_importances} plots a subset of features ranked by their Gini index-based importance scores in the final answer candidate ranking model.
 
 \begin{figure*}
 \centering

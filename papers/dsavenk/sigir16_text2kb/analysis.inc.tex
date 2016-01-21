@@ -35,32 +35,6 @@ We also evaluated both STAGG and Text2KB on 112 questions, where the correct ans
 These questions are harder to answer, and the average F1 score of Text2KB is 0.1640 versus 0.1199 for STAGG.
 This gives some anecdotal evidence, that by incorporating external text resources we were able to answer these questions slightly better, how these difference isn't statistically significant according to paired t-test (p-value 0.16).
 
-\subsection{Anecdotal evidence (rename or remove it)}
-
-We also manually worked though wins and losses of Text2KB compared to the baseline system.
-Below we provide some examples, that demonstrate advantages and weaknesses of our approach.
-
-The first set of improvements come from the date range filter template, \eg for the question \textit{``who is the current leader of france 2010?''} our system returns a single correct result \textit{``Nicolas Sarkozy''} instead of the list of all French presidents.
-The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``which state did anne hutchinson found?''} - \textit{``Rhode Island''}.
-
-There are a number of cases when question entity identification using web search results helped to find the right KB entity, which wasn't detected from the question text only, \eg the question \textit{``what did romo do?''} mentions only the last name of the Dallas Cowboys quarterback, whereas web search results mentions the full name multiple times.
-However, there are cases when additional entities actually made the system to return an incorrect answer, \eg for the question \textit{``what was lucille ball?''} Text2KB added the entity \textit{``I Love Lucy''}, and the candidate answer seeded from this entity got selected as the answer.
-We should note, that we used a simple entity linking algorithms and strategy to extend question entities, namely we extend the question entity list if term from web search results entity name have high similarity to a term in the question.
-A better strategies would probably fix the above mentioned problem.
-
-Finally, below are some examples, improved by the proposed web search results features.
-For the question \textit{``what did bruce jenner win gold medal for?''} the baseline system answered \textit{``1976 Summer Olympics''}, but web search results mention decathlon many times and thus Text2KB was able to rerank the candidates and return the entity \textit{``Athletics at the 1976 Summer Olympics - Men's Decathlon''}\footnote{Unfortunately, the entity selected as the answer during labeling is \textit{``Decathlon Challenge''}, which is a book Bruce Jenner wrote}.
-Another interesting example is the question \textit{``what ship did darwin sail around the world?''}, which actually is hard to answer correctly because the ship entity is connected to the Charles Darwin entity through the \texttt{user.lindenb.default\_domain.scientist.known\_for} predicate along with some other entities like \textit{``Natural selection''}.
-There is no predicate, and therefore no such RDF triple, that tells directly what kind of ship did Charles Darwin use.
-We will see later, that in WebQuestions dataset there is a relatively big number of questions don't have a good match among the predicates.
-Nevertheless, the name of the ship \textit{HMS Beagle} is mentioned multiple times in the web search results, and entity pair model computed from ClueWeb also has high scores for the terms ship and world, which gave Text2KB enough signal to answer with the ship (along with 2 other unrelated entities also related to \textit{``Charles Darwin''} through the same predicate).
-
-We also found some cases, when our text-based features hurt the performance.
-For example, the baseline system answered the question \textit{``when did tony romo got drafted?''} correctly, but since almost every mention of \textit{Tony Romo} follows with \textit{Dallas Cowboys}, Text2KB reranked the team name higher and returned it as the answer.
-
-WebQuestions dataset isn't free of noise and quite a few answers are actually incorrect for various reasons.
-When labeling the question ``what team does jordan own?'' mechanical turk workers had to select the answer from the page, corresponding to the country and not \textit{Michael Jordan} the basketball player.
-
 \subsection{Error analysis}
 
 \begin{figure}
@@ -97,3 +71,29 @@ The official evaluation script don't normalize the case and therefore considers 
 If we lowercase all entity names before comparison, the average F1 score of Text2KB becomes 0.5248.
 
 GIVE AN ANALYSIS OF PROBLEMS WITH RANKING!!!
+
+\subsection{Anecdotal evidence (rename or remove it)}
+
+We also manually worked through wins and losses of Text2KB compared to the baseline system.
+Below we provide some examples, that demonstrate advantages and weaknesses of our approach.
+
+The first set of improvements come from the date range filter template, \eg for the question \textit{``who is the current leader of france 2010?''} our system returns a single correct result \textit{``Nicolas Sarkozy''} instead of the list of all French presidents.
+The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``which state did anne hutchinson found?''} - \textit{``Rhode Island''}.
+
+There are a number of cases when question entity identification using web search results helped to find the right KB entity, which wasn't detected from the question text only, \eg the question \textit{``what did romo do?''} mentions only the last name of the Dallas Cowboys quarterback, whereas web search results mentions the full name multiple times.
+However, there are cases when additional entities actually made the system to return an incorrect answer, \eg for the question \textit{``what was lucille ball?''} Text2KB added the entity \textit{``I Love Lucy''}, and the candidate answer seeded from this entity got selected as the answer.
+We should note, that we used a simple entity linking algorithms and strategy to extend question entities, namely we extend the question entity list if term from web search results entity name have high similarity to a term in the question.
+A better strategies would probably fix the above mentioned problem.
+
+Finally, below are some examples, improved by the proposed web search results features.
+For the question \textit{``what did bruce jenner win gold medal for?''} the baseline system answered \textit{``1976 Summer Olympics''}, but web search results mention decathlon many times and thus Text2KB was able to rerank the candidates and return the entity \textit{``Athletics at the 1976 Summer Olympics - Men's Decathlon''}\footnote{Unfortunately, the entity selected as the answer during labeling is \textit{``Decathlon Challenge''}, which is a book Bruce Jenner wrote}.
+Another interesting example is the question \textit{``what ship did darwin sail around the world?''}, which actually is hard to answer correctly because the ship entity is connected to the Charles Darwin entity through the \texttt{user.lindenb.default\_domain.scientist.known\_for} predicate along with some other entities like \textit{``Natural selection''}.
+There is no predicate, and therefore no such RDF triple, that tells directly what kind of ship did Charles Darwin use.
+We will see later, that in WebQuestions dataset there is a relatively big number of questions don't have a good match among the predicates.
+Nevertheless, the name of the ship \textit{HMS Beagle} is mentioned multiple times in the web search results, and entity pair model computed from ClueWeb also has high scores for the terms ship and world, which gave Text2KB enough signal to answer with the ship (along with 2 other unrelated entities also related to \textit{``Charles Darwin''} through the same predicate).
+
+We also found some cases, when our text-based features hurt the performance.
+For example, the baseline system answered the question \textit{``when did tony romo got drafted?''} correctly, but since almost every mention of \textit{Tony Romo} follows with \textit{Dallas Cowboys}, Text2KB reranked the team name higher and returned it as the answer.
+
+WebQuestions dataset isn't free of noise and quite a few answers are actually incorrect for various reasons.
+When labeling the question ``what team does jordan own?'' mechanical turk workers had to select the answer from the page, corresponding to the country and not \textit{Michael Jordan} the basketball player.
