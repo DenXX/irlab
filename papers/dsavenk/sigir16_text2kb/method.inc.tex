@@ -1,140 +1,118 @@
 
 The architecture of our system, called Text2KB, is presented on Figure \ref{fig:model}. 
 The left part of the picture roughly corresponds to the architecture of existing information extraction approaches to knowledge base question answering.
-In particular we based on system on the model developed in \cite{ACCU:2015}, which at the moment achieves the highest performance among the publicly available systems.
-The right part of the figure shows examples of text resources that we use on different stages of the question answering process.
-We will first describe the baseline system and then present extensions introduced in this work.
+The right part introduces additional different external text data sources, which are integrated into the question answering pipeline on multiple stages.
+In this work we use web search results, community question answering (CQA) data and we use a large collection of documents with detected KB entity mentions.
+But besides external text data, many knowledge bases including Freebase contain some text data as well.
+In Freebase most of the entities contain a description paragraph, which often comes from the entity Wikipedia profile.
+These descriptions of entities in the KB were found useful for text-based question answering \cite{Sun:2015:ODQ:2736277.2741651}.
+For completeness, we decided to include them in our system as well.
+Each description is represented as a vector of tokens and as a vector of mentioned entities and we compute a cosine similarity between the question tokens and entity vectors and use these scores as features for candidate ranking.
+In a similar we can incorporate any other entity profile text, such as full Wikipedia article.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{img/Text2KB_model}
-\caption{The architecture of our Text2KB Question Answering system}
-\label{fig:model}
-\end{figure*}
-
-\subsection{Unstructured text data for KBQA}
-
-\subsubsection{Text data in KB}
-We use entity descriptions to generate a set of features for candidate answers.
-Description of entity in the knowledge base was found useful for question answering \cite{Sun:2015:ODQ:2736277.2741651}.
-Therefore, we decided to use it as well.
-
-Analogously, we can use entity Wikipedia profile pages.
-
-\subsubsection{Web search results}
+\subsection{Web search results}
 \label{section:method:web}
 
-Our model issues the question as a query to a web search engine\footnote{https://datamarket.azure.com/dataset/bing/search} and extract top 10 results, \ie search snippets and corresponding documents.
-Next, the system identifies KB entity mentions in both snippets and documents texts using the same method as used for question processing.
-We use these data in two different ways: to extend the set of question entities and to generate features for candidate answer ranking.
+We start by issuing a question as a query to a commercial web search engine\footnote{https://datamarket.azure.com/dataset/bing/search} and extract top 10 search result snippets and get the corresponding documents.
+Document snippets are usually built to present the information most relevant to the query and often contain answers to a question.
+Unfortunately, for longer queries the snippets often represent and combination of small phrases, that contain mostly question terms and very few additional information.
+Nevertheless, we keep both snippets and documents text, and using system's linker detect KB entity mentions.
+This data turns out to be useful for multiple purposes, \ie question entity identification and answer candidate ranking.
 
 \textbf{Question entity identification}.
+Question text provides a very limited context for entity disambiguation and in addition the entity name can be misspelled or an uncommon variation can be used.
+This complicates question topical entity identification, which is the foundation of whole question answering process.
+Luckily, web search results help with these problems as they usually contain multiple various mentions of the same entities and provide more context for disambiguation.
 
-In our system, Text2KB, we follow the following procedure to extend a set of identified KB entities identified from the question:
-\begin{enumerate}
-\item Detect entities mentioned in search result snippets and titles
-\item An entity is added to the list of question entities if 
-$$\max_{m_t \in M\backslash Stp, q_t \in Q\backslash Stp} dist(m_t, q_t) \geq 0.8$$
-Here $M$ is a set of entity mention tokens, $Q$ - set of question tokens, dist() - text edit distance (we used Jaro-Winkler distance), and Stp is a set of stopwords.
-\item For each question entity we count the number of mentions in search titles and snippets and use this information as a feature for answer candidate ranking.
-\end{enumerate}
+To extend the set of detected question entities Text2KB uses search results snippets.
+There are multiple mentions of different entities, to filter out only entities, that are also mentioned in the question we use string distance.
+More specifically, we take names of all entities detected in the question and compute their term by term similarity with non-stopwords from the question.
+In this work we used Jaro-Winkler string distance and and entity was added to the list of question entities if at least one of its tokens $e_t$ have high similarity with one of the question tokens $q_t$ excluding stopwords ($Stop$), \ie:
+$$\max_{\begin{split}e_t \in M\backslash Stop\\ q_t \in Q\backslash Stop\end{split}} distance_{Jaro-Winkler}(e_t, q_t) \geq 0.8$$
 
 \textbf{Answer candidate features}.
-Despite being useful for question entity identification, search results often contain the answer to the given question, \eg on Figure \ref{fig:web_search_entitylink} multiple snippets mention the date when Tutankhamun became the king.
-Therefore, we use text of search results titles, snippets and documents to generate features for candidate answer ranking.
-More specifically Text2KB computes the following:
+Most of the information stored in knowledge bases is also present in other formats, including natural language statements, tables, \etc
+For example, on Figure \ref{fig:web_search_entitylink} multiple snippets mention the date when Tutankhamun became the king.
+Text-based question answering system usually generate answer candidates from passages extracted from retrieved documents.
+In our case candidates are already generated in a form of KB queries, that return certain subsets of entities.
+Text2KB uses snippets and documents to compute a set of features, which are used for answer candidate ranking.
+More specifically we do this following:
 \begin{enumerate}
-\item Identify entities in search results titles, snippets and documents
-\item Combine texts of all search result documents to form a single text (with entities identified)
-\item Represent each snippet (which includes title), document and combined document as a two separate TF-IDF vectors: vector of term occurrences, vector of entity occurrences\footnote{We used Google n-grams corpus to approximate terms IDF and ClueWeb FACC entity annotations (http://lemurproject.org/clueweb09/FACC1/) to compute entity IDFs}
+\setlength\itemsep{-0.5em}
+\item Precompute term and entity IDFs\footnote{https://en.wikipedia.org/wiki/Tf-idf}. We used Google n-grams corpus to approximate terms IDF by collection frequency and available ClueWeb Freebase entity annotations\footnote{http://lemurproject.org/clueweb09/FACC1/} to compute entity IDFs
+\item Each snippet and document is represented by two TF-IDF vectors of lowercased tokens and mentioned entities
+\item In addition, vectors of all snippets and all documents are merged together to form combined token and entity vectors
 \item Each answer candidate is also represented as TF-IDF vectors of terms (from entity names) and entities
-\item Compute cosine similarity between answer vectors and snippets, documents and combined document vectors and use maximum and average cosine similarities as features for candidate ranking.
+\item We compute cosine similarities between answer and each snippet and document token and entity vectors. This gives us 10 similarity scores for every document for token vectors and 10 similarities for entity vectors, we take average and maximum scores as features.
+\item We do the same for the combined document and use cosine similarities as features
 \end{enumerate}
 
-\subsubsection{Community Question Answering data}
+\subsection{Community Question Answering data}
 \label{section:method:cqa}
 
-Modern knowledge base question answering systems are typically trained from $<$question, answer entities$>$ pairs \cite{Berant:EMNLP13}, which are much easier to obtain than ground truth logical forms \cite{cai2013large}.
-However, the sizes of available datasets are still rather small, \ie WebQuestions dataset of \cite{Berant:EMNLP13} contains only 5810 questions.
-This is not enough for a system to be able to map a variety of natural language questions to tens of thousands of predicates in Freebase, each of which asked about in different ways.
-Existing systems adapted additional data sources, such as question paraphrases \cite{berant2014semantic}, weakly labeled sentences from a large text collection \cite{yao2014information}.
+Manual labeling of questions with answers is expensive and therefore largest KBQA datasets still contain just several thousands of examples, which is too small for data intensive approaches to learn good strategies for mapping questions into millions of KB entities and predicates.
+Researchers have proposed to use weakly supervised methods to extend the lexicon with mappings learned from statements mentioning entity pairs from a large corpus \cite{yao2014information}.
 However, often there exist a lexical gap between how information is asked about in a question and how it is expressed in a statement.
-On the other hand, community question answering (CQA) websites contain millions of real users questions with answers, which makes them a very attractive source of data for training a QA system (\eg Figure \ref{fig:cqa_example}).
+On the other hand there are huge archives of questions and answers posted by real users on various community question answering websites, \eg Figure \ref{fig:cqa_example}.
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\textwidth]{img/cqa_example}
+\fbox{
+\includegraphics[width=0.45\textwidth]{img/cqa_example}
+}
 \caption{Example of a question and answer pair from Yahoo! Answers}
 \label{fig:cqa_example}
 \end{figure}
 
 For our experiments we took 4,483,032 questions from Yahoo! Comprehensive Questions and Answers WebScope dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l}.
-Texts of each question and answer pair were run through an entity linker, which detected mentions of Freebase entities.
-Next, following the distant supervision heuristic, which were applied to CQA data for relation extraction \cite{savenkov-EtAl:2015:SRW}, we labeled each QnA pair with relations between entities mentioned in questions and answers.
-To learn associations between predicates and questions that ask about these predicates, we compute pointwise mutual information scores (PMI) for pairs of question terms and predicates.
-Examples of scores are given in Table \ref{table:cqa_npmi}.
+Texts of each question and answer pair were run through an entity linker, that detected mentions of Freebase entities.
+Next, similar to an idea of relation extraction from CQA data \cite{savenkov-EtAl:2015:SRW}, we use distant supervision to label each question-answer pair with relations between entities mentioned in the question and in the answer.
+As a result we have a set of questions, annotated with KB predicates connecting some question and answer entities, which are, often incorrectly, assumed to answer the question.
+We learn associations between question terms and predicates by computing pointwise mutual information scores\footnote{https://en.wikipedia.org/wiki/Pointwise\_mutual\_information} (PMI) for each term-predicate pair.
+Examples of scores for some terms from WebQuestions dataset questions are given in Table \ref{table:cqa_npmi}.
 
 \begin{table}
-\caption{Examples of PMI scores for term-predicate pairs}
+\caption{Examples of term-predicate pairs with high PMI scores}
 \label{table:cqa_npmi}
-\begin{tabular}{| p{1.2cm} | p{5.0cm} | p{1.0cm} |}
+\begin{tabular}{| p{1cm} | p{5.5cm} | p{0.75cm} |}
 \hline
 Term & Predicate & PMI score\\
 \hline
-born & people.person.date\_of\_birth & 3.6706\\
- & people.person.date\_of\_death & 2.7364\\
- & people.person.place\_of\_birth & 1.6027\\
- & location.location.people\_born\_here & 1.6027\\
- & music.artist.origin & 1.2614\\
- & ... & ...\\
- & people.marriage.spouse & 0.6792\\
- & ... & ...\\
- & medicine.symptom.symptom\_of & -1.5312 \\
+born & people.person.date\_of\_birth & 3.67\\
+ & people.person.date\_of\_death & 2.73\\
+ & location.location.people\_born\_here & 1.60\\
 \hline
-kill & people.deceased\_person.cause\_of\_death & 1.7066\\
-& book.book.characters & 1.5500\\
-& religion.religion.founding\_figures & 1.3008\\
-& fictional\_universe.fictional\_character.species &  0.9195 \\
-& ... & ... \\
-& medicine.disease.causes & 0.3511 \\
-& ... & ... \\
-& people.person.profession & -0.1827\\
+kill & people.deceased\_person.cause\_of\_death & 1.70\\
+& book.book.characters & 1.55\\
 \hline
-governor & government.government\_office\_or\_title.jurisdiction & 2.8042\\
-& ... & ... \\
-& location.country.administrative\_divisions & 1.2067\\
-& people.person.profession & -0.4025 \\
+currency & location.country.currency\_formerly\_used & 5.55 \\
+& location.country.currency\_used & 3.54 \\
 \hline
-currency & location.country.currency\_formerly\_used & 5.5505 \\
-& location.country.currency\_used & 3.5433 \\
-& ... & ...\\
-& location.country.languages\_spoken & 0.9956\\
-& ... & ...\\
-& symbols.namesake.named\_after & -0.7669\\
+school & education.school.school\_district & 4.14 \\
+& people.education.institution & 1.70\\
+& sports.school\_sports\_team.school & 1.69 \\
 \hline
-school & education.school.school\_district & 4.1439 \\
-& people.education.institution & 1.7083\\
-& sports.school\_sports\_team.school & 1.6936 \\
+illness & medicine.symptom.symptom\_of & 2.11\\
+& medicine.decease.causes & 1.68\\
+& medicine.disease.treatments & 1.59\\
 \hline
-continent & base.locations.countries.continent & 3.0850\\
-& location.location.partially\_contains & 2.3436\\
-& location.location.contains & 1.0527\\
-\hline
-illness & medicine.symptom.symptom\_of & 2.1167\\
-& medicine.decease.causes & 1.6829\\
-& medicine.disease.treatments & 1.5975\\
-\hline
-win & sports.sports\_team.championships & 4.1116\\
-& sports.sports\_league.championship & 3.7924\\
+win & sports.sports\_team.championships & 4.11\\
+& sports.sports\_league.championship & 3.79\\
 \hline
 \end{tabular}
 \end{table}
 
-These PMI statistics are used by our Text2KB system to generate features for each candidate answer, more specifically we compute minimum, maximum and average PMI score between candidate answer predicates and terms from the question.
-Term statistics, however, is rather sparse, therefore for each predicate we also compute an embedding vector by taking a weighted (by PMI) average of embedding vectors of terms\footnote{we use pretrained word2vec term embeddings from https://code.google.com/p/word2vec/} with positive PMI value.
-In testing time, for each question token we compute cosine similarity between its embedding vector and average predicate embedding vector and take minimum, maximum and average cosine similarity as features.
+Although noisy, the statistics look reasonable to be used for candidate ranking.
+In Text2KB we take candidate answer predicates and lookup PMI scores between these predicates and terms in the question.
+Missing pairs are given a score of 0, and minimum, average and maximum of these scores are used as features.
+Since this kind of data is usually sparse, we decided to consider vector space embeddings of terms to solve a problem of synonym terms with missing score.
+We use pretrained word2vec word embeddings\footnote{https://code.google.com/p/word2vec/} to generate predicate embeddings by taking weighted average of term vectors from predicate's PMI table.
+Each term's embedding vector is weighted by its PMI value (terms with negative score are skipped).
+Then, we compute cosine similarities between predicate vector and question term vectors and take their minimum, average, maximum as features.
+Similarity between the predicate vector and average question term vector is also computed.
 
-\subsubsection{Entity-linked collection of documents}
+
+\subsection{Entity statistics from document collection}
 \label{section:method:clueweb}
 
 Predicate in so called closed knowledge bases (such as dbPedia and Freebase) are represented with special identifiers, which while solving some problems complicates their mapping with natural language phrases.
