@@ -1,10 +1,4 @@
 
-Since the focus of this work is on the fusion between structured KB and unstructured text data, we chose to extend an existing KBQA system to show the effect of additional resources on its performance.
-One of the most popular benchmark datasets for knowledge base question answering is WebQuestions \cite{Berant:EMNLP13}, which has attracted a lot of attention recently and as a result the performance increased from 0.357 \cite{Berant:EMNLP13} to 0.525 \cite{yih2015semantic} in average F1 over test questions.
-The dataset is based on Freebase knowledge base, which has been recently shut down\footnote{https://plus.google.com/109936836907132434202/posts/bu3z2wVqcQc}.
-Because of this we should make a remark, that the methods designed in this work are independent from a KB and can be applied to WikiData or dbPedia.
-However, to the best of our knowledge at the moment WebQuestions is the most popular and the largest KBQA benchmark, therefore we made a decision to base our work on it.
-
 The architecture of our system, called Text2KB, is presented on Figure \ref{fig:model}. 
 The left part of the picture roughly corresponds to the architecture of existing information extraction approaches to knowledge base question answering.
 In particular we based on system on the model developed in \cite{ACCU:2015}, which at the moment achieves the highest performance among the publicly available systems.
@@ -17,45 +11,6 @@ We will first describe the baseline system and then present extensions introduce
 \caption{The architecture of our Text2KB Question Answering system}
 \label{fig:model}
 \end{figure*}
-
-\subsection{Baseline method}
-
-Let's consider a question \textit{``who is the woman that john edwards had an affair with?''}.
-At the first step the baseline system analyzes the question text and identifies mentions of KB entities....
-
-The baseline system starts answering a question by \textbf{identifying KB entities} that are mentioned in the question.
-In our example, entity John Edwards (/m/01651q)\footnote{This is an identifier of the entity in Freebase} is the main question entity.
-However, Freebase contains millions of entities and it's often hard to identify the main ones (\eg Woman and Affair are also present in Freebase as entities) or to disambiguate and choose between John Edwards the politician (/m/01641q) and John Edwards the American sports car racing driver (/m/06zs089) and many other John Edwards' present in the KB.
-There is even an entity /m/0c0n01x with the name ``had an affair with''.
-The baseline system considers all spans of terms under certain conditions on POS tags and use a dictionary of names, aliases and anchor tests \cite{SPITKOVSKY12.266} to map phrases to potential entities.
-Each candidate entity mention is scored and disambiguation is postponed to later stages.
-
-After a set of candidate mentions is built, the system explores the neighborhood of the entities in the knowledge base by \textbf{matching a set of query templates} to the question.
-Each template has an entity and a relation placeholders and correspond to a candidate query which can be executed against the KB and return an answer.
-The baseline system uses 3 templates:
-\begin{enumerate}
-\item $[$question entity$]$ $\rightarrow$ $[$relation$]$ $\rightarrow$ $[$answer entity$]$
-\item $[$question entity$]$ $\rightarrow$ $[$relation 1$]$ $\rightarrow$ $[$mediator node$]$\\
-$[$mediator node$]$ $\rightarrow$ $[$relation 2$]$ $\rightarrow$ $[$answer entity$]$
-\item $[$question entity 1$]$ $\rightarrow$ $[$relation 1$]$ $\rightarrow$ $[$mediator node$]$\\
-$[$mediator node$]$ $\rightarrow$ $[$relation 2$]$ $\rightarrow$ $[$question entity 2$]$
-$[$mediator node$]$ $\rightarrow$ $[$relation 3$]$ $\rightarrow$ $[$answer entity 3$]$
-\end{enumerate}
-
-Each query candidate is matched against the tokens in the question via names of relations in the KB, words learned through distant supervision and word mappings learned during training.
-
-The last stage of the question answering process is query candidates ranking.
-A random forest model is trained to rank query candidate given a set of features generated for query candidates and corresponding entity mentions.
-
-
-\subsubsection{Extensions}
-We implemented a couple of extensions of the baseline system.
-
-\begin{itemize}
-\item date range based filters
-\item notable types based filters
-\item notable types based model, used as a feature
-\end{itemize}
 
 \subsection{Unstructured text data for KBQA}
 
