@@ -64,7 +64,7 @@ The first question that we are asking is what are the improvements, introduced b
 Results of this ablation experiment are presented in Table \ref{table:ablation:entities_vs_features}.
 As we can see, additional date range filters and notable types model (Text2KB -E-W-CQA-CL) are responsible for an increased recall and a drop in precision compared to the baseline model.
 Detecting question entities (Text2KB -W-CQA-CL) help improve both precision and recall, and therefore average F1 score by 0.096 points.
-All developed text-based features contribute an improvement of TODO.....................
+An even bigger improvement is achieved by introducing features based on external free text data, and since these improvements are independent, their combination boost the performance even bigger.
 
 \begin{table}
 \caption{Evaluation results for the baseline system and various subsystems introduced in Text2KB}
@@ -80,7 +80,7 @@ Text2KB -E-W-CQA-CL= =Accu +DF+T & 0.6169 & 0.4807 & 0.4987 \\
 % extent_dates_typemodel_rf100.log : -web-cqa-clueweb
 Text2KB -W-CQA-CL & 0.6272 & 0.4920 & 0.5083 \\  % AND FEATURES GIVE THE REST
 % web_cqa_clueweb_typemodel_dates.log : -external entities (Text features on top my other improvements)
-Text2KB -E &  &  &  \\  % AND FEATURES GIVE THE REST
+Text2KB -E & 0.6344 & 0.4966 & 0.5140 \\  % AND FEATURES GIVE THE REST
 \hline
 % extent_web_cqa_clueweb_dates_types_typemodel_rf100.log : everything, including type filters
 Text2KB & 0.6354 & 0.5059 & 0.5223 \\

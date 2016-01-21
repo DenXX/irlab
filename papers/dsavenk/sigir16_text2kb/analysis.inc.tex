@@ -1,14 +1,15 @@
 
-Show examples of questions, which are fixed by different components of the proposed system.
+% IDEA1: We can also make evaluation on queries where correct predicate was never seen during training. Hopefully this will show that for such queries existing approach give worse result and we somehow improve it.
 
-We can also make evaluation on queries where correct predicate was never seen during training. Hopefully this will show that for such queries existing approach give worse result and we somehow improve it.
+% IDEA2: Hypothesis: it's easier to find mentions of the named entities rather than more abstract ones, like profession.
+% Therefore, maybe errors of our model will be more on these cases?
 
-Hypothesis: it's easier to find mentions of the named entities rather than more abstract ones, like profession.
-Therefore, maybe errors of our model will be more on these cases?
+We also manually worked though wins and losses of Text2KB compared to the baseline system.
+Below we provide some examples, that demonstrate advantages and weaknesses of our approach.
 
-Date filter helps to return a single president when the baseline system returns all presidents.
-who is the current leader of france 2010?
-Nicolas Sarkozy
+The first set of improvements come from the date range filter template, \eg for the question \textit{``who is the current leader of france 2010?''} our system returns a single correct result \textit{``Nicolas Sarkozy''} instead of the list of all French presidents.
+
+The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``what guitar did kurt cobain?''} - \textit{``Fender Jag-Stang''}.
 
 Entity linking helped find the right entity, but ranking didn't fix the problem.
 what did romo do? 
