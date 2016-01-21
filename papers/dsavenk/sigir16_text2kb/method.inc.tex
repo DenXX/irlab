@@ -112,19 +112,20 @@ Then, we compute cosine similarities between predicate vector and question term 
 Similarity between the predicate vector and average question term vector is also computed.
 
 
-\subsection{Entity statistics from document collection}
+\subsection{Entity pair language model}
 \label{section:method:clueweb}
 
-Predicate in so called closed knowledge bases (such as dbPedia and Freebase) are represented with special identifiers, which while solving some problems complicates their mapping with natural language phrases.
-Alternatively, open knowledge bases, such as ReVerb \cite{fader2011identifying}, extract information automatically from text sources and represent entities and predicate with natural language phrases.
-This is useful for question answering \cite{Fader:2014:OQA:2623330.2623677}, which can now use the information on which terms and phrases are used in text collection to express relations between pairs of entities.
-However, the extraction process isn't perfect and in particular suffers from low recall, which means that some information is lost.
-To overcome this issue we propose to skip the extraction step and simply store information on text pieces used around entity pair mentions.
-More specifically, we take ClueWeb12 corpus and use existing Freebase entity annotations\footnote{http://lemurproject.org/clueweb12/FACC1/} to collect statistics on terms that occur in the same sentence with an entity pair.
-As a result, we have information on term counts for each pairs of entities.
-In practice, to avoid splitting web documents into sentences we consider entity pairs that occur within 200 characters of each other and take terms between them and 100 characters to the left and right of mentions.
-At the end we have the following data: $<e_1, e_2>: term_1: count, term_2: count$, ....
-Table \ref{table:clueweb_entitypairs_langmodel} gives a couple of examples.
+When ranking candidate answer, we are interested in estimating if topic and answer entities are related in a way asked in the question.
+Existing systems usually look on how candidate predicates are expressed in questions and statements.
+But predicate isn't the only way we can look at this, another alternative is to consider text pieces, \eg sentences, that mention topical and answer entities together.
+For example, in the bottom right corner of Figure \ref{fig:model} we can see some passages that mentioned a pair of people, and the context of these mentions often expresses the nature of the relationships between the entities.
+This resembles OpenQA approach of \cite{Fader:2014:OQA:2623330.2623677} with a difference, that information isn't filtered out by keeping only some sentences and converting them to a triple format.
+Moreover, since these relationships are now expressed in a natural language, we can consider various measures of text similarity between them and the question.
+
+We take ClueWeb12 corpus with existing Freebase entity annotations\footnote{http://lemurproject.org/clueweb12/FACC1/} and compute counts of different terms that occur in the context to an entity pair mention.
+By an entity pair mention we mean a pair of mentions of different entities within 200 characters of each other.
+We take terms in between mentions and 100 character before and after mentions as the context.
+A small sample of this data is presented in Table \ref{table:clueweb_entitypairs_langmodel}.
 
 \begin{table}
 \caption{Examples of entity pairs language model data}
@@ -144,8 +145,11 @@ John Edwards & Frances Quinn Hunter & daughter, john, rielle, father, child, for
 \end{tabular}
 \end{table}
 
-Given an answer candidate we compute language model score for every answer candidate $$p(Q|e_1, e_2) = \prod_{t\in Q} p(t | e_1, e_2)$$ and use minimum, average and maximum score as features.
-In addition, we compute weighted average embedding vector for a pair of entities by averaging the corresponding terms using their probabilities as weights and use minimum, average and maximum cosine similarity as features.
+First, given a set of question terms $Q$, an answer candidate, that includes question entity $e_1$, we compute a language model score for every answer entity $e_2$:
+$$p(Q|e_1, e_2) = \prod_{t\in Q} p(t | e_1, e_2)$$
+and use minimum, average and maximum as features.
+Similar to the way we handled CQA-based data, we use embeddings to handle the sparsity problem.
+For each entity pair a weighted (by counts) average embedding vector of terms is computed and again minimum, average and maximum cosine similarities between this vectors and question tokens vector is used as features.
 
 %\subsubsection{Wikipedia profile}
 %It would be nice to have Wikipedia pages for entities and use something like SDM score or something else as feature.
