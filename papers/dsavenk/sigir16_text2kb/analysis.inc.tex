@@ -4,6 +4,39 @@
 % IDEA2: Hypothesis: it's easier to find mentions of the named entities rather than more abstract ones, like profession.
 % Therefore, maybe errors of our model will be more on these cases?
 
+\begin{table}
+\centering
+\caption{Results of experiments on combining Text2KB and STAGG predictions}
+\label{table:combine_stagg}
+\begin{tabular}{| p{4cm} | p{1cm} | p{1cm} | p{1cm} | }
+\hline
+System & avg Recall & avg Precision & avg F1 \\
+\hline
+Accu (baseline) \cite{ACCU:2015} & 0.604 & 0.498 & 0.494\\
+% DIDN'T HAVE TIME TO IMPLEMENT THIS.
+% Text-only baseline & & & & \\
+Our system: Text2KB & 0.6354 & 0.5059 & 0.5223 \\
+STAGG \cite{yih2015semantic} & 0.607 & 0.528 & 0.525\\
+\hline
+Text2KB + STAGG & 0.5976 & 0.5343 & 0.5320 \\
+Text2KB + STAGG (oracle) & 0.7144 & 0.5904 & 0.6056 \\
+\hline
+\end{tabular}
+\end{table}
+
+The evaluation results presented in \ref{table:webquestions_results} showed that Text2KB reaches the performance of the currently best system, STAGG \cite{yih2015semantic}.
+However, we believe that our improvements are complementary to any existing systems and can in particular be used to boost the performance of STAGG.
+To support this claim we combined results of STAGG and Text2KB systems using a simple heuristic: we prefer STAGG result when its answer length is shorter than Text2KB.
+This heuristic is inspired by the fact, that STAGG has a filtering stage, that filters out result lists based on some criteria, \ie gender, entity type, \etc
+Results of this experiment are given in Table \ref{table:combine_stagg}.
+However, there is still a room for improvement if the combination is done inside a system, because the errors of STAGG and Text2KB differ, and if we use an oracle, which chooses an answer with the higher F1 score, we can achieve an average F1 of 0.6056.
+
+We also evaluated both STAGG and Text2KB on 112 questions, where the correct answer is retrieved via a predicate, that weren't used in the positive training examples.
+These questions are harder to answer, and the average F1 score of Text2KB is 0.1640 versus 0.1199 for STAGG.
+This gives some anecdotal evidence, that by incorporating external text resources we were able to answer these questions slightly better, how these difference isn't statistically significant according to paired t-test (p-value 0.16).
+
+\subsection{Anecdotal evidence (rename or remove it)}
+
 We also manually worked though wins and losses of Text2KB compared to the baseline system.
 Below we provide some examples, that demonstrate advantages and weaknesses of our approach.
 

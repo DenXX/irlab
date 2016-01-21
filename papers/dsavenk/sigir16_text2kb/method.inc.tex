@@ -150,6 +150,3 @@ $$p(Q|e_1, e_2) = \prod_{t\in Q} p(t | e_1, e_2)$$
 and use minimum, average and maximum as features.
 Similar to the way we handled CQA-based data, we use embeddings to handle the sparsity problem.
 For each entity pair a weighted (by counts) average embedding vector of terms is computed and again minimum, average and maximum cosine similarities between this vectors and question tokens vector is used as features.
-
-%\subsubsection{Wikipedia profile}
-%It would be nice to have Wikipedia pages for entities and use something like SDM score or something else as feature.

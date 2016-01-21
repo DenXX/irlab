@@ -1,6 +1,9 @@
 
-We followed the standard evaluation procedure for the WebQuestions dataset and used existing train-test splits for reporting our results.
-The benchmark uses average F1 score, which gives a partial credit to list answers that are not equal but overlap with the correct answer.
+We followed the standard evaluation procedure for the WebQuestions dataset and used the original 70-30\% train-test split, which results in 3,778 training and 2,032 test questions.
+Since each answer is potentially a list of entities $a^*$, the quality of an answer $a$ is represented by F1-score: 
+$$f1(a^*, a) = 2\frac{precision(a^*,a) recall(a^*,a)}{precision(a^*,a) + recall(a^*,a)}$$
+where $precision(a^*, a)=\frac{|a^* \cap a|}{|a|}$ and $recall(a^*, a) = \frac{|a^* \cap a|}{|a^*|}$.
+
 We also report average precision and recall, as well as an F1 score of average precision and recall.
 The results of existing approaches, our baseline and Text2KB systems is presented in Table \ref{table:webquestions_results}.
 
@@ -26,21 +29,11 @@ Accu (baseline) \cite{ACCU:2015} & 0.604 & 0.498 & 0.546 & 0.494\\
 % Text-only baseline & & & & \\
 Our system: Text2KB & 0.6354 & 0.5059 & 0.5633 & 0.5223 \\
 \hline
-Text2KB + STAGG & 0.5976 & 0.5343 & 0.5641 & 0.5320 \\
-Text2KB + STAGG (oracle) & 0.7144 & 0.5904 & 0.6465 & 0.6056 \\
-\hline
 \end{tabular}
 \end{table*}
 
 As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}.
-However, we believe that this system will also benefit from the ideas of our work.
-To support this claim we combined results of STAGG and Text2KB systems using a simple heuristic: we prefer STAGG result when its answer length is shorter than Text2KB.
-This heuristic is inspired by the fact, that STAGG has a filtering stage, that filters out result lists based on some criteria, \ie gender, entity type, \etc
-However, there is still a room for improvement if the combination is done inside a system, because the errors of STAGG and Text2KB differ, and if we use an oracle, which chooses an answer with the higher F1 score, we can achieve an average F1 of 0.6056.
-
-We also evaluated both STAGG and Text2KB on 112 questions, where the correct answer is retrieved via a predicate, that weren't used in the positive training examples.
-These questions are harder to answer, and the average F1 score of Text2KB is 0.1640 versus 0.1199 for STAGG.
-This gives some anecdotal evidence, that by incorporating external text resources we were able to answer these questions slightly better, how these difference isn't statistically significant according to paired t-test (p-value 0.16).
+However, we believe that this system will also benefit from the ideas of our work, and we will explore this question in Section \ref{section:analysis}.
 
 \subsection{Ablation Study}
 
