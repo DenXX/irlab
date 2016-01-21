@@ -8,97 +8,28 @@ We also manually worked though wins and losses of Text2KB compared to the baseli
 Below we provide some examples, that demonstrate advantages and weaknesses of our approach.
 
 The first set of improvements come from the date range filter template, \eg for the question \textit{``who is the current leader of france 2010?''} our system returns a single correct result \textit{``Nicolas Sarkozy''} instead of the list of all French presidents.
+The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``which state did anne hutchinson found?''} - \textit{``Rhode Island''}.
 
-The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``what guitar did kurt cobain?''} - \textit{``Fender Jag-Stang''}.
+There are a number of cases when question entity identification using web search results helped to find the right KB entity, which wasn't detected from the question text only, \eg the question \textit{``what did romo do?''} mentions only the last name of the Dallas Cowboys quarterback, whereas web search results mentions the full name multiple times.
+However, there are cases when additional entities actually made the system to return an incorrect answer, \eg for the question \textit{``what was lucille ball?''} Text2KB added the entity \textit{``I Love Lucy''}, and the candidate answer seeded from this entity got selected as the answer.
+We should note, that we used a simple entity linking algorithms and strategy to extend question entities, namely we extend the question entity list if term from web search results entity name have high similarity to a term in the question.
+A better strategies would probably fix the above mentioned problem.
 
-Entity linking helped find the right entity, but ranking didn't fix the problem.
-what did romo do? 
-Correct answer:  [u'Baseball player']
-Baseline:  ([u'Denmark'], Rømø[location.location.containedby] romo)
-System:  ([u'Quarterback'], Tony Romo[american\_football.football\_player.position\_s] Tony,Romo,-)
+Finally, below are some examples, improved by the proposed web search results features.
+For the question \textit{``what did bruce jenner win gold medal for?''} the baseline system answered \textit{``1976 Summer Olympics''}, but web search results mention decathlon many times and thus Text2KB was able to rerank the candidates and return the entity \textit{``Athletics at the 1976 Summer Olympics - Men's Decathlon''}\footnote{Unfortunately, the entity selected as the answer during labeling is \textit{``Decathlon Challenge''}, which is a book Bruce Jenner wrote}.
+Another interesting example is the question \textit{``what ship did darwin sail around the world?''}, which actually is hard to answer correctly because the ship entity is connected to the Charles Darwin entity through the \texttt{user.lindenb.default\_domain.scientist.known\_for} predicate along with some other entities like \textit{``Natural selection''}.
+There is no predicate, and therefore no such RDF triple, that tells directly what kind of ship did Charles Darwin use.
+We will see later, that in WebQuestions dataset there is a relatively big number of questions don't have a good match among the predicates.
+Nevertheless, the name of the ship \textit{HMS Beagle} is mentioned multiple times in the web search results, and entity pair model computed from ClueWeb also has high scores for the terms ship and world, which gave Text2KB enough signal to answer with the ship (along with 2 other unrelated entities also related to \textit{``Charles Darwin''} through the same predicate).
 
-Same here
-where is daud ibrahim? 
-Correct answer:  [u'Maharashtra']
-Baseline:  None
-System:  ([u'Ratnagiri'], Dawood Ibrahim[people.person.place\_of\_birth] Ibrahim,Dawood,Kaskar)
+We also found some cases, when our text-based features hurt the performance.
+For example, the baseline system answered the question \textit{``when did tony romo got drafted?''} correctly, but since almost every mention of \textit{Tony Romo} follows with \textit{Dallas Cowboys}, Text2KB reranked the team name higher and returned it as the answer.
 
-
-Here we made it:
-where is nineveh city? WIN
-Correct answer:  [u'Iraq']
-Baseline:  None
-System:  ([u'Iraq', u'Nineveh Province'], Nineveh[location.location.containedby] -,Nineveh,city)
-
-Also entity linking:
-where do flemish come from? WIN
-Correct answer:  [u'Belgium']
-Baseline:  None
-System:  ([u'Belgium'], Flemish language[language.human\_language.main\_country] Belgian-Dutch,,,come)
-
-Wrong entity in the baseline:
-what college did deion sanders jr go to? WIN
-Correct answer:  [u'Florida State University']
-Baseline:  ([u'Tulane University', u'Washington and Lee University', u'Louisiana State University', u'Tulane University Law School'], Jared Y. Sanders, Jr.[education.education.institution,people.person.education] sanders,jr,college)
-System:  ([u'Florida State University', u'North Fort Myers High School'], Deion Sanders[education.education.institution,people.person.education] sanders,college,deion)
-
-THIS IS PROBABLY TOKEN SIMILARITY IN SEARCH
-what did bruce jenner win gold medal for? 
-Correct answer:  [u'Decathlon challenge']
-Baseline:  ([u'1976 Summer Olympics'], Bruce Jenner,Gold medal[olympics.olympic\_medal.medal\_winners,olympics.olympic\_medal\_honor.medalist,olympics.olympic\_medal\_honor.olympics] medal,jenner,bruce,win,gold)
-System:  ([u"Athletics at the 1976 Summer Olympics - Men's Decathlon"], Bruce Jenner,Gold medal[olympics.olympic\_athlete.medals\_won,olympics.olympic\_medal\_honor.event,olympics.olympic\_medal\_honor.medal] bruce,medal,gold,jenner,win)
-
-Baseline embraced the fact that 2 entities are matched, and selected the candidate with the highest coverage - location of ceremony, because it involves both entities:
-where are ike and tina turner's children? WIN
-Correct answer:  [u'Ronnie Turner', u'Craig Hill']
-Baseline:  ([u'Tijuana'], Ike Turner,Tina Turner[people.marriage.location\_of\_ceremony,people.marriage.spouse,people.person.spouse\_s] tina,children,ike,turner,'s)
-System:  ([u'Raymond Craig Turner', u'Ronnie Turner'], Tina Turner[people.person.children] children,turner,'s,tina)
-
-HERE is correct predicate is through a nobel prize.
-what did the scientist chadwick discovered? WIN
-Correct answer:  [u'Neutron']
-Baseline:  ([u'Chadwick'], James Chadwick[symbols.name\_source.namesakes] scientist,chadwick,discovered)
-System:  ([u'Neutron'], James Chadwick[base.nobelprizes.nobel\_honor.subject\_area,base.nobelprizes.nobel\_prize\_winner.nobel\_honor] chadwick)
-
-THERE IS NO SUCH PREDICATE, BUT ANSWER IS FOUND ON THE WEB
-what ship did darwin sail around the world? WIN
-Correct answer:  [u'HMS Beagle']
-Baseline:  ([u'Drowning', u'Suicide'], Donald Crowhurst[people.deceased\_person.cause\_of\_death] world,around,sail,the)
-System:  ([u'The Origin of Species', u'HMS Beagle', u'Natural selection'], Charles Darwin[user.lindenb.default\_domain.scientist.known\_for] darwin,ship)
-
-THIS IS PROBABLY WEB SEARCH
-where is the seat of the african union? WIN
-Correct answer:  [u'Addis Ababa']
-Baseline:  ([u'South Africa', u'Central African Republic', u'Guinea-Bissau', u'Senegal', u'Togo', u'Uganda', u'Zimbabwe', u'Angola', u'So Tom9 and Prdncipe', u'Burkina Faso', u'Ethiopia', u'Kenya', u'Cameroon', u'Cape Verde', u'Chad', u'Egypt', u'Mali', u'Nigeria', u'Sierra Leone', u'Sudan', u'Tanzania', u'Democratic Republic of the Congo', u'C4te d\u2019Ivoire', u'Algeria', u'Madagascar', u'Botswana', u'Eritrea', u'Liberia', u'Mozambique', u'Somalia', u'Tunisia', u'Comoros', u'Namibia', u'Lesotho', u'Benin', u'Congo', u'Equatorial Guinea', u'Gabon', u'Ghana', u'Mauritania', u'Seychelles', u'Swaziland', u'Mauritius', u'Libya', u'Gambia', u'Burundi', u'Djibouti', u'Malawi', u'South Sudan', u'Zambia', u'Rwanda'], African Union[organization.membership\_organization.members,organization.organization\_membership.member] african,union,seat,the)
-System:  ([u'Addis Ababa'], African Union[location.mailing\_address.citytown,organization.organization.headquarters] the,african,union)
-
-
-HERE is a loose, I detected additional entity, which is wrong:
-what was lucille ball? LOOSE
-Correct answer:  [u'Singer', u'Model', u'Comedian', u'Television Producer', u'Actor']
-Baseline:  ([u'Actor', u'Television Producer', u'Singer', u'Comedian', u'Model'], Lucille Ball[people.person.profession] lucille,ball)
-System:  ([u'Lucy Ricardo'], I Love Lucy,Lucille Ball[tv.regular\_tv\_appearance.character,tv.regular\_tv\_appearance.series,tv.tv\_actor.starring\_roles] ball,Lucy,lucille,Love,I)
-
-
-Here for some reason the ranking got worse:
-who has ray allen dated? LOOSE
-Correct answer:  [u'Shannon Walker Williams']
-Baseline:  ([u'Shannon Walker Williams'], Ray Allen[people.marriage.spouse,people.person.spouse\_s] ray,has,allen,dated)
-System:  ([u'Boston Celtics', u'Seattle Supersonics', u'Milwaukee Bucks'], Ray Allen[basketball.basketball\_player.player\_statistics,basketball.basketball\_player\_stats.team] ray,allen,has)
-
-
-Loose, which is actually a win:
-what team does jordan own? LOOSE
-Correct answer:  [u'Jordan national football team']
-Baseline:  ([u'Jordan national football team', u'Al-Wehdat SC'], Jordan[sports.sports\_team\_location.teams] jordan,team,own)
-System:  ([u'Charlotte Bobcats'], Michael Jordan[sports.sports\_team\_owner.teams\_owned] team,own,Jordan,'s,Michael)
-
-Loose, Dallas Cowboys is much more popular in search results, than date:
-when did tony romo got drafted? LOOSE
-Correct answer:  [u'2002']
-Baseline:  ([u'2002'], Tony Romo[sports.pro\_athlete.career\_start] got,drafted,romo,tony)
-System:  ([u'Dallas Cowboys'], Tony Romo[american\_football.football\_player.games,american\_football.player\_game\_statistics.team] drafted,got,romo,tony)
+WebQuestions dataset isn't free of noise and quite a few answers are actually incorrect for various reasons.
+When labeling the question ``what team does jordan own?'' mechanical turk workers had to select the answer from the page, corresponding to the country and not \textit{Michael Jordan} the basketball player.
 
 \subsection{Error analysis}
 
 Present extensive error analysis of questions that system doesn't get right.
+
+Give results after case is fixed.
