@@ -30,6 +30,37 @@ When labeling the question ``what team does jordan own?'' mechanical turk worker
 
 \subsection{Error analysis}
 
-Present extensive error analysis of questions that system doesn't get right.
+\begin{figure}
+\centering
+\includegraphics[width=0.45\textwidth]{img/error_analysis}
+\caption{Distribution of problems with examples, where Text2KB returns an answer with F1$\neq$1.0}
+\label{fig:error_analysis}
+\end{figure}
 
-Give results after case is fixed.
+To get a better insights of the problems that remain, we collected 1219 questions for which Text2KB didn't return completely correct answer.
+We looked through a couple of hundreds of these examples manually and grouped the problems into several typical cases.
+Figure \ref{fig:error_analysis} summarizes our findings.
+
+As we can see candidate ranking is still the major problem, however, it accounts for $~31\%$ of the cases.
+The second most popular problem is incorrect ground truth labels, which by our estimate accounted in almost a quarter of missed examples.
+For example: for the question \textit{when tupac was shot?''} the label says \textit{``Tupac 1994 assault''} instead of \textit{``Las Vegas''} as the ground truth.
+There is another group of examples, that are related to the problem in the ground truth, \ie incomplete or overcomplete answers.
+A typical examples of the former are questions which ask to list books, songs or landmarks.
+The correct answer typically contains $\sim10$ entities, but the actual number of correct entities is often larger.
+It seems to us, that this is an artifact of the labeling process, where the ground truth answer was selected from the Freebase entity profile page, where for long lists of entities only a sample of 10 entities are shown and the other are hidden behind the ``NNN values total'' link.
+
+There is a certain number of ambiguous questions, \ie vague questions that can be answered with multiple different predicates and there is no obvious reason to prefer one to another.
+For example, for the question \textit{``where is shakira from?''} the ground truth is the country - \textit{``Colombia''}, while Text2KB returned her place of birth - \textit{``Barranquilla''}.
+Another example are questions like \textit{``what did hayes do?''}, which are answered by profession, position a person occupied or sometimes some other achievements.
+A related problem is when an entity (or Freebase in general) doesn't contain an RDF triple with the predicate that is directly related to the question.
+For example, the question \textit{``what do people in france like to do for fun?''} doesn't have a good match among the facts stored in Freebase.
+The ground truth entity \textit{``Cycling''} is retrieved through the \texttt{olympics.olympic\_participating\_country.athletes} predicate.
+In some cases there are entities that are very similar in meaning, but represented with different ids and even names in Freebase.
+For example, the answer to the question \textit{``what is william taft famous for?''} is \textit{``President of the United States''}, which is a government position, but there is also a triple \texttt{[William Howard Taft, common.topic.notable\_for, US President]}, where the last entity represents a type of people who help the position, and is considered incorrect.
+
+We also noticed, that in a small number of examples, the case of the correct answer entity and the answer returned by the system is different.
+For example, for the question \textit{``what fma stands for?''} the correct answer specified in the dataset is \textit{``FullMetal Alchemist''}, while the actual name of the entity is \textit{``Fullmetal Alchemist''}.
+The official evaluation script don't normalize the case and therefore considers this example incorrect.
+If we lowercase all entity names before comparison, the average F1 score of Text2KB becomes 0.5248.
+
+GIVE AN ANALYSIS OF PROBLEMS WITH RANKING!!!
