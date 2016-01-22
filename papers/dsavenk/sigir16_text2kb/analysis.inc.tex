@@ -24,14 +24,19 @@ Text2KB + STAGG (oracle) & 0.7144 & 0.5904 & 0.6056 \\
 \end{tabular}
 \end{table}
 
-The evaluation results presented in \ref{table:webquestions_results} showed that Text2KB reaches the performance of the currently best system, STAGG \cite{yih2015semantic}.
-However, we believe that our improvements are complementary to any existing systems and can in particular be used to boost the performance of STAGG.
-To support this claim we combined results of STAGG and Text2KB systems using a simple heuristic: we prefer STAGG result when its answer length is shorter than Text2KB.
-This heuristic is inspired by the fact, that STAGG has a filtering stage, that filters out result lists based on some criteria, \ie gender, entity type, \etc
-Results of this experiment are given in Table \ref{table:combine_stagg}.
-However, there is still a room for improvement if the combination is done inside a system, because the errors of STAGG and Text2KB differ, and if we use an oracle, which chooses an answer with the higher F1 score, we can achieve an average F1 of 0.6056.
+In this work we took an existing KBQA systems and demonstrated that by combining evidence from knowledge base and external text resources we can boost the performance.
+A reasonable question is whether the same approach will be helpful to other systems, \eg for example, can the result of the currently best system STAGG \cite{yih2015semantic} be improved.
+The differences between our baseline system Accu and STAGG lie in the components, \ie entity linking algorithm, a set of query templates and ranking methods, therefore our approach is complementary and should be helpful.
+To support this claim, we made an experiment to combine answers of STAGG and Text2KB.
+One of the advantages of the former is its set of filters, that restricts list results to entities of certain type, gender, etc.
+Therefore, we combined answers of STAGG and Text2KB using a simple heuristic: we chose to use the answer returned by STAGG if the number of answer entities is less than in the Text2KB answer, otherwise we use the answer of our approach.
+Table \ref{table:combine_stagg} gives the results of the experiment, and as we can see the combination achieves slightly better average F1 score.
+Alternatively, we can look at the oracle combination of the systems, which always chooses an answer with higher F1.
+This experiment also verifies if both systems make the same mistakes, or there is a reasonable difference, and as we can see such a combination results in a performance of 0.6056, which is much higher than either of the systems.
 
-We also evaluated both STAGG and Text2KB on 112 questions, where the correct answer is retrieved via a predicate, that weren't used in the positive training examples.
+WebQuestions dataset is rather small compared to the space of all possible KB queries a system should be able to generate and score.
+As a result, answers to 112 of the test questions involve a predicate that weren't observed in the training set.
+We also evaluated both approaches on 112 questions, where the correct answer is retrieved via a predicate, that weren't used in the positive training examples.
 These questions are harder to answer, and the average F1 score of Text2KB is 0.1640 versus 0.1199 for STAGG.
 This gives some anecdotal evidence, that by incorporating external text resources we were able to answer these questions slightly better, how these difference isn't statistically significant according to paired t-test (p-value 0.16).
 

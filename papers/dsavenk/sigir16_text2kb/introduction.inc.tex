@@ -1,11 +1,11 @@
-Traditionally question answering systems used text document collections to retrieve passages relevant to a question and to extract candidate answers \cite{Vrandecic:2014:WFC:2661061.2629489}.
-Unfortunately, a paragraph of text encodes a very limited amount of information about answer candidates and predictions has to be used instead, \eg most of the systems estimate candidate answer entity type to match against the expected type inferred from the question text.
-On the other hand, modern large scale open-domain knowledge bases, such as dbPedia \cite{auer2007dbpedia}, Freebase \cite{Bollacker:2008:FCC:1376616.1376746} and WikiData \cite{Vrandecic:2014:WFC:2661061.2629489} store a vast amount of general knowledge about different kinds of entities.
+It has long been recognized that searchers prefer concise and specific answers, rather than lists of document results. In particular, factual, or factoid questions, have been an active focus of research for decades due to both practical importance and relatively objective evaluation criteria. As a particularly important example, a large proportion of Web search queries are looking for entities or their attributes (\textbf{CITATION}), a setting on which we focus in this work. 
+
+Two relatively separate approaches Question Answering (QA) have emerged: text-centric, or Text-QA and knowledge-base-centric, or KB-QA. In the more traditional, text-QA approach, QA systems used text document collections to retrieve passages relevant to a question and to extract candidate answers \cite{Vrandecic:2014:WFC:2661061.2629489}. Unfortunately, an unstructured text passage does not provide explicit information about the candidate entities, and has to be inferred from the question text. The KB-QA approach, which evolved from the database community, relies on large scale knowledge bases, such as dbPedia \cite{auer2007dbpedia}, Freebase \cite{Bollacker:2008:FCC:1376616.1376746} and WikiData \cite{Vrandecic:2014:WFC:2661061.2629489}, which store a vast amount of general knowledge about different kinds of entities.
 This information, encoded as \texttt{[subject, predicate, object]} RDF triples, can be effectively queried using structured query languages, such as SPARQL.
-Of course, regular users would rather prefer to ask natural language questions.
-Translation of text questions into structured query languages is very challenging for a number of reasons: complexity of a KB schema, variability of natural language and knowledge representation \etc
-For example, Figure \ref{fig:example_sparql} gives a SPARQL query that retrieves the answer to a relatively easy question \textit{``who is the current president of the dominican republic in 2010?''} from Freebase.
+
+Both approaches need to eventually deal with natural language questions, in which information needs are expressed by the vast majority of users. While question understanding is difficult in itself, this setting is particularly challenging for KB-QA systems, as it requires a translation of a text question into a structured query language. That is challenging for a number of reasons, including the complexity of a KB schema, and many differences between natural language and knowledge representations.  For example, Figure \ref{fig:example_sparql} gives a SPARQL query that retrieves the answer to a relatively simple question \textit{``who was the president of the Dominican Republic in 2010?''} from Freebase.
 % The same information can be asked in many different ways, for example: \textit{``who is the dominican republic president in 2010?''}, or \textit{``who was the leader of the dominican republic in 2010?''} \etc
+
 
 \begin{figure*}
 \centering
@@ -35,37 +35,43 @@ SELECT DISTINCT ?name {
 \label{fig:web_search_entitylink}
 \end{figure}
 
-The first problem that a KBQA system is facing is question entity identification.
+
+Any KB-QA systems must address three challenges, namely question entity identification to anchor the query process; candidate answer entity identification; and candidate ranking. We will show that these challenges can be alleviated by the appropriate use of external textual data. 
+
+The first problem that a KBQA system faces is question entity identification.
 The performance of the whole system greatly depends on this stage \cite{yao-scratch-qa-naacl2015}, because it seeds the answer candidate search process.
 Question text is often quite short, may contain typos and other problems, that complicate question entity identification.
 Existing approaches are usually based on dictionaries that contain entity names, aliases and some other phrases, which were used to refer to entities \cite{SPITKOVSKY12.266}.
 These dictionaries are often noisy and incomplete, \eg to answer the question \textit{``what year did tut became king?''} a system needs to detect a mention \textit{``tut''}, which refers to the entity \textit{``Tutankhamun''}.
 A mapping \textit{tut $\rightarrow$ ``Tutankhamun''} is missing in the dictionary used by one of the state of the art systems and therefore it couldn't answer this question correctly.
 Instead of increasing the dictionary size we propose to use web search results to find variations of question entity names, which can be easier to link to a KB.
-This idea was used for entity linking in web search queries \cite{SMAPH_ERD:2014}, which was given as one of the tracks on the Entity Recognition and Disambiguation Challenge 2014\footnote{http://web-ngram.research.microsoft.com/ERD2014/}.
-Figure \ref{fig:web_search_entitylink} presents web search results for the query \textit{``what year did tut became king?''}, which shows that indeed many documents mention the full name, which can easily be mapped to a KB entity.
+This idea has been shown effective in entity linking in web search queries \cite{SMAPH_ERD:2014}, one of the tracks on the Entity Recognition and Disambiguation Challenge 2014\footnote{http://web-ngram.research.microsoft.com/ERD2014/}.
+Figure \ref{fig:web_search_entitylink} presents web search results for the query \textit{``what year did tut became king?''}, which shows that indeed many documents mention the full name of the entity, which in turn can be more easily mapped to a KB entity.
 
-After question entities have been identified the next step is to explore their neighborhood and build structured queries as candidate answers.
-A query addresses one or multiple KB predicates, which should be somehow related to words and phrases in the question and systems try score these mappings in order to select the best answer.
-Existing knowledge base question answering approaches \cite{ACCU:2015,Berant:EMNLP13,berant2014semantic,berant2015imitation,BordesCW14:emnlp,yao2014freebase} rely on some kind of a lexicon, which is learned from manually labeled training data and supported by some additional resources, such as question paraphrases \cite{berant2014semantic} and weakly labeled sentences from a large text collection \cite{yao2014information}.
-However, given the fact that manually labeled training data is very limited, such lexicons do not cover thousands of different predicates present in a KB.
-By our estimate in a popular WebQuestions KBQA dataset answers to $\sim$5.5\% of test questions (112 out of 2032) involve a predicate, that doesn't appear in the training set.
+After question entities have been identified, the second challenge is exploring their neighborhoods in the KB to generate candidate answers.
+A query addresses one or multiple KB predicates, which should be somehow related to words and phrases in the question, and somehow ordered in order to select the best answer.
+Existing knowledge base question answering approaches \cite{ACCU:2015,Berant:EMNLP13,berant2014semantic,berant2015imitation,BordesCW14:emnlp,yao2014freebase} rely on some kind of a lexicon, which is learned from manually labeled training data, and supported by  additional resources, such as question paraphrases \cite{berant2014semantic} and weakly labeled sentences from a large text collection \cite{yao2014information}.
+However, since manually labeled training data tends to be limited, such lexicons do not cover thousands of different predicates often present in a KB.
+By our estimate, in a popular WebQuestions KBQA dataset, the answers to $\sim$5.5\% of test questions (112 out of 2032) involve a predicate that {\em does not appear} in the training set.
 For example, an RDF triple \texttt{[Bigos, food.dish.type\_of\_dish1, Stew]} answers a test question \textit{``what are bigos?''}, but there are no questions from the training set that are answered using the same predicate.
-In addition, even if training set contains an example targeting a particular KB predicate, the lexicon might not cover all the other possible ways the same information can be asked about.
-For example, test question \textit{``who is the woman that john edwards had an affair with?''} is similar in meaning and is answered with a similar query as a training set question \textit{``who did jon gosselin cheat with?''}, but the word \textit{affair} isn't used in the training set.
-On the other hand, traditional text-based question answering systems benefit from the redundancy with which the same information is stated in many different ways in many documents \cite{Lin:2007:EPU:1229179.1229180}.
+In addition, even if the training set contained an example targeting a particular KB predicate, the lexicon might not cover all the other possible ways the same information can be asked about.
+For example, a test question in the WebQuestions dataset is \textit{``who is the woman that john edwards had an affair with?''}. This question is similar to, and is answered with a similar query as a training set question \textit{``who did jon gosselin cheat with?''}, but the word \textit{affair} isn't used in the training set.
+On the other hand, traditional text-based question answering systems benefit from the redundancy of information on the Web, where the same information is stated in many different ways in many documents \cite{Lin:2007:EPU:1229179.1229180}.
 This increases the chances of a good lexical match between a question and answer statements, which makes even some relatively simple counting-based techniques quite effective \cite{brill2002analysis}.
-We propose to borrow some ideas from text-based question answering and enrich the representation of candidate structured queries with additional text documents and fragments, that can help to select the best answer.
-For example, the right part of the Figure \ref{fig:model} shows web search results, community question answering page and text fragments mentioning pairs of entities, that can clearly be useful to answer the question about John Edwards' affair.
+Thus, to address this challenge, our work adapts ideas from text-based question answering to enrich the representation of candidate structured queries with additional text documents and fragments, that can help to select the best answer.
+For example, the right part of the Figure \ref{fig:model} shows web search results, a community question answering page, and text fragments mentioning pairs of entities, that can be useful to answer the question about John Edwards' affair.
+Finally, the third challenge of a KBQA system is how to select the best candidate answer among many candidates. We show that enriching the candidate answers with features derived from external text results, significantly improves the ranking. 
 
-\subsection{Contributions}
-
-Our main contributions in this work are three-fold:
+To summarize, our contributions are three-fold:
 \begin{itemize}
-\item a novel ``hybrid'' knowledge base question answering system, which uses both structured data from a knowledge base and unstructured natural language resources connected via entity links. Section \ref{section:method} describes the architecture of our system, and Section \ref{section:eval} shows that this fusion improves the performance of a state of the art KBQA system.
-\item novel data sources for knowledge base question answering. Entity linking allows us to connect test resources with a KB. We explore three different types of text data, that is useful for KBQA: web search results (Section \ref{section:method:web}), Community Question Answering data (Section \ref{section:method:cqa}) and entity pairs language model based on a large text corpus (Section \ref{section:method:clueweb}).
-\item evaluation and analysis. We evaluate the performance of our system on a popular WebQuestions dataset and demonstrate that using additional text resources we can improve the quality of knowledge base question answering (Section \ref{section:eval}). In addition, we conduct an extensive analysis of the system and suggest directions for future research (Section \ref{section:analysis}).
+\item A novel ``hybrid'' knowledge base question answering system, which uses both structured data from a knowledge base and unstructured natural language resources connected via entity links. Section \ref{section:method} describes the architecture of our system, and Section \ref{section:eval} shows that this fusion improves the performance of a state of the art KBQA system.
+\item Novel data sources and techniques for knowledge base question answering, via entity linking. We introduce three techniques: enhancing question entity identification by analyzing web search results (Section \ref{section:method:web}); improving predicate matching by mining CQA data (Section \ref{section:method:cqa}); and improving candidate ranking by incorporating text-corpus statistics (Section \ref{section:method:clueweb}).
+\item Comprehensive empirical analysis of our system on a popular WebQuestions benchmark, demonstrating that using additional text resources can improve the performance of a state-of-the-art KBQA system (Section \ref{section:eval}). In addition, we conduct an extensive analysis of the system to identify promising directions for future improvements (Section \ref{section:analysis}).
 \end{itemize}
+
+Taken together, this work introduces a number of techniques of using external text that significantly improve the performance of the KBQA approach. More broadly, our work bridges the gap between Text-QA and KB-QA worlds, demonstrating an important step forward towards combining unstructured and structured data for question answering. 
+
+
 
 % -------------------------------------------
 
