@@ -1,20 +1,21 @@
 
-Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
-As a result, in 2011 a series of QALD (Question Answering over Linked Data) evaluation campaigns has started.
+% Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
+In 2011 a series of QALD (Question Answering over Linked Data) evaluation campaigns has started.
 You can find the most recent report in \cite{UngerFLNCCW15}.
 These benchmarks use dbPedia knowledge base and usually provide a training set of questions, annotated with the ground truth SPARQL queries.
-In QALD-3 a multilingual task has been introduced, and since QALD-4 the hybrid task was included.
-This task asks participants to build systems that can use both structured data and free form text available in dbPedia abstracts.
+In QALD-3 a multilingual task has been introduced, and since QALD-4 the hybrid task is included.
+This task asks participants to use both structured data and free form text available in dbPedia abstracts.
 The formulation of the hybrid task is the most relevant to our work, but there are a couple of key differences.
-Questions in the hybrid track are manually created in such a way, that they can \textit{only} be answered using a combination of RDF and free text data, whereas WebQuestions dataset contains a more realistic set of questions, which doesn't require any text data.
+Questions in the hybrid track are manually created in such a way, that they can \textit{only} be answered using a combination of RDF and free text data.
+% whereas WebQuestions dataset contains a more realistic set of questions, which doesn't require any text data
 Secondly, the hybrid task focuses on text data already present in a KB, whereas we are exploring external text resources.
 In general, because of the expensive labeling process, QALD datasets are rather small, for example, QALD-5 training set for multilingual question answering includes 300 examples and 40 examples for the hybrid task.
 The evaluation was performed on 50 questions for multilingual task and just 10 for hybrid.
 Therefore, due to the scale of datasets and slightly different focus of tasks, we didn't attempt to evaluate our techniques on QALD benchmarks, but intend to explore it further in the future.
 
-The benchmark, used in our work was introduced in \cite{Berant:EMNLP13}.
-The approaches proposed since are usually divided into semantic parsing \cite{Berant:EMNLP13,berant2014semantic,berant2015imitation} and information extraction \cite{yao2014information,yao-scratch-qa-naacl2015,yao2014freebase,yih2015semantic,yu2014deep} based approaches depending on whether the system build a semantic representation of the question utterance or just use string matching to rank answers.
-The systems differ in the algorithms used for different components, and, what is more relevant to our work, external datasets used.
+WebQuestions benchmark was introduced in \cite{Berant:EMNLP13}.
+% and the approaches proposed since are usually divided into semantic parsing \cite{Berant:EMNLP13,berant2014semantic,berant2015imitation} and information extraction \cite{yao2014information,yao-scratch-qa-naacl2015,yao2014freebase,yih2015semantic,yu2014deep} based approaches depending on whether the system build a semantic representation of the question utterance or just use string matching to rank answers.
+The proposed approaches differ in the algorithms used for various components, and, what is more relevant to our work, the use of external datasets.
 To account for different ways a question can be formulated \cite{berant2014semantic} used a dataset of question clusters from WikiAnswers to learn a question paraphrasing model.
 Another approach to learn term-predicate mapping is to use distant supervision \cite{mintz2009distant} to label a large text corpus, such as ClueWeb \cite{yao2014information}.
 In this work we build on this idea and instead of focusing on term-predicate mappings, which might be too general, consider particular entity pairs.
@@ -26,10 +27,11 @@ The use of external resources in this work is different, we are targeting better
 In general, combining different data sources, such as text documents and knowledge bases, for question answering is not a novel idea, and it has been already implemented in hybrid QA systems \cite{baudivs2015modeling,Barker12}.
 Such systems typically have different pipelines that generate answer candidates from each of the data sources independently, and merge them to select the final answer at the end.
 We make a step towards integration of approaches, by incorporating text resources into different stages of knowledge base question answering process.
-This is similar to the work of \cite{Sun:2015:ODQ:2736277.2741651}, who explored the use of entity types and descriptions from a KB for text-based question answering.
-Such semantic enrichment of documents with KB entity annotations was also found effective for the ad-hoc retrieval problem \cite{dalton2014entity}.
+This is similar to the work of \cite{Sun:2015:ODQ:2736277.2741651}, who explored the use of entity types and descriptions from a KB for text-based question answering, and \cite{dalton2014entity} explored such semantic annotations for ad-hoc document retrieval.
 
 We should also mention OpenIE \cite{fader2011identifying}, which represent an interesting mixture between text and structured data.
-Such knowledge repositories can be queried using query languages, \eg SPARQL, and at the same time allows keyword matching against entities and predicates.
-One can easily transform an existing KB to such a form by replacing predicates and entities with their names.
-This approach was losing to approaches based on a structured KB on WebQuestions, but had a better performance on a more general TREC QA and WikiAnswers datasets \cite{Fader:2014:OQA:2623330.2623677}.
+Such knowledge repositories can be queried using structured query languages, and at the same time allows keyword matching against entities and predicates \cite{Fader:2014:OQA:2623330.2623677}.
+% One can easily transform an existing KB to such a form by replacing predicates and entities with their names.
+% This approach was losing to approaches based on a structured KB on WebQuestions, but had a better performance on a more general TREC QA and WikiAnswers datasets \cite{Fader:2014:OQA:2623330.2623677}.
+In this work, we are borrowing an idea of learning about entity relationship via natural language phrases connecting them.
+However, since we don't need to extract clean set of relation tuples, we can keep all kinds of phrases, mentioned around entity pairs.
