@@ -17,10 +17,11 @@
 
 \begin{abstract}
 This paper describes a question answering system built by a team from Emory University to participate in TREC LiveQA'15 shared task.
-The system extracts candidate answers from similar questions previously posted on Yahoo! Answers community question answering website (CQA) and passages from documents retrieved using web search.
-The candidates are ranked jointly by a trained linear model and the top candidate is returned as the answer.
+The goal of this task was to automatically answer questions posted to Yahoo! Answers community question answering website in real-time.
+My system combines candidates extracted from answers to similar questions previously posted to Yahoo! Answers and web passages from documents retrieved using web search.
+The candidates are ranked by a trained linear model and the top candidate is returned as the final answer.
 The ranking model is trained on question and answer (QnA) pairs from Yahoo! Answers archive using pairwise ranking criterion.
-The features used for ranking include statistics over the candidate answer text, question-answer term pairs associations features, information about matched terms, Okapi BM25 retrieval score and the output produced by a Long Short-Term Memory (LSTM) neural network model.
+Candidates are represented with a set of features, which includes statistics about candidate text, question term matches and retrieval scores, associations between question and candidate text terms and the score returned by a Long Short-Term Memory (LSTM) neural network model.
 Our system ranked top 5 by answer precision, and took 7th place according to the average answer score.
 In this paper I will describe our approach in detail, present the results and analysis of the system.
 
@@ -29,14 +30,15 @@ In this paper I will describe our approach in detail, present the results and an
 \section{Introduction}
 % This paragraph can probably be removed, too general.
 Over the years of question answering research the focus was mainly around factoid questions, which constitute only a small part of user information needs.
-Factoid questions are usually defined as those that can be answered with a short phrase, which is often a number or a named entity.
-Causal, manner, reason, opinion, advice and other similar types of questions are beyond the scope of the factoid question answering systems.
+Factoid questions are usually defined as those that can be answered with a short phrase, e.g. a number or a named entity.
+Advice, opinion, recommendation, manner, instruction and other similar types of questions are beyond the scope of the factoid question answering systems.
 One way to solve these questions is to ask other people, and community question answering websites (e.g. Yahoo! Answers\footnote{http://answers.yahoo.com/}, Answer.com, StackExchange.com, etc.) became very popular and currently contain millions of questions and answers from real users.
-In 2015 TREC started a series of LiveQA evaluation campaigns, that targets live automatic answering of questions posted on Yahoo! Answers, that haven't been answered yet.
-Previously, research in non-factoid question answering often focused on re-ranking of answers already present in a CQA archive.
-LiveQA opens up new opportunities, as it allows a system to use any existing resources together or separately.
-The system I developed builds on some existing research in question answering and is based on a combination of CQA archive and web search approaches.
+In 2015 TREC started a series of LiveQA evaluation campaigns, that targets automatic answering of questions posted to Yahoo! Answers in real time.
+The majority of such questions can be classified as non-factoid.
+Previously, research in non-factoid question answering often focused on re-ranking of answers already present in a CQA archive \cite{surdeanu2011learning}.
+LiveQA opens up new opportunities, as it allows a system to use any existing resources, not just a fixed collection of CQA QnA pairs or documents.
 
+The system I developed builds on some existing research on question answering and is based on a combination of CQA archive and web search based approaches.
 There are a lot of different types of questions that users post to CQA websites and it is probably beneficial to study them separately.
 However, for simplicity the model I built treats all questions in the same way.
 My system is based on a single trained model, that ranks a set of extracted answer candidates and returns the top one as the response.
@@ -44,7 +46,7 @@ Preliminary analysis of questions and potential answer sources gave an insight t
 People often have similar tasks and situations which pose same questions.
 Therefore, it's frequently the case that a similar question was already asked by someone and potentially even received a good reply and can be reused to answer new questions \cite{Shtok:2012:LPA:2187836.2187939}.
 Of course, many questions or their details are unique, which makes it impossible to find a good match from the existing answers.
-Therefore I retract to web search to generate additional answer candidates.
+Therefore I also use web search to generate additional answer candidates.
 For non-factoid questions it's harder to use the redundancy of the information on the web, which is exploited very effectively in factoid QA \cite{Lin:2007:EPU:1229179.1229180}.
 The system I developed extracts passages containing question terms from all retrieved web documents independently.
 For training I used the publicly available collection of QnA pairs from Yahoo! Answers.
@@ -140,7 +142,7 @@ If something goes wrong and no candidates were generated or some problem occurre
 \subsection{Model Training}
 
 There are two trained models used in the system: LSTM recurrent neural network based model, which is used as one of the features for the final logistic regression model that scores all candidates and selects the best one as the answer.
-I use WebScope Yahoo! Answers dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l} (different splits are used) to generate training data for both LSTM and ranking model, Figure \ref{figure:model_training} describes the steps I took to build training datasets for both models.
+I use WebScope Yahoo! Answers dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l} (different splits are used) to generate training data for both LSTM and ranking model, Figure \ref{figure:model_training} describes the steps I took to build training datasets.
 
 \begin{figure*}
 	\includegraphics[width=470px]{img/model_training}
