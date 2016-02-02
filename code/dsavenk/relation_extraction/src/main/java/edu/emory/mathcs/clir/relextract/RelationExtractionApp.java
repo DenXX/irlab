@@ -80,6 +80,9 @@ public class RelationExtractionApp {
                 case "textserialize":
                     workflow.addProcessor(new TextSerializerProcessor(props));
                     break;
+                case "csvserialize":
+                    workflow.addProcessor(new CsvFactoidQaSerializerProcessor(props));
+                    break;
                 case "batchserialize":
                     workflow.addProcessor(new BatchSerializerProcessor(props));
                     break;

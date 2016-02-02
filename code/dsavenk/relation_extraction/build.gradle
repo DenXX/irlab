@@ -80,6 +80,7 @@ dependencies {
     compile group: 'edu.umd', name: 'cloud9', version: '1.4.17'
     compile group: 'info.bliki.wiki', name: 'bliki-core', version: '3.0.19'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
+    compile group: 'org.apache.commons', name: 'commons-csv', version: '1.2'
     compile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.5.1'
     compile group: 'org.apache.hadoop', name: 'hadoop-auth', version: '2.5.1'
     compile group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.5.1'

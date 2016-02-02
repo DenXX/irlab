@@ -1,12 +1,8 @@
 package edu.emory.mathcs.clir.relextract.processor;
 
 import edu.emory.mathcs.clir.relextract.data.Document;
-import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
-import edu.stanford.nlp.util.Pair;
-import edu.stanford.nlp.util.Triple;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
-import java.util.*;
+import java.util.Properties;
 
 /**
  * Created by dsavenk on 9/26/14.
@@ -32,7 +28,7 @@ public class PrintTextProcessor extends Processor {
         ++count;
         System.out.println("---------------------------------------------");
         System.out.println(document.getText());
-        // System.out.println(new DocumentWrapper(document).toString());
+        //System.out.println(new DocumentWrapper(document).toString());
         return document;
     }
 

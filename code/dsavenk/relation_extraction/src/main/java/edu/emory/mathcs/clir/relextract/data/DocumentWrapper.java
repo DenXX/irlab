@@ -14,11 +14,9 @@ import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.SemanticGraphEdge;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.trees.TypedDependency;
 import edu.stanford.nlp.util.*;
-import org.apache.lucene.analysis.core.StopAnalyzer;
 
 import java.util.*;
 import java.util.PriorityQueue;
@@ -29,19 +27,17 @@ import java.util.stream.Collectors;
  */
 public class DocumentWrapper {
 
+    private static final String MEASURE_REGEX = "QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET|NUMBER|ORDINAL";
     private final Document.NlpDocument document_;
+    IntervalTree<Integer, Interval<Integer>> mentionIntervals_ =
+            new IntervalTree<>();
+    Map<Interval, Pair<Document.Span, Integer>> intervalToMention_ = new HashMap<>();
     private int questionSentsCount_ = -1;
     private Set<Integer> qWords_ = null;
     private Set<Integer> qVerbs_ = null;
     private Set<Integer> qFocus_ = null;
     private Set<String> qDepPaths_ = null;
-
-    private static final String MEASURE_REGEX = "QUANTITY|CARDINAL|PERCENT|DATE|DURATION|TIME|SET|NUMBER|ORDINAL";
-
     private int[] mentionHead = null;
-    IntervalTree<Integer, Interval<Integer>> mentionIntervals_ =
-            new IntervalTree<>();
-    Map<Interval, Pair<Document.Span, Integer>> intervalToMention_ = new HashMap<>();
 
     /**
      * Create document wrapper for the given document.
@@ -609,5 +605,53 @@ public class DocumentWrapper {
         if (mentionHead == null)
             saveTokenSpanMentions();
         return mentionIntervals_.getOverlapping(Interval.toInterval(token, token)).stream().map(x -> intervalToMention_.get(x).first).collect(Collectors.toList());
+    }
+
+    public String getQuestionText() {
+        StringBuilder res = new StringBuilder();
+        int questionSentences = getQuestionSentenceCount();
+        for (int sentenceIndex = 0;
+             sentenceIndex < questionSentences;
+             ++sentenceIndex) {
+            res.append(document().getSentence(sentenceIndex).getText()
+                    .replace("\n", " "));
+        }
+        return res.toString();
+    }
+
+    public String getAnswerText() {
+        StringBuilder res = new StringBuilder();
+        int questionSentences = getQuestionSentenceCount();
+        for (int sentenceIndex = questionSentences;
+             sentenceIndex < document().getSentenceCount();
+             ++sentenceIndex) {
+            res.append(document().getSentence(sentenceIndex).getText()
+                    .replace("\n", " "));
+        }
+        return res.toString();
+    }
+
+    public String[] getQuestionAnswerEntities(boolean inQuestion) {
+        int questionSentsCount = getQuestionSentenceCount();
+        List<String> entities = new ArrayList<>();
+        for (Document.Span span : document().getSpanList()) {
+            if (!span.hasEntityId() && !span.getType().equals("MEASURE"))
+                continue;
+
+            boolean ok = false;
+            for (Document.Mention mention : span.getMentionList()) {
+                if ((inQuestion && mention.getSentenceIndex() < questionSentsCount) ||
+                        (!inQuestion && mention.getSentenceIndex() >= questionSentsCount)) {
+                    ok = true;
+                    break;
+                }
+            }
+            if (ok) {
+                String name = span.getText();
+                String value = span.hasEntityId() ? span.getEntityId() : span.getValue();
+                entities.add(name + "\t" + value);
+            }
+        }
+        return entities.toArray(new String[entities.size()]);
     }
 }

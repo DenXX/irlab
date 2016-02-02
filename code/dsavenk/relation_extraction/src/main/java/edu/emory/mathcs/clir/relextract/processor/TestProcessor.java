@@ -3,8 +3,10 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by dsavenk on 10/17/14.
@@ -27,37 +29,47 @@ public class TestProcessor extends Processor {
 
     @Override
     protected Document.NlpDocument doProcess(Document.NlpDocument document) throws Exception {
+
         DocumentWrapper doc = new DocumentWrapper(document);
-        int questionSentences = doc.getQuestionSentenceCount();
-        if (document.getRelationCount() > 0) {
-            for (int sentenceIndex = 0; sentenceIndex < questionSentences; ++sentenceIndex) {
-                Document.Sentence sent = document.getSentence(sentenceIndex);
-                for (int tokenIndex = sent.getFirstToken();
-                     tokenIndex < sent.getLastToken(); ++tokenIndex) {
-                    String token = document.getToken(tokenIndex)
-                            .getText().toLowerCase();
-                    if (!Character.isLetterOrDigit(token.charAt(0))) continue;
-
-                    if (!tokenRelationCounts.containsKey(token)) {
-                        tokenRelationCounts.put(token, new HashMap<>());
-                        tokenRelationCounts.get(token).put("*", 0);
-                    }
-                    for (Document.Relation rel : document.getRelationList()) {
-                        String relation = rel.getRelation();
-                        Integer oldCount = tokenRelationCounts.get(token).getOrDefault(relation, 0);
-                        tokenRelationCounts.get(token).put(relation, oldCount + 1);
-                        tokenRelationCounts.get(token).put("*", tokenRelationCounts.get(token).get("*") + 1);
-
-                        Integer relOldCount = relationCounts.getOrDefault(relation, 0);
-                        relationCounts.put(relation, relOldCount + 1);
-                        relOldCount = relationCounts.getOrDefault("*", 0);
-                        relationCounts.put("*", relOldCount + 1);
-                    }
-                }
+        for (int sent = doc.getQuestionSentenceCount(); sent < document.getSentenceCount(); ++sent) {
+            Document.Sentence sentence = document.getSentence(sent);
+            if (sentence.getText().endsWith("?")) {
+                System.out.println(sentence.getText());
             }
-            return document;
         }
-        return null;
+
+        // Collection relation statistics for text2kb. See finalize method as well.
+//        DocumentWrapper doc = new DocumentWrapper(document);
+//        int questionSentences = doc.getQuestionSentenceCount();
+//        if (document.getRelationCount() > 0) {
+//            for (int sentenceIndex = 0; sentenceIndex < questionSentences; ++sentenceIndex) {
+//                Document.Sentence sent = document.getSentence(sentenceIndex);
+//                for (int tokenIndex = sent.getFirstToken();
+//                     tokenIndex < sent.getLastToken(); ++tokenIndex) {
+//                    String token = document.getToken(tokenIndex)
+//                            .getText().toLowerCase();
+//                    if (!Character.isLetterOrDigit(token.charAt(0))) continue;
+//
+//                    if (!tokenRelationCounts.containsKey(token)) {
+//                        tokenRelationCounts.put(token, new HashMap<>());
+//                        tokenRelationCounts.get(token).put("*", 0);
+//                    }
+//                    for (Document.Relation rel : document.getRelationList()) {
+//                        String relation = rel.getRelation();
+//                        Integer oldCount = tokenRelationCounts.get(token).getOrDefault(relation, 0);
+//                        tokenRelationCounts.get(token).put(relation, oldCount + 1);
+//                        tokenRelationCounts.get(token).put("*", tokenRelationCounts.get(token).get("*") + 1);
+//
+//                        Integer relOldCount = relationCounts.getOrDefault(relation, 0);
+//                        relationCounts.put(relation, relOldCount + 1);
+//                        relOldCount = relationCounts.getOrDefault("*", 0);
+//                        relationCounts.put("*", relOldCount + 1);
+//                    }
+//                }
+//            }
+//            return document;
+//        }
+//        return null;
 
 
 //        Set<Pair<Double, String>> mids = new HashSet<>();
@@ -276,30 +288,30 @@ public class TestProcessor extends Processor {
 //                }
 //            }
 //        }
-//        return null;
+        return null;
     }
 
     @Override
     public void finishProcessing() {
-        try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("token_relation.txt")))) {
-            Integer totalCount = relationCounts.get("*");
-            for (String token : tokenRelationCounts.keySet()) {
-                Integer tokenCount = tokenRelationCounts.get(token).get("*");
-                for (String relation : tokenRelationCounts.get(token).keySet()) {
-                    if (relation.equals("*")) continue;
-                    Integer tokenRelationCount = tokenRelationCounts.get(token).get(relation);
-                    Integer relationCount = relationCounts.get(relation);
-                    double pmiScore = Math.log(1.0 * tokenRelationCount / tokenCount) - Math.log(1.0 * relationCount / totalCount);
-                    out.write(String.format("%s\t%s\t%d\t%d\t%d\t%d\t",
-                            token, relation, tokenRelationCount, tokenCount,
-                            relationCount, totalCount));
-                    out.write(Double.toString(pmiScore));
-                    out.newLine();
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+//        try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("token_relation.txt")))) {
+//            Integer totalCount = relationCounts.get("*");
+//            for (String token : tokenRelationCounts.keySet()) {
+//                Integer tokenCount = tokenRelationCounts.get(token).get("*");
+//                for (String relation : tokenRelationCounts.get(token).keySet()) {
+//                    if (relation.equals("*")) continue;
+//                    Integer tokenRelationCount = tokenRelationCounts.get(token).get(relation);
+//                    Integer relationCount = relationCounts.get(relation);
+//                    double pmiScore = Math.log(1.0 * tokenRelationCount / tokenCount) - Math.log(1.0 * relationCount / totalCount);
+//                    out.write(String.format("%s\t%s\t%d\t%d\t%d\t%d\t",
+//                            token, relation, tokenRelationCount, tokenCount,
+//                            relationCount, totalCount));
+//                    out.write(Double.toString(pmiScore));
+//                    out.newLine();
+//                }
+//            }
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
 
 //        System.out.println(tokenRelationCounts.size());
 //        Map<String, Map<String, Double>> pmi = new HashMap<>();

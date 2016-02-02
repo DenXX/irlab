@@ -11,6 +11,21 @@ import java.util.Set;
  * Created by dsavenk on 5/1/15.
  */
 public class FilterQuestionsProcessor extends Processor {
+    private static Set<String> stopLemmas = new HashSet<>();
+
+    static {
+        stopLemmas.add("you");
+        stopLemmas.add("u");
+        stopLemmas.add("i");
+        stopLemmas.add("we");
+        stopLemmas.add("good");
+        stopLemmas.add("will");
+        stopLemmas.add("'ll");
+        stopLemmas.add("recommend");
+        stopLemmas.add("better");
+        stopLemmas.add("can");
+    }
+
     /**
      * Processors can take parameters, that are stored inside the properties
      * argument.
@@ -53,12 +68,13 @@ public class FilterQuestionsProcessor extends Processor {
         Set<String> questionEntityMids = new HashSet<>();
         Set<String> answerEntityMids = new HashSet<>();
         for (Document.Span span : document.getSpanList()) {
-            if (span.getType().equals("ENTITY") && span.hasEntityId()) {
+            String value = span.hasEntityId() ? span.getEntityId() : span.getValue();
+            if (isEntity(span)) {
                 for (Document.Mention mention : span.getMentionList()) {
                     if (mention.getSentenceIndex() < questionSentences) {
-                        questionEntityMids.add(span.getEntityId());
+                        questionEntityMids.add(value);
                     } else {
-                        answerEntityMids.add(span.getEntityId());
+                        answerEntityMids.add(value);
                     }
                 }
             }
@@ -69,15 +85,9 @@ public class FilterQuestionsProcessor extends Processor {
         return document;
     }
 
-    private static Set<String> stopLemmas = new HashSet<>();
-
-    static {
-        stopLemmas.add("you");
-        stopLemmas.add("i");
-        stopLemmas.add("we");
-        stopLemmas.add("good");
-        stopLemmas.add("will");
-        stopLemmas.add("'ll");
+    private boolean isEntity(Document.Span span) {
+        return (span.getType().equals("ENTITY") && span.hasEntityId()) ||
+                span.getType().equals("MEASURE");
     }
 
     private boolean shouldSkipByLemma(String lemma) {
