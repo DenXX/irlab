@@ -1,6 +1,8 @@
 \documentclass[]{article}
 
 \usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 \usepackage{amsmath}
 \usepackage[margin=1.0in]{geometry}
 
@@ -14,39 +16,44 @@
 \maketitle
 
 \begin{abstract}
-This paper describes a question answering system built by a team from Emory University to participate in TREC LiveQA shared task.
-The system is based on a single trained model, that ranks candidate answers extracted from two different sources: answers to similar questions previously posted to Yahoo! Answers community question answering (CQA) platform and passages from documents retrieved using Bing Web Search API.
-The ranking model is trained on question and answer (QnA) pairs from Yahoo! Answers WebScope dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l} using pairwise ranking criteria.
-The features used for ranking includes statistics over the candidate answer text, lexicalized features of term pairs from question and answer texts, information about matched terms, Okapi BM25 retrieval score and the output produced by a Long Short-Term Memory (LSTM) neural network model.
-The system performed above average on most of the evaluation metrics.
+This paper describes a question answering system built by a team from Emory University to participate in TREC LiveQA'15 shared task.
+The goal of this task was to automatically answer questions posted to Yahoo! Answers community question answering website in real-time.
+My system combines candidates extracted from answers to similar questions previously posted to Yahoo! Answers and web passages from documents retrieved using web search.
+The candidates are ranked by a trained linear model and the top candidate is returned as the final answer.
+The ranking model is trained on question and answer (QnA) pairs from Yahoo! Answers archive using pairwise ranking criterion.
+Candidates are represented with a set of features, which includes statistics about candidate text, question term matches and retrieval scores, associations between question and candidate text terms and the score returned by a Long Short-Term Memory (LSTM) neural network model.
+Our system ranked top 5 by answer precision, and took 7th place according to the average answer score.
+In this paper I will describe our approach in detail, present the results and analysis of the system.
 
 \end{abstract}
 
 \section{Introduction}
 % This paragraph can probably be removed, too general.
 Over the years of question answering research the focus was mainly around factoid questions, which constitute only a small part of user information needs.
-Factoid questions are usually defined as those that can be answered with a short phrase, which is often a number or a named entity.
-Causation, manner, reason, opinion, advice and other similar types of questions are beyond the scope of the factoid question answering systems.
-One way to solve these questions is to ask other people, and community question answering websites (e.g. Yahoo! Answers\footnote{http://answers.yahoo.com/}, Answer.com, StackExchange.com, etc.) became very popular and currently contain millions of questions and answers.
-This year TREC pioneered a LiveQA shared task, which targets automatic answering of questions posted to Yahoo! Answers CQA website.
-This was author's first attempt in question answering and I decided to implement a relatively simple model as a baseline that can be improved upon next year should TREC LiveQA be offered again.
+Factoid questions are usually defined as those that can be answered with a short phrase, e.g. a number or a named entity.
+Advice, opinion, recommendation, manner, instruction and other similar types of questions are beyond the scope of the factoid question answering systems.
+One way to solve these questions is to ask other people, and community question answering websites (e.g. Yahoo! Answers\footnote{http://answers.yahoo.com/}, Answer.com, StackExchange.com, etc.) became very popular and currently contain millions of questions and answers from real users.
+In 2015 TREC started a series of LiveQA evaluation campaigns, that targets automatic answering of questions posted to Yahoo! Answers in real time.
+The majority of such questions can be classified as non-factoid.
+Previously, research in non-factoid question answering often focused on re-ranking of answers already present in a CQA archive \cite{surdeanu2011learning}.
+LiveQA opens up new opportunities, as it allows a system to use any existing resources, not just a fixed collection of CQA QnA pairs or documents.
 
+The system I developed builds on some existing research on question answering and is based on a combination of CQA archive and web search based approaches.
 There are a lot of different types of questions that users post to CQA websites and it is probably beneficial to study them separately.
 However, for simplicity the model I built treats all questions in the same way.
-The idea is to have a single model, that ranks a set of extracted answer candidates.
-The system doesn't try to identify if candidates match the question and simply returns the highest ranked candidate as the answer.
-Preliminary analysis of questions and potential answer sources gave an insight that the best data source is answers to similar questions in case we are able to find any.
+My system is based on a single trained model, that ranks a set of extracted answer candidates and returns the top one as the response.
+Preliminary analysis of questions and potential answer sources gave an insight that the best data source is answers to similar questions in case they exist and we can find them.
 People often have similar tasks and situations which pose same questions.
 Therefore, it's frequently the case that a similar question was already asked by someone and potentially even received a good reply and can be reused to answer new questions \cite{Shtok:2012:LPA:2187836.2187939}.
-Of course, many questions are indeed unique or contain unique details, which makes it impossible to find a good match from the existing answers.
-Therefore I retract to web search to generate additional answer candidates.
+Of course, many questions or their details are unique, which makes it impossible to find a good match from the existing answers.
+Therefore I also use web search to generate additional answer candidates.
 For non-factoid questions it's harder to use the redundancy of the information on the web, which is exploited very effectively in factoid QA \cite{Lin:2007:EPU:1229179.1229180}.
 The system I developed extracts passages containing question terms from all retrieved web documents independently.
 For training I used the publicly available collection of QnA pairs from Yahoo! Answers.
 The assumption made was that for each question the answer selected as the ``best answer'' on Yahoo! Answers is indeed the best and should be ranked higher than answers to other questions.
 However, taking all other answers is intractable and probably detrimental as almost all of them would be totally unrelated to the subject of the given question.
 Therefore, I used search to retrieve a set of similar questions and took their answers as negative examples.
-The following chapters describe the QA system in more details.
+The following chapters describe the QA system in more detail.
 
 \section{Approach}
 
@@ -76,12 +83,12 @@ For example:
 \vspace{0.3cm}
 
 When the QA system receives a question it first generates a set of candidate answers from Yahoo! Answers and regular web search.
-To generate a set of candidates the system produces one or more search queries and issues them to both resources.
+To generate a set of candidates the system produces several search queries and issues them to both resources.
 
 To find similar questions and extract the corresponding answers from Yahoo! Answers we use the search functionality already available on the website.
 Some questions are very concise while other provide many useful as well as redundant details.
 Ideally we want to match as many of them as possible, however, there is a chance that search won't return any results if there are no good matches.
-Therefore the system generates a set of search queries of various details level, issues them all to Yahoo! Answers search and collects top 10 responses from all of them.
+Therefore the system generates a set of search queries of different granularity, issues them all to Yahoo! Answers search and collects top 10 responses from all of them.
 Here is the list of queries that our system generates:
 \begin{itemize}
 	\setlength\itemsep{0mm}
@@ -98,10 +105,10 @@ For each query and top-10 retrieved questions the system extracts its top answer
 To extract candidate passages from relevant web documents previous research in factoid question answering have tried query reformulations \cite{Agichtein:2001:LSE:371920.371976} to better match the potential answer text.
 However recently \cite{askmsr_plus15} demonstrated that such reformulations are no longer necessary as search engines have improved the query processing techniques.
 Inspired by this observation and considering that retrieving web documents and extracting passages from them is more time consuming, the system issues only 2 web search queries: question title and title concatenated with body. 
-We use Bing Web Search API\footnote{http://datamarket.azure.com/dataset/bing/searchweb} and the system downloads top-10 retrieved documents, parses HTML code and extracts the main content text \cite{Kohlschutter_2010}.
-Document content is further split into sentences \cite{manning2014stanford} and candidates are built by taking contiguous sequence of sentences no longer than the answer character limit\footnote{In the final run the limit was 1000 characters}.
+I used Bing Web Search API\footnote{http://datamarket.azure.com/dataset/bing/searchweb} and the system downloads top-10 retrieved documents, parses HTML code and extracts the main content text \cite{Kohlschutter_2010}.
+Document content is further split into sentences \cite{manning2014stanford} and candidates are built by taking contiguous sequences of sentences no longer than the answer character limit\footnote{In the final run the limit was 1000 characters}.
 The model only keeps passages that contain at least one non-stopword from the question.
-Snippet generated by Bing and included in search results returned by the API is also added as one of the candidates.
+Web search snippets are also included as candidates.
 
 \subsection{Candidate ranking}
 
@@ -135,15 +142,22 @@ If something goes wrong and no candidates were generated or some problem occurre
 \subsection{Model Training}
 
 There are two trained models used in the system: LSTM recurrent neural network based model, which is used as one of the features for the final logistic regression model that scores all candidates and selects the best one as the answer.
+I use WebScope Yahoo! Answers dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l} (different splits are used) to generate training data for both LSTM and ranking model, Figure \ref{figure:model_training} describes the steps I took to build training datasets.
+
+\begin{figure*}
+	\includegraphics[width=470px]{img/model_training}
+	\caption{Workflow for generating training datasets for LSTM and answer ranking logistic regression model from the Yahoo! Answers QnA pairs}
+	\label{figure:model_training}
+\end{figure*}
 
 \subsubsection{LSTM model}
 \label{section:lstm}
 
-Deep learning models have a huge success in image and speech problems and shows some very promising results in natural language processing and question answering, e.g. \cite{yu2014deep,diwang_lstm_2015} to name a few.
-I decided to explore this direction and built a recurrent neural network model to score how well does a candidate answer a question.
-Long Short-Term Memory (LSTM) \cite{hochreiter1997long} is a particular architecture of recurrent neural networks that allows to reduce exploding and vanishing gradients problems.
+Deep learning models had a huge success in image and speech problems and showed very promising results in natural language processing and question answering, e.g. \cite{yu2014deep,diwang_lstm_2015} to name a few.
+I decided to explore this direction and built a recurrent neural network model to score how well a candidate answers a question.
+Long Short-Term Memory (LSTM) \cite{hochreiter1997long} is a particular architecture of recurrent neural networks that helps with the exploding and vanishing gradients problems.
 The model I developed reads question and answer tokens and produces a probability score based on a vector representation of a QnA pair.
-Figure \ref{figure:lstm_model} shows a structure of the model.
+Figure \ref{figure:lstm_model} shows the structure of the model.
 
 \begin{figure}
 	\includegraphics[width=470px]{img/qa_lstm}
@@ -152,33 +166,33 @@ Figure \ref{figure:lstm_model} shows a structure of the model.
 \end{figure}
 
 Question (title with body) and answer texts are tokenized, punctuation characters are removed and for each token lowercase lemma is taken.
-The sequences are limited to 100 elements and concatenated through a sentinel separator character so the model knows where the question the answer starts.
-The hidden state of the model after the whole sequence is processed is used by logistic regression unit to output a probability, that the candidate answers the question well.
+The sequences are limited to 100 elements and concatenated through a sentinel separator character so the model could learn where the question ends and the answer starts.
+The hidden state of the model after the whole sequence is processed is used by logistic regression unit to output a probability, that a candidate answers the question well.
 
 To train the model QnA pairs from Yahoo! Answers WebScope dataset were used (we selected a subset of questions from the categories chosen for TREC LiveQA).
 Each question and the corresponding best answer was used as a positive training example.
-To generate negative examples I didn't take random example as they will be totally unrelated, and instead took answers to similar questions.
-All questions were indexed with Lucene library and similar questions were retrieved using built-in BM25 retrieval model.
+Random negative examples would be too unrelated to the current question, therefore I chose to use answers to similar questions only.
+All QnA pairs were indexed with Lucene\footnote{https://lucene.apache.org/} and similar questions were retrieved using the built-in BM25 retrieval model.
 For each question and correct answer pair from the dataset 10 similar questions were retrieved and the corresponding answers were used as negative examples for training\footnote{It's true, that some of them can indeed be relevant to the original question}.
 
 The model was implemented using Keras\footnote{http://keras.io} library.
-We used an embedding and hidden layers of dimension 128 and the vocabulary size of 1M words (we used hashing to generate word ids).
-The model was trained using Adam optimization technique \cite{kingma2014adam} with mini batches of size 200 instances for 100 epochs.
+I used an embedding and hidden layers of dimension 128 and the vocabulary size of 1M words.
+The model was trained using Adam optimization technique \cite{kingma2014adam} with mini batches of 200 instances for 100 epochs.
 
 \subsubsection{Logistic regression model}
 
 The final model that ranks all answer candidates is a linear L2-regularized logistic regression model.
-To train the model we also use QnA pairs from Yahoo! Answers WebScope dataset, although different splits are used to train LSTM and logistic regression models.
+To train the model we used a different split of QnA pairs from Yahoo! Answers WebScope dataset.
 For each question the corresponding ``best answer'' is taken as the correct one.
 To get a sample of negative examples Lucene index is used again and answers to 10 most similar questions are retrieved.
-Different from LSTM model training, here I took a pairwise approach for learning to rank and generated a training examples from pairs of different answers to the same question, where one answer is the correct one.
+Different from LSTM model training, here I took a pairwise approach for learning to rank and generated training examples from pairs of different answers to the same question, where one answer is the correct one.
 That is, let the current question be $Q$, its ``correct'' answer $A^*$, and retrieved candidates $A_1, ..., A_n$.
 Each candidate is represented with a set of features: $f(Q, A^*)$, $f(Q, A_1)$, ..., $f(Q, A_n)$.
 For each $i=1..n$ we create two training instances, i.e. class 1: $\langle A^*, A_i\rangle$ and class -1: $\langle A_i, A^*\rangle$.
-Each such instance is represented with pairwise differences of answer features, e.g. $\langle A^*, A_i\rangle: f_{pair}(Q, \langle A^*, A_i\rangle) = f(Q, A^*) - f(Q, A_i)$.
-Since the trained model is linear, therefore if $w(f(Q, A^*) - f(Q, A_i)) > 0$ then $w f(Q, A^*) > w f(Q, A_i)$ and we can rank candidates by the score produced by the model, i.e. $w f(Q, A_i)$.
+Each such instance is represented with pairwise differences of features, e.g. $\langle A^*, A_i\rangle: f_{pair}(Q, \langle A^*, A_i\rangle) = f(Q, A^*) - f(Q, A_i)$.
+The trained model is linear, therefore if $w(f(Q, A^*) - f(Q, A_i)) > 0$ then $w f(Q, A^*) > w f(Q, A_i)$ and we can rank candidates by the score produced by the model, i.e. $w f(Q, A_i)$.
 
-\section{Results and Analysis}
+\section{Evaluation}
 
 From the final run of the system, 1087 questions were judged by the organizers on a scale from 1 to 4:\\
 \textbf{4: Excellent} - a significant amount of useful information, fully answers the question\\
@@ -192,39 +206,123 @@ The following performance metrics were reported:
 \setlength\itemsep{0mm}
 \item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions as having score 0
 \item \textbf{succ@i+}: the fraction of answers with score i or greater (i=1..4)
-\item \textbf{prec@i+}: the number of questions with score i or greater (i=2..4) divided by the number of answered questions
+\item \textbf{p@i+}: the number of questions with score i or greater (i=2..4) divided by the number of answered questions
 \end{itemize}
-Table \ref{table:liveqa-results} provides the official results of our run and average scores over all runs.
+Table \ref{table:liveqa-results} provides the results of top 5 teams by average answer score, results for our system and average scores.
+Please refer to the \cite{liveqa} for more details and results of all systems.
 
 \begin{table}
-\caption{Results of the TREC LiveQA evaluation of Emory University QA system and average results of all systems. $\uparrow$ means that results of Emory system in this metric are above average, and $\downarrow$ means that results are below average}
+\caption{Results of the TREC LiveQA evaluation of top 5 systems, Emory University QA system and average results of all systems. $\uparrow$ means that results of Emory system in this metric are above average, and $\downarrow$ means that results are below average}
 \label{table:liveqa-results}
-\begin{tabular}{|p{2cm}|p{1.4cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|}
+\begin{tabular}{|p{2.5cm}|p{1.7cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|}
 \hline
- & avg score (0-3) & succ@1+ & succ@2+ & succ@3+ & succ@4+ & prec@2+ &
- prec@3+ & prec@4+ \\
+ & \# answers & avg score (0-3) & succ@2+ & succ@3+ & succ@4+ & p@2+ &  p@3+ & p@4+ \\
 \hline
-Average of all runs & 0.465 & 0.925 & 0.262 & 0.146 & 0.060 & 0.284 & 0.159 & 0.065\\
- \hline
-Emory run & 0.605 $\uparrow$ & 0.812 $\downarrow$ & 0.332 $\uparrow$ & 0.190 $\uparrow$ & 0.086 $\uparrow$ & 0.408 $\uparrow$ & 0.233 $\uparrow$ & 0.106 $\uparrow$\\
+1. CMUOAQA & 1064 & 1.081 & 0.532 & 0.359 & 0.190 & 0.543 & 0.367 & 0.179 \\
+2. ecnucs & 994 & 0.677 & 0.367 & 0.224 & 0.086 & 0.401 & 0.245 & 0.094\\
+3. NUDTMDP1 & 1041 & 0.670 & 0.353 & 0.210 & 0.107 & 0.369 & 0.219 & 0.111\\
+4. RMIT0 & 1074 & 0.666 & 0.364 & 0.220 & 0.082 & 0.369 & 0.223 & 0.083\\
+5. Yahoo-Exp1 & 647 & 0.626 & 0.320 & 0.211 & 0.095 & 0.538 & 0.354 & 0.159\\
+\hline
+7. Emory & 884$\downarrow$ & 0.608$\uparrow$ & 0.332$\uparrow$ & 0.190$\uparrow$ & 0.086$\uparrow$ & 0.408$\uparrow$ & 0.233$\uparrow$ & 0.106$\uparrow$\\
+\hline
+Average results & 1007 & 0.467 & 0.262 & 0.146 & 0.060 & 0.284 & 0.159 & 0.065\\
 \hline
 \end{tabular}
 \end{table}
 
-As we can see from Table \ref{table:liveqa-results} for most of the metrics except succ@1+ results of our run is above average.
-The metric succ@1+ shows the fraction of questions for which a readable answer was returned by the system.
-A lower score in this metic means that my system didn't return an answer in time in almost 20 \% of the cases.
-A part of the problem is caused by several technical issues, that appeared on the day of the evaluation run.
-Due to one of them LSTM model didn't provide any score for a significant fraction of submitted questions, and the other problem made the whole system unresponsive for a couple of hours.
-Nevertheless, the overall results look promising and I will make a more thorough analysis of the system performance for the final version of the paper.
-
 The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23\% of the cases (prec@3+) when the answer was returned.
 And for 60\% of the questions the answer doesn't contain any useful information.
 
-%\section{Conclusion}
-%TREC LiveQA is a very exciting task, which will trigger an advancement of question answering state-of-the-art beyond the factoid questions.
-%I've enjoyed working on the task and hope to see the next version in the upcoming year.
-%The developed system performance is a good baseline, which showed how difficult it is to find good answers for non-factoid questions.
+\section{Analysis}
+
+In this section we will answer some of the questions about the performance of different system components and their relative importance.
+
+The first question, that we are going to study is the relative effectiveness of web passages and answers to previously posted questions for answering new questions.
+As Figure \ref{figure:answer_source_pie} shows, almost half of all answers returned by my system were generated from Yahoo! Answers.
+In $\sim$21\% of the cases our system didn't return any results\footnote{This happened mainly due to a couple of technical issues that made our system unresponsive for quite some time}, and in the rest $\sim$31\% of the cases a passage from a web page was returned as the answer.
+I further looked into the domains of the web pages used to generate the answer and noticed, that many more were extracted from other community question answering websites and forums.
+
+\begin{figure}
+\centering
+	\includegraphics[width=0.5\textwidth]{img/answer_source}
+	\caption{Distribution of sources for answers returned by our system}
+	\label{figure:answer_source_pie}
+\end{figure}
+
+\begin{figure}
+\centering
+	\begin{subfigure}[b]{0.38\textwidth}
+	\includegraphics[width=\textwidth]{img/answer_source_scores}
+	\caption{Histogram of qrel scores}
+	\label{figure:answer_source:scores}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.6\textwidth}
+	\includegraphics[width=\textwidth]{img/answer_source_by_category}
+	\caption{Average scores of answers from Yahoo! Answers and web passages for different categories}
+	\label{figure:answer_source:category}
+	\end{subfigure}
+	\caption{Comparison of web passages and Yahoo! Answers as candidate sources}
+	\label{figure:answer_source}
+\end{figure}
+
+The quality of answers generated from passages built from web search results are lower on average compared to Yahoo! Answers candidates.
+Figure \ref{figure:answer_source} shows the distribution of scores for each of our data sources.
+Some categories were harder than the other \cite{liveqa} and as we see on Figure \ref{figure:answer_source:category} in some cases web passages were actually more effective than answers to previously posted questions.
+
+\begin{figure}
+\centering
+	\begin{subfigure}[b]{0.45\textwidth}
+	\includegraphics[width=\textwidth]{img/query_candidate_count}
+	\caption{Average number of candidates}
+	\label{figure:analysis:query_generation:count}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.45\textwidth}
+	\includegraphics[width=\textwidth]{img/query_candidate_bestrank}
+	\caption{Average rank (according to our ranking model) of the best candidate}
+	\label{figure:analysis:query_generation:rank}
+	\end{subfigure}
+	\caption{Comparison of different query generation strategies for Yahoo! Answers similar questions search}
+	\label{figure:analysis:query_generation}
+\end{figure}
+
+The next question, that we analyze is the effectiveness of search query generation strategies.
+Figure \ref{figure:analysis:query_generation} plots average number of candidates and the position of the best candidate retrieved by each of the question generation strategies.
+The longer the search query the less results it retrieved, which is expected, and the lower the quality of the candidates.
+As a result, in half of the cases the answer returned by our system was retrieved using just top 5 highest IDF terms as the query\footnote{The same candidate is often also retrieved by other queries}.
+For web search we only used 2 query generation strategies, namely question title and concatenation of title with body.
+Analogously, concatenation of title with body query had lower quality and more often returned few or no results.
+
+Figure \ref{figure:features} demonstrates a plot of importances of different features in our answer ranking linear logistic regression model.
+The feature with the highest weight is category match, but we should note, that this feature is overfitted to the way we build training set (category of the correct answer always matched the category of the question).
+The next most useful feature is the cosine similarity between the page title (or question text for Yahoo! Answers) and the current question, followed by BM25 score, number of matched verbs, etc.
+
+\begin{figure}
+\centering
+	\includegraphics[width=0.6\textwidth]{img/features}
+	\caption{Weights of features in answer ranking logistic regression model}
+	\label{figure:features}
+\end{figure}
+
+I also looked through a small sample of our answers manually.
+There are a number of typical problems, and one of them is the lack of good question semantic similarity measure.
+E.g. the question \textit{``Is there a section fro the subject of writing''} in the \texttt{Books \& Authors} category retrieved a question \textit{``I can't write in the To: Cc: Subject: section''} from the \texttt{Yahoo Mail} category.
+Even though the questions have many terms in common, they are obviously semantically unrelated.
+Therefore, in future we need to focus more on better question similarity measures.
+
+Answer doesn't have to have many words in common with the question.
+On the contrary, the maximum possible term overlap will be if a candidate is just a copy of the answer.
+This was one of the problems for answers, retrieved from the web search results.
+The way we used to generate the training data didn't include such ``artificial'' cases, however, they are pretty common in practice.
+For example, in a number of cases the answer our system chose came from a forum post and instead of selecting the answer posts, the system ranked the question post higher as it had more term matches.
+The winning CMU team addressed this issue by considering answer-clue pairs, where the clue is supposed to match the question text and the former answers the question.
+We plan to explore a similar strategy.
+
+\section{Conclusion}
+
+The pilot year of TREC LiveQA establishes a very good baseline for the future of non-factoid question answering.
+It confirmed that the task itself is quite challenging as only $\sim$35\% of the questions returned by the winning system had a score of 3 or higher, and there is still a big gap between in the quality of human and machine answers.
+It will be exciting to see the next version of the task next year, and how the participants will build on this year approaches.
 
 
 \bibliographystyle{unsrt}

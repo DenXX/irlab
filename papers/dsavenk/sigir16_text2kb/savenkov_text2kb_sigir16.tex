@@ -47,9 +47,12 @@
 
 \documentclass{sig-alternate-05-2015}
 
-\newcommand{\eg}[0]{{\em e.g. }}
+\usepackage{listings}
+\usepackage{float}
+
+\newcommand{\eg}[0]{{\em e.g., }}
 \newcommand{\etc}[0]{{\em etc. }}
-\newcommand{\ie}[0]{{\em i.e. }}
+\newcommand{\ie}[0]{{\em i.e., }}
 
 \begin{document}
 
@@ -81,7 +84,8 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Text2KB: Using Text Document Collections for Knowledge Base Question Answering}
+\title{When a Knowledge Base Is Not Enough: Question Answering over Knowledge Bases with External Text Data}
+
 
 %
 % You need the command \numberofauthors to handle the 'placement
@@ -108,20 +112,22 @@
 % without further effort on your part as the last section in
 % the body of your article BEFORE References or any Appendices.
 
-\numberofauthors{2} %  in this sample file, there are a *total*
+% \numberofauthors{2} %  in this sample file, there are a *total*
 % of EIGHT authors. SIX appear on the 'first-page' (for formatting
 % reasons) and the remaining two appear in the \additionalauthors section.
 %
-\author{
+%\author{
 % 1st. author
-\alignauthor
-Denis Savenkov
-       \email{dsavenk@emory.edu}
+%\alignauthor
+%Denis Savenkov\\
+%       \affaddr{Emory University}\\
+%       \email{dsavenk@emory.edu}
 % 2nd. author
-\alignauthor
-Eugene Agichtein\\
-       \email{eugene@mathcs.emory.edu}
-}
+%\alignauthor
+%Eugene Agichtein\\
+%		\affaddr{Emory University}\\
+%       \email{eugene@mathcs.emory.edu}
+%}
 % There's nothing stopping you putting the seventh, eighth, etc.
 % author on the opening page (as the 'third row') but we ask,
 % for aesthetic reasons that you place these 'additional authors'
@@ -137,11 +143,13 @@ Eugene Agichtein\\
 \maketitle
 \begin{abstract}
 
-One of the major challenges for knowledge base question answering systems (KBQA) is to map phrases from natural language questions to knowledge base (KB) entities and predicates.
-Existing models are typically based on a lexicon built from a limited data during training and ignore the vast amount of text data, effectively used by traditional document-based question answering systems.
-In this work we propose to use entity linking to connect structured KB with unstructured text data, which opens up an opportunity to combine QA approaches.
-Our system utilizes various different text resources for candidate generation as well as ranking and achieves a state-of-the-art performance of \textbf{XX.XX} average F1 score on WebQuestions knowledge base question answering dataset.
-
+One of the major challenges for knowledge base question answering systems (KBQA) is to translate a natural language question to knowledge base (KB) entities and predicates.
+Previous systems have used a limited amount of training data to learn a lexicon that is later used for question answering.
+This approach does not make use of other potentially relevant text data, outside the KB, which could enrich the available information.
+We introduce a new system, Text2KB, that connects a KB with external text. Specifically, we revisit different phases in the KBQA process and demonstrate that text resources improve question interpretation, candidate generation and ranking.
+Starting with the best publicly available system, Text2KB utilizes web search results, community question answering and general text document collection data, to detect question topic entities and enrich the features of the candidates derived from the KB.
+Text2KB significantly improves on the initial KBQA system, and reaches the best known state of the art performance on a popular WebQuestions knowledge base question answering dataset.
+The results and insights developed in this work are both practically useful, and can guide future efforts on combining textual and structured KB data for question answering.
 
 
 \end{abstract}
@@ -194,39 +202,48 @@ Our system utilizes various different text resources for candidate generation as
 % \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
+\label{section:intro}
 \input{introduction.inc}
 
-\section{Method}
+\section{Knowledge Base Question Answering: an Overview}
+\label{section:baseline}
+\input{baseline.inc}
+
+\section{Text2KB: Incorporating Text Data into KBQA}
+\label{section:method}
 \input{method.inc}
 
 \section{Evaluation}
+\label{section:eval}
 \input{evaluation.inc}
 
-\section{Analysis}
+\section{Analysis and Discussion}
+\label{section:analysis}
 \input{analysis.inc}
 
 \section{Related Work}
+\label{section:related_work}
 \input{relatedwork.inc}
 
 \section{Conclusions and Future Work}
-The results are obviously good and the paper should be accepted.
 
-We leave joint hybrid question answering for future work.
-If I don't have time and don't do Wikipedia profile pages in time, then this is also future work.
+Our work showed that unstructured text resources can be effectively utilized for knowledge base question answering to improve query understanding,  candidate answer generation and ranking.
+We focused on three particular techniques and associated text information sources: web search results for query understanding and candidate ranking, community question answering data for candidate generation, and text fragments around entity pair mentions for ranking. Certainly, there are more resources that could be potential adapted, \eg entity profile pages like Wikipedia, news sources, textbooks, and many others. However, we believe that the proposed approach is general enough that it could be extended and successfully incorporate these other diverse text sources.
+
+In the future, we plan to extend our work to the more open setup, similar to the QALD hybrid task, where questions no longer have to be answered exclusively from the KB. This would require extending the described techniques, and creating new QA benchmarks.
+
+
 
 %ACKNOWLEDGMENTS are optional
-\section{Acknowledgments}
-This section is optional; it is a location for you
-to acknowledge grants, funding, editing assistance and
-what have you.  In the present case, for example, the
-authors would like to thank Gerald Murray of ACM for
-his help in codifying this \textit{Author's Guide}
-and the \textbf{.cls} and \textbf{.tex} files that it describes.
+%\section{Acknowledgments}
+%Thanks to anonymous reviews for accepting this paper.
 
 %
 % The following two commands are all you need in the
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
+
+\vspace{1.0cm}
 \bibliographystyle{abbrv}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 % You must have a proper ".bib" file
