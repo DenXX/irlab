@@ -1,30 +1,30 @@
-% Recently we witnessed some successes of QA systems, i.e. IBM Watson winning the Jeopardy! TV show, major companies adapting question answering technologies (Apple Siri, Google Now, Microsoft Cortana, etc). 
-% However, these systems are still very limited and we have a lot to do to move beyond these 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
-
 The ability to answer user questions with precise and concise information is a hard problem with a long history of research.
-Various data sources are available for candidate answer generation, two major ones are unstructured text corpora, and structured knowledge bases (e.g. dpPedia \cite{auer2007dbpedia} and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}).
-A hybrid approach to question answering \cite{baudivs2015modeling,Ferrucci10:DeepQA} generates candidates from multiple sources, however each of them is typically processed separately and results are merged on the scoring and ranking stage when some information is already lost.
-Efficient combination of different information sources has potential to improve both text and knowledge base question answering systems.
-I propose to combine all the available sources together and do joint reasoning to generate better answer candidates and improve the overall question answering performance.
-
-% Text-bases QA systems were shown to be quite effective on the TREC QA tasks as well as on other benchmark datasets \cite{dang2007overview}.
-Question answering from text corpora typically starts by retrieving a set of potentially relevant documents using the question (or some transformation of the question \cite{AgichteinLG01}) as the query, and then extracting entities, phrases, sentences or paragraphs believed to be the answer to the question.
-However, the information available in the retrieved pieces of text is very limited and often not enough to decide whether it can be the answer to the given question.
-For example, below is one of the questions from TREC QA 2007 dataset:\\
-\textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''}\\
+The knowledge necessary to answer these questions is scattered across a variety of resources of various types.
+Over the years of research in automatic question answering people have studied different unstructured (natural language text), semi-structured (tables, question and answer pairs) and strucutred (knowledge bases) resources for answer generation.
+However, different types of data sources have their own advantages and limitations.
+For example, a lot of world knowledge is encoded in raw text format, however, it's hard to reason beyond what is stated in a fragment of text.
+On the contrary, modern large scale knowledge bases (KB), such as Freebase\footnote{http://www.freebase.com/}, dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\footnote{https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/yago/}, etc., aggregate all the information about a particular entity and make it quite easy to query using special query languages, such as SPARQL.
+Unfortunately, regular users would prefer to use natural text for their questions, which leads to a problem of mapping between text phrases and knowledge base entities and predicates.
+In addition, knowledge bases are inherently incomplete\cite{Dong:2014:KVW:2623330.2623623} and miss a lot of entities, facts and predicates.
+In my thesis, I propose to alleviate these disadvantages by combining different data sources together.
+In particular, by finding mentions of KB entities in text documents we make it possible to get all the information about entities mentioned in a text fragment, as well as get all text fragments mentionining an entity or a pair of entities.
+For example, below is one of the questions from TREC QA 2007 dataset: \textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''}.
 A candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''} mentions a senator ``Harry Reid'' and clearly says about his support of the nomination.
 However, ``Harry Reid'' is not a correct answer to the question because he is a member of the Democratic party.
-This information is not available in the answer candidate sentence, but it is present as one of the properties in Freebase: [Harry Reid, political\_party, Democratic party]\footnote{Actually, in Freebase the entities are connected by a path of length 2 through a mediator node. The predicates on the path are: /government/politician/party and /government/political\_party\_tenure/party}.
+This information is not available in the answer candidate sentence, but it is present as one of the properties in Freebase: \texttt{[Harry Reid, political\_party, Democratic party]}.
 Therefore, by looking into the knowledge available about the mentioned entities a QA system can make a better judgment about the candidate answer.
 
-Question answering over linked data (knowledge bases) converts a natural language question into a structured query, such as SPARQL.
-The main challenge for such systems is to map words and phrases from the question to the corresponding entities and predicates from a KB.
-Usually, such lexicon is built during training using ground truth question-query pairs \cite{CaiY13} or question-answer pairs \cite{BerantCFL13:sempre}.
-Improvements were made by extending the lexicon using Wikipedia and patterns expressing certain predicates obtained via distant supervision \cite{bastmore:cikm:2015:aquu,BordesCW14:emnlp,ReddyLS14,yih:ACL:2015:STAGG,YaoD14}.
-But still, the amount of available labeled or weakly labeled training data is much smaller than the amount of unstructured data.
-This unstructured data will complement the learned lexicon, e.g. even if a question about a certain predicate wasn't seen during training, a set of text paragraphs mentioning both of the related entities can provide a QA system with enough evidence to make the correct decision.
+Another big chunk of user questions cannot be answered with an entity, number or date.
+These questions, usually referred to as non-factoid, include various types of information needs, including defitions, opinions, recommendations, procedures, etc.
+A series of TREC LiveQA evaluation campaigns, started in 2015, targets non-factoid question answering and asks participants to develop a system to answer real user questions, posted to Yahoo! Answers\footnote{http://answers.yahoo.com/} CQA website, in real-time.
+It was previously demonstrated \cite{shtok2012learning} that user needs repeat and a strategy of retrieving answer to similar past questions can be quite effective for answering new questions.
+However, in many cases such questions do not exist or challenging to retrieve.
+Alternative strategies include ranking text passages extracted from retrieved web documents, which is a challenging problem due to the lexical gap between question and answer texts.
+Therefore, one would benefit from knowing what kind of questions does a paragraph of text answer.
+This information can often be inferred from the structured of the web page, e.g. forums, FAQ pages, and titles and subtitles of web pages.
+In my thesis I propose to make a better use of the structure of web documents where possible, e.g. by detecting the type of a web page and extracting its key components.
+For other generic web documents and their passages I propose to predict how likely a passage can answer the given question using the advances in deep learning method for text processing, including sequence to sequence models \cite{sutskever2014sequence}.
 
-% In addition, these text paragraphs can be presented to the user to support the returned answer if needed.
 
 %\begin{figure*}
 %\centering

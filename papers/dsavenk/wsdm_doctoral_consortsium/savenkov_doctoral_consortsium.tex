@@ -47,6 +47,11 @@
 
 \documentclass{sig-alternate}
 
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
 \begin{document}
 %
 % --- Author Metadata here ---
@@ -96,14 +101,15 @@ Denis Savenkov\\
 
 \maketitle
 \begin{abstract}
-Modern question answering (QA) systems employ a variety of different unstructured (text corpora), semi-structured (question answer pairs, infoboxes) and structured (knowledge bases - KB) data sources for candidate generation.
-However, typically each of the data sources is processed independently and the merging of the results happens only after the candidates are generated.
-I propose to enrich the expressiveness of data representation of each of the data sources with complementary information for joint reasoning.
-Text documents can be annotated with the information about properties and connections between mentioned entities.
-On the other hand for knowledge base question answering systems passages and text fragments retrieved for a candidate answer can help the system to find a good mapping between a natural language question and the corresponding structured query representation.
 
-% This is probably not that related.
-% I also propose to use existing QnA pairs from community question answering (CQA) websites both as training data for both text- and KB-based question answering systems.
+The proposed thesis research is focusing on the effective utilization of different unstructured, semi-structured and structured data sources for factoid and non-factoid question answering.
+Most of the existing factoid QA approaches incorporate text document collections and knowledge bases (KB).
+However, these data sources are used rather independently for answer candidates generation, which are then merged and ranked together.
+Text-based approaches find candidates solely in the retrieved text fragments, whereas knowledge base approaches only explore a neighborhood of identified question topic entities.
+Such separation of data sources is limiting the ability of a QA system to find good candidates in the first place and rank them effectively using all the information available in the data sources.
+In this thesis I propose to connect text documents and KB via entity linking and use this extended representation to improve both answer generation and ranking.
+In non-factoid question answering one of the most effective strategies is retrieving answers to similar questions previously posted to community question answering (CQA) websites. Unfortunately, in many cases such questions are not available or challenging to find. Matching between a question and a regular passage from a text document is complicated because of the lexical gap and necessity for deep semantic understanding of answer utterances. In my thesis I propose to tackle these challenges with better web document structure understanding, which can be used to extract question-answer pairs from web forums, FAQ-pages and other documents. The proposed research directions will help to improve the performance of today's QA systems, and can guide future efforts on combining knowledge representations for AI tasks.
+
 
 \end{abstract}
 
@@ -116,14 +122,14 @@ On the other hand for knowledge base question answering systems passages and tex
 \section{Introduction}
 \input{introduction.inc}
 
-\section{Related Work}
-\input{related_work.inc}
-
 \section{Research Proposal}
 \input{proposal.inc}
 
 \section{Experiments}
 \input{experiments.inc}
+
+\section{Related Work}
+\input{related_work.inc}
 
 \section{Discussion}
 \input{issues.inc}

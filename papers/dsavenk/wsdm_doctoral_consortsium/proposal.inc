@@ -1,20 +1,72 @@
-In this work I propose to enrich the input data representation for QA systems by combining available unstructured, semi-structured and structured data sources for joint reasoning, which can improve the performance of question answering over both text collections and knowledge bases.
+In this section I describe the proposed research for both factoid and non-factoid question answering in more details.
 
-\subsection{Text-based QA}
+\subsection{Factoid Question Answering}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.47\textwidth]{img/text_kb}
-\caption{Annotation of natural language text with mentioned entities and their subgraphs in a knowledge base}
-\label{fig:text_kb}
-\end{figure}
+In my thesis I propose to annotate text document collection with links to mentioned knowledge base entities.
+Such semantic annotations open up many opportunities for QA reasoning, because it allows one to go from the information stored in text to structured data and vice versa.
 
-For question answering over text corpora I propose to extend the text representation with annotations about mentioned entities and their relations from open \cite{Fader:2014:OQA:2623330.2623677} or schema-based knowledge bases (e.g. dbPedia or Freebase).
-Such representation allows not only find different mentions of the same entity, but also look into the connections of the mentioned entities in order to learn more about the candidate answer.
-For example, for the question mentioned in the introduction \textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''} and a candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''}, such joint text-KB representation can look like Figure \ref{fig:text_kb}.
+More specifically, I propose the following factoid QA system architecture:
+\begin{itemize}
+\item \textbf{Pre-processing}: identify mentions of KB entities in text document collection and index the documents text and mentions in separate fields
+\item \textbf{Topical entity identification}: search the text collection using question (or reformulated question \cite{AgichteinLG01}) as a query and use an approach similar to \cite{cornolti2014smaph} to detect question topical entities
+\item \textbf{Candidate generation from text}: extract candidate answer (or intermediate answer) entities with evidence from the retrieved text documents using existing techniques, e.g. \cite{tsai2015web}.
+\item \textbf{Candidate generation from KB}: explore the KB neighborhood of question topical entities and entities extracted from text documents on the previous step
+\item \textbf{Candidate generation from KB \& Text}: use entity and text index to find entities mentioned near question topical entity and question terms in the document collection
+\item \textbf{KB evidence extraction}: match neighbourhood of answer entities (entity type and other entities) against the question to get additional evidence
+\item \textbf{Text evidence extraction}: estimate the similarity between the collection text fragments mentionining question and answer entities and the question text
+\item \textbf{Rank candidate}: rank candidate answers using evidence extracted from the KB as well as from text
+\end{itemize}
+
+For example, for the question mentioned in the introduction \textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''} and a candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''}, such joint text-KB representation can look like Figure \ref{fig:kb2text}.
 A QA system can discover that ``Harry Reid'' political affiliation is with the Democratic Party, and he cannot be referred to as ``republican senator''.
 In other cases using a KB as an additional source of information may reveal specific connections between entities in the question and in the answer candidates.
 For example, for another TREC QA 2007 question \textit{``For which newspaper does Krugman write?''} and retrieved candidate answer \textit{New York Times} a path between ``Paul Krugman'' and ``New York Times'' in the knowledge graph gives an evidence in support of the candidate.
+
+\begin{figure*}
+\centering
+ \begin{subfigure}[t]{0.47\textwidth}
+ \includegraphics[width=\textwidth]{img/text_kb}
+ \caption{Annotation of natural language text with mentioned entities and their subgraphs in a knowledge base}
+ \label{fig:kb2text}
+ \end{subfigure}
+ \begin{subfigure}[t]{0.47\textwidth}
+ \centering
+ \includegraphics[width=\textwidth]{img/kb_text}
+ \caption{Annotation of KB graph nodes and edges with unstructured text data}
+  \label{fig:text2kb}
+ \end{subfigure}
+\label{fig:text_kb}
+\caption{Unstructured text and structured Knowledge Base connected via entity links for question answering}
+\end{figure*}
+
+Knowledge base question answering (KBQA) produce answers by constructing a structured query, that retrieves answer entities from the KB.
+The main challenge in KBQA is mapping between natural language phrases in the question and knowledge base entities and predicates.
+Such systems typically rely on the lexicon learned from the training data \cite{bastmore:cikm:2015:aquu,BerantCFL13:sempre,BerantL14:parasempre,yih:ACL:2015:STAGG,yao-scratch-qa-naacl2015}.
+Such lexicons are often limited and needs to be retrained to include additional data.
+The proposed approach allows a system to dig into the text resources that mention question and candidate answer pairs and use this information for scoring.
+Figure \ref{fig:text2kb} shows a sample of data available for KBQA system to answer the \textit{`` Who is the woman that John Edwards had an affair with?''} question from a popular WebQuestions dataset \cite{BerantCFL13:sempre}.
+
+
+\subsection{Non-factoid Question Answering}
+
+Non-factoid questions are typically answered with a relatively long paragraph of text\footnote{TREC LiveQA'15 challenge limits the answer to 1000 characters}.
+This fact and the nature of questions limits the utility of structured KB resources.
+One of the main challenges for non-factoid question answering is matching between the question needs and the information expressed in text fragment.
+Analysis of TREC LiveQA 2015 participants \cite{savenkov2015liveqa} revealed that the quality of answers extracted from previously posted similar questions is typically higher than from regular web passages.
+Therefore, non-factoid QA system would benefit from the information on which questions does a paragraph of text answer.
+This information can often be extracted from the structure of a web document, e.g. forum threads, FAQ pages or various CQA websites.
+Alternatively, we can train a model to predict whether a paragraph answers a given question using titles, subtitles and surrounding text of a web page.
+
+My proposal for non-factoid question answering can be summarized as follows:
+\begin{itemize}
+\item \textbf{CQA candidate generation}: retrieve a set of question-answer pairs by search a CQA archive\footnote{https://answers.yahoo.com/}
+\item \textbf{Web document retrieval}: retrieve a set of documents by querying web search with the question (and queries generated from it)
+\item \textbf{Web candidate answer generation}: classify web page into one of the following types: article, forum thread, FAQ page, CQA page, other. Extract key elements using type-specific extractors (QnA pairs FAQ and CQA pages, forum question and posts and article passages with the corresponding titles, subtitles and surrounding text).
+\item \textbf{Ranking}: Rank the generated candidate answers
+\end{itemize}
+
+==============
+
 
 More specifically, to do this kind of inference I propose:
 \begin{itemize}
@@ -27,57 +79,3 @@ More specifically, to do this kind of inference I propose:
 	\item features describing the entities mentioned in the answer, i.e. similarities between entity properties and question words, n-grams and phrases, etc.
 	\end{itemize}
 \end{itemize}
-
-For training text-based QA model I propose to use available QnA pairs from community question answering websites, which represent real user tasks and after certain filtering can be a good fit for training both factoid and non-factoid question answering systems.
-The data can help to learn more associations between the language used in questions and their corresponding answers, which can be encoded as conditional probabilities (e.g. $p(w_a|w_{q_1},...,w_{q_n}$, where $w_a$ is a word of the answer and $w_{q_i}$ is some subset of the question words), pointwise mutual information or by employing deep learning techniques \cite{WangN15}.
-
-\subsection{Knowledge base QA}
-
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{img/kb_text}
-\caption{Annotation of KB graph nodes and edges with unstructured text data}
-\label{fig:kb_text}
-\end{figure}
-
-\begin{table}
-\centering
-\caption{Example of a question from WebQuestions dataset with related unstructured information}
-\begin{tabular}{| p{1.5cm} | p{6cm} |} \hline
-Question & Who is the woman that John Edwards had an affair with?\\
-\hline
-Provided answer & ``Writer'', ``Politician'', ``Lawyer'', ``Attorneys in the United States''\\
-\hline
-Correct answer & Rielle Hunter\\
-\hline
-Phrase from Wikipedia & John Edwards had engaged in an affair with Rielle Hunter...\\
-\hline
-QnA pair from Yahoo! Answers & Who was it that John Edwards had an affair with? Today, John Edwards admitted to having an affair with filmmaker Rielle Hunter.\\
-\hline
-\end{tabular}
-\label{table:kbqa_example}
-\end{table}
-
-Lexicons learned during training of a knowledge base question answering systems are limited and often needs to be retrained to include additional data.
-To complement the lexicon learned during training for candidate structured query scoring I propose to use unstructured text data related to mentioned entities and predicates (see Figure \ref{fig:kb_text}).
-For example, Table \ref{table:kbqa_example} shows an example of a question from the WebQuestions dataset, that is answered incorrectly by a state-of-the-art system.
-A similar question is missing from the training set, however, an easy web search can retrieve a relevant sentence, which give enough supporting evidence to answer this question correctly.
-
-More specifically, I propose:
-\begin{itemize}
-\item Use one of the available state of the art systems, such as \cite{bastmore:cikm:2015:aquu}, as a baseline.
-\item Extend a set of features representing a candidate answer with features derived from unstructured text fragments:
-	\begin{itemize}
-	\item from large document collection (such as the web) retrieve a set of passages by querying a search system with question, question + answer, question and answer entities as queries.
-	\item find mentions of answer entities in the passages and use some aggregated statistics as features for the corresponding candidates.
-	\item for each candidate answer retrieve a set of patterns used to express the corresponding predicates obtained using distant supervision from a large text collection and compute the similarities between these patterns and the question text.
-	\end{itemize}
-\end{itemize}
-
-In addition, similar to text-based systems, I propose to include QnA pairs from CQA websites as weakly labeled training data.
-For example, a question similar to the one presented in Table \ref{table:kbqa_example} is not present in the labeled training set, but can easily be found in Yahoo! Answers\footnote{http://answers.yahoo.com/}.
-CQA data should be preprocessed (possibly filtered by categories of the questions and other heuristics), and select QnA pairs mentioning at least one entity in the question and in the answer.
-After a reasonable cleanup such QnA pairs can be used for training treating answer entities as the correct answer.
-
-% Finally, to solve the problem of compositionality of queries following the idea proposed in \cite{ReddyLS14} learn lexical features from raw sentences and their distantly supervised alignments to a KB, but avoid expensive and innaccurate semantic parsing step and learn direct associations between surface features and KB elements.
-% \textbf{Actually I don't have a very good idea how to do this, probably need to remove this paragraph}.
