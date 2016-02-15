@@ -3,6 +3,7 @@ package edu.emory.mathcs.clir.relextract.processor;
 import edu.emory.mathcs.clir.relextract.AppParameters;
 import edu.emory.mathcs.clir.relextract.data.Document;
 import edu.emory.mathcs.clir.relextract.data.DocumentWrapper;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -20,8 +21,9 @@ import static org.apache.commons.lang.StringEscapeUtils.escapeHtml;
 public class CsvFactoidQaSerializerProcessor extends Processor {
 
     private final org.apache.commons.csv.CSVPrinter out_;
-    private final String[] header_ = new String[]{"question", "answer",
+    private final String[] header_ = new String[]{"id", "question", "answer",
             "question_entities", "answer_entities"};
+    private final KnowledgeBase kb_;
 
     /**
      * Processors can take parameters, that are stored inside the properties
@@ -33,6 +35,7 @@ public class CsvFactoidQaSerializerProcessor extends Processor {
     public CsvFactoidQaSerializerProcessor(Properties properties)
             throws IOException {
         super(properties);
+        kb_ = KnowledgeBase.getInstance(properties);
         String outFilename = properties.getProperty(
                 AppParameters.OUTPUT_PARAMETER);
         CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator("\n");
@@ -47,11 +50,19 @@ public class CsvFactoidQaSerializerProcessor extends Processor {
             throws IOException {
         synchronized (this) {
             DocumentWrapper doc = new DocumentWrapper(document);
-            String[] record = new String[4];
-            record[0] = doc.getQuestionText();
-            record[1] = doc.getAnswerText();
-            record[2] = escapeHtml(String.join("\t", doc.getQuestionAnswerEntities(true)));
-            record[3] = escapeHtml(String.join("\t", doc.getQuestionAnswerEntities(false)));
+            String id = document.getDocId();
+            for (Document.Attribute attr : document.getAttributeList()) {
+                if (attr.getKey().equals("id")) {
+                    id = attr.getValue();
+                }
+            }
+            String[] record = new String[] {
+                    id,
+                    doc.getQuestionText(),
+                    doc.getAnswerText(),
+                    escapeHtml(String.join("\t", doc.getQuestionAnswerEntities(true, kb_))),
+                    escapeHtml(String.join("\t", doc.getQuestionAnswerEntities(false, kb_)))
+            };
             out_.printRecord(record);
         }
         return document;

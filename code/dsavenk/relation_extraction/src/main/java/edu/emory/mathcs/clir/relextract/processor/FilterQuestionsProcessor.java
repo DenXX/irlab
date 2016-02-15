@@ -21,8 +21,11 @@ public class FilterQuestionsProcessor extends Processor {
         stopLemmas.add("good");
         stopLemmas.add("will");
         stopLemmas.add("'ll");
+        stopLemmas.add("would");
+        stopLemmas.add("can");
         stopLemmas.add("recommend");
         stopLemmas.add("better");
+        stopLemmas.add("like");
         stopLemmas.add("can");
     }
 
@@ -87,7 +90,7 @@ public class FilterQuestionsProcessor extends Processor {
 
     private boolean isEntity(Document.Span span) {
         return (span.getType().equals("ENTITY") && span.hasEntityId()) ||
-                span.getType().equals("MEASURE");
+                span.getNerType().equals("DATE");
     }
 
     private boolean shouldSkipByLemma(String lemma) {

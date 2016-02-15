@@ -2,6 +2,7 @@ package edu.emory.mathcs.clir.relextract.data;
 
 import edu.emory.mathcs.clir.relextract.extraction.Parameters;
 import edu.emory.mathcs.clir.relextract.utils.DependencyTreeUtils;
+import edu.emory.mathcs.clir.relextract.utils.KnowledgeBase;
 import edu.emory.mathcs.clir.relextract.utils.PorterStemmer;
 import edu.stanford.nlp.dcoref.CorefChain;
 import edu.stanford.nlp.dcoref.CorefCoreAnnotations;
@@ -10,6 +11,7 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.IndexedWord;
 import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.process.PTBEscapingProcessor;
 import edu.stanford.nlp.process.PTBTokenizer;
 import edu.stanford.nlp.semgraph.SemanticGraph;
 import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
@@ -631,7 +633,7 @@ public class DocumentWrapper {
         return res.toString();
     }
 
-    public String[] getQuestionAnswerEntities(boolean inQuestion) {
+    public String[] getQuestionAnswerEntities(boolean inQuestion, KnowledgeBase kb) {
         int questionSentsCount = getQuestionSentenceCount();
         List<String> entities = new ArrayList<>();
         for (Document.Span span : document().getSpanList()) {
@@ -647,7 +649,12 @@ public class DocumentWrapper {
                 }
             }
             if (ok) {
-                String name = span.getText();
+                String name = span.hasEntityId() ? kb.getEntityName(span.getEntityId()) : span.getText();
+                if (name.isEmpty()) {
+                    name = span.getText();
+                }
+                name = PTBEscapingProcessor.unprocess(name);
+
                 String value = span.hasEntityId() ? span.getEntityId() : span.getValue();
                 entities.add(name + "\t" + value);
             }
