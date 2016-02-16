@@ -1,4 +1,3 @@
-In this section I describe the proposed research for both factoid and non-factoid question answering in more details.
 
 \subsection{Factoid Question Answering}
 
@@ -7,6 +6,7 @@ Such semantic annotations open up many opportunities for QA reasoning, because i
 
 More specifically, I propose the following factoid QA system architecture:
 \begin{itemize}
+\setlength\itemsep{0em}
 \item \textbf{Pre-processing}: identify mentions of KB entities in text document collection and index the documents text and mentions in separate fields
 \item \textbf{Topical entity identification}: search the text collection using question (or reformulated question \cite{AgichteinLG01}) as a query and use an approach similar to \cite{cornolti2014smaph} to detect question topical entities
 \item \textbf{Candidate generation from text}: extract candidate answer (or intermediate answer) entities with evidence from the retrieved text documents using existing techniques, e.g. \cite{tsai2015web}.
@@ -24,18 +24,19 @@ For example, for another TREC QA 2007 question \textit{``For which newspaper doe
 
 \begin{figure*}
 \centering
- \begin{subfigure}[t]{0.47\textwidth}
+ \begin{subfigure}[t]{0.45\textwidth}
  \includegraphics[width=\textwidth]{img/text_kb}
  \caption{Annotation of natural language text with mentioned entities and their subgraphs in a knowledge base}
  \label{fig:kb2text}
  \end{subfigure}
- \begin{subfigure}[t]{0.47\textwidth}
+ \begin{subfigure}[t]{0.45\textwidth}
  \centering
  \includegraphics[width=\textwidth]{img/kb_text}
  \caption{Annotation of KB graph nodes and edges with unstructured text data}
   \label{fig:text2kb}
  \end{subfigure}
 \label{fig:text_kb}
+\vspace{-0.2cm}
 \caption{Unstructured text and structured Knowledge Base connected via entity links for question answering}
 \end{figure*}
 
@@ -59,23 +60,22 @@ Alternatively, we can train a model to predict whether a paragraph answers a giv
 
 My proposal for non-factoid question answering can be summarized as follows:
 \begin{itemize}
-\item \textbf{CQA candidate generation}: retrieve a set of question-answer pairs by search a CQA archive\footnote{https://answers.yahoo.com/}
+\setlength\itemsep{0em}
+\item \textbf{CQA candidate generation}: retrieve a set of question-answer pairs by searching a CQA archive\footnote{https://answers.yahoo.com/}
 \item \textbf{Web document retrieval}: retrieve a set of documents by querying web search with the question (and queries generated from it)
-\item \textbf{Web candidate answer generation}: classify web page into one of the following types: article, forum thread, FAQ page, CQA page, other. Extract key elements using type-specific extractors (QnA pairs FAQ and CQA pages, forum question and posts and article passages with the corresponding titles, subtitles and surrounding text).
-\item \textbf{Ranking}: Rank the generated candidate answers
+\item \textbf{Web candidate answer generation}: classify web page into one of the following types: article, forum thread, FAQ page, CQA page, other. Extract key elements using type-specific extractors (QnA pairs, FAQ and CQA pages, forum question and posts and article passages with the corresponding titles, subtitles and surrounding text).
+\item \textbf{Ranking}: Rank the generated candidate answers by building on techniques from existing research \cite{surdeanu2011learning}.
 \end{itemize}
 
-==============
 
-
-More specifically, to do this kind of inference I propose:
-\begin{itemize}
-\item use existing approaches for document retrieval (e.g. web search using question as a query \cite{tsai2015web}) and candidate answer extraction.
-\item perform entity linking to mentions of KB entities in questions and corresponding candidate answers.
-\item for each mentioned entity extract a subgraph containing its neighborhood up to certain number of edges away and paths to other mentioned entities.
-\item follow machine learning approach for candidate answer ranking and extend the feature representation with features derived from subgraph analysis. Examples of features are:
-	\begin{itemize}
-	\item features describing discovered connections between entities mentioned in a question and a candidate answer, such as indicators of the relations, combination of relations with words and n-grams from the questions, similarity between the relations and the question text (using tf-idf or embeddings representation), etc. Textual representations of the predicates in structured knowledge bases can be obtained either from its description or using patterns learned from a large collection using distant supervision \cite{MintzBSJ09}.
-	\item features describing the entities mentioned in the answer, i.e. similarities between entity properties and question words, n-grams and phrases, etc.
-	\end{itemize}
-\end{itemize}
+%More specifically, to do this kind of inference I propose:
+%\begin{itemize}
+%\item use existing approaches for document retrieval (e.g. web search %using question as a query \cite{tsai2015web}) and candidate answer %extraction.
+%\item perform entity linking to mentions of KB entities in questions and %corresponding candidate answers.
+%\item for each mentioned entity extract a subgraph containing its %neighborhood up to certain number of edges away and paths to other %mentioned entities.
+%\item follow machine learning approach for candidate answer ranking and %extend the feature representation with features derived from subgraph %analysis. Examples of features are:
+%	\begin{itemize}
+%	\item features describing discovered connections between entities mentioned in a question and a candidate answer, such as indicators of the relations, combination of relations with words and n-grams from the questions, similarity between the relations and the question text (using tf-idf or embeddings representation), etc. Textual representations of the predicates in structured knowledge bases can be obtained either from its description or using patterns learned from a large collection using distant supervision \cite{MintzBSJ09}.
+%	\item features describing the entities mentioned in the answer, i.e. similarities between entity properties and question words, n-grams and phrases, etc.
+%	\end{itemize}
+%\end{itemize}

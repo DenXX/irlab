@@ -12,24 +12,15 @@ For example, below is one of the questions from TREC QA 2007 dataset: \textit{``
 A candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''} mentions a senator ``Harry Reid'' and clearly says about his support of the nomination.
 However, ``Harry Reid'' is not a correct answer to the question because he is a member of the Democratic party.
 This information is not available in the answer candidate sentence, but it is present as one of the properties in Freebase: \texttt{[Harry Reid, political\_party, Democratic party]}.
-Therefore, by looking into the knowledge available about the mentioned entities a QA system can make a better judgment about the candidate answer.
 
 Another big chunk of user questions cannot be answered with an entity, number or date.
-These questions, usually referred to as non-factoid, include various types of information needs, including defitions, opinions, recommendations, procedures, etc.
+These questions, usually referred to as non-factoid, include various types of information needs, including definitions, opinions, recommendations, procedures, etc.
 A series of TREC LiveQA evaluation campaigns, started in 2015, targets non-factoid question answering and asks participants to develop a system to answer real user questions, posted to Yahoo! Answers\footnote{http://answers.yahoo.com/} CQA website, in real-time.
 It was previously demonstrated \cite{shtok2012learning} that user needs repeat and a strategy of retrieving answer to similar past questions can be quite effective for answering new questions.
 However, in many cases such questions do not exist or challenging to retrieve.
 Alternative strategies include ranking text passages extracted from retrieved web documents, which is a challenging problem due to the lexical gap between question and answer texts.
 Therefore, one would benefit from knowing what kind of questions does a paragraph of text answer.
-This information can often be inferred from the structured of the web page, e.g. forums, FAQ pages, and titles and subtitles of web pages.
+This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
 In my thesis I propose to make a better use of the structure of web documents where possible, e.g. by detecting the type of a web page and extracting its key components.
 For other generic web documents and their passages I propose to predict how likely a passage can answer the given question using the advances in deep learning method for text processing, including sequence to sequence models \cite{sutskever2014sequence}.
-
-
-%\begin{figure*}
-%\centering
-%\includegraphics[width=0.5\textwidth]{img/qa_architecture}
-%\caption{Architecture of typical QA system}
-%\label{fig:qa_architecture}
-%\end{figure*}
 
