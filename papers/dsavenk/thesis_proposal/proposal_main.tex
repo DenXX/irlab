@@ -16,7 +16,7 @@
 \newcommand{\shortcite}[1]{\cite{#1}}
 %\usepackage{url}
 \usepackage[hyphens]{url}
-\usepackage{subfigure}
+% \usepackage{subfigure}
 \usepackage{multirow}
 \usepackage[show]{chato-notes}
 \usepackage{pdfpages}
@@ -25,10 +25,10 @@
 \usepackage[nottoc]{tocbibind}
 \usepackage{datetime}
 \usepackage{caption}
+\usepackage{subcaption}
 
 %\usepackage{geometry} 
 \usepackage[margin=.8in]{geometry}
-%\usepackage[margin=.98in]{geometry}
 \usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -39,7 +39,7 @@
 \usepackage{url}
 \usepackage{float}
 \floatstyle{plain} 
-%\floatstyle{boxed} 
+%\floatstyle{boxed}
 \restylefloat{figure}
 
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
@@ -173,8 +173,6 @@ In summary, this dissertation aims to improve the performance of automatic quest
 \include{chap3}
 \include{chap4}
 \include{chap5}
-\include{chap6}
-%\include{chap7}
 %\appendix
 %\include{appendixa}
 %\include{appendixb}
