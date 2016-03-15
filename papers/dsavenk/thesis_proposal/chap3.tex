@@ -6,20 +6,42 @@
 \compressfalse % Uncomment these two lines for anonymous review
 
 \mychapter{Structured and Unstructured Data for Factoid Question Answering}
+\label{chap:factoid}
 
 \noindent
 
-In this work I propose to enrich the input data representation for QA systems by combining available unstructured, semi-structured and structured data sources for joint reasoning, which can improve the performance of question answering over both text collections and knowledge bases.
+Over the decades of research in factoid question answering, two relatively separate approaches have emerged: text-centric, or Text-QA and knowledge base-centric, or KBQA.
+Each approach has its own advantages and disadvantages (Table \ref{table:data_procons}).
+Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
+However, each individual statement includes a very limited amount of information about mentioned entities.
+On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
+However, knowledge bases have their own disadvantages:
+\begin{itemize}
+\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
+\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
+\end{itemize}
 
+One way to improve the situation with knowledge base incompleteness is to extract missing information from other data sources, \eg \cite{Cafarella:2008:WEP:1453856.1453916,Cafarella:2009:WES:1519103.1519112,Dong:2014:KVW:2623330.2623623,Etzioni:2008:OIE:1409360.1409378,Gupta:2014:BOS:2732286.2732288,kushmerick1997wrapper}.
+In my thesis I focus on one particular data source, that didn't receive enough attention in the relation extraction literature, namely question-answer pairs.
+Section \ref{sec:relation_extraction} will describe our experiments and results in utilizing this data to improve knowledge base coverage.
+Unfortunately, relation extraction isn't perfect either and there are both precision and recall losses.
+Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process (Section \ref{sec:text+kb}).
 
-\section{Improving Knowledge Base Question Answering using Unstructured Text Data}
+\section{Relation Extraction for Knowledge Base Construction}
+\label{sec:relation_extraction}
 
-\subsection{Relation extraction for Knowledge Base completion}
+To tackle the first problem researchers have proposed automatic relation extraction methods, such as \cite{MintzBSJ09}, which can automatically label sentences, that might express certain KB relation and learn a model to extract these relations.
+Unfortunately, not all the information available on the web is available in natural language statements.
+% There has been a number of works on using other data sources for relation extraction, \eg web tables\cite{RELATION EXTRACTION FROM TABLES}, info boxes \cite{dbPedia paper?} and even images \cite{WHAT TO CITE}.
+In my thesis I propose a method for automatic relation extraction from question answer pairs, which are available in big numbers on community question answering websites, forums, etc.
 
-\subsubsection{Relation extraction from Question-Answer pairs}
+\subsection{Relation extraction from Question-Answer pairs}
+\label{subsec:cqa_relextract}
+
 This is my work from NAACL student research workshop.
 
-\subsubsection{Question-guided relation extraction}
+\subsection{Question-guided relation extraction}
+\label{subsec:question_based_relextract}
 The idea is that we can aggregate related questions and relation extraction patterns.
 When a person asks a question, we retrieve passages and sentences to extract the answer from.
 Imaging a question is asking a certain property of an entity.
@@ -41,28 +63,36 @@ Problems:
 
 Useful dataset: MSN query log, SimpleQuestions from Facebook, WebQuestions, NYT relation extraction dataset.
 
-\subsection{Question Answering over Knowledge Bases with External Text Data}
-This is Text2KB SIGIR submission.
-
-\subsection{Answer ranking approach for Knowledge Base Question Answering}
-
-\begin{enumerate}
-\item Use entity search to retrieve a set of candidate answer entities
-\item Predict which entity should be returned as the answer
-    \begin{itemize}
-    \item independently for each entity
-    \item jointly - select a set of entities as the answer. This should be better, can account for the size and homogeneity of the answers
-    \end{itemize}
-\end{enumerate}
-
-We can index textual data that mention entities to improve entity ranking? Can we just rank Wikipedia pages?
+This approach can also be applied to open IE.
+There are sentence selection methods for question answering.
+We can extract noun phrases (NP mentioned in question and supposedly answer NP), and then aggregate all sentences, that mention the same NPs together.
+Hypothesis is, that we can extract patterns, that will answer the same question for other entities.
 
 \section{Semantic Text Annotations for Hybrid Question Answering}
+\label{sec:text+kb}
 
-In my thesis I propose to annotate text document collection with links to mentioned knowledge base entities.
-Such semantic annotations open up many opportunities for QA reasoning, because it allows one to go from the information stored in text to structured data and vice versa.
+Converting unstructured information into structured form by extracting knowledge from text suffers from certain quality losses.
+Existing relation extraction tools aren't perfect, in particular due to recall losses a lot of information is left behind.
+Moreover, extractions contain certain level of incorrect information due to precision losses.
+These errors cap the upper bound on the question answering system performance.
 
-More specifically, I propose the following factoid QA system architecture:
+Here I propose to utilize the synergy of structured and unstructured data, and exploit the advantages of each of them to overcome the limitations of the other.
+More particularly, I propose to annotate and index mentions of knowledge base entities in text documents.
+Such a representation induces a special kinds of edges to the knowledge base, and allows one to traverse this edges in both directions.
+These links open up many opportunities for QA reasoning, \eg retrieving all the information about the entity by going from a mention to a KB entity, finding relations between entities by retrieving text passages that mention both of them, extracting candidate evidence by retrieving passages that mention question and answer entities along with some question terms, and so on.
+
+\subsection{Approach}
+\label{subsec:text+kb_approach}
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{img/text_and_kb}
+\caption{Architecture of a hybrid factoid question answering system, that uses a combination of structured knowledge base and unstructured text data}
+\label{fig:text_kb}
+\end{figure*}
+
+The architecture of the hybrid QA model I propose is presented on Figure \ref{fig:text_kb}.
+Here are the main stages of the question answering process:
 \begin{itemize}
 \setlength\itemsep{0em}
 \item \textbf{Pre-processing}: identify mentions of KB entities in text document collection and index the documents text and mentions in separate fields
@@ -70,46 +100,39 @@ More specifically, I propose the following factoid QA system architecture:
 \item \textbf{Candidate generation from text}: extract candidate answer (or intermediate answer) entities with evidence from the retrieved text documents using existing techniques, e.g. \cite{tsai2015web}.
 \item \textbf{Candidate generation from KB}: explore the KB neighborhood of question topical entities and entities extracted from text documents on the previous step
 \item \textbf{Candidate generation from KB \& Text}: use entity and text index to find entities mentioned near question topical entity and question terms in the document collection
-\item \textbf{KB evidence extraction}: match neighbourhood of answer entities (entity type and other entities) against the question to get additional evidence
-\item \textbf{Text evidence extraction}: estimate the similarity between the collection text fragments mentionining question and answer entities and the question text
+\item \textbf{KB evidence extraction}: match neighborhood of answer entities (entity type and other entities) against the question to get additional evidence
+\item \textbf{Text evidence extraction}: estimate the similarity between the collection text fragments mentioning question and answer entities and the question text
 \item \textbf{Rank candidate}: rank candidate answers using evidence extracted from the KB as well as from text
 \end{itemize}
 
-For example, for the question mentioned in the introduction \textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''} and a candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''}, such joint text-KB representation can look like Figure \ref{fig:kb2text}.
-A QA system can discover that ``Harry Reid'' political affiliation is with the Democratic Party, and he cannot be referred to as ``republican senator''.
-In other cases using a KB as an additional source of information may reveal specific connections between entities in the question and in the answer candidates.
-For example, for another TREC QA 2007 question \textit{``For which newspaper does Krugman write?''} and retrieved candidate answer \textit{New York Times} a path between ``Paul Krugman'' and ``New York Times'' in the knowledge graph gives an evidence in support of the candidate.
+Let's consider an example question ``\textit{Who composed the music for the film that depicted the early life of Jane Austen?}'' from the QALD dataset\footnote{http://greententacle.techfak.uni-bielefeld.de/~cunger/qald/} (Figure \ref{fig:text_kb}).
+Even though it's quite easy to identify the ``\texttt{Jane Austen}'' entity in the question, the knowledge base (dbPedia in this example) cannot help us to determine which movie is being referred to.
+However, there are a lot of documents on the web, that do mention the ``\texttt{Becoming Jane}'' movie and say what is it about.
+Unfortunately, extracting the name of the composer from these documents is quite challenging, but this task can be easily accomplished by checking the value of the \texttt{musicComposer} property in the knowledge base.
+At the end, for each candidate answer entity, we have all the KB information and passages that mention this entity as evidence to help with the correct answer selection.
 
-\begin{figure*}
-\centering
- \begin{subfigure}[t]{0.45\textwidth}
- \includegraphics[width=\textwidth]{img/text_kb}
- \caption{Annotation of natural language text with mentioned entities and their subgraphs in a knowledge base}
- \label{fig:kb2text}
- \end{subfigure}
- \begin{subfigure}[t]{0.45\textwidth}
- \centering
- \includegraphics[width=\textwidth]{img/kb_text}
- \caption{Annotation of KB graph nodes and edges with unstructured text data}
-  \label{fig:text2kb}
- \end{subfigure}
-\label{fig:text_kb}
-\vspace{-0.2cm}
-\caption{Unstructured text and structured Knowledge Base connected via entity links for question answering}
-\end{figure*}
+\subsection{Evaluation}
+\label{sec:factoid_evaluation}
 
-Knowledge base question answering (KBQA) produce answers by constructing a structured query, that retrieves answer entities from the KB.
-The main challenge in KBQA is mapping between natural language phrases in the question and knowledge base entities and predicates.
-Such systems typically rely on the lexicon learned from the training data \cite{bastmore:cikm:2015:aquu,BerantCFL13:sempre,BerantL14:parasempre,yih:ACL:2015:STAGG,yao-scratch-qa-naacl2015}.
-Such lexicons are often limited and needs to be retrained to include additional data.
-The proposed approach allows a system to dig into the text resources that mention question and candidate answer pairs and use this information for scoring.
-Figure \ref{fig:text2kb} shows a sample of data available for KBQA system to answer the \textit{`` Who is the woman that John Edwards had an affair with?''} question from a popular WebQuestions dataset \cite{BerantCFL13:sempre}.
+\subsubsection{Knowledge base QA}
 
-\section{Evaluation}
+I THINK HERE WE CAN INCLUDE OUR RESULTS ON TEXT2KB.
 
-\section{Experiments}
+Most of the recent work on knowledge base question answering and semantic parsing have been evaluated on the WebQuestions dataset \cite{BerantCFL13:sempre}, which contains a collection of question text and correct answer entities.
+The questions were collected using Google Suggest API and answers crowdsourced using Amazon Mechanical Turk\footnote{http://mturk.com/}
+The proposed approach will be compared against the previous results\footnote{http://goo.gl/sePBja} on this dataset.
+Again, web can be used as a text collection which can be queried using Bing Search API.
+Relation extraction patterns can be mined using distant supervision from ClueWeb collection using publicly available dataset of Freebase annotations \cite{gabrilovich2013facc1}.
 
-\subsection{Text-based QA}
+\textbf{New factoid question answering dataset}. However, WebQuestions dataset has certain limitations, e.g. questions mined using Google Suggest API have very similar structure and lexicon, and to find the answer to the mined questions users were asked to use the question entity Freebase profile page,  which only include entities connected directly with a predicate or through a mediator node.
+Therefore most of the state-of-the-art results on the dataset use a small number of predefined logical form patterns.
+On the other hand CQA websites have a fraction of factoid questions with provided text answers.
+Here I propose to use to construct a new dataset for question answering over Freebase by selecting a subset of QnA pairs with at least one entity in question and answer and some reasonable filtering heuristics and manual validation using crowdsourcing (e.g. through Amazon Mechanical Turk).
+Existing systems need to be retrained and tested on the new dataset to compare against the proposed model.
+
+\subsubsection{Text-based QA}
+
+WE WILL ANNOTATE TREC DATASETS WITH ENTITIES!!!!
 
 TREC QA datasets served as a benchmark for various question answering systems.
 Therefore, to evaluate the proposed approach for question answering over text enriched with the structured data I propose to test it on dataset derived from TREC QA and compare against existing strong baselines, including the most related approaches \cite{Fader:2014:OQA:2623330.2623677,Sun:2015:ODQ:2736277.2741651}.
@@ -122,33 +145,13 @@ This year the deadline for system submission was on August 31 and my system trai
 The results will be available on the TREC Conference in November 2015.
 Organizers plan to continue with another TREC LiveQA task next year and this is going to be a good estimation of the effectiveness of the proposed techniques on hard real user questions.
 
-\subsection{Knowledge base QA}
 
-Most of the recent work on knowledge base question answering and semantic parsing have been evaluated on the WebQuestions dataset \cite{BerantCFL13:sempre}, which contains a collection of question text and correct answer entities.
-The questions were collected using Google Suggest API and answers crowdsourced using Amazon Mechanical Turk\footnote{http://mturk.com/}
-% Since the questions in the dataset come from Google search logs, it is a better approximation of real user needs and is cheaper to obtain than some previous benchmarks, e.g. Free917.
-The proposed approach will be compared against the previous results\footnote{http://goo.gl/sePBja} on this dataset.
-Again, web can be used as a text collection which can be queried using Bing Search API.
-Relation extraction patterns can be mined using distant supervision from ClueWeb collection using publicly available dataset of Freebase annotations \cite{gabrilovich2013facc1}.
-
-However, WebQuestions dataset has certain limitations, e.g. questions mined using Google Suggest API have very similar structure and lexicon, and to find the answer to the mined questions users were asked to use the question entity Freebase profile page,  which only include entities connected directly with a predicate or through a mediator node.
-Therefore most of the state-of-the-art results on the dataset use a small number of predefined logical form patterns.
-On the other hand CQA websites have a fraction of factoid questions with provided text answers.
-Here I propose to use to construct a new dataset for question answering over Freebase by selecting a subset of QnA pairs with at least one entity in question and answer and some reasonable filtering heuristics and manual validation using crowdsourcing (e.g. through Amazon Mechanical Turk).
-Existing systems need to be retrained and tested on the new dataset to compare against the proposed model.
-
-% \subsection{Combined QA}
-% To compare the proposed data enrichment approaches against the other available hybrid question answering systems I propose to use a dataset derived from TREC, such as the one used to evaluate the YodaQA system\footnote{https://github.com/brmson/dataset-factoid-curated}.
-% The system combining unstructured and structured approaches to question answering can be run in parallel with results ranking using a machine learning model.
-
-Datasets:
-\begin{itemize}
-\item TREC QA
-\item WebQuestions
-\item QALD
-\item New dataset for factoid quetion answering derived from Yahoo! Answers data.
-\end{itemize}
 
 \section{Summary}
+In this section we considered two different ways of combining unstructured and structured data to improve factoid question answering.
+Relation extraction from question-answer pairs aims at filling some gaps in KB fact coverage, whereas semantic annotations of text documents provides a way to incorporate information available in unstructured text documents for reasoning along with KB data to improve the performance of factoid question answering.
 
+Factoid questions represent just a part of user information needs. Many problems require more elaborate response, such as a sentence, list of instructions or in general a passage of text.
+Such questions are usually referred to as non-factoid questions and they will be the focus of the next Chapter.
 
+\clearpage

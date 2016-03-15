@@ -49,6 +49,29 @@ Improvements were made by extending the lexicon using Wikipedia and patterns exp
 But still, the amount of available labeled or weakly labeled training data is much smaller than the amount of unstructured data.
 This unstructured data will complement the learned lexicon, e.g. even if a question about a certain predicate wasn't seen during training, a set of text paragraphs mentioning both of the related entities can provide a QA system with enough evidence to make the correct decision.
 
+Table \ref{table:data_procons} lists pros and cons of structured and unstructured data sources for factoid and non-factoid question answering.
+
+\begin{table*}
+\centering
+\caption{Pros and cons of structured and unstructured data sources for factoid and non-factoid question answering}
+\begin{tabular}{| l | p{6cm} | p{6cm} |}
+\hline
+ & unstructured data & structured data \\
+\hline
+factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Knowledge Bases} \\
+ & + easy to match against question text & + aggregate all the information about entities\\
+ & + cover a variety of different information types & allow complex queries over this data using special languages (e.g. SPARQL) \\
+ & - each text phrase encodes a limited amount of information about mentioned entities & - hard to translate natural language questions into special query languages \\
+&  & - KBs are incomplete (missing entities, facts and properties) \\
+\hline
+non-factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Question-Answer pairs} \\
+ & + contain relevant information to a big chunk of user needs & + easy to find a relevant answer by matching the corresponding questions \\
+ & - hard to extract semantic meaning of a paragraph to match against the question (lexical gap) & - cover a smaller subset of user information needs \\
+\hline
+\end{tabular}
+\label{table:data_procons}
+\end{table*}
+
 
 \section{Research Questions}
 

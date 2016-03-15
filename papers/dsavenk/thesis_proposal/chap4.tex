@@ -10,6 +10,31 @@
 
 \section{Utilizing the Structure of Web Pages}
 
+Non-factoid questions are typically answered with a relatively long paragraph of text\footnote{TREC LiveQA'15 challenge limits the answer to 1000 characters}.
+This fact and the nature of questions limits the utility of structured KB resources.
+One of the main challenges for non-factoid question answering is matching between the question needs and the information expressed in text fragment.
+Analysis of TREC LiveQA 2015 participants \cite{savenkov2015liveqa} revealed that the quality of answers extracted from previously posted similar questions is typically higher than from regular web passages.
+Therefore, non-factoid QA system would benefit from the information on which questions does a paragraph of text answer.
+This information can often be extracted from the structure of a web document, e.g. forum threads, FAQ pages or various CQA websites.
+Alternatively, we can train a model to predict whether a paragraph answers a given question using titles, subtitles and surrounding text of a web page.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{img/web_page_structure_nonfactoid}
+\label{fig:web_page_structure_nonfactoid}
+\caption{Using web page structure information for non-factoid question answering}
+\end{figure*}
+
+My proposal for non-factoid question answering can be summarized as follows:
+\begin{itemize}
+\setlength\itemsep{0em}
+\item \textbf{CQA candidate generation}: retrieve a set of question-answer pairs by searching a CQA archive\footnote{https://answers.yahoo.com/}
+\item \textbf{Web document retrieval}: retrieve a set of documents by querying web search with the question (and queries generated from it)
+\item \textbf{Web candidate answer generation}: classify web page into one of the following types: article, forum thread, FAQ page, CQA page, other. Extract key elements using type-specific extractors (QnA pairs, FAQ and CQA pages, forum question and posts and article passages with the corresponding titles, subtitles and surrounding text).
+\item \textbf{Ranking}: Rank the generated candidate answers by building on techniques from existing research \cite{surdeanu2011learning}.
+\end{itemize}
+
+
 \section{Evaluation}
 LiveQA
 
