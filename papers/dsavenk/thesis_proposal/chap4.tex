@@ -3,10 +3,14 @@
 
 \mychapter{Non-factoid Question Answering}
 
-%Many user users' information needs still cannot be satisfied by web search, but could be addressed by asking people via CQA services. 
+Most of the questions that people have are not factoid and cannot be simply answered with a name, date or a number.
+Typically, such questions require a more elaborate fragment of text as an answer.
+Traditionally, question answering systems turn to web documents that might contain some relevant passages to be used as an answer.
 
 \noindent
-%In this chapter, we summarize the proposed work and preliminary findings in improving query understanding with CQA data (Research Question 2). In particular, we first focus on studying the types of web searches or information needs that lead to transition from searching to asking, and then try to identify implicit question intent in web search. The goal is to understand what types of queries would benefit most from CQA services and archives.
+In this chapter, I summarize the proposed work for improving automatic non-factoid question answering by better understanding the structure of web documents and relationships between their parts and fragments.
+% In particular, we first focus on ...., and then try to ...
+% The goal is 
 
 \section{Utilizing the Structure of Web Pages}
 
@@ -18,12 +22,12 @@ Therefore, non-factoid QA system would benefit from the information on which que
 This information can often be extracted from the structure of a web document, e.g. forum threads, FAQ pages or various CQA websites.
 Alternatively, we can train a model to predict whether a paragraph answers a given question using titles, subtitles and surrounding text of a web page.
 
-\begin{figure*}
+\begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{img/web_page_structure_nonfactoid}
 \label{fig:web_page_structure_nonfactoid}
 \caption{Using web page structure information for non-factoid question answering}
-\end{figure*}
+\end{figure}
 
 My proposal for non-factoid question answering can be summarized as follows:
 \begin{itemize}

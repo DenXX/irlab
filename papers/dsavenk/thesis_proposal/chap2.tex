@@ -4,6 +4,112 @@
 \mychapter{Related Work}
 \label{chap:related}
 
+
+There are a number of works, focusing on the future research directions in QA, \eg \cite{burger2001issues}.
+
+In \cite{Hovy:2002:QTS:1289189.1289206} authors propose a hierarchical classification of question targets, the top level qtargets are abstract, semantic, syntactic, role (reason ro manner), slot. For different targets, authors build a set of answer templates. This typology was used in authors Webclopedia TREC QA system.
+
+
+
+
+\section{Factoid question answering}
+
+One of the major factoid QA system components is lexical answer type prediction.
+One of the most famous answer type hierarchies was developed by \cite{li2006learning}, who also designed a dataset and machine learning approach for answer type prediction.
+
+
+
+
+\subsection{Text-based question answering}
+
+
+
+\subsection{Knowledge base question answering}
+
+There are multiple review papers on the topic of question answering over linked data, \eg \cite{unger2014introduction}.
+
+In the beginning of research in semantic question answering, the focus was mainly on domain-specific questions.
+In particular, GeoQuery[...] dataset was very popular.
+
+The problem of lexical gap and lexicon construction for mapping natural language phrases to knowledge base concepts is one of the major difficulties in KBQA.
+PARALEX system (\cite{fader2013paraphrase}) construct a lexicon from a collection of question paraphrases from WikiAnswers\footnote{https://answers.wikia.com/}.
+A somewhat backwards approach was proposed in ParaSempre model of \cite{BerantL14:parasempre}.
+ParaSempre rank candidate structured queries by first constructing a canonical utterance for each query and then using a paraphrasing model to score it against the original question.
+
+The earlier systems were mainly trained from question annotated with the correct parse logical form, which is expensive to obtain.
+To learn a good mapping from input phrases to knowledge base concepts such systems need to have appropriate training data, from which they can learn such mapping.
+An idea to extend a trained parser with additional lexicon, trained from web and other resources, has been proposed by \cite{CaiY13}.
+
+Most of the parses produce different results, which means that it is possible to use question-answer pairs directly \cite{BerantCFL13:sempre}.
+This work also introduces a new question-answer dataset - WebQuestions, which quickly became a quite popular benchmark for knowledge base question answering systems.
+The model of \cite{BerantCFL13:sempre} uses CCG parser, which can produce many candidate on each parsing stage.
+A common strategy is to use beam search to keep top-k options on each parsing level or agenda-based parsing \cite{berant2015imitation}, which maintains current best parses across all levels.
+
+Semantic parsing approaches start from the question utterances and work to produce its logical form, which means that the actual KB data doesn't help until its queried with the parsing result and incorrect decisions made during parsing can decrease systems' performance.
+An alternative information extraction strategy was proposed by \cite{YaoD14}, which can be very effective for relatively simple questions.
+A comparison of this approaches can be found in \cite{yao2014freebase}.
+The idea of the information extraction approach is that for most of the questions the answer lies in the neighborhood of the question topic entity, therefore, it's tractable to rank candidate queries that retrieve the neighborhood entities using features, that will estimate a mapping between the entities and predicates used in the query and question phrases.
+
+Question entity identification and disambiguation is the key component in such systems, they cannot answer the question correctly if the question entity isn't identified.
+To identify the question topical entity one needs to find a span of tokens that refers to an entity and then map it to the correct KB concept.
+Named entity recognition (NER) is often used on the first stage, and a lexicon trained from various resources maps the phrase to a KB entity.
+Neither NER nor lexicon are perfect, and decisions made on this stage of the question answering process are usually irreversible.
+Therefore, it's beneficial to generate a larger candidate pool and postpone the decision.
+For example, one can replace detected named entities with a reasonable subset of word n-grams, each of which can map to one or multiple KB entities.
+The disambiguation can be done on candidate answer ranking stage, where we will have the information on queries generated from each of the candidate and how well do these queries map to tokens in the question \cite{yao-scratch-qa-naacl2015}.
+This approach was extended in \cite{bastmore:cikm:2015:aquu} by considering a larger set of candidate query templates, features and adopting learning-to-rank to train the answer selection model.
+
+\textbf{Deep learning}
+Triumph of deep learning in various areas, including natural language processing, couldn't skip question answering.
+A common strategy is to use a joint embedding of text and knowledge base concepts.
+For example, character n-gram text representation as input to a convolutional neural network can capture the gist of the question and help map phrases to entities and predicates \cite{yih2014semantic}.
+Joint embeddings can be trained using multi-task learning, \eg a system can learn to embed a question and candidate answer subgraph using question-answer pairs and question paraphrases at the same time (\cite{BordesCW14:emnlp}).
+Memory Networks, developed by the Facebook AI Lab, can also be used to return triples stored in network memory in a response to the user question \cite{bordes2015large}.
+This approach uses embeddings of predicates and can answer relatively simple questions, that do not contain any constraints and aggregations.
+To extend deep learning framework to more complex questions, \cite{dong2015question} use multi-column convolutional neural network to capture the embedding of the entity path, context and type.
+
+\textbf{Complex questions}
+Some questions contain certain conditions, that require special filters or aggregations to be applied to a set of entities. 
+For example, the question ``\textit{who won 2011 heisman trophy?}'' contains a date, that needs to be used to filter the set of heisman trophy winners, the question ``\textit{what high school did president bill clinton attend?}'' requires a filter on the entity type to filter high schools from the list of educational institutions, and ``\textit{what is the closest airport to naples florida?}'' requires a set of airports to be sorted by distance and the closest one to be selected.
+Information extraction approaches either needs to extend the set of candidate query templates used, which is usually done manually, or to attach such aggregations later in the process, after the initial set of entities have been extracted \cite{yih:ACL:2015:STAGG}.
+An alternative strategy to answer complex questions is to use n-tuples instead of RDF triples \cite{yin2015answering}.
+
+In \cite{wang2015large} authors propose to start from single KB facts and build more complex logical formulas by combining existing ones, while scoring candidates using paraphrasing model.
+This is a template-free model, that combines the benefits of semantic parsing and information extraction approaches.
+
+\textbf{Less training data and unsupervised}
+Using answers as a form of supervision to train knowledge base question answering system is still expensive.
+Distant supervision, commonly adopted for relation extraction \cite{MintzBSJ09}, can be generalized to train semantic parsers \cite{ReddyLS14}, which makes it very attractive as it doesn't require any manual training data labeling and can be easily transfered to a new domain.
+
+\subsection{Hybrid question answering}
+
+Information extraction is one approach of utilizing a vast amount of unstructured data to improve knowledge base question answering.
+A number of approaches for relation extraction for knowledge base construction have been proposed.
+...
+
+Alternatively, open information extraction techniques (\cite{Etzioni:2008:OIE:1409360.1409378}) can be used to extract a surface form-based knowledge base, which can be very effective for question answering.
+Open question answering approach of \cite{Fader:2014:OQA:2623330.2623677} combines multiple structured (Freebase) and unstructured (OpenIE) knowledge bases together by converting them to string-based triples.
+User question can be first paraphrased using paraphrasing model learned from WikiAnswers data, then converted to a KB query and certain query rewrite rules can be applied, and all queries are ranked by a machine learning model.
+
+In \cite{xu2016enhancing}, authors propose to use textual evidence to do answer filtering.
+On the first stage with produce a list of answers using traditional information extraction techniques, and then each answer is scored using its Wikipedia page on how well it matches the question. A mapping from Wikipedia phrases and question phrases is trained.
+Such an approach allows one to filter highest mountain from the list of mountains if Wikipedia has the corresponding phrase.
+
+SPOX tuples, proposed in \cite{yahya2013robust}, encode subject-predicate-object triples along with certain keywords, that could be extracted from the same place as RDF triple.
+These keywords encode the context of the triple and can be used to match against keywords in the question. The method attempts to parse the question and uses certain relaxations (removing SPARQL triple statements) along with adding questions keyphrases as additional triple arguments.
+As an extreme case of relaxation authors build a query that return all entities of certain type and use all other question terms to filter and rank the returned list.
+The problem of mapping question phrase and entities, types and predicates is solved using integer linear programming.
+
+
+\section{Non-factoid question answering}
+
+Some questions on CQA websites are repeated very often and answers can easily be reused, \cite{Liu:2008:USA:1599081.1599144} studies different types of CQA questions and answers and analyzes them with respect to answer re-usability.
+
+
+
+---------------
+\clearpage
+
 Some useful materials for the related work section:
 \begin{itemize}
 \item https://web.stanford.edu/$\sim$jurafsky/slp3/28.pdf
