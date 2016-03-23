@@ -4,127 +4,91 @@
 \mychapter{Related Work}
 \label{chap:related}
 
+The field of automatic questions answering has a long history of research and dates back to the days when the first computers appear.
+By the early 60s people have already explored multiple different approaches to question answering and a number of text-based and knowledge base QA systems existed at that time \cite{Simmons:1965:AEQ:363707.363732,Simmons:1970:NLQ:361953.361963}.
+In 70s and 80s the development of restricted domain knowledge bases and computational linguistics theories facilitated the development of interactive expert and text comprehension systems \cite{androutsopoulos1995natural,shortliffe1975model,woods1977lunar,wilensky1988berkeley}.
+The modern era of question answering research was motivated by a series of Text Retrieval Conference (TREC\footnote{http://trec.nist.gov}) question answering shared tasks, which was organized annually since 1999 \cite{voorhees2001trec}.
+A comprehensive survey of the approaches from TREC QA 2007 can be found in \cite{dang2007overview}.
+An interested reader can refer to a number of surveys to track the progress made in automatic question answering over the years  \cite{hirschman2001natural,andrenucci2005automated,wang2006survey,Kolomiyets:2011:SQA:2046840.2047162,prager2006open,allam2012question,gupta2012survey}.
+% There are a number of works, focusing on the future research directions in QA, \eg \cite{burger2001issues}.
 
-Some useful materials for the related work section:
-\begin{itemize}
-\item https://web.stanford.edu/$\sim$jurafsky/slp3/28.pdf
-\item PhD thesis ``FEATURE-DRIVEN QUESTION ANSWERING WITH NATURAL LANGUAGE ALIGNMENT''
-\end{itemize}
+The main focus of research in automatic question answering was on factoid questions.
+However, recently we can observe an increased interest in non-factoid question answering, and as an indicator in 2015 TREC started a LiveQA shared task track\footnote{http://trec-liveqa.org/}, in which the participant systems had to answer various questions coming from real users of Yahoo! Answers\footnote{http://answers.yahoo.com/} in real time.
 
-
-% The field of question answering has a long history of research and dates back to 60s, when first systems attempted to provide a natural language interface to databases \cite{Simmons:1965:AEQ:363707.363732}.
-% In 70s and 80s the development of restricted domain knowledge bases set a task for question answering frameworks to assist users in solving their problem, which lead to the development of interactive question answering systems, e.g. \cite{shortliffe1976mycin}, \cite{woods1977lunar}.
-
-% The modern era of question answering research started with the rise of the Internet and exponential growth of information available in the World Wide Web.
-% Since 1999 the annual Text Retrieval Conference (TREC)\footnote{http://trec.nist.gov} organized a number of open domain question answering shared tasks, e.g. see \cite{dang2007overview} for a review.
-% In 2015 TREC piloted a LiveQA track\footnote{http://trec-liveqa.org/}, in which the participant systems had to answer various questions coming from real users of Yahoo! Answers\footnote{http://answers.yahoo.com/} in real time.
-
-
-There are a number of works, focusing on the future research directions in QA, \eg \cite{burger2001issues}.
-
-In \cite{Hovy:2002:QTS:1289189.1289206} authors propose a hierarchical classification of question targets, the top level qtargets are abstract, semantic, syntactic, role (reason ro manner), slot. For different targets, authors build a set of answer templates. This typology was used in authors Webclopedia TREC QA system.
-
-
-
+In the rest of the chapter I will describe related work in factoid (Section \ref{sec:rel_work:factoid}) and non-factoid (Section \ref{sec:rel_work:nonfactoid}) question answering with the focus on data sources used.
 
 \section{Factoid question answering}
+\label{sec:rel_work:factoid}
 
-The field of question answering has a long history of research and dates back to 60s (see \cite{Kolomiyets:2011:SQA:2046840.2047162} for a survey of different approaches).
-The modern era of question answering research started with the rise of the Internet and exponential growth of information available in the World Wide Web.
-Since 1999 the annual TREC organized a number of open domain question answering shared tasks \cite{dang2007overview}.
-Approaches proposed over the years can be largely classified by the type of the information used to find the answers into knowledge base and text-based systems.
+Since the early days of automatic question answering researches explored different sources of data, which lead to the development of two major approaches to factoid question answering: text-based (TextQA) and knowledge base question answering (KBQA) \cite{Simmons:1965:AEQ:363707.363732}.
+We will first describe related work in TextQA (Section \ref{sec:rel_work:factoid:text}), then introduce KBQA (Section \ref{sec:rel_work:factoid:kb}) and in Section \ref{sec:rel_work:factoid:hybrid} present existing techniques for combining different information sources together.
 
 \subsection{Text-based question answering}
+\label{sec:rel_work:factoid:text}
 
-A traditional approach to factoid question answering over document collections popularized by the TREC QA track is to retrieve a set of potentially relevant documents, extract and rank mentioned entities as candidate answers.
-One of the main challenges of such an approach is limited amount of information present in the extracted pieces of text.
-Systems test answer for incorrectness by matching the expected answer type with the type of candidate entity often predicted by an named entity tagger.
-These systems rely heavily on special complicated ontologies that encode the relationships between different question and answer types, e.g. \cite{hovy2000question,LiRoth02,li2006learning, prager2006question}.
+A traditional approach to factoid question answering over text document collections, popularized by TREC QA task, starts by querying a collection with possibly transformed question and retrieving a set of potentially relevant documents, which are then used to identify the answer.
+Information retrieval for question answering has certain differences from traditional IR methods \cite{keikha2014retrieving}, which are usually based on keyword matches.
+A natural language question contains certain information, that is not expected to be present in the answer (\eg the keyword who, what, when, \etc), and the answer statement might use language that is different from the question (lexical gap problem).
+On the other side, there is a certain additional information about expected answer statement, that a QA system might infer from the question (\eg we expect to see in a number in response to the ``how many'' question).
+One way to deal with this problem is to transform the question in certain ways before querying a collection \cite{AgichteinLG01,brill_askmsr}.
+Raw text data might be extended with certain semantic annotations by applying part of speech tagger, semantic role labeling, named entity recognizer, \etc.
+By indexing these annotations a question answering system gets an opportunity to query collection with additional attributes, inferred from the question \cite{bilotti2007structured,yao2013automatic}.
 
-However, in many cases the information from the extracted text fragments is not enough to make a judgment on an answer candidate.
-To solve this problem researchers experimented with using external resources, both unstructured (e.g. Wikipedia articles  \cite{ahn2005using, buscaldi2006mining}) and structured (e.g. Wordnet \cite{pasca2001informative}), and demonstrated improved question answering performance.
+The next stage in TextQA is to select sentences, that might contain the answer.
+One of the mostly used benchmark datasets for the task, proposed in \cite{wang2007jeopardy}, is based on TREC QA questions and sentences retrieved by participating systems\footnote{A table with all known benchmark results and links to the corresponding papers can be found on http://aclweb.org/aclwiki/index.php?title=Question\_Answering\_(State\_of\_the\_art)}.
+The early approaches for the task used simple keyword match strategies \cite{ittycheriah2001ibm,soubbotin2001patterns}.
+However, in many cases keywords doesn't capture the similarity in meaning of the sentences very well and researches started looking on syntactic information.
+Syntactic and dependency tree edit distances and kernels allow to measure the similarity between the structures of the sentences \cite{punyakanok2004mapping,shen2005exploring,heilman2010tree,yao2013answer,wang2010probabilistic}.
+Recent improvements on the answer sentence selection task come are associated with the deep learning techniques, \eg recursive neural networks using sentence dependency tree \cite{iyyer2014neural}, convolutional neural networks \cite{yu2014deep,santos2016attentive}, recurrent neural networks \cite{tan2015lstm,WangN15}.
+Another dataset, called WikiQA \cite{yang2015wikiqa}, raises a problem of answer triggering, \ie detecting cases when the retrieved set of sentences don't contain the answer.
 
+To provide a user with the concise answer to his factoid question QA systems extract the actual answer phrase from retrieved sentences.
+This problem is often formulated as a sequence labeling problem, which can be solved using structured prediction models, such as CRF \cite{yao2013answer}, or as a node labeling problem in an answer sentence parse tree \cite{malon2013answer}.
 
-DOCUMENT/PASSAGE RETRIEVAL
-Question answering systems typically start by retrieving a set of relevant documents, which are then used to identify the answer.
+Unfortunately, passages include very limited amount of information about the candidate answer entities, \ie very often it doesn't include the information about their types (person, location, organization, or more fine-grained CEO, president, basketball player, \etc), which is very important to answer question correctly, \eg for the question ``\textit{what country will host the 2016 summer olympics?}'' we need to know that \texttt{Rio de Janeiro} is a city and \texttt{Brazil} is the country and the correct answer to the question.
+Therefore, a lot of effort has been put into developing answer type typologies \cite{hovy2000question,Hovy:2002:QTS:1289189.1289206} and predicting and matching expected and candidate answer types from the available data \cite{LiRoth02,li2006learning, prager2006question}.
+Many approaches exploited external data for this task, I will describe some of this efforts in Section \ref{sec:rel_work:factoid:hybrid}.
 
-Information retrieval for question answering is different from tradition IR \cite{keikha2014retrieving}, \ie when answering a question we have more information about what we need to find, \eg expected answer type.
-
-One way to incorporate additional information in the retrieval model is to pre-process collection documents, and index this additional information, \eg POS tags, named entity types, \etc, and query them at the retrieval time \cite{yao2013automatic}.
-Semantic role labeling can also be used to identify relevant information pieces and the effectiveness of structured retrieval using SRL annotated text has been studied in \cite{bilotti2007structured}.
-
-SENTENCE SELECTION
-
-TREC QA sentence selection dataset...
-
-Another class of algorithms for answer sentence selection use syntactic parse trees and estimate tree edit distance between the question and candidate answer sentences \cite{yao2013answer}.
-
-Many recent improvements for the answer sentence selection task come from the embedding-based neural network techniques.
-Different architectures have been explored, \eg recursive neural networks using sentence dependency tree \cite{iyyer2014neural}, convolutional neural networks \cite{yu2014deep}, recurrent neural networks \cite{tan2015lstm,WangN15}.
-
-Often, retrieved set of passages doesn't contain the answer to the question, developers of the WikiQA dataset \cite{yang2015wikiqa} focus on the problem of answer triggering.
-
-ANSWER EXTRACTION
-To make the answer concise and remove redundant information question answering systems extract the actual answer phrase from retrieve sentences.
-This problem is often formulated as sequence labeling problem, which can be solved using structured prediction models, such as CRF \cite{yao2013answer}.
-Instead of linear sentence representation, a syntactic parse tree can be used and the problem can be posed and solved as tree node labeling problem, \eg using recursive neural networks \cite{malon2013answer}.
-
-
-
-REDUNDANCY
-Large text collections multiple documents expressing the same information, which makes it possible to use a simpler techniques and rely on redundancy of the information, and AskMSR QA system \cite{brill2002analysis} showed very impressive results on TREC QA 2001 shared task.
+Very large text collections, such as the Web, contain many documents expressing the same information, which makes it possible to use a simpler techniques and rely on redundancy of the information.
+\texttt{AskMSR} QA system was one of the first to exploit this idea, and achieved very impressive results on TREC QA 2001 shared task \cite{brill2002analysis}.
 The system starts by transforming a question into search queries, extracts snippets of search results from a web search engine, and consider word n-grams as answer candidates, ranking them by frequency.
 A recent revision of the AskMSR QA system \cite{tsai2015web} introduced several improvements to the original system, \ie named entity tagger for candidate extraction, and additional semantic similarity features for answer ranking.
 It was also observed, that modern search engines are much better in returning the relevant documents for question queries and query generation step is no longer needed.
-A detailed analysis of what affects the performance of the redundancy-based question answering systems can be found in \cite{lin2007exploration}.
-
-
+Another notable systems, that used the web as the source for question answering are \texttt{MULDER}\cite{kwok2001scaling}, \texttt{Aranea} \cite{lin2003question}, and a detailed analysis of what affects the performance of the redundancy-based question answering systems can be found in \cite{lin2007exploration}.
 
 \subsection{Knowledge base question answering}
+\label{sec:rel_work:factoid:kb}
 
-In the beginning of research in semantic question answering, the focus was mainly on domain-specific questions.
-In particular, GeoQuery[...] dataset was very popular.
+Earlier in the days knowledge bases were relatively small and contained information specific to a particular domain, \eg baseball statistics \cite{green1961baseball}, lunar geology \cite{woods1977lunar}, geography \cite{zelle1996learning}.
+However, one of the main challenges in KBQA is mapping between natural language phrases to the database concepts, which raises a problem of domain adaption of question answering systems.
 
+Recent development of large scale knowledge bases (\eg dbPedia \cite{auer2007dbpedia}, Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, YAGO \cite{suchanek2007yago}, WikiData\footnote{http://www.wikidata.org} shifted the attention towards open domain question answering.
+Knowledge base question answering approaches can be evaluated on an annual Question Answering over Linked Data (QALD\footnote{www.sc.cit-ec.uni-bielefeld.de/qald/}) shared task, and some popular benchmark dataset, such as Free917 \cite{cai2013large} and WebQuestions \cite{BerantCFL13:sempre}.
+A survey of some of the proposed approaches can be found in \cite{unger2014introduction}.
 
-Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}), Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, YAGO\cite{suchanek2007yago}, WikiData\footnote{http://www.wikidata.org}) motivated research in open domain question answering over linked data.
-Developed models can be compared on the annual QALD shared task \footnote{http://greententacle.techfak.uni-bielefeld.de/$\sim$cunger/qald/} and on a number of available benchmark datasets, e.g. WebQuestions \cite{BerantCFL13:sempre}.
+A series of QALD evaluation campaigns has started in 2011, and since then a number of different subtasks have been offered, \ie since QALD-3 includes a multilingual task, and QALD-4 formulated a problem of hybrid question answering.
+These tasks usually use dbPedia knowledge base and provide a training set of questions, annotated with the ground truth SPARQL queries.
+The hybrid track is of particular interest to the topic of this dissertation, as the main goal in this task is to use both structured RDF triples and free form text available in dbPedia abstracts to answer user questions.
 
-
-There are multiple review papers on the topic of question answering over linked data, \eg \cite{unger2014introduction}.
-
-% The main challenge of such systems is to map natural language questions into the structured query representation.
-% Such a lexicon can be learned from a labeled training set \cite{BerantCFL13:sempre},  ClueWeb collection aligned to Freebase \cite{ReddyLS14,YaoD14}, question paraphrases clusters from WikiAnswers \cite{BerantL14:parasempre}, Freebase triples rephrased as questions \cite{BordesCW14:emnlp}, and can be based on the embeddings of questions and knowledge base entities and predicates \cite{BordesCW14:emnlp,yih:ACL:2015:STAGG}.
+% DIFFERENCES OF HYBRID TRACK AND THIS WORK
+% Questions in the hybrid track are manually created in such a way, that they can \textit{only} be answered using a combination of RDF and free text data.
+% Secondly, the hybrid task focuses on text data already present in a KB, whereas we are exploring external text resources.
+% In general, because of the expensive labeling process, QALD datasets are rather small, for example, QALD-5 training set for multilingual question answering includes 300 examples and 40 examples for the hybrid task.
+% The evaluation was performed on 50 questions for multilingual task and just 10 for hybrid.
 
 The problem of lexical gap and lexicon construction for mapping natural language phrases to knowledge base concepts is one of the major difficulties in KBQA.
-PARALEX system (\cite{fader2013paraphrase}) construct a lexicon from a collection of question paraphrases from WikiAnswers\footnote{https://answers.wikia.com/}.
-A somewhat backwards approach was proposed in ParaSempre model of \cite{BerantL14:parasempre}.
-ParaSempre rank candidate structured queries by first constructing a canonical utterance for each query and then using a paraphrasing model to score it against the original question.
-
 The earlier systems were mainly trained from question annotated with the correct parse logical form, which is expensive to obtain.
-To learn a good mapping from input phrases to knowledge base concepts such systems need to have appropriate training data, from which they can learn such mapping.
-An idea to extend a trained parser with additional lexicon, trained from web and other resources, has been proposed by \cite{CaiY13}.
-
-Most of the parses produce different results, which means that it is possible to use question-answer pairs directly \cite{BerantCFL13:sempre}.
-This work also introduces a new question-answer dataset - WebQuestions, which quickly became a quite popular benchmark for knowledge base question answering systems.
-The model of \cite{BerantCFL13:sempre} uses CCG parser, which can produce many candidate on each parsing stage.
-A common strategy is to use beam search to keep top-k options on each parsing level or agenda-based parsing \cite{berant2015imitation}, which maintains current best parses across all levels.
-
-Semantic parsing approaches start from the question utterances and work to produce its logical form, which means that the actual KB data doesn't help until its queried with the parsing result and incorrect decisions made during parsing can decrease systems' performance.
-An alternative information extraction strategy was proposed by \cite{YaoD14}, which can be very effective for relatively simple questions.
-A comparison of this approaches can be found in \cite{yao2014freebase}.
-The idea of the information extraction approach is that for most of the questions the answer lies in the neighborhood of the question topic entity, therefore, it's tractable to rank candidate queries that retrieve the neighborhood entities using features, that will estimate a mapping between the entities and predicates used in the query and question phrases.
-
-Question entity identification and disambiguation is the key component in such systems, they cannot answer the question correctly if the question entity isn't identified.
-To identify the question topical entity one needs to find a span of tokens that refers to an entity and then map it to the correct KB concept.
-Named entity recognition (NER) is often used on the first stage, and a lexicon trained from various resources maps the phrase to a KB entity.
-Neither NER nor lexicon are perfect, and decisions made on this stage of the question answering process are usually irreversible.
-Therefore, it's beneficial to generate a larger candidate pool and postpone the decision.
-For example, one can replace detected named entities with a reasonable subset of word n-grams, each of which can map to one or multiple KB entities.
-The disambiguation can be done on candidate answer ranking stage, where we will have the information on queries generated from each of the candidate and how well do these queries map to tokens in the question \cite{yao-scratch-qa-naacl2015}.
-This approach was extended in \cite{bastmore:cikm:2015:aquu} by considering a larger set of candidate query templates, features and adopting learning-to-rank to train the answer selection model.
-
-DEEP LEARNING
-Triumph of deep learning in various areas, including natural language processing, couldn't skip question answering.
+Such an approach is hard to scale to large open domain knowledge bases, which contain millions of entities and thousands of different predicates.
+An idea to extend a trained parser with additional lexicon, built from the Web and other resources, has been proposed by \cite{CaiY13}.
+However, most of the parses of the question produce different results, which means that it is possible to use question-answer pairs directly \cite{BerantCFL13:sempre}.
+PARALEX system (\cite{fader2013paraphrase}) construct a lexicon from a collection of question paraphrases from WikiAnswers\footnote{https://answers.wikia.com/}.
+A somewhat backwards approach was proposed in ParaSempre model of \cite{BerantL14:parasempre}, which ranks candidate structured queries by first constructing a canonical utterance for each query and then using a paraphrasing model to score it against the original question.
+Another approach to learn term-predicate mapping is to use patterns obtained using distant supervision \cite{mintz2009distant} labeling of a large text corpus, such as ClueWeb \cite{yao2014information}.
+Such labelled collections can also be used to train a KBQA system, as demonstrated by \cite{ReddyLS14}.
+Such an approach is very attractive as it doesn't require any manual labeling and can be easily transfered to a new domain.
+However, learning from statements instead of question answer pairs has certain disadvantages, \eg question-answer lexical gap and noise in distant supervision labeling.
+Modern knowledge bases also contain certain surface forms for their predicates and entities, which makes it possible to convert KB RDF triples into questions and use them for training \cite{BordesCW14:emnlp}.
+Finally, many systems work with distributed vector representations for words and RDF triples and use various deep learning techniques for answer selection.
 A common strategy is to use a joint embedding of text and knowledge base concepts.
 For example, character n-gram text representation as input to a convolutional neural network can capture the gist of the question and help map phrases to entities and predicates \cite{yih2014semantic}.
 Joint embeddings can be trained using multi-task learning, \eg a system can learn to embed a question and candidate answer subgraph using question-answer pairs and question paraphrases at the same time (\cite{BordesCW14:emnlp}).
@@ -132,69 +96,74 @@ Memory Networks, developed by the Facebook AI Lab, can also be used to return tr
 This approach uses embeddings of predicates and can answer relatively simple questions, that do not contain any constraints and aggregations.
 To extend deep learning framework to more complex questions, \cite{dong2015question} use multi-column convolutional neural network to capture the embedding of the entity path, context and type.
 
-COMPLEX QUESTIONS
+As for the architecture of KBQA systems, two major approaches have been identified: semantic parsing and information extraction.
+Semantic parsing starts from question utterances and work to produce the corresponding semantic representation, \eg logical form.
+The model of \cite{BerantCFL13:sempre} uses a CCG parser, which can produce many candidates on each level of parsing tree construction.
+A common strategy is to use beam search to keep top-k options on each parsing level or agenda-based parsing \cite{berant2015imitation}, which maintains current best parses across all levels.
+An alternative information extraction strategy was proposed by \cite{YaoD14}, which can be very effective for relatively simple questions.
+A comparison of this approaches can be found in \cite{yao2014freebase}.
+The idea of the information extraction approach is that for most of the questions the answer lies in the neighborhood of the question topic entity.
+Therefore, it is possible to use a relatively small set of query patterns to generate candidate answers, which are then ranked using the information about how well involved predicates and entities match the original question.
+
+Question entity identification and disambiguation is the key component in such systems, they cannot answer the question correctly if the question entity isn't identified.
+Different systems used NER to tag question entities, which are then linked to a knowledge base using a lexicon of entity names \cite{BerantCFL13:sempre,BerantL14:parasempre,xu2014answering}.
+However, NER can easily miss the right span and the whole system would fail to produce the answer.
+Recently, most of the state-of-the-art system on WebQuestions dataset used a strategy to consider a reasonable subset of token n-grams, each of which can map to zero or more KB entities, which are disambiguated on the answer ranking stage \cite{yao-scratch-qa-naacl2015,bastmore:cikm:2015:aquu,yih:ACL:2015:STAGG}.
+Ranking of candidates can be done using a simple linear classification model \cite{yao-scratch-qa-naacl2015} or a more complex gradient boosted trees ranking model \cite{bastmore:cikm:2015:aquu,yih:ACL:2015:STAGG}.
+
 Some questions contain certain conditions, that require special filters or aggregations to be applied to a set of entities. 
 For example, the question ``\textit{who won 2011 heisman trophy?}'' contains a date, that needs to be used to filter the set of heisman trophy winners, the question ``\textit{what high school did president bill clinton attend?}'' requires a filter on the entity type to filter high schools from the list of educational institutions, and ``\textit{what is the closest airport to naples florida?}'' requires a set of airports to be sorted by distance and the closest one to be selected.
 Information extraction approaches either needs to extend the set of candidate query templates used, which is usually done manually, or to attach such aggregations later in the process, after the initial set of entities have been extracted \cite{yih:ACL:2015:STAGG}.
-An alternative strategy to answer complex questions is to use n-tuples instead of RDF triples \cite{yin2015answering}.
-
+An alternative strategy to answer complex questions is to extend RDF triples as a unit of knowledge with additional arguments and perform question answering over n-tuples \cite{yin2015answering}.
 In \cite{wang2015large} authors propose to start from single KB facts and build more complex logical formulas by combining existing ones, while scoring candidates using paraphrasing model.
-This is a template-free model, that combines the benefits of semantic parsing and information extraction approaches.
+Such a a template-free model combines the benefits of semantic parsing and information extraction approaches.
 
-LESS TRAINING DATA
-Using answers as a form of supervision to train knowledge base question answering system is still expensive.
-Distant supervision, commonly adopted for relation extraction \cite{MintzBSJ09}, can be generalized to train semantic parsers \cite{ReddyLS14}, which makes it very attractive as it doesn't require any manual training data labeling and can be easily transfered to a new domain.
-
-PROPOSAL
-However, most of the models are still biased towards the types of questions present in the training set and would benefit from more training data.
-In this work I propose to extend the training set with question-answer pairs available on CQA websites, which were shown to be useful for relation extraction \cite{SavenkovLDA15}.
-In addition, I propose to use unlabeled text resources for candidate query ranking, which can help to generalize to unseen types of questions and questions about predicates never mentioned in the training set.
-
+% PROPOSAL
+% However, most of the models are still biased towards the types of questions present in the training set and would benefit from more training data.
+% In this work I propose to extend the training set with question-answer pairs available on CQA websites, which were shown to be useful for relation extraction \cite{SavenkovLDA15}.
+% In addition, I propose to use unlabeled text resources for candidate query ranking, which can help to generalize to unseen types of questions and questions about predicates never mentioned in the training set.
 
 \subsection{Hybrid question answering}
+\label{sec:rel_work:factoid:hybrid}
 
-Knowledge bases are very effective in answering some subset of user information needs.
-The developers of Aranea QA system \cite{lin2003question} designed a set of regular expressions for popular questions that can be efficiently answered from a knowledge base and fall back to regular text-based methods for the rest of the questions.
+A natural idea of combining available information sources to improve question answering has been explored for a long time.
+WordNet lexical database \cite{miller1995wordnet} was among the first resources, that were adapted by QA community \cite{hovy2001use,pasca2001informative}, and it was used for such tasks as query expansion and definition extraction.
+Wikipedia\footnote{http://www.wikipedia.org}, which can be characterized as an unstructured and semi-structured (infoboxes) knowledge base, quickly became a valuable resource for answer extraction and verification \cite{ahn2005using,buscaldi2006mining}.
+Developers of the Aranea QA system noticed that structured knowledge bases are very effective in answering a significant portion of relatively simple questions \cite{lin2003question}.
+They designed a set of regular expressions for popular questions that can be efficiently answered from a knowledge base and fall back to regular text-based methods for the rest of the questions.
 
-INFORMATION EXTRACTION
-Information extraction is one approach of utilizing a vast amount of unstructured data to improve knowledge base question answering.
-A number of approaches for relation extraction for knowledge base construction have been proposed.
-
-In \cite{jijkoun2004information} authors explore whether syntactic dependency parsing and templates built using the parse trees help to extract more knowledge from text, which improves the recall of a question-answering system.
-
-
-OPEN IE
+One of the major drawbacks of knowledge bases is their incompleteness, which means that many entities, predicates and facts are missing from knowledge bases, which limits the number of questions one can answer using them.
+One approach to increase the coverage of knowledge bases is to extract information from other resources, such as raw text\cite{MintzBSJ09,jijkoun2004information,Gupta:2014:BOS:2732286.2732288}, web tables\cite{cafarella2008webtables}, \etc.
+However, the larger the knowledge base gets, the more difficult it's to find a mapping from natural language phrases to KB concepts.
 Alternatively, open information extraction techniques (\cite{Etzioni:2008:OIE:1409360.1409378}) can be used to extract a surface form-based knowledge base, which can be very effective for question answering.
 Open question answering approach of \cite{Fader:2014:OQA:2623330.2623677} combines multiple structured (Freebase) and unstructured (OpenIE) knowledge bases together by converting them to string-based triples.
 User question can be first paraphrased using paraphrasing model learned from WikiAnswers data, then converted to a KB query and certain query rewrite rules can be applied, and all queries are ranked by a machine learning model.
 
-KNOWLEDGE BASE + TEXT
-In \cite{xu2016enhancing}, authors propose to use textual evidence to do answer filtering.
-On the first stage with produce a list of answers using traditional information extraction techniques, and then each answer is scored using its Wikipedia page on how well it matches the question. A mapping from Wikipedia phrases and question phrases is trained.
-Such an approach allows one to filter highest mountain from the list of mountains if Wikipedia has the corresponding phrase.
-
 SPOX tuples, proposed in \cite{yahya2013robust}, encode subject-predicate-object triples along with certain keywords, that could be extracted from the same place as RDF triple.
-These keywords encode the context of the triple and can be used to match against keywords in the question. The method attempts to parse the question and uses certain relaxations (removing SPARQL triple statements) along with adding questions keyphrases as additional triple arguments.
+These keywords encode the context of the triple and can be used to match against keywords in the question. The method attempts to parse the question and uses certain relaxations (removing SPARQL triple statements) along with adding question keyphrases as additional triple arguments.
 As an extreme case of relaxation authors build a query that return all entities of certain type and use all other question terms to filter and rank the returned list.
-The problem of mapping question phrase and entities, types and predicates is solved using integer linear programming.
 
-One of the most important and well-known QA systems ever developed is IBM Watson, which was designed to play the Jeopardy TV show\footnote{https://en.wikipedia.org/wiki/Jeopardy!}.
-The system combined multiple different approaches, including text-based, relation extraction and knowledge base modules.
-The full architecture of the system is well described in \cite{ferrucci2010building} or in the full special issue of the IBM Journal of Research and Development \cite{ibm_watson_special_issue}.
-YodaQA \cite{baudivs2015yodaqa} is an open source implementation of the ideas behind the IBM Watson system.
-
-Text-based question answering systems often rely on named entity tagger to predict the type of a candidate answer entity and match it against the predicted expected answer type.
-Modern open domain knowledge bases contain comprehensive entity types hierarchies, which were utilized in QuASE system of \cite{Sun:2015:ODQ:2736277.2741651} for answer typing.
+However, by applying information extraction to raw text we inevitably lose certain portion of the information due to recall errors, and extracted data is also sometimes erroneous due to precision errors.
+In \cite{xu2016enhancing}, authors propose to use textual evidence to do answer filtering in a knowledge base question answering system.
+On the first stage with produce a list of answers using traditional information extraction techniques, and then each answer is scored using its Wikipedia page on how well it matches the question. 
+Knowledge bases can also be incorporated inside TextQA systems.
+Modern KBs contain comprehensive entity types hierarchies, which were utilized in QuASE system of \cite{Sun:2015:ODQ:2736277.2741651} for answer typing.
 In addition, QuASE exploited the textual descriptions of entities stored in Freebase knowledge base as answer supportive evidence for candidate scoring.
 However, most of the information in a KB is stored as relations between entities, therefore there is a big potential in using all available KB data to improve question answering.
 
-[!!!QALD HYBRID TRACK]
+Another great example of a hybrid question answering system is IBM Watson, which is arguably the most important and well-known QA systems ever developed so far.
+It was designed to play the Jeopardy TV show\footnote{https://en.wikipedia.org/wiki/Jeopardy!}.
+The system combined multiple different approaches, including text-based, relation extraction and knowledge base modules, each of which generated candidate answers, which are then pooled together for ranking and answer selection.
+The full architecture of the system is well described in \cite{ferrucci2010building} or in the full special issue of the IBM Journal of Research and Development \cite{ibm_watson_special_issue}.
+YodaQA \cite{baudivs2015yodaqa} is an open source implementation of the ideas behind the IBM Watson system.
 
-The main difference between such systems and the proposed research is that hybrid systems typically use separate pipelines to extract candidates from different sources and only merge the candidate set while ranking.
-I propose to extend the representation of each of the data sources for better candidate generation from the beginning.
+% The main difference between such systems and the proposed research is that hybrid systems typically use separate pipelines to extract candidates from different sources and only merge the candidate set while ranking.
+% I propose to extend the representation of each of the data sources for better candidate generation from the beginning.
 
+% [!!!QALD HYBRID TRACK]
 
 \section{Non-factoid question answering}
+\label{sec:rel_work:nonfactoid}
 
 ANSWER REUSING
 Some questions on CQA websites are repeated very often and answers can easily be reused, \cite{Liu:2008:USA:1599081.1599144} studies different types of CQA questions and answers and analyzes them with respect to answer re-usability.
@@ -240,5 +209,8 @@ Question query-url pairs are first mined from query logs, and then the wisdom of
 
 \cite{braunstain2016supporting} retrieves Wikipedia statements that support user answers for opinion questions.
 
+\section{Summary of Related Work}
+
+Most previous work in ...
 
 \clearpage
