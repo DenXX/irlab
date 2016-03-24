@@ -17,6 +17,8 @@
 
 \section{Motivation}
 
+THIS IS AN OLDER VERSION. WILL REVISE AFTER I'M DONE WITH MAIN SECTIONS.
+
 % Information retrieval approaches for question answering over text collections were shown to be quite effective for factoid questions answering. However, the amount of information encoded in a text fragment is very limited, which makes inference and reasoning hard. 
 % On the other hand, modern large scale knowledge bases encode vast amount of information about various entities and can answer all sorts of questions asked using structured query languages such as SPARQL. However, question answering over such linked data is complicated as we need to translate natural language questions into the structured form. In addition, knowledge base are incomplete and many entities, predicates and triples are simply missing.
 % I propose to bridge the gap between the structured knowledge bases and unstructured text data for question answering by annotating documents with mentioned entities and extending the set of operations involved in question answering with operations traversing these links between knowledge base and text collections. For example, exploring the neighborhood of candidate answers from text documents in a KB brings additional information about the candidate, which can be matched against the parts of the question that is not stated in text. Alternatively, text fragments mentioning a given entity and some question terms can provide a link to another entity, that is currently missing in KB as well as additional signal for ranking.
@@ -77,9 +79,29 @@ The main focus of research in automatic question answering was on \textbf{factoi
 Such questions cover, although big and an important, but only a fraction of user information needs.
 Questions that don't fall into this category are usually referred to as \textbf{non-factoid}.
 
+----
+
+Over the decades of research in factoid question answering, two relatively separate approaches have emerged: text-centric, or TextQA and knowledge base-centric, or KBQA.
+Each approach has its own advantages and disadvantages (Table \ref{table:data_procons}).
+Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
+However, each individual statement includes a very limited amount of information about mentioned entities.
+On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
+However, knowledge bases have their own disadvantages:
+\begin{itemize}
+\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
+\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
+\end{itemize}
+
+One way to improve the situation with knowledge base incompleteness is to extract missing information from other data sources, \eg \cite{Cafarella:2008:WEP:1453856.1453916,Cafarella:2009:WES:1519103.1519112,Dong:2014:KVW:2623330.2623623,Etzioni:2008:OIE:1409360.1409378,Gupta:2014:BOS:2732286.2732288,kushmerick1997wrapper}.
+In my thesis I focus on one particular data source, that didn't receive enough attention in the relation extraction literature, namely question-answer pairs.
+Section \ref{sec:relation_extraction} will describe our experiments and results in utilizing this data to improve knowledge base coverage.
+Unfortunately, relation extraction isn't perfect either and there are both precision and recall losses.
+Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process (Section \ref{sec:text+kb}).
+
+\subsection{Factoid vs Non-factoid Questions}
+
 
 \section{Research Questions}
-
 
 \section{Research Plan}
 

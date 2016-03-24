@@ -83,7 +83,7 @@ An idea to extend a trained parser with additional lexicon, built from the Web a
 However, most of the parses of the question produce different results, which means that it is possible to use question-answer pairs directly \cite{BerantCFL13:sempre}.
 PARALEX system (\cite{fader2013paraphrase}) construct a lexicon from a collection of question paraphrases from WikiAnswers\footnote{https://answers.wikia.com/}.
 A somewhat backwards approach was proposed in ParaSempre model of \cite{BerantL14:parasempre}, which ranks candidate structured queries by first constructing a canonical utterance for each query and then using a paraphrasing model to score it against the original question.
-Another approach to learn term-predicate mapping is to use patterns obtained using distant supervision \cite{mintz2009distant} labeling of a large text corpus, such as ClueWeb \cite{yao2014information}.
+Another approach to learn term-predicate mapping is to use patterns obtained using distant supervision \cite{MintzBSJ09} labeling of a large text corpus, such as ClueWeb \cite{yao2014freebase}.
 Such labelled collections can also be used to train a KBQA system, as demonstrated by \cite{ReddyLS14}.
 Such an approach is very attractive as it doesn't require any manual labeling and can be easily transfered to a new domain.
 However, learning from statements instead of question answer pairs has certain disadvantages, \eg question-answer lexical gap and noise in distant supervision labeling.
@@ -165,34 +165,31 @@ YodaQA \cite{baudivs2015yodaqa} is an open source implementation of the ideas be
 \section{Non-factoid question answering}
 \label{sec:rel_work:nonfactoid}
 
-ANSWER REUSING
-Some questions on CQA websites are repeated very often and answers can easily be reused, \cite{Liu:2008:USA:1599081.1599144} studies different types of CQA questions and answers and analyzes them with respect to answer re-usability.
-A number of methods for similar question retrieval have been proposed [NAMELY???].
-Alignment between question terms can serve as a good indicator of their semantic similarity.
-Such an alignment can be produced using a machine learning model with a set of features, representing the quality of the match \cite{wang2015faq}.
-Alignment and translation models are usually based on term-term similarities, which are often computed from a monolingual alignment corpus.
-This data can be very sparse, and to overcome this issue \cite{fried2015higher} proposed higher-order lexical semantic models, which estimates similarity between terms by considering paths of length more than 1 on term-term similarity graph.
-Monolingual alignment corpora are also limited, however, it's possible to use the discourse relations of sentences in a text to learn monolingual alignment models \cite{sharp2015spinning}.
-
-Questions often have some metadata, such as category on a community question answering website.
-This information can be very useful for certain disambiguations, and can be encoded in the answer ranking model \cite{zhou2015learning}.
-
-WEB SEARCH BASED RETRIEVAL
+During earlier days of research non-factoid questions received relatively little attention.
+TREC QA tasks started to incorporate certain categories of non-factoid questions, such as definition questions, during the last 4 years of the challenge.
 One of the first non-factoid question answering system was described in \cite{soricut2006automatic} and was based on web search using chunks extracted from the original question.
 The ranking of extracted answer candidates was done using a translation model, which showed better results than n-gram based match score.
 
-
-RANKING
-Candidate answer passages ranking problem becomes even more difficult in non-factoid questions answering as systems have to deal with larger piece of text and need to ``understand'' what kind of information is expressed there.
-One of the first extensive studies of different features for non-factoid answer ranking can be found in \cite{surdeanu2011learning}, who explored information retrieval scores, translation models, tree kernel and other features using tokens and semantic annotations (dependency tree, semantic role labelling, \etc) of text paragraphs.
-
+The growth of the popularity of community question answering (CQA) websites, such as Yahoo! Answers, Answers.com, \etc, contributed to an increased interest of the community to non-factoid questions.
+Some questions on CQA websites are repeated very often and answers can easily be reused to answer new questions, \cite{Liu:2008:USA:1599081.1599144} studies different types of CQA questions and answers and analyzes them with respect to answer re-usability.
+A number of methods for similar question retrieval have been proposed \cite{bernhard2009combining,Shtok:2012:LPA:2187836.2187939,duan2008searching,Jeon:2005:FSQ:1099554.1099572}.
 WebAP is a dataset for non-factoid answer sentence retrieval, which was developed in \cite{yang2016beyond}.
 Experiments conducted in this work demonstrated, that classical retrieval methods doesn't work well for this task, and multiple additional semantic (ESA, entity links) and context (adjacent text) features have been proposed to improve the retrieval quality.
 
-The structure of the web page, from which the answers are extracted can be very useful.
-Wikipedia articles have a good structure, and the information encoded there can be extracted in a text-based knowledge base, which can be used for question answering \cite{sondhi2014mining}.
+Candidate answer passages ranking problem becomes even more difficult in non-factoid questions answering as systems have to deal with larger piece of text and need to ``understand'' what kind of information is expressed there.
+One of the first extensive studies of different features for non-factoid answer ranking can be found in \cite{surdeanu2011learning}, who explored information retrieval scores, translation models, tree kernel and other features using tokens and semantic annotations (dependency tree, semantic role labelling, \etc) of text paragraphs.
+Alignment between question and answer terms can serve as a good indicator of their semantic similarity.
+Such an alignment can be produced using a machine learning model with a set of features, representing the quality of the match \cite{wang2015faq}.
+Alignment and translation models are usually based on term-term similarities, which are often computed from a monolingual alignment corpus.
+This data can be very sparse, and to overcome this issue \cite{fried2015higher} proposed higher-order lexical semantic models, which estimates similarity between terms by considering paths of length more than 1 on term-term similarity graph.
+An alternative strategy to overcome the sparseness of monolingual alignment corpora is to use the discourse relations of sentences in a text to learn term association models \cite{sharp2015spinning}.
 
-TREC LIVEQA
+Questions often have some metadata, such as categories on a community question answering website.
+This information can be very useful for certain disambiguations, and can be encoded in the answer ranking model \cite{zhou2015learning}.
+The structure of the web page, from which the answers are extracted can be very useful as well.
+Wikipedia articles have a good structure, and the information encoded there can be extracted in a text-based knowledge base, which can be used for question answering \cite{sondhi2014mining}.
+Information extraction methods can also be useful for the more general case of non-factoid question answering.
+For example, there is a huge number of online forums, FAQ-pages and social media, that contain question-answer pairs, which can be extracted to build a collection to query when a new question arrives \cite{cong2008finding,Jijkoun:2005:RAF:1099554.1099571,Yang:2009:ISK:1526709.1526735,ding2008using,li2011question}.
 
 Most of the approaches from TREC LiveQA 2015 combined similar question retrieval and web search techniques \cite{ecnucs_liveqa15,savenkov_liveqa15,diwant_liveqa15}.
 Answers to similar questions are very effective for answering new questions \cite{savenkov_liveqa15}.
@@ -202,12 +199,22 @@ Clue is a phrase that should be similar to the given question, and the passage t
 
 \section{User interactions}
 
+IN PROGRESS...
+
 An interesting approach for knowledge base construction through dialog with the user has been proposed by \cite{hixon2015learning}.
 
 A very nice crowdsourcing method to obtain answers to tail information needs was proposed by \cite{bernstein2012direct}.
 Question query-url pairs are first mined from query logs, and then the wisdom of a crowd is used to extract and save answers to these questions.
 
+Certain questions cannot be answered by machines only due to reasons such as lack of the appropriate data.
+Crowdsourcing was explored as one of the options to bridge this knowledge gap and assist the machine in matching, ranking and result aggregation \cite{Franklin:2011:CAQ:1989323.1989331}.
+Wisdom of a crowd can also be exploited to answer more difficult quiz questions \cite{aydin2014crowdsourcing}.
+
 \cite{braunstain2016supporting} retrieves Wikipedia statements that support user answers for opinion questions.
+
+A number of works have focused on studying and estimating different factors of user satisfaction with question answering systems \cite{ong2009measurement,Liu:2008:PIS:1390334.1390417}
+
+Interactive TREC ciQA...
 
 \section{Summary of Related Work}
 

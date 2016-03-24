@@ -1,72 +1,55 @@
 % chap3.tex
 %
 
-\newif\ifcompress
-\compresstrue   % Uncomment this line for the authors
-\compressfalse % Uncomment these two lines for anonymous review
-
 \mychapter{Structured and Unstructured Data for Factoid Question Answering}
 \label{chap:factoid}
 
 \noindent
 
-Over the decades of research in factoid question answering, two relatively separate approaches have emerged: text-centric, or Text-QA and knowledge base-centric, or KBQA.
-Each approach has its own advantages and disadvantages (Table \ref{table:data_procons}).
-Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
-However, each individual statement includes a very limited amount of information about mentioned entities.
-On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
-However, knowledge bases have their own disadvantages:
-\begin{itemize}
-\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
-\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
-\end{itemize}
+There are multiple ways to marry unstructured and structured data for joint question answering: convert structured data to unstructured format or vice versa, convert all data to certain intermediate representation or to leave them as is and link the data sources.
+In my thesis I focus on two approaches: relation extraction for knowledge base completion, and semantic annotation of text for hybrid question answering.
 
-One way to improve the situation with knowledge base incompleteness is to extract missing information from other data sources, \eg \cite{Cafarella:2008:WEP:1453856.1453916,Cafarella:2009:WES:1519103.1519112,Dong:2014:KVW:2623330.2623623,Etzioni:2008:OIE:1409360.1409378,Gupta:2014:BOS:2732286.2732288,kushmerick1997wrapper}.
-In my thesis I focus on one particular data source, that didn't receive enough attention in the relation extraction literature, namely question-answer pairs.
-Section \ref{sec:relation_extraction} will describe our experiments and results in utilizing this data to improve knowledge base coverage.
-Unfortunately, relation extraction isn't perfect either and there are both precision and recall losses.
-Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process (Section \ref{sec:text+kb}).
-
-\section{Relation Extraction for Knowledge Base Construction}
+\section{Relation Extraction for Knowledge Base Completion}
 \label{sec:relation_extraction}
 
-To tackle the first problem researchers have proposed automatic relation extraction methods, such as \cite{MintzBSJ09}, which can automatically label sentences, that might express certain KB relation and learn a model to extract these relations.
-Unfortunately, not all the information available on the web is available in natural language statements.
-% There has been a number of works on using other data sources for relation extraction, \eg web tables\cite{RELATION EXTRACTION FROM TABLES}, info boxes \cite{dbPedia paper?} and even images \cite{WHAT TO CITE}.
-In my thesis I propose a method for automatic relation extraction from question answer pairs, which are available in big numbers on community question answering websites, forums, etc.
+The information on the web is stored in multiple different forms, such as natural language statements, tables and infoboxes, images \etc.
+In this work I focus on yet another source of information: question-answer pairs.
+Community question answering archives contain hundreds of millions of question and corresponding answers.
+Information expressed in these pairs might be hard to extract or not exist at all in other formats.
 
 \subsection{Relation extraction from Question-Answer pairs}
 \label{subsec:cqa_relextract}
 
-This is my work from NAACL student research workshop.
+PUT SUMMARY OF MY NAACL STUDENT RESEARCH WORKSHOP PAPER.
 
-\subsection{Question-guided relation extraction}
-\label{subsec:question_based_relextract}
-The idea is that we can aggregate related questions and relation extraction patterns.
-When a person asks a question, we retrieve passages and sentences to extract the answer from.
-Imaging a question is asking a certain property of an entity.
-If we can retrieve a sentence, that mentions this entity along with a candidate answer, we can build a pattern for relation extraction.
-This pattern will be connected to the question ``template''.
-Likewise, if we already have relation extraction patterns we can boost those that are retrieve in response to the question and save this connection.
+% BELOW IS MY ANOTHER IDEA, BUT IT'S VAGUE AND DOESN'T HAVE ANY CONCRETE PLAN
+% \subsection{Question-guided relation extraction}
+%\label{subsec:question_based_relextract}
+%The idea is that we can aggregate related questions and relation extraction patterns.
+%When a person asks a question, we retrieve passages and sentences to extract the answer from.
+%Imaging a question is asking a certain property of an entity.
+%If we can retrieve a sentence, that mentions this entity along with a candidate answer, we can build a pattern for relation extraction.
+%This pattern will be connected to the question ``template''.
+%Likewise, if we already have relation extraction patterns we can boost those that are retrieve in response to the question and save this connection.
 
-Hypothesis:
-\begin{enumerate}
-\item Patterns retrieved in response to the question are better in quality, we can boost them. We can try to verify this on some relation extraction dataset and questions from some query log. We can also try to use some KBQA dataset.
-\item Patterns mined for questions should help question answering. This is essentially weak supervision for training knowledge base question answering using text based question answering.
-\end{enumerate}
+%Hypothesis:
+%\begin{enumerate}
+%\item Patterns retrieved in response to the question are better in quality, we can boost them. We can try to verify this on some relation extraction dataset and questions from some query log. We can also try to use some KBQA dataset.
+%\item Patterns mined for questions should help question answering. This is essentially weak supervision for training knowledge base question answering using text based question answering.
+%\end{enumerate}
 
-Problems:
-\begin{itemize}
-\item How to extract new predicates? If we have a question, and a sentence is mentioning a pair of non-related entities, how can we make a new one?
-\item How to deal with more complex questions, that are not simple relations
-\end{itemize}
+%Problems:
+%\begin{itemize}
+%\item How to extract new predicates? If we have a question, and a sentence is mentioning a pair of non-related entities, how can we make a new one?
+%\item How to deal with more complex questions, that are not simple relations
+%\end{itemize}
 
-Useful dataset: MSN query log, SimpleQuestions from Facebook, WebQuestions, NYT relation extraction dataset.
+%Useful dataset: MSN query log, SimpleQuestions from Facebook, WebQuestions, NYT relation extraction dataset.
 
-This approach can also be applied to open IE.
-There are sentence selection methods for question answering.
-We can extract noun phrases (NP mentioned in question and supposedly answer NP), and then aggregate all sentences, that mention the same NPs together.
-Hypothesis is, that we can extract patterns, that will answer the same question for other entities.
+%This approach can also be applied to open IE.
+%There are sentence selection methods for question answering.
+%We can extract noun phrases (NP mentioned in question and supposedly answer NP), and then aggregate all sentences, that mention the same NPs together.
+%Hypothesis is, that we can extract patterns, that will answer the same question for other entities.
 
 \section{Semantic Text Annotations for Hybrid Question Answering}
 \label{sec:text+kb}
@@ -124,7 +107,8 @@ The proposed approach will be compared against the previous results\footnote{htt
 Again, web can be used as a text collection which can be queried using Bing Search API.
 Relation extraction patterns can be mined using distant supervision from ClueWeb collection using publicly available dataset of Freebase annotations \cite{gabrilovich2013facc1}.
 
-\textbf{New factoid question answering dataset}. However, WebQuestions dataset has certain limitations, e.g. questions mined using Google Suggest API have very similar structure and lexicon, and to find the answer to the mined questions users were asked to use the question entity Freebase profile page,  which only include entities connected directly with a predicate or through a mediator node.
+\textbf{New factoid question answering dataset}.
+However, WebQuestions dataset has certain limitations, e.g. questions mined using Google Suggest API have very similar structure and lexicon, and to find the answer to the mined questions users were asked to use the question entity Freebase profile page,  which only include entities connected directly with a predicate or through a mediator node.
 Therefore most of the state-of-the-art results on the dataset use a small number of predefined logical form patterns.
 On the other hand CQA websites have a fraction of factoid questions with provided text answers.
 Here I propose to use to construct a new dataset for question answering over Freebase by selecting a subset of QnA pairs with at least one entity in question and answer and some reasonable filtering heuristics and manual validation using crowdsourcing (e.g. through Amazon Mechanical Turk).
@@ -144,7 +128,6 @@ For non-factoid question answering this year TREC pioneered a new question answe
 This year the deadline for system submission was on August 31 and my system trained on CQA QnA pairs participated in the challenge.
 The results will be available on the TREC Conference in November 2015.
 Organizers plan to continue with another TREC LiveQA task next year and this is going to be a good estimation of the effectiveness of the proposed techniques on hard real user questions.
-
 
 
 \section{Summary}
