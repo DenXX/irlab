@@ -2,7 +2,9 @@
 %
 
 \mychapter{Related Work}
-\label{chap:related}
+\label{chapter:related}
+
+\noindent
 
 The field of automatic questions answering has a long history of research and dates back to the days when the first computers appear.
 By the early 60s people have already explored multiple different approaches to question answering and a number of text-based and knowledge base QA systems existed at that time \cite{Simmons:1965:AEQ:363707.363732,Simmons:1970:NLQ:361953.361963}.
@@ -191,10 +193,10 @@ Wikipedia articles have a good structure, and the information encoded there can 
 Information extraction methods can also be useful for the more general case of non-factoid question answering.
 For example, there is a huge number of online forums, FAQ-pages and social media, that contain question-answer pairs, which can be extracted to build a collection to query when a new question arrives \cite{cong2008finding,Jijkoun:2005:RAF:1099554.1099571,Yang:2009:ISK:1526709.1526735,ding2008using,li2011question}.
 
-Most of the approaches from TREC LiveQA 2015 combined similar question retrieval and web search techniques \cite{ecnucs_liveqa15,savenkov_liveqa15,diwant_liveqa15}.
+Most of the approaches from TREC LiveQA 2015 combined similar question retrieval and web search techniques \cite{ecnucs_liveqa15,savenkov_liveqa15,diwang_liveqa15}.
 Answers to similar questions are very effective for answering new questions \cite{savenkov_liveqa15}.
 However, we a CQA archive doesn't have any similar questions, we have to fall back to regular web search.
-The idea behind the winning system of CMU \cite{diwant_liveqa15} is to represent each answer with a pair of phrases - clue and answer text.
+The idea behind the winning system of CMU \cite{diwang_liveqa15} is to represent each answer with a pair of phrases - clue and answer text.
 Clue is a phrase that should be similar to the given question, and the passage that follows should be the answer to this question.
 
 \section{User interactions}
@@ -215,6 +217,8 @@ Wisdom of a crowd can also be exploited to answer more difficult quiz questions 
 A number of works have focused on studying and estimating different factors of user satisfaction with question answering systems \cite{ong2009measurement,Liu:2008:PIS:1390334.1390417}
 
 Interactive TREC ciQA...
+
+\cite{de2003analysis} analyzes how clarification questions can be detected and used to improve QA performance. As far as I understand, the clarification question comes from the same user, not the system.
 
 \section{Summary of Related Work}
 

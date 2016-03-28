@@ -1,18 +1,39 @@
 % chap5.tex
 %
 
-\mychapter{Users and Question Answering Systems}
+\mychapter{Human Interaction with Question Answering Systems}
+\label{chapter:users}
+
+\noindent
+
+Modern automatic question answering systems are still far from AI machines, that we often imagine or see in the movies.
+Many user information needs are still left unanswered by existing automatic question answering systems.
+For example, only 36\% of answers of a winning approach from TREC LiveQA 2015 shared task were judged good or excellent.
+Therefore, in this chapter I will discuss the research on interactions between a human and a question answering system.
+
+More specifically, Section \ref{sec:user:hints} describes results on studying the effect of hints on user behavior for solving complex informational tasks.
+In Section \ref{sec:user:crowd} I propose research on using crowdsourcing for improving the performance of a question answering system.
+And Section \ref{sec:user:clarification} shifts the focus towards a dialogue between a user and a QA system, in particular towards clarification questions, that are often needed to understand user's question.
 
 \section{Search Hints for Complex Informational Tasks}
+\label{sec:user:hints}
 
-This is my SIGIR'14 short paper.
+SUMMARIZE SEARCH HINTS PAPER.
 
-\section{Clarification Questions}
-
-This is the work of Pavel Braslavsky.
-
-
-\section{Crowd-Sourcing Answers}
+\section{Using the Wisdom of a Crowd for Question Answering}
+\label{sec:user:crowd}
 
 This is our experiment for LiveQA answer crowdsourcing.
+
+\section{Clarification Questions}
+\label{sec:user:clarification}
+
+Today, we are observing a possible shift towards natural language interfaces, which will enable richer interaction between a human and computer, in particular question answering.
+Most of the existing systems are one-sided, \ie they operate by returning an answer in a response to a user question.
+A richer model will inevitably lead to a dialogue rather than request-response kind of communication.
+There are many practical aspects of maintaining a dialogue for question-answering.
+For example, many questions that user ask allow multiple interpretations, \eg ``FIND GOOD EXAMPLE''.
+In such cases a machine could ask a clarification questions to disambiguate certain aspects of the question and provide her with a reasonable response, instead of returning something non-relevant in the first place and force the user to think why did it happen.
+
+Of course, this task is very challenging, and as a first step I propose to study what kind of clarifications do real people typically ask.
 
