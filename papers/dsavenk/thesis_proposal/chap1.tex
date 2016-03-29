@@ -18,20 +18,12 @@
 
 \section{Motivation}
 
-THIS IS AN OLDER VERSION. WILL REVISE AFTER I'M DONE WITH MAIN SECTIONS.
 
-% Information retrieval approaches for question answering over text collections were shown to be quite effective for factoid questions answering. However, the amount of information encoded in a text fragment is very limited, which makes inference and reasoning hard. 
-% On the other hand, modern large scale knowledge bases encode vast amount of information about various entities and can answer all sorts of questions asked using structured query languages such as SPARQL. However, question answering over such linked data is complicated as we need to translate natural language questions into the structured form. In addition, knowledge base are incomplete and many entities, predicates and triples are simply missing.
-% I propose to bridge the gap between the structured knowledge bases and unstructured text data for question answering by annotating documents with mentioned entities and extending the set of operations involved in question answering with operations traversing these links between knowledge base and text collections. For example, exploring the neighborhood of candidate answers from text documents in a KB brings additional information about the candidate, which can be matched against the parts of the question that is not stated in text. Alternatively, text fragments mentioning a given entity and some question terms can provide a link to another entity, that is currently missing in KB as well as additional signal for ranking.
 
-% FROM WSDM DC
-
-% Recently we witnessed some successes of QA systems, i.e. IBM Watson winning the Jeopardy! TV show, major companies adapting question answering technologies (Apple Siri, Google Now, Microsoft Cortana, etc). 
-% However, these systems are still very limited and we have a lot to do to move beyond these 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
 
 The ability to answer user questions with precise and concise information is a hard problem with a long history of research.
 Various data sources are available for candidate answer generation, two major ones are unstructured text corpora, and structured knowledge bases (e.g. dpPedia \cite{auer2007dbpedia} and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}).
-A hybrid approach to question answering \cite{baudivs2015modeling,Ferrucci10:DeepQA} generates candidates from multiple sources, however each of them is typically processed separately and results are merged on the scoring and ranking stage when some information is already lost.
+A hybrid approach to question answering \cite{baudivs2015modeling,ferrucci2010building} generates candidates from multiple sources, however each of them is typically processed separately and results are merged on the scoring and ranking stage when some information is already lost.
 Efficient combination of different information sources has potential to improve both text and knowledge base question answering systems.
 I propose to combine all the available sources together and do joint reasoning to generate better answer candidates and improve the overall question answering performance.
 
@@ -101,8 +93,19 @@ Alternatively, in my thesis I propose a new hybrid approach to question answerin
 
 \subsection{Factoid vs Non-factoid Questions}
 
+How to classify one versus the other...
 
 \section{Research Questions}
+
+\begin{enumerate}
+\item What types of questions can be answered using text, KB or a combination of both?
+\item How does semantic annotation of unstructured data compare to information extraction for question answering?
+information extraction for KB construction vs open information extraction vs unstructured data annotation
+\item How does a combination of structured and unstructured data sources improve each of the main QA system components: question analysis, candidate generation, evidence extraction and answer selection?
+\item SOMETHING ABOUT NON-FACTOID
+\item SOMETHING ABOUT USERS
+\end{enumerate}
+
 
 \section{Research Plan}
 

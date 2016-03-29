@@ -10,7 +10,7 @@
 \newcommand{\comment}[1]{}
 \newcommand{\YA}{Yahoo!\ Answers}
 \newcommand{\eg}[0]{{\em e.g. }}
-\newcommand{\etc}[0]{{\em etc. }}
+\newcommand{\etc}[0]{{\em etc.}}
 \newcommand{\ie}[0]{{\em i.e. }}
 \newcommand{\wex}[1]{`{\em #1}'}
 \newcommand{\shortcite}[1]{\cite{#1}}
@@ -126,35 +126,62 @@
 
 
 \begin{abstract}
-Question answering (QA) research has come a long way from closed domain small systems to IBM Watson, who defeated best human competitors on the Jeopardy! TV show.
-However, an ultimate human assistant, who can automatically answer all kinds of questions one have is still just a dream.
-Over the year of research most efforts were put on factoid questions, which can be answered with a short phrase, \eg an entity name, date, number, etc.
-Modern QA systems employ a variety of different unstructured (text-corpora), semi-structured (tables, Wikipedia infoboxes, question-answer pairs) and structured (databases, knowledge bases) data sources to generate candidate answers.
-Each of the data sources has its own advantages and limitations, in particular a text fragment encodes very limited amount of information about the entities involved in the statements, which complicates the reasoning about the answer correctness.
-For example, most factoid QA systems tries to substitute missing information with a prediction, \ie predict an expected lexical answer type (LAT) from the question and match it against the also predicted answer entity type.
-On the other side of the spectrum knowledge bases (KB) aggregate all available information about entities and support effective querying with a structured query language, such as SPARQL.
-The problem comes when we need to translate natural language information need to a structured query.
-Modern knowledge base question answering (KBQA) systems use question-answer pairs (QnA), question paraphrases and other resources to learn a lexicon to map from natural language phrases to knowledge base objects, which is still limited and works well for relatively popular simple questions.
-In addition knowledge bases are inherently incomplete and many entities, predicates and facts are simply missing.
-Therefore, it make sense to combine different data sources for question answering, and this approach was already shown to be successful by systems such as IBM Watson, but they treat different data sources mostly independently and use them to produce as a set of candidates, which are then ranked and the best answer is selected.
+
+It has long been a dream to communicate with a computer as with another human being using natural language speech and text.
+Nowadays, we are coming closer to this dream as natural language interfaces become more and more popular.
+Our phones are already reasonably good in recognizing speech, and personal assistants, such as Apple Siri, Google Now, Microsoft Cortana, Amazon Alexa, \etc, help us with everyday tasks and answer some of our questions.
+Silicon Valley is observing a huge number of chat bot startups, which is arguably considered ``the next big thing''\footnote{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}.
+
+Over more than half a century of research, the area of automatic Question Answering (QA) has progressed from small single domain systems to IBM Watson, who defeated best human competitors in the Jeopardy! TV show \cite{ferrucci2010building}.
+However, many of our questions are still left unanswered, and we still have a lot to do to move beyond 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
+Questions come in different flavors, some are asking about a certain fact and can be answered with a short phrase, such as entity name, date or number.
+Such questions are typically referred to as \textit{factoid}, as opposed to rest of the questions, which are often called \textit{non-factoid}.
+In my thesis I focus on three topics in QA: 1). combination of structured and unstructured data to improve factoid question answering; 2). improving question summarization, candidate scoring and answer generation using recent advances in neural network research and better utilization of source web document structure; 3). interactions between a question answering system and real people.
+
+Text document collections and knowledge bases (KB) are very effective in answering certain types of factoid questions, but they are also complimentary to each other.
+I propose to combine these data sources via semantic annotation of KB entity mentions, which effectively extends the knowledge base with additional unstructured information, often missing or complimentary to the KB data.
+
+Non-factoid question answering is somewhat harder as it deals with a more diverse set of question and answer types.
+In my thesis I propose to improve performance of different stages of QA system pipeline by better utilization of the structure of a web page where a candidate answer is extracted from, and using deep learning techniques, inspired by recent successes in machine translation \cite{bahdanau2014neural}, text summarization \cite{rush-chopra-weston:2015:EMNLP}, automatic caption generation \cite{karpathy2015deep} and answer sentence scoring \cite{WangN15}.
+
+The focus of the last part of the thesis is on the interaction between human and a search or question answering system.
+Unfortunately, there always be cases, when a machine cannot provide a good answer to the question.
+In such cases, a QA system may come back to the user with some suggestions on how a user can solve his search problem, or with a clarification question aiming at resolving certain ambiguities.
+Alternatively, a machine can consult with the crowd in order to get the answer or help it decide on certain alternatives.
+
+In summary, the goal of the proposed research is to improve the performance of question answering over a variety of different questions a user might have, and to study some reply strategies in case a system fails to deliver a good response.
+I believe, that results of the proposed work will be useful for the future research in improving automatic question answering.
+
+
+
+% THIS PART IS OLDER...
+
+%Over the year of research most efforts were put on factoid questions, which can be answered with a short phrase, \eg an entity name, date, number, etc.
+%Modern QA systems employ a variety of different unstructured (text-corpora), semi-structured (tables, Wikipedia infoboxes, question-answer pairs) and structured (databases, knowledge bases) data sources to generate candidate answers.
+%Each of the data sources has its own advantages and limitations, in particular a text fragment encodes very limited amount of information about the entities involved in the statements, which complicates the reasoning about the answer correctness.
+%For example, most factoid QA systems tries to substitute missing information with a prediction, \ie predict an expected lexical answer type (LAT) from the question and match it against the also predicted answer entity type.
+%On the other side of the spectrum knowledge bases (KB) aggregate all available information about entities and support effective querying with a structured query language, such as SPARQL.
+%The problem comes when we need to translate natural language information need to a structured query.
+%Modern knowledge base question answering (KBQA) systems use question-answer pairs (QnA), question paraphrases and other resources to learn a lexicon to map from natural language phrases to knowledge base objects, which is still limited and works well for relatively popular simple questions.
+%In addition knowledge bases are inherently incomplete and many entities, predicates and facts are simply missing.
+%Therefore, it make sense to combine different data sources for question answering, and this approach was already shown to be successful by systems such as IBM Watson, but they treat different data sources mostly independently and use them to produce as a set of candidates, which are then ranked and the best answer is selected.
 % However, for many questions it might be hard to find good candidates in the first place, and one would benefit from utilizing all available resources together at this stage.
-In my dissertation I propose to consider unstructured textual and structured knowledge base resources, connected via entity linking, together for joint reasoning on the candidate generation stage.
-Existing datasets for question answering are either relatively small (QALD tasks), focused on text (TREC QA) or on knowledge bases only (\eg WebQuestions).
-To evaluate the approach I'm going to build a new realistic dataset extracted from Yahoo! Answers question-answer pairs.
+%In my dissertation I propose to consider unstructured textual and structured knowledge base resources, connected via entity linking, together for joint reasoning on the candidate generation stage.
+%Existing datasets for question answering are either relatively small (QALD tasks), focused on text (TREC QA) or on knowledge bases only (\eg WebQuestions).
+%To evaluate the approach I'm going to build a new realistic dataset extracted from Yahoo! Answers question-answer pairs.
 
-Beyond factoid questions we have a plethora of different information needs, that require more than a simple fact to answer.
-Such questions are usually called non-factoid and more and more research effort is devoted to answering such questions.
-In 2015 Text REtrieval Conference (TREC) pioneered LiveQA shared task track, which targets automatic question answering of various types of questions user post on Yahoo! Answers Community Question Answering (CQA) website.
-Existing research has demonstrated the effectiveness of reusing answers to similar previously posted questions, but in many cases such questions are not available or challenging to find.
-Alternatively, existing systems rank passages extracted from regular web pages.
-However, ranking is complicated due to the lexical gap between question and answer text.
-Knowledge about what question does a paragraph of text answers would be very useful signal for ranking, which is supported by the results of the winning TREC LiveQA approach.
-In my thesis I propose to make a step further and automatically extract candidates text passages along with questions which they answers.
-This can be done by automatically detecting question-answer pairs from certain web pages (\eg forums, FAQ, \etc).
-In addition, we can build upon the recent success with automatic text generation by recurrent neural networks and train a model to predict a question for a given text fragment.
+%Beyond factoid questions we have a plethora of different information needs, that require more than a simple fact to answer.
+%Such questions are usually called non-factoid and more and more research effort is devoted to answering such questions.
+%In 2015 Text REtrieval Conference (TREC) pioneered LiveQA shared task track, which targets automatic question answering of various types of questions user post on Yahoo! Answers Community Question Answering (CQA) website.
+%Existing research has demonstrated the effectiveness of reusing answers to similar previously posted questions, but in many cases such questions are not available or challenging to find.
+%Alternatively, existing systems rank passages extracted from regular web pages.
+%However, ranking is complicated due to the lexical gap between question and answer text.
+%Knowledge about what question does a paragraph of text answers would be very useful signal for ranking, which is supported by the results of the winning TREC LiveQA approach.
+%In my thesis I propose to make a step further and automatically extract candidates text passages along with questions which they answers.
+%This can be done by automatically detecting question-answer pairs from certain web pages (\eg forums, FAQ, \etc).
+%In addition, we can build upon the recent success with automatic text generation by recurrent neural networks and train a model to predict a question for a given text fragment.
 
-In summary, this dissertation aims to improve the performance of automatic question answering systems for both factoid and non-factoid question answering.
-
+%In summary, this dissertation aims to improve the performance of automatic question answering systems for both factoid and non-factoid question answering.
 
 \end{abstract}
 
