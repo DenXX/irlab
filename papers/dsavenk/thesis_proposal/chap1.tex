@@ -18,33 +18,25 @@
 
 \section{Motivation}
 
+It has long been a dream to communicate with a computer as with another human being using natural language speech and text.
+Nowadays, we are coming closer to this dream as natural language interfaces become more and more popular.
+Our phones are already reasonably good in recognizing speech, and personal assistants, such as Apple Siri, Google Now, Microsoft Cortana, Amazon Alexa, \etc, help us with everyday tasks and answer some of our questions.
+Chat bots are arguably considered ``the next big thing'', and a number startups developing this kind of technologies has emerged in Silicon Valley and around the world\footnote{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}.
 
+Questions are a natural way of communicating ones information needs.
+Users of modern search engines are already used to receiving an answer panel in response to some of their questions \footnote{https://www.stonetemple.com/rich-answers-in-search/}.
+However, there is still a big number of questions, for which users have to click on 10 blue links and mine the answer from the huge amount of information contained in retrieved documents.
+Therefore, in my thesis I focus on helping users get answers to their questions by improving question answering methods and interactions between a human and a computer system.
 
+It's common to divide questions into \textit{factoid} and \textit{non-factoid}.
+Factoid questions are inquiring about certain facts and can be answered with a short phrase (or list), \ie entity name, date or number.
+An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
+Besides this type of questions, people often ask for recommendations, opinion, instructions, definitions, reason \etc.
+These questions are typically combined under an umbrella of non-factoid questions.
 
-The ability to answer user questions with precise and concise information is a hard problem with a long history of research.
-Various data sources are available for candidate answer generation, two major ones are unstructured text corpora, and structured knowledge bases (e.g. dpPedia \cite{auer2007dbpedia} and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}).
-A hybrid approach to question answering \cite{baudivs2015modeling,ferrucci2010building} generates candidates from multiple sources, however each of them is typically processed separately and results are merged on the scoring and ranking stage when some information is already lost.
-Efficient combination of different information sources has potential to improve both text and knowledge base question answering systems.
-I propose to combine all the available sources together and do joint reasoning to generate better answer candidates and improve the overall question answering performance.
-
-% Text-bases QA systems were shown to be quite effective on the TREC QA tasks as well as on other benchmark datasets \cite{dang2007overview}.
-Question answering from text corpora typically starts by retrieving a set of potentially relevant documents using the question (or some transformation of the question \cite{AgichteinLG01}) as the query, and then extracting entities, phrases, sentences or paragraphs believed to be the answer to the question.
-However, the information available in the retrieved pieces of text is very limited and often not enough to decide whether it can be the answer to the given question.
-For example, below is one of the questions from TREC QA 2007 dataset:\\
-\textit{``What republican senators supported the nomination of Harriet Miers to the Supreme Court?''}\\
-A candidate answer sentence \textit{``Minority Leader Harry Reid had already offered his open support for Miers.''} mentions a senator ``Harry Reid'' and clearly says about his support of the nomination.
-However, ``Harry Reid'' is not a correct answer to the question because he is a member of the Democratic party.
-This information is not available in the answer candidate sentence, but it is present as one of the properties in Freebase: [Harry Reid, political\_party, Democratic party]\footnote{Actually, in Freebase the entities are connected by a path of length 2 through a mediator node. The predicates on the path are: /government/politician/party and /government/political\_party\_tenure/party}.
-Therefore, by looking into the knowledge available about the mentioned entities a QA system can make a better judgment about the candidate answer.
-
-Question answering over linked data (knowledge bases) converts a natural language question into a structured query, such as SPARQL.
-The main challenge for such systems is to map words and phrases from the question to the corresponding entities and predicates from a KB.
-Usually, such lexicon is built during training using ground truth question-query pairs \cite{CaiY13} or question-answer pairs \cite{BerantCFL13:sempre}.
-Improvements were made by extending the lexicon using Wikipedia and patterns expressing certain predicates obtained via distant supervision \cite{bastmore:cikm:2015:aquu,BordesCW14:emnlp,ReddyLS14,yih:ACL:2015:STAGG,YaoD14}.
-But still, the amount of available labeled or weakly labeled training data is much smaller than the amount of unstructured data.
-This unstructured data will complement the learned lexicon, e.g. even if a question about a certain predicate wasn't seen during training, a set of text paragraphs mentioning both of the related entities can provide a QA system with enough evidence to make the correct decision.
-
-Table \ref{table:data_procons} lists pros and cons of structured and unstructured data sources for factoid and non-factoid question answering.
+There are multiple different types of information sources, that various QA systems use to find the answers to user questions.
+These data sources can be classified into unstructured (\eg raw natural language text), semi-structured (\eg tables) and structured (\eg knowledge bases).
+Each of these types has certain advantages and limitations (Table \ref{table:data_procons}).
 
 \begin{table*}
 \centering
@@ -67,33 +59,37 @@ non-factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Questi
 \label{table:data_procons}
 \end{table*}
 
-
-The main focus of research in automatic question answering was on \textbf{factoid questions}, which inquire about a certain fact and can be answered with a short phrase, such as an entity name, date or number.
-Such questions cover, although big and an important, but only a fraction of user information needs.
-Questions that don't fall into this category are usually referred to as \textbf{non-factoid}.
-
-----
-
-Over the decades of research in factoid question answering, two relatively separate approaches have emerged: text-centric, or TextQA and knowledge base-centric, or KBQA.
-Each approach has its own advantages and disadvantages (Table \ref{table:data_procons}).
-Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
-However, each individual statement includes a very limited amount of information about mentioned entities.
-On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
-However, knowledge bases have their own disadvantages:
-\begin{itemize}
-\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
-\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
-\end{itemize}
-
+Two major paradigms for factoid question answering are knowledge base question answering (KBQA) and text-based question answer (TextQA).
+Information contained in a huge volume of text data on the web can be relatively easily queried using terms and phrases from the original question in order to retrieve sentences that might contain the answer.
+However, each sentence encode very limited amount of information about mentioned entities and aggregating information over unstructured data is quite problematic.
+On the other hand, modern large scale knowledge bases, such as Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, dbPedia \cite{auer2007dbpedia}, YAGO \cite{yago3}, WikiData \cite{vrandevcic2014wikidata}, aggregate information about millions of entities into a graph of [subject, predicate, object] RDF triples.
+The problem with KBs is that they are inherently incomplete and miss a lot of entities, facts and predicates.
+In addition, triple data representation format complicates retrieval of KB concepts relevant to question phrases.
+The focus of the proposed research in factoid question answering lies on the idea of combining structured KB and unstructured text data, which can help a QA system to overcome these drawbacks.
 One way to improve the situation with knowledge base incompleteness is to extract missing information from other data sources, \eg \cite{Cafarella:2008:WEP:1453856.1453916,Cafarella:2009:WES:1519103.1519112,Dong:2014:KVW:2623330.2623623,Etzioni:2008:OIE:1409360.1409378,Gupta:2014:BOS:2732286.2732288,kushmerick1997wrapper}.
 In my thesis I focus on one particular data source, that didn't receive enough attention in the relation extraction literature, namely question-answer pairs.
 Section \ref{sec:relation_extraction} will describe our experiments and results in utilizing this data to improve knowledge base coverage.
 Unfortunately, relation extraction isn't perfect either and there are both precision and recall losses.
-Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process (Section \ref{sec:text+kb}).
+Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process.
+More specifically, I propose to use semantic annotation of KB entity mentions in text documents as a bridge between data sources (Section \ref{sec:text+kb}).
 
-\subsection{Factoid vs Non-factoid Questions}
+The main challenge in non-factoid question answering lies in the diversity of question and answer types.
+Typically, QA systems use text collections to retrieve passages of text, which are then ranked and the top candidate is returned.
+One of the main challenges in this pipeline is estimating semantic similarity between the question and an answer candidate, which may use totally different language.
+One of the most effective strategies is to retrieve answers to previously asked questions.
+Such a strategy simplifies the candidate answer scoring problem by providing the question which it answers.
+TO BE CONTINUED...
 
-How to classify one versus the other...
+% THIS PIECE IS GOOD, BUT IT DUPLICATES SOMETHING I HAVE ALREADY SAID. KEEPING IT JUST IN CASE...
+% Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
+%However, each individual statement includes a very limited amount of information about mentioned entities.
+%On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
+%However, knowledge bases have their own disadvantages:
+%\begin{itemize}
+%\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
+%\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
+%\end{itemize}
+
 
 \section{Research Questions}
 
