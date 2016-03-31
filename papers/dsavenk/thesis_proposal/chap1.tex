@@ -73,13 +73,6 @@ Unfortunately, relation extraction isn't perfect either and there are both preci
 Alternatively, in my thesis I propose a new hybrid approach to question answering, which leverages a combination of text and knowledge base data to improve every stage of question answering process.
 More specifically, I propose to use semantic annotation of KB entity mentions in text documents as a bridge between data sources (Section \ref{sec:text+kb}).
 
-The main challenge in non-factoid question answering lies in the diversity of question and answer types.
-Typically, QA systems use text collections to retrieve passages of text, which are then ranked and the top candidate is returned.
-One of the main challenges in this pipeline is estimating semantic similarity between the question and an answer candidate, which may use totally different language.
-One of the most effective strategies is to retrieve answers to previously asked questions.
-Such a strategy simplifies the candidate answer scoring problem by providing the question which it answers.
-TO BE CONTINUED...
-
 % THIS PIECE IS GOOD, BUT IT DUPLICATES SOMETHING I HAVE ALREADY SAID. KEEPING IT JUST IN CASE...
 % Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
 %However, each individual statement includes a very limited amount of information about mentioned entities.
@@ -90,28 +83,53 @@ TO BE CONTINUED...
 %\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
 %\end{itemize}
 
+The main challenge in non-factoid question answering lies in the diversity of question and answer types.
+One of the most effective strategies is to reuse answers to previously asked questions, which could be found, for example, in CQA archives \cite{Shtok:2012:LPA:2187836.2187939}.
+Unfortunately, it's not always possible to find a similar question, that has already been answered.
+Many information needs are unique or contain unique details, which makes it impossible to reuse old answers.
+Alternative strategies include ranking text passages extracted from retrieved web documents.
+One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
+Therefore, one would benefit from knowing what kind of questions could a paragraph of text answer.
+This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
+Therefore, one of the questions I'm going to focus in my thesis is how to effectively use the structure of web page to predict whether an extracted passage of text answer the given question.
+
+However, ranking isn't the only important part of the question answering pipeline.
+A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
+Non-factoid questions, especially those that people post on CQA websites are often long, which makes it problematic to use directly as search queries.
+Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
+In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
+Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
+Different answer candidates might by complimentary to each other, answer different parts of the question or have different opinions on the subject.
+
+NEED A PARAGRAPH ABOUT USERS AND QA.
 
 \section{Research Questions}
 
+Research questions I proposed addressed in my thesis are the following:
+
 \begin{enumerate}
-\item What types of questions can be answered using text, KB or a combination of both?
-\item How does semantic annotation of unstructured data compare to information extraction for question answering?
-information extraction for KB construction vs open information extraction vs unstructured data annotation
-\item How does a combination of structured and unstructured data sources improve each of the main QA system components: question analysis, candidate generation, evidence extraction and answer selection?
-\item SOMETHING ABOUT NON-FACTOID
-\item SOMETHING ABOUT USERS
+\item How to effectively combine unstructured text and structured knowledge base data to improve factoid question answering?
+\begin{enumerate}
+  \item What types of questions can be answered using text, KB or a combination of both?
+  \item How does semantic annotation of unstructured data compare to information extraction for question answering?
+     (information extraction for KB construction vs open information extraction vs unstructured data annotation)
+  \item How does a combination of structured and unstructured data sources improve each of the main QA system components: question analysis, candidate generation, evidence extraction and answer selection?
+\end{enumerate}
+\item How to improve question understanding and answer generation for non-factoid question answering using recent advances in deep learning?
+\item What kind of information about the structure of a web page can help to score an extracted passage as a candidate answer to the given question?
+\item How can we improve user success with question answering by providing them with search strategy hints, clarifications or by employing the crowd?
 \end{enumerate}
 
 
 \section{Research Plan}
 
-\subsection{Step 1 (Chapter 3)}
+\subsection{Step 1 (Chapter \ref{chapter:factoid})}
 \label{sec:plan1}
 
-\subsection{Step 2 (Chapter 4)}
+\subsection{Step 2 (Chapter \ref{chapter:non-factoid})}
 \label{sec:plan2}
 
-\subsection{Step 3 (Chapter 5)}
+\subsection{Step 3 (Chapter \ref{chapter:users})}
 \label{sec:plan3}
 
 \subsection{Research Timeline}
