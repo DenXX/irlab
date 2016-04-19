@@ -7,13 +7,6 @@
 %\documentclass[12pt,dblspace]{report}
 \documentclass[12pt]{report}
 
-\newcommand{\comment}[1]{}
-\newcommand{\YA}{Yahoo!\ Answers}
-\newcommand{\eg}[0]{{\em e.g. }}
-\newcommand{\etc}[0]{{\em etc.}}
-\newcommand{\ie}[0]{{\em i.e. }}
-\newcommand{\wex}[1]{`{\em #1}'}
-\newcommand{\shortcite}[1]{\cite{#1}}
 %\usepackage{url}
 \usepackage[hyphens]{url}
 % \usepackage{subfigure}
@@ -31,7 +24,7 @@
 \usepackage[margin=.8in]{geometry}
 \usepackage{graphicx}
 \usepackage{amssymb}
-\usepackage{amsmath}
+\usepackage[cmex10]{amsmath}
 \usepackage{epstopdf}
 \usepackage{setspace}
 \usepackage{listings}
@@ -39,6 +32,11 @@
 \usepackage{url}
 \usepackage{float}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{fit,positioning}
+
+% macros of Wei-Lwun
+\input{macros/macros_wll.tex}
 
 \floatstyle{plain} 
 %\floatstyle{boxed}
