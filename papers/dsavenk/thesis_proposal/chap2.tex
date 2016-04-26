@@ -220,6 +220,38 @@ Rather than suggesting to users the available search functionality, this work fo
 
 %-=-=-=-=-= END FROM HINTS PAPER
 
+
+%-=-=-=-=-=- FROM CROWDSOURCING PAPER
+
+Using the wisdom of a crowd to help users satisfy their information needs has been studied before in the literature.
+\cite{bernstein2012direct} explored the use of crowdsourcing for offline preparation of answers to tail search queries.
+In this work log mining techniques were used to identify potential question-answer fragment pairs, which were then processed by the crowd to generate the final answer.
+This offline procedure allows a search engine to increase the coverage of direct answers to user questions.
+In our work, however, the focus is on online question answering, which requires fast responses to the user, who is unlikely to wait more than a minute.
+Another related work is targeting a different domain, namely SQL queries.
+The CrowdDB system \cite{franklin2011crowddb} is an SQL-like processing system for queries, that cannot be answered by machines only.
+In CrowdDB human input is used to collect missing data, perform computationally difficult functions or matching against the query.
+In \cite{aydin2014crowdsourcing} authors explored efficient ways to combine human input for multiple choice questions from the ``Who wants to be a millionaire?'' TV show.
+In this scenario going with the majority for complex questions isn't effective, and certain answerer confidence weighting schemas can improve the results.  
+
+Using crowdsourcing for relevance judgments has been studied extensively in the information retrieval community, e.g., \cite{Alonso:2008:CRE:1480506.1480508,alonso2011design,grady2010crowdsourcing} to name a few.
+The focus in these works is on document relevance, and the quality of crowdsourced judgments.
+Whereas in our paper we are investigating the ability of a crowd to quickly assess the quality of the answers in a nearly real-time setting.
+
+Crowdsourcing is usually associated with offline data collection, which requires significant amount of time.
+Its application to (near) real-time scenarios poses certain additional challenges.
+\cite{bernstein2011crowds} introduced the retainer model for recruiting synchronous crowds for interactive real-time tasks and showed their effectiveness on the best single image and creative generation tasks.
+We are planning to build on these ideas and integrate a crowd into a real-time question answering system.
+The work of \cite{Lasecki:2013:CCC:2501988.2502057} showed how multiple workers can sit behind a conversational agent named Chorus, where human input is used to propose and vote on responses. 
+Another use of a crowd for maintaining a dialog is presented in \cite{Bessho:2012:DSU:2392800.2392841}, who let the crowd handle difficult cases, when a system was not able to automatically retrieve a good response from the database of twitter data.
+In this paper, we focus on a single part of the human-computer dialog, i.e. question answering, which requires a system to provide some useful information in a response to the user.
+
+
+
+%-=-=-=-=-=-= END FROM CROWDSOURCING PAPER
+
+
+
 An interesting approach for knowledge base construction through dialog with the user has been proposed by \cite{hixon2015learning}.
 
 A very nice crowdsourcing method to obtain answers to tail information needs was proposed by \cite{bernstein2012direct}.
