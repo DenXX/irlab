@@ -804,7 +804,7 @@ The main stages of the QA pipeline are the following:
 \item \textbf{Candidate generation from KB \& Text}: use entity and text index to find entities mentioned near question topical entity and question terms in the document collection
 \item \textbf{KB evidence extraction}: match neighborhood of answer entities (entity type and other entities) against the question to get additional evidence
 \item \textbf{Text evidence extraction}: estimate the similarity between the collection text fragments mentioning question and answer entities and the question text
-\item \textbf{Rank candidate}: rank candidate answers using evidence extracted from the KB as well as from text
+\item \textbf{Rank candidate}: rank candidate answers using evidence extracted from the KB as well as from text. One particular appealing idea for a ranking model is to estimate $p(q|G_e)$, where $G_e$ is a knowledge subgraph, associated with the current answer candidate. This probability estimates how likely the question could be generated from the knowledge subgraph language model.
 \end{itemize}
 
 As a motivating example, let's consider the following question from the QALD dataset: ``\textit{Who composed the music for the film that depicted the early life of Jane Austen?}''.
@@ -812,7 +812,6 @@ Even though it's quite easy to identify the ``\texttt{Jane Austen}'' entity in t
 However, there are plentiful of documents on the web, that describe the plot of the \texttt{Becoming Jane} movie, and a system can use the proximity of terms from the question \textit{``... depicted early life of Jane Austen''} to the movie entity.
 Unfortunately, extracting the name of the composer from these documents is quite challenging, but this task can be easily accomplished by checking the value of the \texttt{musicComposer} property in the knowledge base.
 At the end, for each candidate answer entity, we have all the KB information and passages that mention this entity as evidence to help with the correct answer selection.
-
 
 \subsubsection{Evaluation}
 \label{sec:factoid_evaluation}

@@ -7,13 +7,15 @@
 \noindent
 
 Modern automatic question answering systems are still far from AI machines, that we often imagine or see in the movies.
-Many user information needs are still left unanswered by existing automatic question answering systems.
+Many user information needs are still unanswered by existing techniques.
 For example, only 36\% of answers of a winning approach from TREC LiveQA 2015 shared task were judged good or excellent.
-Therefore, in this chapter I will discuss the research on interactions between a human and a question answering system.
-
-More specifically, Section \ref{sec:user:hints} describes results on studying the effect of hints on user behavior for solving complex informational tasks.
-In Section \ref{sec:user:crowd} I propose research on using crowdsourcing for improving the performance of a question answering system.
-And Section \ref{sec:user:clarification} shifts the focus towards a dialogue between a user and a QA system, in particular towards clarification questions, that are often needed to understand user's question.
+And it's unlike to become 100\% as users are not perfect either and often the questions they ask are hard to understand or ambiguous.
+Therefore, it is important to improve not only the answering aspect of the systems, but also interaction experience altogether.
+In this chapter I propose a couple of research directions in this area, which can help improve the overall success rate by engaging in a dialog with the user.
+More specifically, in Section \ref{sec:user:hints} I describe strategic search hints for complex informational tasks, which a system can show to the user in case its response was not satisfactory.
+We discuss the effects such hints have on the user success rate and satisfaction.
+However, this type of intervention leaves all the heavy lifting of formulating good search queries on the user.
+Section \ref{sec:user:clarification} discuss how a system can engage in a dialog by asking some clarification questions to resolve ambiguities in user's question.
 
 %-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 \section{Search Hints for Complex Informational Tasks}
@@ -219,16 +221,62 @@ It should be possible to learn strategies applied by the experienced search user
 \section{Clarification Questions}
 \label{sec:user:clarification}
 
-Today, we are observing a possible shift towards natural language interfaces, which will enable richer interaction between a human and computer, in particular question answering.
+Nowadays, with intelligent assistants and chat bots we are observing a shift towards natural language interfaces, which will enable richer interaction between a human and computer, in particular question answering.
 Most of the existing systems are one-sided, \ie they operate by returning an answer in a response to a user question.
 A richer model will inevitably lead to a dialogue rather than request-response kind of communication.
 There are many practical aspects of maintaining a dialogue for question-answering.
-For example, many questions that user ask allow multiple interpretations, \eg ``FIND GOOD EXAMPLE''.
-In such cases a machine could ask a clarification questions to disambiguate certain aspects of the question and provide her with a reasonable response, instead of returning something non-relevant in the first place and force the user to think why did it happen.
+For example, many questions that user ask are not clear or ambiguous, \eg ``How can I bring up my pictures that I had in windows 8.1?''.
+Instead of returning a useless answer, a system can detect a problem with the question and come back with a clarification question to the user, which would allow to use the response to generate a better answer.
 
-Of course, this task is very challenging, and as a first step I propose to study what kind of clarifications do real people typically ask.
+The research I propose towards a dialog-based QA are:
+\begin{itemize}
+\item Study user behavior patterns associated with asking clarification questions
+\item Build a classification model to predict when a question requires a clarification
+\item Choose a subset of clarification types and design a system to generate questions in response to ambiguous user queries.
+\end{itemize}
+
+For our behavior study we are planning to use data from StackExchange CQA website\footnote{http://stackexchange.com/}, which allows users not only answer the posted questions, but also comment on them and many comments are indeed clarification questions (Figure \ref{figure:user:clarification:stackexchange}).
+We will filter out questions, that contain a question comment and perform an exploratory study of different types of forms of these responses.
+
+Preliminary analysis suggested, that there are many different kinds and nature of clarifications.
+Some address the general quality of user's question, \eg ``Is this a duplicate of [...]''.
+Another fraction of the clarifications address certain ambiguities present in the question or in the described situation, \eg ``In what way is it oversize -- too high, wide, or both? What are the dimensions?''.
+These types of clarifications doesn't usually refer to any particular answer or solution.
+Finally, some comments are actually proposing certain answers, which might be trivial (``Have you tried contacting the company's customer support?'') or might not work (``Have you tried adjusting the fill valve / float arm so the tank fills higher?'').
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{img/stackexchange_example}
+\caption{A question and clarification comment posted by users on StackExchange question answering website}
+\label{figure:user:clarification:stackexchange}
+\end{figure}
+
+
+In my thesis I'm planning to focus on a subset of questions, that are ambiguous and therefore cannot be reliably answered without a clarification.
+We will select a subset of such questions from the dataset, and train a machine learning model to predict whether a question requires a clarification or can be answered as is.
+This problem is somewhat similar to the question answerability, studied in \cite{dror2013will,shah2010evaluating}.
+However, the problem here is more specific, as we can imagine that an ambiguous question can still receive an answer, and questions that are not ambiguous can be left unanswered, for example if the community did not know the answer.
+However, the features explored in these works will probably be useful in our scenario as well.
+For evaluation, I will split the original dataset into training and test sets and use precision and recall classification metrics.
+
+Finally, the next stage after we detected an ambiguous question is to automatically ask a clarification question.
+I'm planning to explore two possible approaches: template-based and recurrent neural networks based approaches.
+Template-based approach will target a subset of potential questions, \eg ``What type of <OBJ> do you have?'', ``How old is your <OBJ>?'', \etc.
+Such templates can be automatically mined from the collection, and the only problem for the model is to detect the object to ask about, which can be solved by training another machine learning model.
+
+Recurrent neural networks showed impressive results in multiple areas, such as machine translation \cite{sutskever2014sequence}, image caption generation \cite{vinyals2015show} and dialogs \cite{vinyals2015neural}.
+The later work is especially relevant and for this experiment I'm planning to build on it use a bidirectional LSTM model with soft-attention to generate a clarification given an ambiguous question.
+
+Evaluation of this part of the work is more complicated, because someone needs to judge the usefulness of the generated clarification questions.
+We are planning to use crowdsourcing to label each question - clarification question pair.
+We will ask workers to first decide if the model chose the target of the clarification question correctly, \ie if the target of the clarification question indeed makes the question ambiguous.
+Then workers will judge if the text of the clarification question is reasonable and the answer to it can resolve the ambiguity.
 
 %-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 \section{Summary}
 
-SUMMARIZE THE CHAPTER.
+This chapter described some results and proposed work aimed at improving user experience with the question answering system.
+Strategic hints can help the user to split a complex informational task into smaller pieces, which an automated system can handle.
+The results of our experiments suggest that hints, that specifically address user's current search task can indeed lead to the overall task success, however generic hints might be detrimental to user experience.
+Another way of engaging in a question-answering dialog is to ask clarification questions when the question is ambiguous.
+The proposed research can serve as a good starting point for understanding how people use clarifications in question answering and how a system can generate them automatically.
