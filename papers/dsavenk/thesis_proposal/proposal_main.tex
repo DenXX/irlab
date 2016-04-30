@@ -95,7 +95,7 @@
 \renewcommand{\baselinestretch}{1.3}
 %\renewcommand{\baselinestretch}{1.3}
 
-\input epsf
+% \input epsf
 
 \setlength{\headsep}{0.15in}
 %\setlength{\headsep}{1.15in}
@@ -125,29 +125,39 @@
 
 \begin{abstract}
 
-Over more than half a century of research, the area of automatic Question Answering (QA) has progressed from small single domain systems to IBM Watson, who defeated best human competitors in the Jeopardy! TV show \cite{ferrucci2010building}.
-However, many of our questions are still left unanswered, and we still have a lot to do to move beyond 10 blue links in search results \cite{etzioni2011search} as for most of the questions users still have to dig into the retrieved documents or post questions to the community question answering (CQA) websites.
+
+
+Modern search engines have made dramatic progress in the answering of many user's questions, especially about facts, such as those that might be retrieved or directly inferred from a knowledge base.
+However, many other questions that real users ask, \eg more complex factual, opinion or advice questions, are still largely beyond the competence of computer systems.
+For such information needs users still have to dig deeper into the ``10 blue links'' and extract relevant pieces of information.
+However, as conversational agents become more popular, question answering (QA) systems are increasingly expected to handle such complex questions and provide users with helpful and concise information.
+
 Questions come in different flavors, some are asking about a certain fact and can be answered with a short phrase, such as entity name, date or number.
 Such questions are typically referred to as \textit{factoid}, as opposed to rest of the questions, which are often called \textit{non-factoid}.
-In my thesis I focus on three topics in QA: 1). combination of structured and unstructured data to improve factoid question answering; 2). improving question summarization, candidate scoring and answer generation using recent advances in neural network research and better utilization of source web document structure; 3). interactions between a question answering system and real people.
+The goal of my thesis is to improve the performance of question answering systems for solving various users' information needs using different available data sources.
+To achieve this goal I first focus on improving the question answering for factoid and non-factoid questions separately, and then study some aspects of the interaction between users and automated systems.
+More specifically, the first part of the thesis studies how to combine available unstructured text and structured knowledge base (KB) data for factoid question answering, in the second I build a non-factoid QA system that improves different stages of a pipeline by utilizing available unstructured and semi-structured (\eg question-answer pairs) data, and the last part of the thesis address the problem of user experience for questions that a QA system could not answer.
 
-Text document collections and knowledge bases (KB) are very effective in answering certain types of factoid questions, but they are also complimentary to each other.
-I propose to combine these data sources via semantic annotation of KB entity mentions, which effectively extends the knowledge base with additional unstructured information, often missing or complimentary to the KB data.
+Nowadays, there are a number of large open domain knowledge bases, that contain billions of facts about the world.
+However, their incompleteness and problems mapping from natural language questions to the structured queries, limits their scope to only a small subset of user factoid information needs.
+In my thesis I'm proposing a couple of new ways unstructured text data can be used to help knowledge base question answering.
+First, I propose a novel relation extraction model, that compliment KB data with facts extracted from community question answer data.
+And then, I describe a hybrid KB-Text QA system, that is based on semantic annotations of entity mentions in text documents.
+
 
 Non-factoid question answering is somewhat harder as it deals with a more diverse set of question and answer types.
 In my thesis I propose to improve performance of different stages of QA system pipeline by better utilization of the structure of a web page where a candidate answer is extracted from, and using deep learning techniques, inspired by recent successes in machine translation \cite{bahdanau2014neural}, text summarization \cite{rush-chopra-weston:2015:EMNLP}, automatic caption generation \cite{karpathy2015deep} and answer sentence scoring \cite{WangN15}.
 
-The focus of the last part of the thesis is on the interaction between human and a search or question answering system.
-Unfortunately, there always be cases, when a machine cannot provide a good answer to the question.
-In such cases, a QA system may come back to the user with some suggestions on how a user can solve his search problem, or with a clarification question aiming at resolving certain ambiguities.
-Alternatively, a machine can consult with the crowd in order to get the answer or help it decide on certain alternatives.
+Unfortunately, there will always be cases when a system is unable to answer user's questions, \eg it might be ambiguous.
+In such cases a system can get back to the user with some kind of a suggestion or clarification.
+The focus of the last part of the thesis is on how to engage in an interaction with a user to improve the overall QA experience.
+I first describe strategic hints, which can help users to split complex information needs into smaller steps, which can be handled by the automated system.
+Next, I describe the proposal of research for automatic generation of clarification questions, which a system can ask to resolve ambiguities in the original query.
 
 In summary, the goal of the proposed research is to improve the performance of question answering over a variety of different questions a user might have, and to study some reply strategies in case a system fails to deliver a good response.
 I believe, that results of the proposed work will be useful for the future research in improving automatic question answering.
 
-
-
-% THIS PART IS OLDER...
+%ThIS PART IS OLDER...
 
 %Over the year of research most efforts were put on factoid questions, which can be answered with a short phrase, \eg an entity name, date, number, etc.
 %Modern QA systems employ a variety of different unstructured (text-corpora), semi-structured (tables, Wikipedia infoboxes, question-answer pairs) and structured (databases, knowledge bases) data sources to generate candidate answers.
