@@ -24,23 +24,28 @@ Our phones are already reasonably good at recognizing speech, and personal assis
 Chat bots are arguably considered ``the next big thing'', and a number of startups developing this kind of technology has emerged in Silicon Valley and around the world\footnote{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}.
 
 Question answering is one of the major components of such personal assistants.
-Existing techniques already allow users to get direct answers to their factoid questions.
-%\footnote{https://www.stonetemple.com/rich-answers-in-search/}.
-However, there is still a large number of more complex questions, such as advice or accepted general opinions, for which users have to dig into the ``10 blue links'' and extract or synthesize answers from information buried within the retrieved documents.
-Therefore, in my thesis I focus on helping users get answers to their questions by improving question answering methods and studying interactions between a human and a QA system.
+Existing techniques already allow users to get direct answers to some of their questions.
+However, by some estimates\footnote{https://www.stonetemple.com/the-growth-of-rich-answers-in-googles-search-results/} for $\sim$ 70\% of more complex questions users still have to dig into the ``10 blue links'' and extract or synthesize answers from information buried within the retrieved documents.
+In order to make a shift towards more intelligent personal assistants this gap needs to be closed.
+Therefore, in my thesis I focus on helping users get answers to their questions by improving question answering methods and the ways a system interact with its users.
+
+User questions vary in many different aspects, each of which has its own set of challenges.
 It's common to divide questions into \textit{factoid} and \textit{non-factoid}.
 Factoid questions are inquiring about certain facts and can be answered by a short phrase (or list), \ie entity name, date or number.
 An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
-However, many other questions do not fall into this group, \ie people often ask for recommendations, opinions, instructions, reasons, \etc.
-The literature usually refer to all these questions by ``non-factoid questions'' umbrella term.
+Of course, there is a variety of questions, that do not fall into this group, \eg how-to and why questions, recommendation and opinion questions, \etc.
+The literature usually refers to all these questions by ``non-factoid questions'' umbrella term.
+Most of the research in automatic question answering focused on factoid questions \cite{voorhees2001trec}, and recently more and more works target often more complex non-factoid category \cite{overviewliveqa15}.
+These types of questions provide quite distinct set of challenges and methods applied to them are often quite different, therefore in my thesis I will first study factoid QA and then propose some ideas to improve non-factoid QA.
 
-Nowadays, most of the question answering systems retrieve answers from certain data sources.
-By their nature, data sources can be classified into unstructured (\eg raw natural language text), semi-structured (\eg tables) and structured (\eg knowledge bases).
-Each of these types has certain advantages and limitations (Table \ref{table:data_procons}).
-Existing approaches often use either a single type of data sources, or combine them to a limited extend.
+Automated question answering systems use various data sources to generate answers to user questions.
+By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables) and \textit{structured} (\eg knowledge bases).
+Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}).
+There are a number of methods designed for question answering using text collections, knowledge bases or archives of question-answer (QnA) pairs.
+Most of the developed systems use either a single source of data, or combine multiple independent pipelines, each of which operates over a separate data source.
 Motivated by the fact that advantages and disadvantages of structured and unstructured data sources complement each other, In my thesis I propose to study methods of combining different data sources for joint reasoning for factoid and non-factoid questions.
 
-\begin{table*}
+\begin{table}
 \centering
 \caption{Pros and cons of structured and unstructured data sources for factoid and non-factoid question answering}
 \begin{tabular}{| l | p{6cm} | p{6cm} |}
@@ -59,7 +64,7 @@ non-factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Questi
 \hline
 \end{tabular}
 \label{table:data_procons}
-\end{table*}
+\end{table}
 
 Two major paradigms for factoid question answering are knowledge base question answering (KBQA) and text-based question answer (TextQA).
 Information contained in a huge volume of text data on the web can be relatively easily queried using terms and phrases from the original question in order to retrieve sentences that might contain the answer.
@@ -82,8 +87,7 @@ The focus of the proposed research in factoid question answering lies on the ide
 
 The main challenge in non-factoid question answering lies in the diversity of question and answer types.
 One of the most effective strategies is to reuse answers to previously asked questions, which could be found, for example, in CQA archives \cite{Shtok:2012:LPA:2187836.2187939}.
-Unfortunately, it's not always possible to find a similar question, that has already been answered.
-Many information needs are unique or contain unique details, which makes it impossible to reuse old answers.
+Unfortunately, it's not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
 Alternative strategies include ranking text passages extracted from retrieved web documents.
 One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
 Therefore, one would benefit from knowing what kind of questions could a paragraph of text answer.
@@ -96,11 +100,10 @@ Non-factoid questions, especially those that people post on CQA websites are oft
 Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
 In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
 Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
-Different answer candidates might by complimentary to each other, answer different parts of the question or have different opinions on the subject.
+Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
 
-No matter how good a QA system we have, there will be cases, when it will be unable to answer a question user asked.
-It may be caused by various reasons, \eg the question might be hard to answer with the existing data sources or it may be ambiguous.
-In such cases, it make sense to either appeal to another external resources, \eg such as wisdom of a crowd, or interact with the asked and give him some suggestions on how to tackle her search problem or ask for some additional information.
+Unfortunately, no matter how good a QA system is, there will always be cases, when it is impossible to return a satisfactory answer to user's question, \eg existing data sources might not contain necessary information or the question may simply be ambiguous or poorly worded.
+In the former situation a QA system can appeal to an alternative external data source, \eg other people via crowdsourcing, while in the later scenario a system should probably reply to the user with some clarification question or give some kind of feedback on how she could solve her information need.
 
 
 \section{Research Questions}
@@ -155,16 +158,20 @@ The plan is to explore recent advances in deep learning for text summarization \
 The effectiveness of these models will be evaluated using the data from TREC LiveQA'15 and tested inside this year challenge model.
 
 
-\subsection{User Interaction with a QA system (Chapter \ref{chapter:users})}
+\subsection{Interaction between a QA system and humans (Chapter \ref{chapter:users})}
 \label{sec:plan4}
 
-The goal is to explore some techniques of involving human in the question answering problem.
-I'm going to focus on three scenarios:
-\begin{itemize}
-\item showing users hints on how to approach her complex informational search task. 
-\item communicating with the user by asking certain clarification questions for ambiguous questions
-\item involving crowdsourcing to help a QA system to answer the given question
-\end{itemize}
+In my thesis I'm planning to consider three different types of interactions between a QA system and humans: crowdsourcing, providing users with strategic hints to help them structure their search process, and clarification questions, which a QA system can ask users to resolve certain ambiguities.
+
+For crowdsourcing, I'm going to study how a QA system can leverage a pool of human workers to crowdsource some data, which can help it answer certain difficult questions (Section \ref{sec:non-factoid:crowd}).
+Automated QA sytems operate in near real-time, which poses certain challenges for crowdsourcing.
+First, I'll study if it is possible to get useful data from crowd workers under a certain time limit, and then implement an almost real-time crowdsourcing system to help an automated system answer questions from TREC LiveQA 2016 shared task.
+
+Strategic search hints are certain suggestions, which an automated system can provide to a user to structure her search task, formulate easier questions that a system can tackle.
+I will study how a user react to different types of hints and how the hints affect the overall task success rate (Section \ref{sec:user:hints}).
+
+Finally, for questions that an automated system is unable to understand it make sense to come back to the user with some clarification questions rather than a totally useless answer.
+In Section \ref{sec:user:clarification} I study what kind of clarification questions real users ask, and how a system can generate a certain frequent subset of them automatically.
 
 
 \subsection{Research Timeline}
@@ -175,15 +182,25 @@ A tentative timeline for the work that needs to be done is shown below:
 \begin{itemize}
 \item Completing the work proposed in Sections \ref{sec:plan2} and \ref{sec:plan3} (4/2016 - 5/2016): develop individual components for question analysis, answer candidate retrieval and answer generation and integrate them into a system to participate in TREC LiveQA'16.
 \item Completing the work proposed in Section \ref{sec:plan1} (6/2016 - 7/2016): Develop a model to use annotation of entity mentions for factoid question answering and compare it against existing techniques. I'm also planning to develop a new QA dataset, which will include more diverse and realistic set of questions than existing KBQA datasets and larger than available TREC QA datasets.
-\item Completing the work proposed in Section \ref{sec:plan4} (4/2016 - 5/2016): Integrate a crowdsourcing module into my TREC LiveQA'16 system as one of the options, develop a model to predict ambiguous questions on a CQA website and propose certain clarification questions.
-\item Thesis writing (07/2016 - 08/2016) 
-\item Thesis defense (08/2016)
+\item Completing the work proposed in Section \ref{sec:plan4} (4/2016 - 7/2016): Integrate a crowdsourcing module into my TREC LiveQA'16 system as one of the options, develop a model to predict ambiguous questions on a CQA website and propose certain clarification questions.
+\item Thesis writing (08/2016 - 09/2016) 
+\item Thesis defense (10/2016)
 \end{itemize}
 
 
 \section{Contributions and Implications}
 
 The key contributions of the proposed research are:
-1. New hybrid KB-text question answering algorithm, that is based on graph search, which includes both KB links as well as text search edges to follow.
-2. New labelled dataset for question answering (???)
-3. New features for ranking answer candidates ???
+
+% ADD HOW EACH OF THE POINTS COULD BE USEFUL FOR THE FIELD
+
+\begin{itemize}
+\item A novel model for relation extraction from archives of question-answer pairs
+\item New hybrid KB-Text question answering approach, that improves knowledge base question answering by using information from unstructured text data sources, annotated with KB entity mentions, which essentially introduces a new types of edges into a knowledge graph
+% that operates by searching an entity graph, built from both facts from a KB and links between KB entities and text fragments mentioning these entities
+\item New dataset for entity-centric factoid question-answering built from an archive of CQA question-answer pairs
+\item A non-factoid question-answering system, that incorporates novel question and answer summarization components, as well as novel candidate answer ranking features, based on the information extracted from the structure of the source web document
+\item New method for answer collection and rating using crowdsourcing for a near real-time question answering system
+\item a study of the effect of strategic search hints on the user experience and success rate for complex informational tasks
+\item A novel model for detecting ambiguous questions and formulating clarifications
+\end{itemize}
