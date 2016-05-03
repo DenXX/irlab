@@ -8,6 +8,7 @@ import org.json4s._
 
 trait SearchDocuments {
   def search(query: String, topN: Int): Either[Throwable, Seq[SearchResult]]
+  def close()
 }
 
 /**
@@ -91,7 +92,7 @@ object Search extends LazyLogging {
     search.close()
   }
 
-  private def updateSearch(): BingSearch = {
+  private def updateSearch(): SearchDocuments = {
     //new BingSearch(apiKeys(currentKey))
     new WikipediaSearch
   }

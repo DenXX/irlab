@@ -51,6 +51,10 @@ class WikipediaSearch extends SearchDocuments{
       "list" -> "search",
       "format" -> "json"
     )
+
+  def close(): Unit = {
+    Http.shutdown()
+  }
 }
 
 object WikipediaSearchApp extends App {
