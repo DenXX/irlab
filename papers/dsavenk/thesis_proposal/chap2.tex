@@ -17,7 +17,7 @@ An interested reader can refer to a number of surveys to track the progress made
 The main focus of research in automatic question answering was on factoid questions.
 However, recently we can observe an increased interest in non-factoid question answering, and as an indicator in 2015 TREC started a LiveQA shared task track\footnote{http://trec-liveqa.org/}, in which the participant systems had to answer various questions coming from real users of Yahoo! Answers\footnote{http://answers.yahoo.com/} in real time.
 
-In the rest of the chapter I will describe related work in factoid (Section \ref{sec:rel_work:factoid}) and non-factoid (Section \ref{sec:rel_work:nonfactoid}) question answering with the focus on data sources used.
+In the rest of the chapter I will describe related work in factoid (Section \ref{sec:rel_work:factoid}) and non-factoid (Section \ref{sec:rel_work:nonfactoid}) question answering with the focus on data sources used, and Section \ref{sec:rel_work:user} provides an overview on some existing research on user interaction with QA systems.
 
 \section{Factoid question answering}
 \label{sec:rel_work:factoid}
@@ -200,27 +200,12 @@ The idea behind the winning system of CMU \cite{diwang_liveqa15} is to represent
 Clue is a phrase that should be similar to the given question, and the passage that follows should be the answer to this question.
 
 \section{User interactions}
+\label{sec:rel_work:user}
 
-IN PROGRESS...
+In this section I will describe the existing research and key differences from my thesis work in the area of interactions between a QA system and human users or experts.
 
-%-=-=-=-=-= FROM HINTS PAPER
-
-There has been considerable amount of work on search assistance and improving user experience with feedback, suggestions and hints.
-Results of the study in \cite{xie2009understanding} demonstrate that in 59.5\% of the cases users need help to refine their searches or to construct search statements.
-% That confirms findings of \cite{Holscher2000337}.
-Individual term (\cite{ruthven2003survey}) or query suggestion (\cite{Bhatia:2011:QSA:2009916.2010023, Cao:2008:CQS:1401890.1401995,Jones:2006:GQS:1135777.1135835}) are among the most popular techniques for helping users to augment their queries.
-The study in \cite{Kelly:2009:CQT:1571941.1572006} demonstrated that users prefer query suggestions over term relevance feedback, and that good manually designed suggestions improve retrieval performance.
-Query suggestion methods usually use search logs to extract queries that are similar to the query of interest and work better for popular information needs \cite{Bhatia:2011:QSA:2009916.2010023}.
-
-When query or term suggestions are not efficient, it is still possible to help users by providing potentially useful search hints.
-An adaptive tool providing tactical suggestions was presented in \cite{Kriewel2010} and users reported overall satisfaction with its automatic non-intrusive advices.
-Modern search engines have many features that are not typically used by an average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness and teaching effect of hints.
-The major difference of our work from \cite{Moraveji:2011:MIU:2009916.2009966} is the type of search hints used.
-Rather than suggesting to users the available search functionality, this work focuses on {\em strategic} search hints, designed to solve difficult informational questions.
-
-%-=-=-=-=-= END FROM HINTS PAPER
-
-
+\subsection{Crowdsourcing for Question Answering}
+\label{sec:rel_work:user:crowdsourcing}
 %-=-=-=-=-=- FROM CROWDSOURCING PAPER
 
 Using the wisdom of a crowd to help users satisfy their information needs has been studied before in the literature.
@@ -247,27 +232,75 @@ Another use of a crowd for maintaining a dialog is presented in \cite{Bessho:201
 In this paper, we focus on a single part of the human-computer dialog, i.e. question answering, which requires a system to provide some useful information in a response to the user.
 
 
-
 %-=-=-=-=-=-= END FROM CROWDSOURCING PAPER
 
+\subsection{User Assistance}
+\label{subsec:rel_work:user:assistance}
+%-=-=-=-=-= FROM HINTS PAPER
+
+There has been considerable amount of work on user assistance for general web search and improving user experience with feedback, suggestions and hints.
+Results of the study in \cite{xie2009understanding} demonstrate that in 59.5\% of the cases users need help to refine their searches or to construct search statements.
+% That confirms findings of \cite{Holscher2000337}.
+Individual term (\cite{ruthven2003survey}) or query suggestion (\cite{Bhatia:2011:QSA:2009916.2010023, Cao:2008:CQS:1401890.1401995,Jones:2006:GQS:1135777.1135835}) are among the most popular techniques for helping users to augment their queries.
+The study in \cite{Kelly:2009:CQT:1571941.1572006} demonstrated that users prefer query suggestions over term relevance feedback, and that good manually designed suggestions improve retrieval performance.
+Query suggestion methods usually use search logs to extract queries that are similar to the query of interest and work better for popular information needs \cite{Bhatia:2011:QSA:2009916.2010023}.
+
+When query or term suggestions are not available, it is still possible to help users by providing potentially useful search hints.
+An adaptive tool providing tactical suggestions was presented in \cite{Kriewel2010} and users reported overall satisfaction with its automatic non-intrusive advices.
+Modern search engines have many features that are not typically used by an average user, but can be very useful in particular situations as shown in \cite{Moraveji:2011:MIU:2009916.2009966}. The study demonstrated the potential effectiveness and teaching effect of hints.
+Different from \cite{Moraveji:2011:MIU:2009916.2009966} in this thesis work I focus on a different type of hints.
+Rather than suggesting to use certain advanced search tools, I explore the effectiveness of \textit{strategic} search hints, designed to suggest a strategy a user can adapt to solve a difficult information question.
+
+%-=-=-=-=-= END FROM HINTS PAPER
+
+\subsection{Clarification Questions}
+\label{sec:rel_work:user:clarifictions}
+
+%-=-=-=-=-= FROM PAVEL'S CLARIFICATION QUESTIONS RELATED WORK
+
+Early QA studies considered users the sole proactive part asking refining questions and clarifying on system's response \cite{deboni2005}.
+QA with a more active system's role was investigated within complex interactive QA (ciQA) TREC track: assessors provided additional information in various forms to live QA systems as a follow-up to initial inquiry; systems produced updated answers upon interactive sessions \cite{trec2007}.
+The track outcomes were mixed: interactive phase degraded initial results in most cases; evaluation design was found not quite appropriate for interactive QA.
+
+Kotov and Zhai~\cite{kotov2010} introduced a concept of \textit{question-guided search}, which can be seen as a variant of query suggestion scenario: in response to initial query the user is presented with a list of natural language questions that reflect possible aspects of the information need behind the query.
+%Questions are generated based on parsed sentences from  Wikipedia; a ranking model for questions is proposed.
+Tang et al.~\cite{tang2011} proposed a method for refinement questions generation consisting of two steps: 1)~refinement terms are extracted from a set of similar questions retrieved from a question archive; 2)~terms are  clustered using a WordNet-like thesaurus, cluster type (such as \textit{location} or \textit{food}) defines the question template to be used.
+Sajjad et al.~\cite{sajjad12} described a framework for search over a collection of items with textual descriptions exemplified with xbox avatar assets (appearance features, clothes, and other belongings).
+Multiple textual descriptions for each item were gathered via crowdsourcing; attribute--value pairs were extracted subsequently.
+In online phase intermediate search results are analyzed and yes/no questions about attributes and values are generated sequentially in order to bisect the result set and finally come to the sought item.
+Gangadharaiah and Narayanaswamy~\cite{gangadharaiah2013} elaborated a similar approach to search results refinement through clarification questions.
+The authors considered customer support scenario using forum data.
+In offline phase noun phrases, attribute--value pairs, and action tuples are extracted from forum collection.
+In online phase answers to automatically generated questions help reduce the answer candidates' set.
+Despite we are not aimed at building a full-fledged QA system, we follow the same search scenario involving clarification questions proposed in these studies.
+The difference is that we seek insights to elaborate on the task in user-generated content.
+
+Kato et al.~\cite{kato2013} investigated clarification questions in context of an enterprise  Q\&A instant messaging in software domain.
+Analysis has shown that about one third of all dialogues have clarification requests; 8.2\% of all utterances in the log are related to clarifications. 
+The authors developed a question classifier that prompted the asker to provide clarifications in case the request was identified as underspecified. 
+%Interestingly, after details were provided the questions were often less likely to be answered.
+Different from this work, in my thesis I study different kinds of data, namely CQA archives, and consider a problem of automatic clarification generation.
+
+In spoken dialog systems clarification questions can be aimed at resolving speech recognition uncertainty either on individual words or whole utterances~\cite{stoyanchev2013}.
+A cognate line of research aims at building dialog systems that learn from large human conversation logs, e.g. Twitter status--response pairs~\cite{ritter2011}.
+However, such open-domain approach is suited rather for entertainment purposes or companionship than information-seeking scenario.
+
+%Our study is also related to the emerging research on mobile intelligent assistant.
+%Jiang et al.~\cite{jiang2015} evaluated users' satisfaction with such applications and showed that Web search constitute about 30\% of all interactions, though considered them less `conversational' than device control and chat uses. 
+
+%A large body of work deals with community question answering data, data from Stack Exchange sites in particular.
+%For example, Anderson et al.~\cite{anderson2012} showed that long-term value of a question and its answers on Stack Overflow was positively correlated with the number of comments on the answers and the time for highest-score answer to arrive. A comprehensive list of studies that used employed Stack 
+%Exchange data is maintained by the community.\footnote{\url{http://meta.stackexchange.com/questions/134495/academic-papers-using-stack-exchange-data}}
+
+%-=-=-=-=-= END FROM PAVEL'S CLARIFICATION QUESTIONS RELATED WORK
+
+% \cite{braunstain2016supporting} retrieves Wikipedia statements that support user answers for opinion questions.
+
+% An interesting approach for knowledge base construction through dialog with the user has been proposed by \cite{hixon2015learning}.
 
 
-An interesting approach for knowledge base construction through dialog with the user has been proposed by \cite{hixon2015learning}.
+% A number of works have focused on studying and estimating different factors of user satisfaction with question answering systems \cite{ong2009measurement,Liu:2008:PIS:1390334.1390417}
 
-A very nice crowdsourcing method to obtain answers to tail information needs was proposed by \cite{bernstein2012direct}.
-Question query-url pairs are first mined from query logs, and then the wisdom of a crowd is used to extract and save answers to these questions.
-
-Certain questions cannot be answered by machines only due to reasons such as lack of the appropriate data.
-Crowdsourcing was explored as one of the options to bridge this knowledge gap and assist the machine in matching, ranking and result aggregation \cite{Franklin:2011:CAQ:1989323.1989331}.
-Wisdom of a crowd can also be exploited to answer more difficult quiz questions \cite{aydin2014crowdsourcing}.
-
-\cite{braunstain2016supporting} retrieves Wikipedia statements that support user answers for opinion questions.
-
-A number of works have focused on studying and estimating different factors of user satisfaction with question answering systems \cite{ong2009measurement,Liu:2008:PIS:1390334.1390417}
-
-Interactive TREC ciQA...
-
-\cite{de2003analysis} analyzes how clarification questions can be detected and used to improve QA performance. As far as I understand, the clarification question comes from the same user, not the system.
 
 \section{Summary of Related Work}
 
