@@ -6,17 +6,20 @@ import dispatch._, dispatch.Defaults._
 import scala.collection.JavaConverters._
 import org.json4s._
 
+trait SearchDocuments {
+  def search(query: String, topN: Int): Either[Throwable, Seq[SearchResult]]
+}
 
 /**
  * A class that uses Bing Web Search API to return search results for the given
  * query.
  * @param apiKey An API key to access Bing Search API.
  */
-class BingSearch(private val apiKey:String) {
+class BingSearch(private val apiKey:String) extends SearchDocuments {
   private val baseUrl = "https://api.datamarket.azure.com/Bing/Search/v1/Web?"
   implicit val formats = DefaultFormats
 
-  def apply(query:String, topN:Int) : Either[Throwable, Seq[SearchResult]] = {
+  def search(query:String, topN:Int) : Either[Throwable, Seq[SearchResult]] = {
     val parameterMap = getQueryParameterMap(query, topN) + ("$format" -> "json")
     val queryString = parameterMap.map { case (k, v) => k + "=" + v }
       .mkString("&")
@@ -73,7 +76,7 @@ object Search extends LazyLogging {
    */
   def apply(query:String, retryNumber:Int = 0)
       : Either[Throwable, Seq[SearchResult]] = {
-    val result = search(query, 50)
+    val result = search.search(query, 50)
     // Search can fail due to request limit exceeded. In this case try to switch
     // API keys and redo.
     if (result.isLeft && retryNumber < apiKeys.length) {
@@ -89,7 +92,8 @@ object Search extends LazyLogging {
   }
 
   private def updateSearch(): BingSearch = {
-    new BingSearch(apiKeys(currentKey))
+    //new BingSearch(apiKeys(currentKey))
+    new WikipediaSearch
   }
 }
 
