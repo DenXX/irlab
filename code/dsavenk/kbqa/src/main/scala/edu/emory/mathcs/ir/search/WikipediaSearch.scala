@@ -36,7 +36,7 @@ class WikipediaSearch extends SearchDocuments{
           .map {
             case (result: OpenSearchResult, index: Int) =>
               new SearchResult(
-                index, basePageUrl + result.title.replace("\\s", "_"), result.title, result.snippet)
+                index, basePageUrl + result.title.replace(" ", "_"), result.title, result.snippet)
           }
       }
     )
