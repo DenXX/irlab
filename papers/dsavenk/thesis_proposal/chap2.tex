@@ -136,6 +136,15 @@ They designed a set of regular expressions for popular questions that can be eff
 
 One of the major drawbacks of knowledge bases is their incompleteness, which means that many entities, predicates and facts are missing from knowledge bases, which limits the number of questions one can answer using them.
 One approach to increase the coverage of knowledge bases is to extract information from other resources, such as raw text\cite{MintzBSJ09,jijkoun2004information,Gupta:2014:BOS:2732286.2732288}, web tables \cite{Cafarella:2008:WEP:1453856.1453916}, \etc.
+Relation extraction from natural language text has been an active area of research for many years, and a number of supervised \cite{snow2004learning}, semi-supervised \cite{Agichtein:2000:SER:336597.336644} and unsupervised \cite{Fader:2011:IRO:2145432.2145596} methods have been proposed.
+These techniques analyze individual sentences and can extract facts stated in them using syntactic patterns, sentence similarity, \etc.
+In my thesis I extend existing techniques by adapting them to work on one additional type of text data, \ie QnA pairs.
+Another relevant angle of relation extraction research is a joint representation of text and knowledge base data.
+Introduction of text-based edges, extracted from sentences mentioning a pair of entities, to the Path Ranking Algorithm was demonstrated to be superior to KB data alone for knowledge base construction \cite{lao2012reading}.
+Universal schemas represents text phrases and KB predicates in a lower dimensional space via matrix factorization for relation extraction \cite{riedel2013relation}.
+Wang et al~\cite{wang2014knowledge} shows how to embed entities and words into the same space by preserving entity relations and word coocurrences in text.
+These approaches aims at computing a similarity between KB predicates and the ways they are expressed in sentences, and they don't attempt to solve a problem of detecting relations not present in KB, which users might ask about, nor they are trying to cross the sentence boundary and extract information scattered across multiple sentences.
+
 However, the larger the knowledge base gets, the more difficult it's to find a mapping from natural language phrases to KB concepts.
 Alternatively, open information extraction techniques (\cite{Etzioni:2008:OIE:1409360.1409378}) can be used to extract a surface form-based knowledge base, which can be very effective for question answering.
 Open question answering approach of \cite{Fader:2014:OQA:2623330.2623677} combines multiple structured (Freebase) and unstructured (OpenIE) knowledge bases together by converting them to string-based triples.
@@ -162,7 +171,8 @@ YodaQA \cite{baudivs2015yodaqa} is an open source implementation of the ideas be
 % The main difference between such systems and the proposed research is that hybrid systems typically use separate pipelines to extract candidates from different sources and only merge the candidate set while ranking.
 % I propose to extend the representation of each of the data sources for better candidate generation from the beginning.
 
-% [!!!QALD HYBRID TRACK]
+%TODO QALD HYBRID TRACK
+
 
 \section{Non-factoid question answering}
 \label{sec:rel_work:nonfactoid}
