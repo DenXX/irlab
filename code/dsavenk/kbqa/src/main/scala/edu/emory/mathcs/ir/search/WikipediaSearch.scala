@@ -6,7 +6,7 @@ import dispatch._, dispatch.Defaults._
 import scala.collection.JavaConverters._
 import org.json4s._
 
-case class OpenSearchApiResponse(batchcomplete: String, continue: OpenSearchContinue,
+case class OpenSearchApiResponse(batchcomplete: String, continue: Option[OpenSearchContinue],
                                  query: OpenSearchQuery)
 case class OpenSearchContinue(sroffset: Int, continue:String)
 case class OpenSearchQuery(searchinfo: OpenSearchInfo, search: List[OpenSearchResult])
@@ -23,7 +23,7 @@ class WikipediaSearch extends SearchDocuments{
   implicit val formats = DefaultFormats
 
   override def search(query: String, topN: Int): Either[Throwable, Seq[SearchResult]] = {
-    val parameterMap = getQueryParameterMap(query, topN)
+    val parameterMap = getQueryParameterMap(query.replace("?", ""), topN)
     val queryString = parameterMap.map { case (k, v) => k + "=" + v }
       .mkString("&")
     val requestUrl = url(baseUrl + queryString)
