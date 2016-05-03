@@ -195,12 +195,42 @@ The key contributions of the proposed research are:
 % ADD HOW EACH OF THE POINTS COULD BE USEFUL FOR THE FIELD
 
 \begin{itemize}
-\item A novel model for relation extraction from archives of question-answer pairs
+\item A novel model for relation extraction from archives of question-answer pairs.
+
+The developed model allows to extract relational triples for KB completion from a novel data source.
+The experiments demonstrate, that together with existing sentence-based relation extraction techniques it is now possible to get more information, which eventually benefits the performance of knowledge base question answering and other downstream KB applications.
+
 \item New hybrid KB-Text question answering approach, that improves knowledge base question answering by using information from unstructured text data sources, annotated with KB entity mentions, which essentially introduces a new types of edges into a knowledge graph
 % that operates by searching an entity graph, built from both facts from a KB and links between KB entities and text fragments mentioning these entities
+
+The proposed model has a potential to overcome many of the issues of KB and text question answering, and allow to answer complex factual questions, that couldn't be answered before.
+This research could be useful for future work on integrating different unstructured, semi-structured and structured data sources for joint reasoning in question answering and other applications.
+
 \item New dataset for entity-centric factoid question-answering built from an archive of CQA question-answer pairs
-\item A non-factoid question-answering system, that incorporates novel question and answer summarization components, as well as novel candidate answer ranking features, based on the information extracted from the structure of the source web document
-\item New method for answer collection and rating using crowdsourcing for a near real-time question answering system
-\item a study of the effect of strategic search hints on the user experience and success rate for complex informational tasks
-\item A novel model for detecting ambiguous questions and formulating clarifications
+
+This dataset could become a good benchmark for factoid question answering as I does not have many of the limitations of the existing dataset.
+Since it is to be derived from an archive of CQA questions, it represents a representative slice of real users complex factual information needs.
+Moreover, it will not be focused on any particular knowledge base or document collection, which will open up certain opportunities for research in hybrid question answering.
+
+\item A non-factoid question-answering system, that incorporates novel question and answer summarization components, as well as novel candidate answer ranking features, based on the information extracted from the structure of the source web document.
+
+The proposed work could be useful for future research in non-factoid question answering, and the analysis of the components of the system will shed some light on challenges and opportunities for improvements.
+
+
+\item New method for answer collection and rating using crowdsourcing for a near real-time question answering system.
+
+I believe that this piece of work could be very useful for future research on the interaction between automated QA and dialog systems and human experts, which could be essential to modern intelligent assistants.
+Existing systems works great for a subset of user tasks, but encounter certain problems for a different subset.
+To provide a smooth user experience it might be crucial to have a fall back option of human experts, who can help systems to overcome the challenge.
+
+\item A study of the effect of strategic search hints on the user experience and success rate for complex informational tasks.
+
+The results of this work suggest, that well designed search hints can have a positive effect on users struggling with a complex search task.
+These observations provide some insights for future research in user assistance for complex information needs.
+
+\item A novel model for detecting ambiguous questions and formulating clarifications.
+
+Intelligent agents are supposed to react naturally to any situations and questions, even if they are ambiguous.
+The proposed research in automatic clarification generation provides some initial ideas and results useful for development of these kind of agents.
+
 \end{itemize}
