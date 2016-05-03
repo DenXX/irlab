@@ -2,8 +2,10 @@ package edu.emory.mathcs.ir.web
 
 import java.net.URLEncoder
 
+import com.ning.http.client.extra.ThrottleRequestFilter
 import com.typesafe.config.ConfigFactory
-import dispatch._, dispatch.Defaults._
+import dispatch._
+import dispatch.Defaults._
 
 import scala.concurrent.Future
 
@@ -13,6 +15,7 @@ import scala.concurrent.Future
 object DocumentDownloader {
   val userAgent = ConfigFactory.load().getString("USER_AGENT")
   val http = Http.configure(_ setFollowRedirect true)
+    .configure(_.addRequestFilter(new ThrottleRequestFilter(100)))
 
   /**
    * Requests a download of a document with the provided URL and returns a
