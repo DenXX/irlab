@@ -17,7 +17,7 @@ The results of existing approaches, our baseline and Text2KB systems is presente
 System & avg Recall & avg Precision & F1 of avg Prec and Recall & avg F1 \\
 \hline
 OpenQA \cite{Fader:2014:OQA:2623330.2623677} & - & - & - & 0.35 \\
-YodaQA \cite{baudivs2015systems} & - & - & - & 0.343\footnote{The reported score is F1@1. Text-based QA systems usually return a ranked list of candidate answers and are evaluated by Precision@1 or ranking metrics. However, WebQuestions dataset contains many list answers.} \\
+YodaQA \cite{baudivs2015systems} & - & - & - & 0.343\footnote{The reported score is F1@1. Text-based QA systems usually return a ranked list of candidate answers and are evaluated by Precision@1 or ranking metrics. However, WebQuestions dataset contains many list answers, all of which should be returned in order to get a perfect score.} \\
 \hline
 SemPre \cite{Berant:EMNLP13} & 0.413 & 0.480 & 0.444 & 0.357\\
 Subgraph Embeddings \cite{BordesCW14:emnlp} & - & - & 0.432 & 0.392\\
