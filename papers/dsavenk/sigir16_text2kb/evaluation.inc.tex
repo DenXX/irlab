@@ -11,9 +11,13 @@ The results of existing approaches, our baseline and Text2KB systems is presente
 \centering
 \caption{Performance of the Text2KB system on WebQuestions dataset compared to the existing approaches. The difference from the baseline Aqqu system is significant with p-value < 0.01}
 \label{table:webquestions_results}
+\begin{minipage}{13cm}
 \begin{tabular}{| p{5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | }
 \hline
 System & avg Recall & avg Precision & F1 of avg Prec and Recall & avg F1 \\
+\hline
+OpenQA \cite{Fader:2014:OQA:2623330.2623677} & - & - & - & 0.35 \\
+YodaQA \cite{baudivs2015systems} & - & - & - & 0.343\footnote{The reported score is F1@1. Text-based QA systems usually return a ranked list of candidate answers and are evaluated by Precision@1 or ranking metrics. However, WebQuestions dataset contains many list answers.} \\
 \hline
 SemPre \cite{Berant:EMNLP13} & 0.413 & 0.480 & 0.444 & 0.357\\
 Subgraph Embeddings \cite{BordesCW14:emnlp} & - & - & 0.432 & 0.392\\
@@ -30,6 +34,7 @@ Aqqu (baseline) \cite{ACCU:2015} & 0.604 & 0.498 & 0.546 & 0.494\\
 Our system: Text2KB & \textbf{0.6354} & 0.5059 & 0.5633 & 0.5223 \\
 \hline
 \end{tabular}
+\end{minipage}
 \end{table*}
 
 As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}, and we believe that this system will also benefit from the ideas of our work, and we will explore this question in Section \ref{section:analysis}.

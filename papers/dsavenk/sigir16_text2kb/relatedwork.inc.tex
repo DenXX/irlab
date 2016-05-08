@@ -28,6 +28,10 @@ In general, combining different data sources, such as text documents and knowled
 Such systems typically have different pipelines that generate answer candidates from each of the data sources independently, and merge them to select the final answer at the end.
 We make a step towards integration of approaches, by incorporating text resources into different stages of knowledge base question answering process.
 This is similar to the work of \cite{Sun:2015:ODQ:2736277.2741651}, who explored the use of entity types and descriptions from a KB for text-based question answering, and \cite{dalton2014entity} explored such semantic annotations for ad-hoc document retrieval.
+M. Yahya et al~\cite{yahya2013robust} explored an interesting idea of extending SPARQL triple patterns with text keywords, and proposed to use certain query relaxation techniques to improve the robustness of KBQA systems.
+Query relaxation constitutes in dropping certain triples patterns from SPARQL query and adding the corresponding question words as keywords to other triple patterns.
+These ideas are complimentary to our work, because our use of text data improves the matching between question phrases and KB concepts, whereas query relaxation replaces this problem with keyword matching and therefore can be applied on top of each other.
+Another KB-Text hybrid approach, proposed in \cite{xu2016enhancing}, utilizes text resources as a post processing step for answer validation and filtering.
 
 We should also mention OpenIE \cite{fader2011identifying}, which represent an interesting mixture between text and structured data.
 Such knowledge repositories can be queried using structured query languages, and at the same time allows keyword matching against entities and predicates \cite{Fader:2014:OQA:2623330.2623677}.
