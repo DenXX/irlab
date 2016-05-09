@@ -123,9 +123,10 @@ Eugene Agichtein\\
 
 One of the major challenges for knowledge base question answering systems (KBQA) is to translate a natural language question to knowledge base (KB) entities and predicates.
 Previous systems have used a limited amount of training data to learn a lexicon that is later used for question answering.
+% This statement is not 100 % correct, because text resources are used, but during lexicon construction only.
 This approach does not make use of other potentially relevant text data, outside the KB, which could enrich the available information.
 We introduce a new system, Text2KB, that connects a KB with external text. Specifically, we revisit different phases in the KBQA process and demonstrate that text resources improve question interpretation, candidate generation and ranking.
-Starting with the best publicly available system, Text2KB utilizes web search results, community question answering and general text document collection data, to detect question topic entities and enrich the features of the candidates derived from the KB.
+Starting with the best publicly available system, Text2KB utilizes web search results, community question answering and general text document collection data, to detect question topic entities, map question phrases to KB predicates and enrich the features of the candidates derived from the KB.
 Text2KB significantly improves on the initial KBQA system, and reaches the best known state of the art performance on a popular WebQuestions knowledge base question answering dataset.
 The results and insights developed in this work are both practically useful, and can guide future efforts on combining textual and structured KB data for question answering.
 

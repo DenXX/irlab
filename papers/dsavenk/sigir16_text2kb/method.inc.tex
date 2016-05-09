@@ -22,7 +22,7 @@ Next, it detects KB entity mentions in both snippets and documents.
 \textbf{Question entity identification}.
 Question text provides only a limited context for entity disambiguation and linking; additionally, the entity name can be misspelled or an uncommon variation used.
 This complicates the task of entity identification, which is the foundation of whole question answering process.
-Fortunately, web search results help with these problems, as they usually contain multiple mentions of the same entities and provide more context for disambiguation, \eg a document about \textit{King Tut} will likely mention the full name of \textit{Tutankhamun}.
+Fortunately, web search results help with these problems, as they usually contain multiple mentions of the same entities and provide more context for disambiguation, \eg a document about \texttt{King Tut} will likely mention the full name of \texttt{Tutankhamun}.
 Text2KB uses the search result snippets to \textit{expand} the set of detected question entities.
 To keep only the entities that are also mentioned in the question and avoid irrelevant entities, we use string distance.
 More specifically, we take names of all entities detected in the question and compute their term by term similarity with non-stopwords from the question.
