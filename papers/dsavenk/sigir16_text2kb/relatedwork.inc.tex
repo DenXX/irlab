@@ -1,4 +1,3 @@
-
 % Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
 In 2011 a series of QALD (Question Answering over Linked Data) evaluation campaigns has started.
 You can find the most recent report in \cite{UngerFLNCCW15}.
@@ -30,7 +29,8 @@ We make a step towards integration of approaches, by incorporating text resource
 This is similar to the work of \cite{Sun:2015:ODQ:2736277.2741651}, who explored the use of entity types and descriptions from a KB for text-based question answering, and \cite{dalton2014entity} explored such semantic annotations for ad-hoc document retrieval.
 M. Yahya et al~\cite{yahya2013robust} explored an interesting idea of extending SPARQL triple patterns with text keywords, and proposed to use certain query relaxation techniques to improve the robustness of KBQA systems.
 Query relaxation constitutes in dropping certain triples patterns from SPARQL query and adding the corresponding question words as keywords to other triple patterns.
-These ideas are complimentary to our work, because our use of text data improves the matching between question phrases and KB concepts, whereas query relaxation replaces this problem with keyword matching and therefore can be applied on top of each other.
+The idea of query relaxations and using text in SPARQL queries was extended in \cite{yahya2016relationship}, which proposed a framework for querying extended knowledge graph, comprising of a combination of KB and OpenIE triples.
+These ideas are complimentary to our work, because our use of text data improves the matching between question phrases and KB concepts, whereas query relaxations are applied when a good match wasn't found and therefore the methods can be applied together.
 Another KB-Text hybrid approach, proposed in \cite{xu2016enhancing}, utilizes text resources as a post processing step for answer validation and filtering.
 
 We should also mention OpenIE \cite{fader2011identifying}, which represent an interesting mixture between text and structured data.

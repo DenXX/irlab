@@ -1,10 +1,5 @@
-
-We have shown that Text2KB outperforms the baseline.
+% We have shown that Text2KB outperforms the baseline.
 We now investigate how our system would compare to other systems on the same benchmark; then, we investigate in depth the different error modes (Section \ref{section:analysis:error}), which helps identify the areas of most substantial future improvements. 
-
-% Don't have a better name for now. By generalization I mean whether our results are system specific or universally useful.
-% \subsection{Generalization analysis}
-
 
 \begin{table}
 \centering
@@ -27,17 +22,17 @@ Text2KB + STAGG (oracle) & 0.7144 & 0.5904 & 0.6056 \\
 \end{table}
 
 We took an existing KBQA systems and demonstrated that by combining evidence from knowledge base and external text resources we can boost the performance.
-A reasonable question is whether the same approach will be helpful to other systems, \eg the currently best system STAGG \cite{yih2015semantic}.
-The differences between our baseline system Aqqu and STAGG lie in the components, \ie entity linking algorithm, a set of query templates and ranking methods, therefore our approach is complementary and should be helpful.
+A reasonable question is whether the same approach will be helpful to other systems, \eg the currently best system -- STAGG \cite{yih2015semantic}.
+STAGG differs from our baseline system Aqqu in the components: entity linking algorithm, a set of query templates and ranking methods.
+Therefore, our approach is complementary and should be helpful for STAGG as well.
 To support this claim, we made an experiment to combine answers of STAGG and Text2KB.
 One of the advantages of the former is its set of filters, that restricts list results to entities of certain type, gender, \etc
 Therefore, we combined answers of STAGG and Text2KB using a simple heuristic: we chose to use the answer returned by STAGG if the number of answer entities is less than in the Text2KB answer, otherwise we use the answer of our approach.
-Table \ref{table:combine_stagg} gives the results of the experiment, and as we can see the combination achieves slightly better average F1 score.
-Alternatively, we can look at the oracle combination of the systems, which always chooses an answer with higher F1.
-This experiment shows that that systems don't make exactly the same mistakes and therefore can be combined.
+Table \ref{table:combine_stagg} gives the results of the experiment, and as we can see the combination achieves slightly a better average F1 score.
+Alternatively, we can look at the oracle combination of the systems, which always selects the answer with higher F1, which demonstrate that systems don't make exactly the same mistakes and therefore can be combined.
 As we can see such a combination results in a performance of 0.6056, which is much higher than either of the systems.
 
-WebQuestions dataset is rather small as a result, answers to 112 of the test questions involve a predicate that weren't observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
+As we mentioned earlier, answers to 112 of the test questions in WebQuestions dataset involve a predicate that weren't observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
 We evaluated both systems on these questions, and indeed the performance is very low, \ie the average F1 score of Text2KB is 0.1640 compared to 0.1199 for STAGG\footnote{Unfortunately, the number of questions is too low to show statistical significance (p-value=0.16)}.
 
 \subsection{Error analysis}
@@ -52,9 +47,8 @@ We evaluated both systems on these questions, and indeed the performance is very
 \vspace{-0.3cm}
 \end{figure}
 
-To get a better insights of the problems that remain, we collected 1219 questions for which Text2KB didn't return completely correct answer, \ie F1 score of the answer is less than 1.
-We manually looked through a couple of hundreds of these examples and grouped the problems into several clusters.
-The results are summarized on Figure \ref{fig:error_analysis}.
+To get a better insights into the problems that remain, we collected 1219 questions for which Text2KB didn't return completely correct answer, \ie F-1 score $<$ 1.
+We manually looked through a couple of hundreds of these examples and grouped the problems into several clusters (Figure \ref{fig:error_analysis}).
 
 As we can see candidate ranking is still the major problem, and it accounts for $~31\%$ of the cases.
 The second most popular problem is incorrect ground truth labels (almost a quarter of errors).
@@ -62,14 +56,13 @@ For example: for the question \textit{when tupac was shot?''} the label says \te
 Another set of questions have incomplete or overcomplete ground truth answer list.
 Typical examples are questions asking for a list of movies, books, landmarks, \etc
 The ground truth answer usually contains $\sim10$ entities, whereas the full list is often much larger.
-This seems to be an artifact of the labeling process, where the answer was selected from the Freebase entity profile page.
-The profile page shows only a sample of 10 entities from large lists and the others are hidden behind the ``NNN values total'' link.
-About 20\% of the questions are ambiguous, \ie questions have no strict 1-1 correspondence with any of the predicates and can be answered by multiple without any obvious preferences.
+This seems to be an artifact of the labeling process, where the answer was selected from the Freebase entity profile page, which shows only a sample of 10 entities, while the rest is hidden behind the ``NNN values total'' link.
+About 20\% of the questions are ambiguous, \ie questions have no strict 1-1 correspondence with any of the predicates and can be answered by multiple ones without any obvious preferences.
 % for the question \textit{``where is shakira from?''} the ground truth is the country - \texttt{Colombia}, while Text2KB returned her place of birth - \texttt{Barranquilla}.
 For example, the question \textit{``what did hayes do?''} can be answered by profession, occupied position or some other achievements.
 Another problem is when there is no predicate that answers the question.
 For example, the question \textit{``what do people in france like to do for fun?''} doesn't have a good match among the facts stored in Freebase.
-The ground truth entity \texttt{Cycling} comes from predicate related to the olympic sport competitions country participated in\footnote{\texttt{olympics.olympic\_participating\_country.athletes}}, which obviously isn't related to the question.
+The ground truth entity \texttt{Cycling} comes from the list Olympic sport competitions country participated\footnote{\texttt{olympics.olympic\_participating\_country.athletes}}.
 % In some cases there are entities that are very similar in meaning, but represented in Freebase by different ids and names.
 % For example, the answer to the question \textit{``what is william taft famous for?''} is \textit{``President of the United States''}, which is a government position, but there is also a triple \texttt{[William Howard Taft, common.topic.notable\_for, US President]}, where the last entity represents a type of people who help the position, and is considered incorrect.
 
@@ -79,15 +72,12 @@ The ground truth entity \texttt{Cycling} comes from predicate related to the oly
 % The official evaluation script don't normalize the case and therefore considers this example incorrect.
 % If we lowercase all entity names before comparison, the average F1 score of Text2KB becomes 0.5248.
 
-As for the system errors, there are wins and loses introduced by each of our components.
+Text2KB components were quite effective in resolving some of the problems.
 Web search results helped identify the right question topical entity in a number of cases, \eg \textit{``what did romo do?''} mentions only the last name of the Dallas Cowboys quarterback and the baseline system were unable to map it to the right entity.
 Web search results provides more than enough evidence that romo refers to \texttt{Tomo Romo}.
 However, there are a number of loses, introduced by added unrelated entities.
 For example, the entity \texttt{I Love Lucy} was added for the question \textit{``what was lucille ball?''}, because the term \textit{lucy} had high similarity with \textit{lucille}.
 A portion of these problems can be fixed by a better entity linking strategy, \eg \cite{SMAPH_ERD:2014}.
-
-% For the question \textit{``what did bruce jenner win gold medal for?''} the baseline system answered \textit{``1976 Summer Olympics''}, but web search results mention decathlon many times and thus Text2KB was able to rerank the candidates and return the entity \textit{``Athletics at the 1976 Summer Olympics - Men's Decathlon''}\footnote{Unfortunately, the entity selected as the answer during labeling is \textit{``Decathlon Challenge''}, which is a book Bruce Jenner wrote}.
-
 An interesting example, when external text resources improved the performance is the question \textit{``what ship did darwin sail around the world?''}.
 This is actually a hard question, because the ship entity is connected to the \texttt{Charles Darwin} entity through the ``knownFor'' predicate along with some other entities like \texttt{Natural selection}.
 % \footnote{\texttt{user.lindenb.default\_domain.scientist.known\_for}
@@ -101,18 +91,6 @@ For example, the correct answer to the question \textit{``what did jesse owens w
 Some problems were introduced by a combination of components.
 For example, for \textit{``where buddha come from?''} a topical entity \texttt{Buddhism} was introduced from search results, and it generated \texttt{Gautama Buddha} as one of the answer candidates.
 This answer was ranked the highest due to large number of mentions in the search results.
-% In some cases search results aren't very relevant and only provide general information about question entity.
-
-% Also problems of the original system persist, especially problems with the relation score model and popular predicates.
-
-% I already mentioned this...
-% WebQuestions dataset isn't free of noise and quite a few answers are actually incorrect for various reasons.
-% When labeling the question ``what team does jordan own?'' mechanical turk workers had to select the answer from the page, corresponding to the country and not \textit{Michael Jordan} the basketball player.
-
-
-% Non-relevant
-% The first set of improvements come from the date range filter template, \eg for the question \textit{``who is the current leader of france 2010?''} our system returns a single correct result \textit{``Nicolas Sarkozy''} instead of the list of all French presidents.
-% The type model score feature helped in some cases, where there is a clear indication of the type of entity, expected as the answer, \eg \textit{``which state did anne hutchinson found?''} - \textit{``Rhode Island''}.
 
 In summary, we show that ideas behind Text2KB could be integrated into other systems and improve their performance.
 The error analysis suggested that even though a significant number of questions in the WebQuestions dataset have incorrect or ambiguous ground truth labels, there is still a room for improvement.
