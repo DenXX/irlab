@@ -1,5 +1,6 @@
-It has long been recognized that searchers prefer concise and specific answers, rather than lists of document results. In particular factoid questions, have been an active focus of research for decades due to both practical importance and relatively objective evaluation criteria.
-As a particularly important example, a large proportion of Web search queries are looking for entities or their attributes \cite{Pound:2010:AOR:1772690.1772769}, a setting on which we focus in this work. 
+It has long been recognized that searchers prefer concise and specific answers, rather than lists of document results.
+In particular, factoid questions have been an active focus of research for decades due to both practical importance and relatively objective evaluation criteria.
+As an important example, a large proportion of Web search queries are looking for entities or their attributes \cite{Pound:2010:AOR:1772690.1772769}, a setting on which we focus in this work. 
 
 Two relatively separate approaches for Question Answering (QA) have emerged: text-centric, or Text-QA and knowledge base-centric, or KBQA.
 In the more traditional, Text-QA approach, systems used text document collections to retrieve passages relevant to a question and extract candidate answers \cite{dang2007overview}.
@@ -68,7 +69,7 @@ We propose to adapt these ideas from text-based question answering for KBQA.
 The right part of the Figure \ref{fig:model} shows web search results, a community question answering page, and text fragments mentioning pairs of entities, that can be useful to answer the question about John Edwards' affair.
 
 To summarize, our contributions are three-fold:
-\begin{itemize}
+\begin{itemize} %[noitemsep,topsep=0pt]
 \item A novel ``hybrid'' knowledge base question answering system, which uses both structured data from a knowledge base and unstructured text resources. Section \ref{section:method} describes the architecture of our system, and Section \ref{section:eval} shows that this fusion improves the performance of a state of the art KBQA system.
 \item Novel data sources and techniques for KBQA: enhancing question entity identification by analyzing web search results (Section \ref{section:method:web}); improving predicate matching by mining CQA data (Section \ref{section:method:cqa}); and improving candidate ranking by incorporating text-corpus statistics (Section \ref{section:method:clueweb}).
 \item Comprehensive empirical analysis of our system on a popular WebQuestions benchmark, demonstrating that using additional text resources can improve the performance of a state-of-the-art KBQA system (Section \ref{section:eval}). In addition, we conduct an extensive analysis of the system to identify promising directions for future improvements (Section \ref{section:analysis}).

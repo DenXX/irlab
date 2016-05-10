@@ -3,22 +3,20 @@ We now investigate how our system would compare to other systems on the same ben
 
 \begin{table}
 \centering
-\caption{Average Recall (R), Precision (Pr), and F1 for Text2KB (our system), STAGG and their combinations}
-\label{table:combine_stagg}
-\begin{tabular}{| p{4cm} | p{1cm} | p{1cm} | p{1cm} | }
+\begin{tabular}{| p{3cm} | c | c | c | }
 \hline
 System & R & P & F1 \\
 \hline
 %Aqqu (baseline) \cite{ACCU:2015} & 0.604 & 0.498 & 0.494\\
 % DIDN'T HAVE TIME TO IMPLEMENT THIS.
 % Text-only baseline & & & & \\
-Our system: Text2KB & 0.6354 & 0.5059 & 0.5223 \\
 STAGG \cite{yih2015semantic} & 0.607 & 0.528 & 0.525\\
-\hline
-Text2KB + STAGG & 0.5976 & 0.5343 & 0.5320 \\
-Text2KB + STAGG (oracle) & 0.7144 & 0.5904 & 0.6056 \\
+Text2KB + STAGG & 0.598 & 0.534 & 0.532 (+1.3 \%) \\
+Text2KB + STAGG (Oracle) & 0.714 & 0.590 & 0.606 (+15.4 \%) \\
 \hline
 \end{tabular}
+\caption{Average Recall (R), Precision (P), and F1 for combinations of Text2KB and STAGG using a simple heuristic based on the length of the answer list and Oracle upper bound}
+\label{table:combine_stagg}
 \end{table}
 
 We took an existing KBQA systems and demonstrated that by combining evidence from knowledge base and external text resources we can boost the performance.

@@ -1,4 +1,4 @@
-We now introduce our system, called Text2KB, that expands upon the basic KBQA model by incorporating external textual sources throughout the QA process. The general architecture and an example use case of Text2KB is presented on Figure \ref{fig:model}. 
+We now introduce our system, called Text2KB\footnote{http://ir.mathcs.emory.edu/projects/text2kb/}, that expands upon the basic KBQA model by incorporating external textual sources throughout the QA process. The general architecture and an example use case of Text2KB is presented on Figure \ref{fig:model}. 
 The left part of the figure roughly corresponds to the architecture of existing information extraction approaches to KBQA.
 The right part introduces additional external text data sources, specifically
 we investigate the use of web search results, community question answering (CQA) data, and a collection of documents with detected KB entity mentions.
@@ -34,8 +34,7 @@ However, text provides very little context information about the mentioned entit
 On the other hand, KBQA systems can utilize all the available KB knowledge about the entities in a candidate answer, and would benefit from additional text-based information to improve ranking.
 More specifically, we perform the following:
 
-\begin{enumerate}
-\setlength\itemsep{0em}
+\begin{enumerate}[noitemsep,topsep=0pt]
 \item Precompute term and entity IDFs. We used Google n-grams corpus to approximate terms IDF by collection frequencies and available ClueWeb Freebase entity annotations\footnote{http://lemurproject.org/clueweb09/FACC1/} to compute entity IDFs
 \item Each snippet and document is represented by two TF-IDF vectors of lowercased tokens and mentioned entities
 \item In addition, vectors of all snippets and all documents are merged together to form combined token and entity vectors
@@ -76,8 +75,6 @@ This labels are used to learn associations between question terms and predicates
 Examples of scores for some terms are given in Table \ref{table:cqa_npmi}.
 
 \begin{table}
-\caption{Examples of term-predicate pairs with high PMI scores, computed using distant supervision from a CQA collection}
-\label{table:cqa_npmi}
 \begin{tabular}{| p{1cm} | p{5.5cm} | p{0.75cm} |}
 \hline
 Term & Predicate & PMI score\\
@@ -105,6 +102,8 @@ win & sports.sports\_team.championships & 4.11\\
 \hline
 \end{tabular}
 \vspace{-3mm}
+\caption{Examples of term-predicate pairs with high PMI scores, computed using distant supervision from a CQA collection}
+\label{table:cqa_npmi}
 \end{table}
 
 In Text2KB we take candidate answer predicates and look up the PMI scores between them and terms in the question (missing pairs are given a score of 0).
@@ -130,8 +129,6 @@ To compute this unigram language model we take terms in between and 100 characte
 A small sample of this data is presented in Table \ref{table:clueweb_entitypairs_langmodel}.
 
 \begin{table}
-\caption{Example of entity pairs along with the most popular terms mentioned around the entities}
-\label{table:clueweb_entitypairs_langmodel}
 \begin{tabular}{| p{1.25cm} | p{1.23cm} | p{4.5cm} |}
 \hline
 Entity 1 & Entity 2 & Term counts\\
@@ -145,7 +142,9 @@ John Edwards & Elizabeth Edwards & wife, hunter, campaign, affair, cancer, riell
 John Edwards & Frances Quinn & daughter, john, rielle, father, child, former, paternity...\\
 \hline
 \end{tabular}
-\vspace{-3mm}
+\vspace{-2mm}
+\caption{Example of entity pairs along with the most popular terms mentioned around the entities}
+\label{table:clueweb_entitypairs_langmodel}
 \end{table}
 
 We use this data to compute candidate ranking features in the following way.
