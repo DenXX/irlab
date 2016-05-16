@@ -1,37 +1,38 @@
-% Recent development of large scale knowledge bases (e.g. dbPedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
-One of the most well known benchmarks in knowledge base question answering is QALD (Question Answering over Linked Data) evaluation campaigns, started in 2011 \cite{UngerFLNCCW15}.
-These benchmarks use dbPedia knowledge base and usually provide a training set of questions, annotated with the ground truth SPARQL queries.
+% Recent development of large scale knowledge bases (e.g. DBpedia \cite{auer2007dbpedia}) and Freebase \cite{Bollacker:2008:FCC:1376616.1376746}) motivated research in open domain question answering over linked data.
+One well known annual benchmark in knowledge base question answering is QALD (Question Answering over Linked Data), started in 2011 \cite{UngerFLNCCW15}.
+These benchmarks use the DBpedia knowledge base and usually provide a training set of questions, annotated with the ground truth SPARQL queries.
 In QALD-3 a multilingual task has been introduced, and since QALD-4 the hybrid task is included.
-This task asks participants to use both structured data and free form text available in dbPedia abstracts.
-The formulation of the hybrid task is the most relevant to our work, but there are a couple of key differences.
+This task asks participants to use both structured data and free form text available in DBpedia abstracts.
+The formulation of the hybrid task is the most relevant to our work, but there are some key differences.
 Questions in the hybrid track are manually created in such a way, that they can \textit{only} be answered using a combination of RDF and free text data.
 Secondly, the hybrid task focuses on text data already present in a KB, whereas we are exploring external text resources.
-In general, because of the expensive labeling process, QALD datasets are rather small, for example, QALD-5 training set for multilingual question answering includes 300 examples and 40 for the hybrid task, with 50 and 10 test questions correspondingly.
-Therefore, due to the scale of datasets and slightly different focus of tasks, we didn't attempt to evaluate our techniques on QALD benchmarks, but intend to explore it in the future.
+In general, because of the expensive labeling process, QALD datasets are relatively small, for example, QALD-5 training set for multilingual question answering includes 300 examples and 40 for the hybrid task, with 50 and 10 test questions correspondingly.
+Therefore, due to the scale of datasets and slightly different focus of tasks, we did not evaluate our techniques on the QALD benchmarks, but intend to explore it in the future.
 
 Another benchmark dataset -- WebQuestions -- was introduced by Berant et al.~\cite{Berant:EMNLP13}.
 The approaches proposed since then differ in the algorithms used for various components, and, what is more relevant to our work, the use of external datasets.
-To account for different ways a question can be formulated \cite{berant2014semantic} used a dataset of question clusters from WikiAnswers to learn a question paraphrasing model.
-Another approach to learn term-predicate mapping is to mine them from a large text corpus \cite{yao2014information}, weakly labeled using distant supervision \cite{mintz2009distant}.
+WikiAnswers corpus of question clusters can be used to learn a question paraphrasing model, which helps to account for different ways a question can be formulated \cite{berant2014semantic}.
+Another approach to learn term-predicate mappings is to mine them from a large text corpus \cite{yao2014information}, weakly labeled using distant supervision \cite{mintz2009distant}.
 In the current paper, we build on this idea in two ways: by introducing a new data source (CQA archives), and by mining a language model for each mentioned entity pair, rather than predicates.
 Another approach to generate more training data is to automatically convert RDF triples to questions using entity and predicate names \cite{BordesCW14:emnlp}.
 Finally, many systems work with distributed vector representations for words and RDF triples and use various deep learning techniques for answer selection \cite{BordesCW14:emnlp,yih2015semantic}.
 In all of these works, external resources are used to train a lexicon for matching questions to particular KB queries.
 In our work, we use external resources in a different way: we are targeting better candidate generation and ranking by considering the actual answer entities rather than predicates used to extract them.
 
-In general, combining different data sources, such as text documents and knowledge bases, for question answering is not a novel idea, and it has been already implemented in hybrid QA systems \cite{baudivs2015modeling,Barker12}.
+In general, combining different data sources, such as text documents and knowledge bases, for question answering has been attempted before, and it has been already implemented in hybrid QA systems \cite{Barker12,baudivs2015modeling}.
 Such systems typically have different pipelines that generate answer candidates from each of the data sources independently, and merge them to select the final answer at the end.
-We make a step towards integration of approaches, by incorporating text resources into different stages of knowledge base question answering process.
+We make a step towards integration of approaches, by incorporating text resources into the different stages of knowledge base question answering process.
 This is similar to the work of \cite{Sun:2015:ODQ:2736277.2741651}, who explored the use of entity types and descriptions from a KB for text-based question answering, and \cite{dalton2014entity} explored such semantic annotations for ad-hoc document retrieval.
 
-We should also mention Open Information Extraction (Open IE) \cite{fader2011identifying}, which is an interesting mixture between text and structured data.
-Open  repositories can be queried using structured query languages, and at the same time allows keyword matching against entities and predicates \cite{Fader:2014:OQA:2623330.2623677}.
+An alternative approach to QA is by using Open Information Extraction \cite{fader2011identifying}, which extract semi-structured data from text.
+OpenIE repositories can be queried using structured query languages, and at the same time allows keyword matching against entities and predicates \cite{Fader:2014:OQA:2623330.2623677}.
 In this work, we are borrowing an idea of learning about entity relationship via natural language phrases connecting them.
-However, since we don't need to extract clean set of relation tuples, we can keep all kinds of phrases, mentioned around entity pairs.
+However, since we do not need to extract clean set of relation tuples, we can keep all kinds of phrases, mentioned around entity pairs.
 
-M. Yahya et al~\cite{yahya2013robust} proposed an interesting idea of extending SPARQL triple patterns with text keywords, used certain query relaxation techniques to improve the robustness of KBQA systems.
-Query relaxation is dropping certain triples patterns from SPARQL query and adding the corresponding question words as keywords to other triple patterns.
-The idea of query relaxations and using text in SPARQL queries was extended in \cite{yahya2016relationship}, which proposed a framework for querying extended knowledge graph, comprising of a combination of KB and OpenIE triples.
+M. Yahya et al~\cite{yahya2013robust} proposed extending SPARQL triple patterns with text keywords, and using certain query relaxation techniques to improve the robustness of KBQA systems.
+Query relaxation drops certain triple patterns from SPARQL query and adds the corresponding question words as keywords to other triple patterns.
+The idea of query relaxations and using text in SPARQL queries was extended in \cite{yahya2016relationship}, which proposed a framework for querying extended knowledge graphs, comprising of a combination of KB and OpenIE triples.
 These ideas are complimentary to our work, because our use of text data improves the matching between question phrases and KB concepts, whereas query relaxations are applied when a good match wasn't found.
-Another KB-Text hybrid approach, proposed in \cite{xu2016enhancing}, utilizes text resources as a post processing step for answer validation and filtering.
+Another KB-Text hybrid approach, proposed in \cite{xu2016enhancing}, utilizes text resources as a post-processing step for answer validation and filtering. In contrast, Text2KB integrates external textual information into all stages of question answering, resulting in more robust and overall higher performance than previously explored enhancements done in isolation.
+
 

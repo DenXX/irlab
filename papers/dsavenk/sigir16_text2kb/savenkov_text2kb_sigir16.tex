@@ -45,7 +45,7 @@
 %
 % For tracking purposes - this is V2.0 - May 2012
 
-\documentclass{sig-alternate-05-2015}
+\documentclass{sig-alternate}
 
 \usepackage{listings}
 \usepackage{float}
@@ -54,6 +54,9 @@
 \newcommand{\eg}[0]{{\em e.g., }}
 \newcommand{\etc}[0]{{\em etc. }}
 \newcommand{\ie}[0]{{\em i.e., }}
+
+\topmargin -0.8in
+\textheight 9.4in
 
 \begin{document}
 
@@ -122,14 +125,15 @@ Eugene Agichtein\\
 \maketitle
 \begin{abstract}
 
-One of the major challenges for knowledge base question answering systems (KBQA) is to translate a natural language question to knowledge base (KB) entities and predicates.
+One of the major challenges for automated question answering over Knowledge Bases (KBQA), is translating a natural language question to the Knowledge Base (KB) entities and predicates.
 Previous systems have used a limited amount of training data to learn a lexicon that is later used for question answering.
 % This statement is not 100 % correct, because text resources are used, but during lexicon construction only.
-This approach does not make use of other potentially relevant text data, outside the KB, which could enrich the available information.
-We introduce a new system, Text2KB, that connects a KB with external text. Specifically, we revisit different phases in the KBQA process and demonstrate that text resources improve question interpretation, candidate generation and ranking.
-Starting with the best publicly available system, Text2KB utilizes web search results, community question answering and general text document collection data, to detect question topic entities, map question phrases to KB predicates and enrich the features of the candidates derived from the KB.
-Text2KB significantly improves on the initial KBQA system, and reaches the best known performance on a popular WebQuestions knowledge base question answering dataset.
-The results and insights developed in this work are both practically useful, and can guide future efforts on combining textual and structured KB data for question answering.
+This approach does not make use of other potentially relevant text data, outside the KB, which could supplement the available information.
+We introduce a new system, Text2KB, that enriches question answering over a knowledge base by using external text data.
+Specifically, we revisit different phases in the KBQA process and demonstrate that text resources improve question interpretation, candidate generation and ranking.
+Building on a state-of-the-art traditional KBQA system, Text2KB utilizes web search results, community question answering and general text document collection data, to detect question topic entities, map question phrases to KB predicates, and to enrich the features of the candidates derived from the KB.
+Text2KB significantly improves performance over the baseline KBQA method, as measured on a popular WebQuestions dataset.
+The results and insights developed in this work can guide future efforts on combining textual and structured KB data for question answering.
 
 
 \end{abstract}
@@ -185,7 +189,7 @@ The results and insights developed in this work are both practically useful, and
 \label{section:intro}
 \input{introduction.inc}
 
-\section{An Overview of Knowledge Base Question Answering}
+\section{Overview of Knowledge Base\\ Question Answering}
 \label{section:baseline}
 \input{baseline.inc}
 
@@ -193,7 +197,7 @@ The results and insights developed in this work are both practically useful, and
 \label{section:method}
 \input{method.inc}
 
-\section{Evaluation}
+\section{Experimental Results}
 \label{section:eval}
 \input{evaluation.inc}
 
@@ -214,19 +218,20 @@ However, we believe that the proposed approach is general enough that it could b
 
 In the future, we plan to extend our work to the more open setup, similar to the QALD hybrid task, where questions no longer have to be answered exclusively from the KB.
 This would require extending the described techniques, and creating new QA benchmarks.
+\\
 
-\section{Acknowledgments}
-This work was supported by the Yahoo Labs Faculty Research Engagement Program (FREP).
-We gratefully thank the anonymous reviewers for their constructive comments.
+\noindent{\textbf{ACKNOWLEDGMENTS}}: This work was partially supported by the Yahoo Labs Faculty Research Engagement Program (FREP). We also thank the anonymous reviewers for their constructive comments.
+\\
 
 %
 % The following two commands are all you need in the
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
-
-\vspace{1.0cm}
+%\vspace{1.0cm}
 \bibliographystyle{abbrv}
+\vspace{-4mm}
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
+
 % You must have a proper ".bib" file
 %  and remember to run:
 % latex bibtex latex latex

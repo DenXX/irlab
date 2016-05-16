@@ -28,24 +28,48 @@ Text2KB (Web search) & \textbf{0.635}$^*$ (+5.1\%) & 0.506$^*$ (+1.6\%) & \textb
 \caption{Performance of the Text2KB system on WebQuestions dataset compared to the existing approaches. The differences of scores marked * from the baseline Aqqu system are significant with p-value < 0.01}
 \end{table*}
 
-We followed the standard evaluation procedure for the WebQuestions dataset and used the original 70-30\% train-test split (3,778 training and 2,032 test instances), and F1-score as the evaluation metric:
+This section reports the experimental setup, including the dataset and metrics, as well as the main methods compared for evaluating the performance of our Text2KB system. Additionally, we describe a series of ablation studies to analyze contribution of different system components.
+
+\subsection{Methods Compared}
+\label{sec:eval_methods}
+
+We compare our system, Text2KB, to state-of-the-art approaches, notably:
+\begin{itemize}[noitemsep,topsep=0pt]
+\item{\textbf{Aqqu}}: the state-of-the-art baseline KBQA system~\cite{ACCU:2015}, described in Section 2.
+\item{\textbf{Text2KB(Web search)}}: Our Text2KB system, using the Bing search engine API over the Web. 
+\item{\textbf{Text2KB(Wikipedia search)}}: Our Text2KB system, using the standard Lucene search engine over the February 2016 snapshot of the English Wikipedia, in order to validate our system without the potential ``black-box'' effects of relying on a commercial Web search engine (Bing) and changing corpus (Web).
+\item{\textbf{STAGG}}: The current highest performing KBQA system~\cite{yih2015semantic} as measured on the WebQuestions dataset.
+\end{itemize}
+Additionally, results from other previously published results on WebQuestions are included to provide context for the improvements introduced by our Text2KB system.
+
+\subsection{Datasets}
+\label{sec:eval_data}
+We followed the standard evaluation procedure for the WebQuestions dataset, and used the original 70-30\% train-test split (3,778 training and 2,032 test instances). Within the training split, 10\% was set aside for validation to tune the model parameters, described below and only the best -performing set of parameters selected on the validation data was used to report the results on the official test split.
+
+\subsection{Evaluation Metrics}
+\label{sec:metrics}
+Recent papers using the WebQuestions dataset have primarily used the F1-score as the main evaluation metric, defined as:
 $$f1(a^*, a) = 2\frac{precision(a^*,a) recall(a^*,a)}{precision(a^*,a) + recall(a^*,a)}$$
 where $precision(a^*, a)=\frac{|a^* \cap a|}{|a|}$ and $recall(a^*, a) = \frac{|a^* \cap a|}{|a^*|}$, $a^*$ and $a$ are correct and given answers, which can be lists of entities.
+Additionally, we report average precision and recall, to gain better understanding of the tradeoffs achieved by different methods.
 
-We also report average precision and recall, as well as an F1 score of average precision and recall.
-The results of existing approaches, our baseline and Text2KB systems is presented in Table \ref{table:webquestions_results}.
+\subsection{Main Results}
+\label{sec:results}
+The results of existing approaches and our Text2KB system are presented in Table \ref{table:webquestions_results}.
 We should note, that text-based QA systems typically return a ranked list of answers, whereas many answers on WebQuestions dataset are lists, which complicates the comparison between KBQA and text-based systems.
-The result reported for YodaQA system is F-1 score at position 1.
+The result reported for YodaQA system is F1 score at position 1.
 
-Modern search engines are very complex and usually include special components to deal with issues, similar to those described in this work, \eg entity identification.
-Therefore, to demonstrate that the improvements of Text2KB doesn't simply come from using a commercial search engine, we include a variation of our system that uses Lucene search engine over english Wikipedia.
-As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}, and we believe that this system will also benefit from the ideas of our work, and we will explore this question in Section \ref{section:analysis}.
+% This is a duplicate of what is said in the methods compared section.
+%Modern search engines are very complex and usually include special components to deal with issues, similar to those described in this work, \eg entity identification.
+%Therefore, to demonstrate that the improvements of Text2KB doesn't simply come from using a commercial search engine, we include a variation of our system that uses Lucene search engine over english Wikipedia.
 
-\subsection{Ablation Study}
+As we can see, Text2KB significantly improves over the baseline system and reaches the current best published result - STAGG \cite{yih2015semantic}. 
+We believe that this system will also benefit from the ideas of our work (Section \ref{section:analysis}).
+
+\subsection{Datasource and Features Contribution}
 \label{section:eval:ablation}
 
-To study effects of different components in isolation we made a series of ablation studies.
-For convenience, we introduce the following notations for different components of our system:
+To analyze the contribution of the features and datasources we introduced, we report results from a series of ablation studies. For convenience, we introduce the following short-hand notations for different components of our system:
 
 \begin{itemize}[noitemsep,topsep=0pt]
 \item \texttt{T} - notable type score model as a ranking feature
@@ -59,17 +83,27 @@ For convenience, we introduce the following notations for different components o
 \item \texttt{CW} - features, computed from entity pairs language model, estimated on ClueWeb
 \end{itemize}
 
-In our results table we will use the notation \texttt{+$<$component$>$} to for a system with a certain component added, and \texttt{-$<$component$>$} when it is removed.
+In our results table we will use the notation \texttt{+$<$comp$>$} for a system with a certain component added, and \texttt{-$<$comp$>$} when it is removed.
 For example, the baseline system will be denoted as ``\texttt{Aqqu}''.
 The same system with additional date range filter query templates and notable types score model is denoted as ``\texttt{Aqqu +DF+T}'', which represents the same system as ``\texttt{Text2KB -WebEnt-Web-CQA-CL}'' (we will call it Text2KB (base)).
 Our full system ``\texttt{Text2KB}'' can be also denoted as ``\texttt{Aqqu +DF+T+WebEnt+Web+CQA+CL}''.
 
-First, let's see what are the improvements introduced by different components of our system (Table \ref{table:ablation:entities_vs_features}).
+\noindent\textbf{Components}: First, we analyze the improvements introduced by different components of our system (Table \ref{table:ablation:entities_vs_features}).
 As we can see, additional date range filters and notable types model (\texttt{Aqqu+DF+T}) are responsible for an increased recall and a drop in precision compared to the baseline model.
-Features generated from Wikipedia search results, CQA data and ClueWeb entity pair language models (\texttt{+Wiki+CQA+CL}) improve average F-1 by 0.007 (+1.4\%) compared to the base model, adding entity linking using Wikipedia search results improves results even more (+3\%).
-Web search results (\texttt{+Web+CQA+CL}) turned out to be more helpful than Wikipedia results, which is natural since Wikipedia is a subset of the web.
+Features generated from Wikipedia search results, CQA data and ClueWeb entity pair language models (\texttt{+Wiki+CQA+CL}) improve average F1 by 0.007 (+1.4\%) compared to the base model, adding entity linking using Wikipedia search results improves results even more (+3\%).
+
+Web search results (\texttt{+Web+CQA+CL}) turned out to be more helpful than Wikipedia results (\texttt{+Wiki+CQA+CL}), which is natural since Wikipedia is a subset of the web.
 This was one of the reasons we didn't combine Wikipedia and Web search together.
-Finally, entity linking and all text-based features combined achieves an even higher scores, proving that their contributions are independent.
+Finally, entity linking and all text-based features combined achieves an even higher score, proving that their contributions are independent.
+
+\noindent{\textbf{Data Sources}}: We now anylize the contribution of the different data sources.
+We will remove a group of web search, CQA or Clueweb-based features and see how the performance of the whole system changes (Table \ref{table:ablation:features}).
+As we can see, all data sources have an impact on the system performance, and web search results based features provide the most useful signal for answer ranking.
+
+\noindent{\textbf{Feature Importance for Ranking}}:
+%we now analyze the relative importance of specific features in our candidate ranking model.
+Figure \ref{fig:feature_importances} plots a subset of features ranked by their Gini index-based importance scores.
+The figure supports the observation that web search results features are the most useful, however, other text data sources also contribute to the improvement.
 
 \begin{table}[h]
 \begin{tabular}{| p{4.5cm} | c | c | c | }
@@ -85,20 +119,14 @@ System & R & P & F1 \\
 \texttt{+WebEnt} & 0.627 & 0.492 & 0.508 \\
 \texttt{+Web+CQA+CL} & 0.634 & 0.497 & 0.514 \\
 \texttt{+WebEnt +Web+CQA+CL} & 0.635 & 0.506 & 0.522 \\
-
-
-% THIS TELLS HOW MUCH EXTERNAL ENTITIES GIVE COMPARED TO MY OTHER IMPROVEMENTS
-
 \hline
 \end{tabular}
+\vspace{-2mm}
 \caption{Average Recall (R), Precision (P), and F1 of Aqqu and Text2KB system with and without different components. +A means that a component A is added to the Text2KB (base) system. The list of components is given in Section \ref{section:eval:ablation}.}
 \label{table:ablation:entities_vs_features}
 \end{table}
 
-Now, let's look into the relative importance of each of the data sources.
-We will remove a group of web search, CQA or Clueweb-based features and see how the performance of the whole system changes (Table \ref{table:ablation:features}).
-
-\begin{table}
+\begin{table}[h]
 \centering
 \begin{tabular}{| p{4cm} | c | c | c | }
 \hline
@@ -128,12 +156,6 @@ Text2KB (Web search) & 0.635 & 0.506 & 0.522 \\
 \caption{Average Recall (R), Precision (P), and F1 of Text2KB with and without features based on web search results, CQA data and ClueWeb collection.}
 \label{table:ablation:features}
 \end{table}
-
-As we can see, all data sources have an impact on the system performance, and web search results based features provide the most useful signal for answer ranking.
-
-Next, we will see which particular features are important in our random forest ranking model.
-Figure \ref{fig:feature_importances} plots a subset of features ranked by their Gini index-based importance scores.
-The figure supports the observation that web search results features are the most useful, however, other text data sources also contribute to the improvement.
 
 \begin{figure*}
 \centering
