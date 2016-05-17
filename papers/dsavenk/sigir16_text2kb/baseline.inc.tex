@@ -80,7 +80,7 @@ To reduce the number of pairs for the final ranking, Aqqu includes a simplified 
 \label{sec:baseline:extensions}
 Before introducing our text-based improvements, we describe some basic extensions to the original Aqqu system.
 First, we noticed that since Aqqu does not use information about the answer entity Freebase types, in many cases it returns an answer that is incompatible with the question: \eg state instead of county \etc
-Therefore, we a trained a model to return a score which measures compatibility between the question and answer entities, based on the entity notable types and question uni- and bi-grams as features, similar to Aqqu's relations score model.
+Therefore, we trained a model to return a score which measures compatibility between the question and answer entities, based on the entity notable types and question uni- and bi-grams as features, similar to Aqqu's relations score model.
 A second extension introduced a new date range query template, which helps solve cases like \textit{``what team did david beckham play for in 2011?''}, where we need to look at the ranges of dates to determine whether an answer candidate satisfies the question.
 
 \begin{lstlisting}[frame=single,basicstyle=\small]

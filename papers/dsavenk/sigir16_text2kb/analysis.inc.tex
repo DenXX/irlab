@@ -10,7 +10,7 @@ One of the advantages of the former is its set of filters, that restricts list r
 Therefore, we combined answers of STAGG and Text2KB using a simple heuristic: we chose to use the answer returned by STAGG if the number of answer entities is less than in the Text2KB answer, otherwise we use the answer of our approach.
 Table \ref{table:combine_stagg} gives the results of the experiment, and as we can see the combination achieves a slightly better average F1 score.
 Alternatively, we can look at the Oracle combination of the systems, which always selects the answer with the higher F1.
-As we can see such a combination results in a performance of 0.6056, which is much higher than either of the systems.
+As we can see such a combination results in a performance of 0.606, which is much higher than either of the systems.
 
 \begin{table}
 \centering
@@ -41,10 +41,10 @@ We evaluated both systems on these questions, and indeed the performance is very
 \begin{figure}
 \centering
 \includegraphics[width=0.4\textwidth]{img/error_analysis}
-\vspace{-0.4cm}
+\vspace{-4mm}
 \caption{Distribution of problems with questions, where Text2KB returns an answer with F1$<$1}
 \label{fig:error_analysis}
-\vspace{-0.2cm}
+\vspace{-2mm}
 \end{figure}
 
 To get a better insights into the problems that remain, we collected 1219 questions for which Text2KB didn't return completely correct answer, \ie F1 score $<$ 1.

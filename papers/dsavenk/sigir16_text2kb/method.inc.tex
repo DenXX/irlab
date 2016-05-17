@@ -40,7 +40,7 @@ More specifically, Text2KB proceeds as follows:
 \item Precompute term and entity IDFs. We used Google n-grams corpus to approximate terms IDF by collection frequencies and available ClueWeb Freebase entity annotations\footnote{http://lemurproject.org/clueweb09/FACC1/} to compute entity IDF scores.
 \item Each snippet $s_i$ and document $d_i$ are represented by two TF-IDF vectors of lowercased tokens ($t_{s_i}$ and $t_{d_i}$) and mentioned entities ($e_{s_i}$ and $e_{d_i}$).
 \item In addition, vectors of all snippets and all documents are merged together to form combined token and entity vectors: $t_{\cup s_i}$, $t_{\cup d_i}$, $e_{\cup s_i}$ and $e_{\cup d_i}$.
-\item Each answer candidate $a_j$ is also represented as TF-IDF vector of terms (from entity names), and entities: $t_{a_j}$ and $e{a_j}$
+\item Each answer candidate $a_j$ is also represented as TF-IDF vector of terms (from entity names), and entities: $t_{a_j}$ and $e_{a_j}$
 \item Cosine similarities between answer and each of 10 snippet and document vectors are computed: $\cos(t_{s_i}, t_{a_j})$, $\cos(t_{d_i}, t_{a_j})$ and $\cos(e_{s_i}, e_{a_j})$, $\cos(e_{d_i}, e_{a_j})$.
 We use the average score and the maximum score as features.
 \item We also compute answer similarities with the combined snippet and document vectors: $\cos(t_{\cup s_i}, t_{a_j})$, $\cos(e_{\cup s_i}, e_{a_j})$, $\cos(t_{\cup d_i}, t_{a_j})$, $\cos(e_{\cup d_i}, e_{a_j})$.
@@ -70,7 +70,7 @@ We emphasize that this data does not replace the mappings learned from single se
 \vspace{-2mm}
 \end{figure}
 
-For our experiments we use 4.4M questions from Yahoo! WebScope L6 dataset\footnote{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l}.
+For our experiments we use 4.4M questions from Yahoo! WebScope L6 dataset\footnote{https://webscope.sandbox.yahoo.com/}.
 Question and answer texts were run through an entity linker, that detected mentions of Freebase entities.
 Next, we use distant supervision assumption to label each question-answer pair with predicates between entities mentioned in the question and in the answer.
 % As a result, we have a set of questions, annotated with KB predicates, which are, often incorrectly, assumed to answer the question.
