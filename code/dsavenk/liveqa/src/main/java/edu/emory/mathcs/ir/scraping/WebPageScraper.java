@@ -72,6 +72,8 @@ public class WebPageScraper {
     public static Document getDocument(URL url) throws IOException {
         HttpClient client = new HttpClient();
         GetMethod method = new GetMethod(url.toString());
+        method.addRequestHeader("User-Agent",
+                "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36");
         method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
                 new DefaultHttpMethodRetryHandler(3, false));
 
