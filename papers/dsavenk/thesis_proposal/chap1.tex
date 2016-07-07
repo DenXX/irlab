@@ -34,16 +34,16 @@ It's common to divide questions into \textit{factoid} and \textit{non-factoid}.
 Factoid questions are inquiring about certain facts and can be answered by a short phrase (or list), \ie entity name, date or number.
 An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
 Of course, there is a variety of questions, that do not fall into this group, \eg how-to and why questions, recommendation and opinion questions, \etc.
-The literature usually refers to all these questions by ``non-factoid questions'' umbrella term.
-Most of the research in automatic question answering focused on factoid questions \cite{voorhees2001trec}, and recently more and more works target often more complex non-factoid category \cite{overviewliveqa15}.
+The literature usually refers to these questions as ``non-factoid questions''.
+Most of the research in automatic question answering focused on factoid questions \cite{voorhees2001trec}, and recently more and more works started targeting non-factoid questions category \cite{overviewliveqa15}.
 These types of questions provide quite distinct set of challenges and methods applied to them are often quite different, therefore in my thesis I will first study factoid QA and then propose some ideas to improve non-factoid QA.
 
 Automated question answering systems use various data sources to generate answers to user questions.
 By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables) and \textit{structured} (\eg knowledge bases).
-Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}).
+Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}), which often compliment each other.
 There are a number of methods designed for question answering using text collections, knowledge bases or archives of question-answer (QnA) pairs.
 Most of the developed systems use either a single source of data, or combine multiple independent pipelines, each of which operates over a separate data source.
-Motivated by the fact that advantages and disadvantages of structured and unstructured data sources complement each other, In my thesis I propose to study methods of combining different data sources for joint reasoning for factoid and non-factoid questions.
+Motivated by the fact that different types of data sources compliment each other weaknesses and advantages, in my thesis I propose to study methods of combining different data sources for question answering.
 
 \begin{table}
 \centering
@@ -86,7 +86,7 @@ The focus of the proposed research in factoid question answering lies on the ide
 %\end{itemize}
 
 The main challenge in non-factoid question answering lies in the diversity of question and answer types.
-One of the most effective strategies is to reuse answers to previously asked questions, which could be found, for example, in CQA archives \cite{Shtok:2012:LPA:2187836.2187939}.
+Reusing answers from previously posted similar questions, which could be found, for example, in CQA archives, was demonstrated to be quite effective to answer new questions \cite{carmel2000eresponder,Shtok:2012:LPA:2187836.2187939}.
 Unfortunately, it's not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
 Alternative strategies include ranking text passages extracted from retrieved web documents.
 One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
@@ -94,16 +94,23 @@ Therefore, one would benefit from knowing what kind of questions could a paragra
 This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
 Therefore, one of the questions I'm going to focus in my thesis is how to effectively use the structure of web page to predict whether an extracted passage of text answer the given question.
 
-However, ranking isn't the only important part of the question answering pipeline.
-A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
-Non-factoid questions, especially those that people post on CQA websites are often long, which makes it problematic to use directly as search queries.
-Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
-In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
-Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
-Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
+While in some cases a single paragraph of text can perfectly answer the question, there are situations when one would need to combine multiple information pieces together in order to cover all aspects of the question, or provide alternative ideas and evidence.
+These information nuggets are often scattered across different documents, and need to be combined together to form a single answer, that would satisfy the user.
+In my thesis I propose to apply extractive and abstractive text summarization methods to the problem of answer summarization.
 
-Unfortunately, no matter how good a QA system is, there will always be cases, when it is impossible to return a satisfactory answer to user's question, \eg existing data sources might not contain necessary information or the question may simply be ambiguous or poorly worded.
-In the former situation a QA system can appeal to an alternative external data source, \eg other people via crowdsourcing, while in the later scenario a system should probably reply to the user with some clarification question or give some kind of feedback on how she could solve her information need.
+%However, ranking isn't the only important part of the question answering pipeline.
+%A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
+%Non-factoid questions, especially those that people post on CQA websites are often long, which makes it problematic to use directly as search queries.
+%Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
+%In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
+%Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
+%Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
+
+Unfortunately, no matter how good a QA system is, there likely to be cases, when it's unable to generate a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or the the question may simply be ambiguous or poorly worded.
+One approach to overcome these challenging situation is to put a human in the loop, who can be either an external crowd worker or the author of the question itself.
+For the former case, in my thesis I propose to explore the effectiveness of crowdsourcing for question answering, especially in the real-time scenario, when the user is unlikely to wait for the response for more than a couple of minutes.
+Alternatively, when a system is unable to produce a good answer to the user's question, it might reply with some hints and tips to help her revise the question and increase the chances of a satisfactory response.
+In this work I propose to explore the effect of strategic tips on user behavior and success in resolving complex information needs.
 
 
 \section{Research Questions}
@@ -119,9 +126,13 @@ Research questions I proposed addressed in my thesis are the following:
 %     (information extraction for KB construction vs open information extraction vs unstructured data annotation)
 %  \item How does a combination of structured and unstructured data sources improve each of the main QA system components: question analysis, candidate generation, evidence extraction and answer selection?
 %\end{enumerate}
-\item RQ2. What kind of information about a web page can help scoring a passage extracted from it as a possible answer to the given question?
-\item RQ3. How to build question and answer summarization models to improve candidate retrieval and answer generation for non-factoid question answering?
-\item RQ4. How we can improve user experience with question answering systems for complex informational tasks?
+
+% I think I'm giving up on this.
+% \item RQ2. What kind of information about a web page can help scoring a passage extracted from it as a possible answer to the given question?
+
+\item RQ2. How to build question and answer summarization models to improve candidate retrieval and answer generation for non-factoid question answering?
+\item RQ3. How we can improve user experience with question answering systems for complex informational tasks by providing strategic tips?
+\item RQ4. How to use crowdsourcing to improve question answering performance in near real-time scenario?
 \end{enumerate}
 
 
@@ -141,21 +152,21 @@ Unfortunately, relation extraction isn't perfect either and there are both preci
 Therefore, I propose to explore semantic annotation of entity mentions as a way to bridge the gap between KB entity graph and text documents.
 Such representation will allow us to do simple string matching on text documents and at the same time explore the knowledge about the mentioned entities in KB and vice versa. Section \ref{sec:text+kb} describes the approach in more detail.
 
-\subsection{Using Web Page Information to Improve Passage Ranking in Non-factoid Question Answering (Chapter \ref{sec:non-factoid:architecture:page-structure})}
-\label{sec:plan2}
+% \subsection{Using Web Page Information to Improve Passage Ranking in Non-factoid Question Answering (Chapter \ref{sec:non-factoid:architecture:page-structure})}
+% \label{sec:plan2}
 
-To answer RQ2 I'm planning to study what kind of information from web pages can be useful to predict whether a passage of text answer the given questions.
-First, I'll derive a dataset of questions from TREC LiveQA'15 with passages, labeled by TREC assessors, and extract the corresponding web pages.
-This allows us to set the problem as passage ranking problem using a set of passage and web page context features.
-I will design a set of features representing a passage and some key elements from the web page and train an answer ranking model.
-The feature ablation experiments will reveal the relative importance of different model components.
+% To answer RQ2 I'm planning to study what kind of information from web pages can be useful to predict whether a passage of text answer the given questions.
+% First, I'll derive a dataset of questions from TREC LiveQA'15 with passages, labeled by TREC assessors, and extract the corresponding web pages.
+% This allows us to set the problem as passage ranking problem using a set of passage and web page context features.
+% I will design a set of features representing a passage and some key elements from the web page and train an answer ranking model.
+% The feature ablation experiments will reveal the relative importance of different model components.
 
 \subsection{Question and Answer Summarization for Non-factoid Question Answering (Chapter \ref{sec:non-factoid:architecture:analysis})}
-\label{sec:plan3}
+\label{sec:plan2}
 
 The goal is to develop models for question summarization, which should improve candidate answer retrieval performance, and answer summarization to generate the final response of the system.
-The plan is to explore recent advances in deep learning for text summarization \cite{rush-chopra-weston:2015:EMNLP} and generation \cite{karpathy2015deep} and apply these techniques for the above mentioned problems.
-The effectiveness of these models will be evaluated using the data from TREC LiveQA'15 and tested inside this year challenge model.
+The plan is to explore recent advances in deep learning for text summarization \cite{rush-chopra-weston:2015:EMNLP,chopraabstractive16} and generation \cite{karpathy2015deep} and apply these techniques for the above mentioned problems.
+The effectiveness of these models will be evaluated using the data from TREC LiveQA shared tasks.
 
 
 \subsection{Interaction between a QA system and humans (Chapter \ref{chapter:users})}

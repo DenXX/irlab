@@ -127,13 +127,13 @@
 
 
 
-Modern search engines have made dramatic progress in the answering of many user's questions, especially about facts, such as those that might be retrieved or directly inferred from a knowledge base.
+Modern search engines have made a dramatic progress in answering many users questions, especially about facts, such as those that might be retrieved or directly inferred from a knowledge base.
 However, many other questions that real users ask, \eg more complex factual, opinion or advice questions, are still largely beyond the competence of computer systems.
 For such information needs users still have to dig deeper into the ``10 blue links'' and extract relevant pieces of information.
-However, as conversational agents become more popular, question answering (QA) systems are increasingly expected to handle such complex questions and provide users with helpful and concise information.
+As conversational agents become more popular, question answering (QA) systems are increasingly expected to handle such complex questions and provide users with helpful and concise information.
 
 Questions come in different flavors, some are asking about a certain fact and can be answered with a short phrase, such as entity name, date or number.
-Such questions are typically referred to as \textit{factoid}, as opposed to rest of the questions, which are often called \textit{non-factoid}.
+Such questions are typically referred to as \textit{factoid}, while other types of questions are often called \textit{non-factoid}.
 The goal of my thesis is to improve the performance of question answering systems for solving various users' information needs using different available data sources.
 To achieve this goal I first focus on improving the question answering for factoid and non-factoid questions separately, and then study some aspects of the interaction between users and automated systems.
 More specifically, the first part of the thesis studies how to combine available unstructured text and structured knowledge base (KB) data for factoid question answering, in the second I build a non-factoid QA system that improves different stages of a pipeline by utilizing available unstructured and semi-structured (\eg question-answer pairs) data, and the last part of the thesis address the problem of user experience for questions that a QA system could not answer.
@@ -143,7 +143,6 @@ However, their incompleteness and problems mapping from natural language questio
 In my thesis I'm proposing a couple of new ways unstructured text data can be used to help knowledge base question answering.
 First, I propose a novel relation extraction model, that compliment KB data with facts extracted from community question answer data.
 And then, I describe a hybrid KB-Text QA system, that is based on semantic annotations of entity mentions in text documents.
-
 
 Non-factoid question answering is somewhat harder as it deals with a more diverse set of question and answer types.
 In my thesis I propose to improve performance of different stages of QA system pipeline by better utilization of the structure of a web page where a candidate answer is extracted from, and using deep learning techniques, inspired by recent successes in machine translation \cite{bahdanau2014neural}, text summarization \cite{rush-chopra-weston:2015:EMNLP}, automatic caption generation \cite{karpathy2015deep} and answer sentence scoring \cite{WangN15}.
