@@ -5,6 +5,13 @@ import it.acubelab.tagme.preprocessing.TopicSearcher
 
 import scala.collection.JavaConverters._
 
+case class EntityMention(start: Int,
+                         end: Int,
+                         entity: String,
+                         rho: Float,
+                         coherence: Float,
+                         votes: Float)
+
 /**
   * Identifies mentions of Wikipedia entities in text.
   */
@@ -18,7 +25,7 @@ object TagMeWikifier {
   val rho = new RhoMeasure()
   val searcher = new TopicSearcher(lang)
 
-  def getEntityMentions(text: String): Array[(Int, Int, String, Float, Float, Float)] = {
+  def getEntityMentions(text: String): Array[EntityMention] = {
     val annotatedText = new AnnotatedText(text)
     parser.parse(annotatedText)
     segmentation.segment(annotatedText)
@@ -28,12 +35,12 @@ object TagMeWikifier {
     annotatedText.getAnnotations.asScala.filter(_.isDisambiguated).map {
       annotation =>
         val start = annotatedText.getOriginalTextStart(annotation)
-        val end = annotatedText.getOriginalTextStart(annotation)
+        val end = annotatedText.getOriginalTextEnd(annotation)
         val score = annotation.getRho
         val coherence = annotation.getCoherence
         val votes = annotation.getVotes
         val entity = searcher.getTitle(annotation.getTopic)
-        (start, end, entity, score, coherence, votes)
+        new EntityMention(start, end, entity, score, coherence, votes)
     }.toArray
   }
 }

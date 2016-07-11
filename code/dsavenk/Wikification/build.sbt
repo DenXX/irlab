@@ -9,5 +9,6 @@ libraryDependencies ++= Seq(
   "edu.stanford.nlp" % "stanford-corenlp" % "3.6.0" classifier "models",
   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.5",
   "org.apache.commons" % "commons-compress" % "1.12",
+  "org.json4s" % "json4s-native_2.11" % "3.4.0",
   "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 )
