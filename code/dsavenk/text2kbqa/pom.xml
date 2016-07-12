@@ -19,6 +19,11 @@
             <version>3.4.1</version>
             <classifier>models</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.lemurproject</groupId>
+            <artifactId>clueweb-annotations</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

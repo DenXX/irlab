@@ -1,10 +1,17 @@
 package edu.emory.mathcs.ir.text2kbqa.tools;
 
-import edu.cmu.lemurproject.WarcRecord;
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+import lemur.nopol.ResponseIterator;
+import lemur.nopol.encdet.EncDetUils;
+import lemur.nopol.encdet.EncodingDetector;
+import lemur.nopol.encdet.StreamEncodingDetector;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -12,8 +19,28 @@ import java.util.zip.GZIPInputStream;
  */
 public class ExtractCluewebEntitypairPhrasesApp {
     private static final String CLUEWEB_PATH_TEMPLATE =
-            //"/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
-            "/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            "/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            //"/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+
+    public static final int BEFORE_OFFSET = -100;
+    public static final int AFTER_OFFSET = 100;
+
+    class EntityPairPhrase {
+        String phrase;
+        int start1;
+        int end1;
+        String mention;
+        int start2;
+        int end2;
+
+        EntityPairPhrase(String phrase, int start1, int end1, String mention, int start2, int end2) {
+            this.phrase = phrase;
+            this.start1 = start1;
+            this.end1 = end1;
+            this.start2 = start2;
+            this.end2 = end2;
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         String entityPairsFile=args[0];
@@ -32,7 +59,8 @@ public class ExtractCluewebEntitypairPhrasesApp {
         ) {
             String line;
             String currentWarcFile = "";
-            DataInputStream warcStream = null;
+            FileInputStream warcStream = null;
+            ResponseIterator warcIterator = null;
 
             String currentWarcDocumentId = null;
 
@@ -58,13 +86,12 @@ public class ExtractCluewebEntitypairPhrasesApp {
                             warcStream.close();
                         }
                         currentWarcFile = warcFile;
-                        warcStream = new DataInputStream(
-                                new GZIPInputStream(
-                                        new FileInputStream(currentWarcFile)));
+                        warcStream = new FileInputStream(currentWarcFile);
+                        warcIterator = new ResponseIterator(warcStream);
                     }
 
-                    WarcRecord thisWarcRecord = readDocumentFromWarc(
-                            warcStream, currentWarcDocumentId);
+                    lemur.nopol.ResponseIterator.WarcEntry thisWarcRecord =
+                            readDocumentFromWarc(warcIterator, currentWarcDocumentId);
                     if (thisWarcRecord != null) {
                         for (EntityPairRecord record : currentDocumentRecords) {
                             String phrase = extractPhrasesAroundEntityPairs(
@@ -102,25 +129,31 @@ public class ExtractCluewebEntitypairPhrasesApp {
     }
 
     private static String extractPhrasesAroundEntityPairs(
-            EntityPairRecord record,
-            WarcRecord thisWarcRecord) {
-        int start = Math.max(0,
-                Math.min(record.firstEntityBegin,
-                        record.secondEntityBegin) - 100);
-        int end = Math.min(thisWarcRecord.getContent().length,
-                Math.max(record.firstEntityEnd,
-                        record.secondEntityEnd) + 100);
+            EntityPairRecord record, ResponseIterator.WarcEntry thisWarcRecord) throws UnsupportedEncodingException {
         try {
-            String wholePhrase =
-                new String(thisWarcRecord.getContent(), start, end - start, "UTF8");
-            String phrase = wholePhrase
-                    .replaceAll("&[a-zA-Z#0-9]{1,5};", " ")
-                    .replaceAll("^[^\\s>]*?(\\s|>)","")
-                    .replaceAll("(\\s|<)[^\\s<]*?$","")
-                    .replaceAll("<.*?>","")
-                    .replaceAll("^.*?>","")
-                    .replaceAll("<.*?$","")
-                    .replaceAll("\\s+", " ");
+            int start1 = record.firstEntityBegin - thisWarcRecord.httpHeader.length;
+            int end1 = record.firstEntityEnd - thisWarcRecord.httpHeader.length;
+            int start2 = record.secondEntityBegin - thisWarcRecord.httpHeader.length;
+            int end2 = record.secondEntityEnd - thisWarcRecord.httpHeader.length;
+
+            String documentContent = new String(thisWarcRecord.content, record.encoding);
+            byte[] content = documentContent.getBytes("UTF-8");
+
+            int phraseStart = Math.max(0, Math.min(start1, start2) + BEFORE_OFFSET);
+            int phraseEnd = Math.min(content.length, Math.max(end1, end2) + AFTER_OFFSET);
+
+            String mention1 = normalizeString(new String(
+                    Arrays.copyOfRange(content, start1, end1),
+                    record.encoding), false);
+            String mention2 = normalizeString(new String(
+                    Arrays.copyOfRange(content, start2, end2),
+                    record.encoding), false);
+
+            String wholePhrase = new String(
+                    Arrays.copyOfRange(content, phraseStart, phraseEnd),
+                    record.encoding);
+
+            String phrase = normalizeString(wholePhrase, true);
 
             // Check that the phrase actually contains the names.
             String phraseToCheck =
@@ -133,25 +166,32 @@ public class ExtractCluewebEntitypairPhrasesApp {
                     !phraseToCheck.contains(secondEntityName)) {
                 return null;
             }
-            return phrase;
+            return phrase.replaceAll(mention1, "<E1>" + mention1 + "</E1>").replace(mention2, "<E2>" + mention2 + "</E2>");
         } catch (UnsupportedEncodingException | IndexOutOfBoundsException e) {
             System.err.println(e.getMessage());
         }
         return null;
     }
 
-    private static WarcRecord readDocumentFromWarc(
-            DataInputStream warcStream, String currentWarcDocumentId)
+    private static String normalizeString(String str, boolean stripWordCuts) throws UnsupportedEncodingException {
+        String tmp = str.replaceAll("&[a-zA-Z#0-9]{1,6};", " ")
+                .replaceAll("<.*?>","")
+                .replaceAll("^.*?>","")
+                .replaceAll("<.*?$","")
+                .replaceAll("\\s+", " ");
+        return stripWordCuts ? tmp.replaceAll("^[^\\s>]*?(\\s|>)","").replaceAll("(\\s|<)[^\\s<]*?$","") : tmp;
+
+    }
+
+
+    private static ResponseIterator.WarcEntry readDocumentFromWarc(
+            ResponseIterator warcIterator, String currentWarcDocumentId)
             throws IOException {
-        WarcRecord thisWarcRecord;
+        lemur.nopol.ResponseIterator.WarcEntry thisWarcRecord;
         do {
-            thisWarcRecord =
-                    WarcRecord.readNextWarcRecord(warcStream);
-        } while (thisWarcRecord != null &&
-                (!thisWarcRecord.getHeaderRecordType().equals("response") ||
-                        !currentWarcDocumentId.equals(
-                                thisWarcRecord.getHeaderMetadataItem(
-                                        "WARC-TREC-ID"))));
+            thisWarcRecord = warcIterator.next();
+        } while (warcIterator.hasNext() && thisWarcRecord != null &&
+                !currentWarcDocumentId.equals(thisWarcRecord.trecId));
         return thisWarcRecord;
     }
 
@@ -175,6 +215,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
 class EntityPairRecord {
     String documentId;
+    String encoding;
     String firstEntityMid;
     String secondEntityMid;
     String firstEntityName;
@@ -191,14 +232,15 @@ class EntityPairRecord {
         String[] fields = line.split("\t");
         try {
             rec.documentId = fields[0];
-            rec.firstEntityMid = fields[1];
-            rec.firstEntityName = fields[2];
-            rec.secondEntityMid = fields[3];
-            rec.secondEntityName = fields[4];
-            rec.firstEntityBegin = Integer.parseInt(fields[5]);
-            rec.firstEntityEnd = Integer.parseInt(fields[6]);
-            rec.secondEntityBegin = Integer.parseInt(fields[7]);
-            rec.secondEntityEnd = Integer.parseInt(fields[8]);
+            rec.encoding = fields[1];
+            rec.firstEntityMid = fields[2];
+            rec.firstEntityName = fields[3];
+            rec.secondEntityMid = fields[4];
+            rec.secondEntityName = fields[5];
+            rec.firstEntityBegin = Integer.parseInt(fields[6]);
+            rec.firstEntityEnd = Integer.parseInt(fields[7]);
+            rec.secondEntityBegin = Integer.parseInt(fields[8]);
+            rec.secondEntityEnd = Integer.parseInt(fields[9]);
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.err.println(line);
