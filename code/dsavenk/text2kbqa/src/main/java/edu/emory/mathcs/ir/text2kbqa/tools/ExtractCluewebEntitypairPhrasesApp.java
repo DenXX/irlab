@@ -65,6 +65,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
             List<EntityPairRecord> currentDocumentRecords = new ArrayList<>();
 
             long index = 0;
+            long startTime = System.nanoTime();
             while ((line = reader.readLine()) != null) {
                 EntityPairRecord currentEntityPairRecord =
                         EntityPairRecord.parseRecord(line);
@@ -120,6 +121,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
                     System.err.println(String.format(
                             "%d lines processed, %d lines skipped",
                             index, nullPhrases));
+                    System.err.println(1e-9 * (System.nanoTime() - startTime) / index / 1000 + " per 1000 lines");
                 }
             }
         } catch (Exception ex) {
