@@ -168,7 +168,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
                     !phraseToCheck.contains(secondEntityName)) {
                 return null;
             }
-            return phrase.replaceAll(mention1, "<E1>" + mention1 + "</E1>").replace(mention2, "<E2>" + mention2 + "</E2>");
+            return phrase.replace(mention1, "<E1>" + mention1 + "</E1>").replace(mention2, "<E2>" + mention2 + "</E2>");
         } catch (UnsupportedEncodingException | IndexOutOfBoundsException e) {
             System.err.println(e.toString());
         }
