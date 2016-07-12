@@ -123,7 +123,8 @@ public class ExtractCluewebEntitypairPhrasesApp {
                 }
             }
         } catch (Exception ex) {
-            System.err.println(ex.getMessage());
+            System.err.println(ex.toString());
+            ex.printStackTrace();
         }
     }
 
@@ -167,7 +168,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
             }
             return phrase.replaceAll(mention1, "<E1>" + mention1 + "</E1>").replace(mention2, "<E2>" + mention2 + "</E2>");
         } catch (UnsupportedEncodingException | IndexOutOfBoundsException e) {
-            System.err.println(e.getMessage());
+            System.err.println(e.toString());
         }
         return null;
     }
@@ -241,7 +242,7 @@ class EntityPairRecord {
             rec.secondEntityBegin = Integer.parseInt(fields[8]);
             rec.secondEntityEnd = Integer.parseInt(fields[9]);
         } catch (Exception e) {
-            System.err.println(e.getMessage());
+            System.err.println(e.toString());
             System.err.println(line);
 	        return null;
 	    }
