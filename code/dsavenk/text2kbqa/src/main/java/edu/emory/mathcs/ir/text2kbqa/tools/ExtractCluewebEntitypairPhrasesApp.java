@@ -121,7 +121,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
                     System.err.println(String.format(
                             "%d lines processed, %d lines skipped",
                             index, nullPhrases));
-                    System.err.println(1e-9 * (System.nanoTime() - startTime) / index / 1000 + " per 1000 lines");
+                    System.err.println(1e-9 * (System.nanoTime() - startTime) / (index / 100000.0) + " per 100000 lines");
                 }
             }
         } catch (Exception ex) {
