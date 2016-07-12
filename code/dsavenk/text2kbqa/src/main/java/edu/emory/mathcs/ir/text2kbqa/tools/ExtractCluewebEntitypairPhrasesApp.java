@@ -1,26 +1,21 @@
 package edu.emory.mathcs.ir.text2kbqa.tools;
 
-import com.ibm.icu.text.CharsetDetector;
-import com.ibm.icu.text.CharsetMatch;
 import lemur.nopol.ResponseIterator;
-import lemur.nopol.encdet.EncDetUils;
-import lemur.nopol.encdet.EncodingDetector;
-import lemur.nopol.encdet.StreamEncodingDetector;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Extracts phrases around the mentions of entity pairs in Clueweb.
  */
 public class ExtractCluewebEntitypairPhrasesApp {
     private static final String CLUEWEB_PATH_TEMPLATE =
-            "/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
-            //"/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            //"/home/dsavenk/Projects/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
+            "/%s/%s/ClueWeb12_%s/%s/%s-%s.warc.gz";
 
     public static final int BEFORE_OFFSET = -100;
     public static final int AFTER_OFFSET = 100;
@@ -44,6 +39,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
     public static void main(String[] args) throws IOException {
         String entityPairsFile=args[0];
+        String outFile=args[1];
 
         long nullPhrases = 0;
 
@@ -55,7 +51,9 @@ public class ExtractCluewebEntitypairPhrasesApp {
                                                      entityPairsFile))));
              BufferedWriter out =
                      new BufferedWriter(
-                             new OutputStreamWriter(System.out))
+                             new OutputStreamWriter(
+                                     new GZIPOutputStream(
+                                             new FileOutputStream(outFile))))
         ) {
             String line;
             String currentWarcFile = "";
@@ -99,7 +97,8 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
                             if (phrase != null) {
                                 out.write(String.format(
-                                        "%s\t%s\t%s\t%s\t%s\n",
+                                        "%s\t%s\t%s\t%s\t%s\t%s\n",
+                                        record.documentId,
                                         record.firstEntityMid,
                                         record.firstEntityName,
                                         record.secondEntityMid,
@@ -178,7 +177,7 @@ public class ExtractCluewebEntitypairPhrasesApp {
                 .replaceAll("<.*?>","")
                 .replaceAll("^.*?>","")
                 .replaceAll("<.*?$","")
-                .replaceAll("\\s+", " ");
+                .replaceAll("\\s+", " ").replace("\n", " ").replace("\t", " ");
         return stripWordCuts ? tmp.replaceAll("^[^\\s>]*?(\\s|>)","").replaceAll("(\\s|<)[^\\s<]*?$","") : tmp;
 
     }
