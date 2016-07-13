@@ -1,7 +1,7 @@
 package edu.emory.mathcs.ir.input;
 
 import edu.emory.mathcs.ir.base.QuestionAnswerPair;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -53,7 +53,7 @@ public class YahooWebScopeXmlInput implements Iterable<QuestionAnswerPair> {
                 throws IOException, XMLStreamException {
             XMLInputFactory factory = XMLInputFactory.newFactory();
             reader_ = factory.createXMLEventReader(
-                    new BZip2CompressorInputStream(
+                    new GzipCompressorInputStream(
                             new BufferedInputStream(
                                     new FileInputStream(inputFilename_))));
         }
