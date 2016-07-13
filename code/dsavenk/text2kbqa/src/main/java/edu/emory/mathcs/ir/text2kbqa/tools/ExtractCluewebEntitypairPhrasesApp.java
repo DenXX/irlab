@@ -98,12 +98,16 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
                             if (phrase != null) {
                                 out.write(String.format(
-                                        "%s\t%s\t%s\t%s\t%s\t%s\n",
+                                        "%s\t%s\t%s\t%d\t%d\t%s\t%s\t%d\t%d\t%s\n",
                                         record.documentId,
                                         record.firstEntityMid,
                                         record.firstEntityName,
+                                        record.firstEntityBegin,
+                                        record.firstEntityEnd,
                                         record.secondEntityMid,
                                         record.secondEntityName,
+                                        record.secondEntityBegin,
+                                        record.secondEntityEnd,
                                         phrase));
                             } else {
                                 ++nullPhrases;
@@ -177,10 +181,12 @@ public class ExtractCluewebEntitypairPhrasesApp {
 
     private static String normalizeString(String str, boolean stripWordCuts) throws UnsupportedEncodingException {
         String tmp = str.replaceAll("&[a-zA-Z#0-9]{1,6};", " ")
-                .replaceAll("<.*?>","")
+                .replaceAll("<.*?>","")  // Remove full and partial tags.
                 .replaceAll("^.*?>","")
                 .replaceAll("<.*?$","")
-                .replaceAll("\\s+", " ").replace("\n", " ").replace("\t", " ");
+                .replaceAll("\\s+", " ")
+                .replace("\n", " ")
+                .replace("\t", " ");
         return stripWordCuts ? tmp.replaceAll("^[^\\s>]*?(\\s|>)","").replaceAll("(\\s|<)[^\\s<]*?$","") : tmp;
 
     }
