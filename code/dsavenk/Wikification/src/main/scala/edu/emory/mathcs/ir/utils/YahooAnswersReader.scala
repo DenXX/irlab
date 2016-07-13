@@ -25,7 +25,7 @@ object YahooAnswersReader {
         out.println(fullText)
         out.println(mentions.length)
         mentions.map(mention => mention.entity + "\t" + mention.start + "\t" +
-            mention.end + "\t" + fullText.substring(mention.start, mention.end) +
+            mention.end + "\t" + fullText.substring(mention.start, mention.end) + "\t" +
             mention.rho + "\t" + mention.coherence + "\t" + mention.votes)
           .foreach(out.println)
         counter += 1
