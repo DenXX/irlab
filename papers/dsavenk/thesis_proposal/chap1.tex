@@ -92,7 +92,7 @@ Alternative strategies include ranking text passages extracted from retrieved we
 One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
 Therefore, one would benefit from knowing what kind of questions could a paragraph of text answer.
 This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
-Therefore, one of the questions I'm going to focus in my thesis is how to effectively use the structure of web page to predict whether an extracted passage of text answer the given question.
+Therefore, in my thesis I'm planning to build a state-of-the-art system for answering complex informational questions using both QnA archives and passages extracted from regular web pages, and combine them in a single model.
 
 While in some cases a single paragraph of text can perfectly answer the question, there are situations when one would need to combine multiple information pieces together in order to cover all aspects of the question, or provide alternative ideas and evidence.
 These information nuggets are often scattered across different documents, and need to be combined together to form a single answer, that would satisfy the user.
@@ -117,6 +117,8 @@ In this work I propose to explore the effect of strategic tips on user behavior 
 
 Research questions I proposed addressed in my thesis are the following:
 
+\todo{NEED TO REVISE THESE BASES ON THE FINAL LIST OF THESIS PROJECTS}
+
 \begin{enumerate}
 \item RQ1. How to effectively combine unstructured text and structured knowledge base data to improve factoid question answering?
 % THESE ARE SUBQUESTIONS, I DON'T THINK I NEED TO STATE THEM HERE.
@@ -137,6 +139,8 @@ Research questions I proposed addressed in my thesis are the following:
 
 
 \section{Research Plan}
+
+\todo{UPDATE THIS TO REFLECT THE FINAL LIST OF THESIS PROJECTS}
 
 \subsection{Combining KB and Text Data for Factoid Question Answering (Chapter \ref{chapter:factoid})}
 \label{sec:plan1}
@@ -169,14 +173,17 @@ The plan is to explore recent advances in deep learning for text summarization \
 The effectiveness of these models will be evaluated using the data from TREC LiveQA shared tasks.
 
 
-\subsection{Interaction between a QA system and humans (Chapter \ref{chapter:users})}
-\label{sec:plan4}
-
-In my thesis I'm planning to consider three different types of interactions between a QA system and humans: crowdsourcing, providing users with strategic hints to help them structure their search process, and clarification questions, which a QA system can ask users to resolve certain ambiguities.
+\subsection{Crowdsourcing for near Real-time Question Answering (Chapter \ref{sec:non-factoid:crowd})}
 
 For crowdsourcing, I'm going to study how a QA system can leverage a pool of human workers to crowdsource some data, which can help it answer certain difficult questions (Section \ref{sec:non-factoid:crowd}).
 Automated QA sytems operate in near real-time, which poses certain challenges for crowdsourcing.
 First, I'll study if it is possible to get useful data from crowd workers under a certain time limit, and then implement an almost real-time crowdsourcing system to help an automated system answer questions from TREC LiveQA 2016 shared task.
+
+
+\subsection{Putting "Human in the Loop" for Question Answering (Chapter \ref{chapter:users})}
+\label{sec:plan4}
+
+In my thesis I'm planning to consider three different types of interactions between a QA system and humans: providing users with strategic hints to help them structure their search process, and clarification questions, which a QA system can ask users to resolve certain ambiguities.
 
 Strategic search hints are certain suggestions, which an automated system can provide to a user to structure her search task, formulate easier questions that a system can tackle.
 I will study how a user react to different types of hints and how the hints affect the overall task success rate (Section \ref{sec:user:hints}).
@@ -190,12 +197,14 @@ In Section \ref{sec:user:clarification} I study what kind of clarification quest
 \noindent
 A tentative timeline for the work that needs to be done is shown below:
 
+\todo{Update based on the final list of projects}
+
 \begin{itemize}
 \item Completing the work proposed in Sections \ref{sec:plan2} and \ref{sec:plan3} (4/2016 - 5/2016): develop individual components for question analysis, answer candidate retrieval and answer generation and integrate them into a system to participate in TREC LiveQA'16.
 \item Completing the work proposed in Section \ref{sec:plan1} (6/2016 - 7/2016): Develop a model to use annotation of entity mentions for factoid question answering and compare it against existing techniques. I'm also planning to develop a new QA dataset, which will include more diverse and realistic set of questions than existing KBQA datasets and larger than available TREC QA datasets.
 \item Completing the work proposed in Section \ref{sec:plan4} (4/2016 - 7/2016): Integrate a crowdsourcing module into my TREC LiveQA'16 system as one of the options, develop a model to predict ambiguous questions on a CQA website and propose certain clarification questions.
-\item Thesis writing (08/2016 - 09/2016) 
-\item Thesis defense (10/2016)
+\item Thesis writing (09/2016 - 10/2016) 
+\item Thesis defense (11/2016)
 \end{itemize}
 
 
@@ -203,7 +212,7 @@ A tentative timeline for the work that needs to be done is shown below:
 
 The key contributions of the proposed research are:
 
-% ADD HOW EACH OF THE POINTS COULD BE USEFUL FOR THE FIELD
+\todo{ADD HOW EACH OF THE POINTS COULD BE USEFUL FOR THE FIELD}
 
 \begin{itemize}
 \item A novel model for relation extraction from archives of question-answer pairs.
