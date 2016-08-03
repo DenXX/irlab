@@ -1,0 +1,114 @@
+% chap1.tex
+%
+% First chapter file is different from others
+%
+\mychapter{Introduction}
+\label{chapter:intro}
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{myheadings}
+
+\noindent
+
+It has long been a dream to communicate with a computer as one might with another human being using natural language speech and text.
+Nowadays, we are coming closer to this dream, as natural language interfaces become increasingly popular.
+Our phones are already reasonably good at recognizing speech, and personal assistants, such as Apple Siri, Google Now, Microsoft Cortana, Amazon Alexa, etc., help us with everyday tasks and answer some of our questions.
+Chat bots are arguably considered ``the next big thing'', and a number of startups developing this kind of technology has emerged in Silicon Valley and around the world\footnote{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}.
+
+Question answering is one of the major components of such personal assistants.
+Existing techniques already allow users to get direct answers to some of their questions.
+However, by some estimates\footnote{https://www.stonetemple.com/the-growth-of-rich-answers-in-googles-search-results/} for $\sim$ 70\% of more complex questions users still have to dig into the ``10 blue links'' and extract or synthesize answers from information buried within the retrieved documents.
+In order to make a shift towards more intelligent personal assistants this gap needs to be closed.
+Therefore, in my thesis I focus on helping users get answers to their questions by improving question answering methods and the ways a system interact with its users.
+
+User questions vary in many different aspects, each of which has its own set of challenges.
+It's common to divide questions into \textit{factoid} and \textit{non-factoid}.
+Factoid questions are inquiring about certain facts and can be answered by a short phrase (or list), \ie entity name, date or number.
+An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
+Of course, there is a variety of questions, that do not fall into this group, \eg how-to and why questions, recommendation and opinion questions, \etc.
+The literature usually refers to these questions as ``non-factoid questions''.
+Most of the research in automatic question answering focused on factoid questions \cite{voorhees2001trec,lin2007exploration,BerantCFL13:sempre,Cafarella:2008:WEP:1453856.1453916}, and recently more and more works started targeting non-factoid questions category \cite{overviewliveqa15,surdeanu2011learning,fried2015higher,sharp2015spinning}.
+These types of questions provide quite distinct set of challenges and methods applied to them are often quite different, therefore in my thesis I will first study factoid QA and then propose some ideas to improve non-factoid QA.
+
+Automated question answering systems use various data sources to generate answers to user questions.
+By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables) and \textit{structured} (\eg knowledge bases).
+Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}), which often compliment each other.
+There are a number of methods designed for question answering using text collections, knowledge bases or archives of question-answer (QnA) pairs.
+Most of the developed systems use either a single source of data, or combine multiple independent pipelines, each of which operates over a separate data source.
+Motivated by the fact that different types of data sources compliment each other weaknesses and advantages, in my thesis I propose to study methods of combining different data sources for question answering.
+
+\begin{table}
+\centering
+\begin{tabular}{| l | p{6cm} | p{6cm} |}
+\hline
+ & unstructured data & structured data \\
+\hline
+factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Knowledge Bases} \\
+ & + easy to match against question text & + aggregate all the information about entities\\
+ & + cover a variety of different information types & allow complex queries over this data using special languages (e.g. SPARQL) \\
+ & - each text phrase encodes a limited amount of information about mentioned entities & - hard to translate natural language questions into special query languages \\
+&  & - KBs are incomplete (missing entities, facts and properties) \\
+\hline
+non-factoid questions & \multicolumn{1}{|c|}{Text} & \multicolumn{1}{|c|}{Question-Answer pairs} \\
+ & + contain relevant information to a big chunk of user needs & + easy to find a relevant answer by matching the corresponding questions \\
+ & - hard to extract semantic meaning of a paragraph to match against the question (lexical gap) & - cover a smaller subset of user information needs \\
+\hline
+\end{tabular}
+\caption{Pros and cons of structured and unstructured data sources for factoid and non-factoid question answering}
+\label{table:data_procons}
+\end{table}
+
+Two major paradigms for factoid question answering are knowledge base question answering (KBQA) and text-based question answer (TextQA).
+Information contained in a huge volume of text data on the web can be relatively easily queried using terms and phrases from the original question in order to retrieve sentences that might contain the answer.
+However, each sentence encode very limited amount of information about mentioned entities and aggregating it over unstructured data is quite problematic.
+On the other hand, modern large scale knowledge bases, such as Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, dbPedia \cite{auer2007dbpedia}, YAGO \cite{yago3}, WikiData \cite{vrandevcic2014wikidata}, aggregate information about millions of entities into a graph of [subject, predicate, object] RDF triples.
+The problem with KBs is that they are inherently incomplete and miss a lot of entities, facts and predicates.
+In addition, triple data representation format complicates retrieval of KB concepts relevant to question phrases.
+The focus of the proposed research in factoid question answering lies on the idea of combining structured KB and unstructured text data, which can help a QA system to overcome these drawbacks.
+
+
+% THIS PIECE IS GOOD, BUT IT DUPLICATES SOMETHING I HAVE ALREADY SAID. KEEPING IT JUST IN CASE...
+% Billions of documents on the web contain all kinds of knowledge about the world, which can be retrieved to answer user questions.
+%However, each individual statement includes a very limited amount of information about mentioned entities.
+%On the other side, modern open domain large scale knowledge bases, such as dbPedia\footnote{http://wiki.dbpedia.org/}, YAGO\cite{yago3}, Freebase\footnote{http://www.freebase.com}, WikiData\footnote{https://www.wikidata.org/}, etc., contain millions of entities and facts about them, and are quite effective in answering some of the user questions.
+%However, knowledge bases have their own disadvantages:
+%\begin{itemize}
+%\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
+%\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
+%\end{itemize}
+
+The main challenge in non-factoid question answering lies in the diversity of question and answer types.
+Reusing answers from previously posted similar questions, which could be found, for example, in CQA archives, was demonstrated to be quite effective to answer new questions \cite{carmel2000eresponder,Shtok:2012:LPA:2187836.2187939}.
+Unfortunately, it's not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
+Alternative strategies include ranking text passages extracted from retrieved web documents.
+One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
+Therefore, one would benefit from knowing what kind of questions could a paragraph of text answer.
+This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
+Therefore, in my thesis I'm planning to build a state-of-the-art system for answering complex informational questions using both QnA archives and passages extracted from regular web pages, and combine them in a single model.
+
+While in some cases a single paragraph of text can perfectly answer the question, there are situations when one would need to combine multiple information pieces together in order to cover all aspects of the question, or provide alternative ideas and evidence.
+These information nuggets are often scattered across different documents, and need to be combined together to form a single answer, that would satisfy the user.
+In my thesis I propose to apply extractive and abstractive text summarization methods to the problem of answer summarization.
+
+%However, ranking isn't the only important part of the question answering pipeline.
+%A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
+%Non-factoid questions, especially those that people post on CQA websites are often long, which makes it problematic to use directly as search queries.
+%Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
+%In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
+%Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
+%Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
+
+Unfortunately, no matter how good a QA system is, there likely to be cases, when it's unable to generate a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or the the question may simply be ambiguous or poorly worded.
+One approach to overcome these challenging situation is to put a human in the loop, who can be either an external crowd worker or the author of the question itself.
+For the former case, in my thesis I propose to explore the effectiveness of crowdsourcing for question answering, especially in the real-time scenario, when the user is unlikely to wait for the response for more than a couple of minutes.
+
+Proliferation of mobile personal assistants and conversational agents provide a very natural dialog-based interface between a human and a computer system, and question answering is arguably one of the most important applications of such technologies.
+Traditionally research in question answering focused on a one-way conversation, where a user only asks questions and the system responds with the answer.
+However, having a dialog between an asker and a QA system opens up many opportunities to improve the user satisfaction.
+In my thesis I'm planning to focus on two specific kinds of interactions: strategic search hints, that a system might give the user in case she isn't satisfied with the answer, and using user feedback to improve the answer candidate ranking.
+
+Modern personal assistants are still far from being intelligent.
+I believe, that the research I propose to do in my PhD thesis will narrow this gap for question answering use cases.
+Better utilization of structured and unstructured data sources for factoid and non-factoid question answering will improve the core QA capabilities, and in cases when a system is still unable to produce a reasonable answer, we can use crowdsourcing or learn from the user feedback.
+The results of my thesis will hopefully be useful for future research in developing more intelligent personal assistants.
