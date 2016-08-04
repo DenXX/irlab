@@ -1,7 +1,7 @@
 % chap7_proposal.tex
 %
 
-\mychapter{Summary \& Research Proposal}
+\mychapter{Summary \& Research Timeline}
 \label{chapter:proposal}
 
 \noindent
@@ -26,17 +26,7 @@ The main research objectives I plan to target in my thesis are the following:
 \subsection{Combining KB and Text Data for Factoid Question Answering (Chapter \ref{chapter:factoid})}
 \label{section:proposal:plan:factoid}
 
-Structured and unstructured data sources, such as knowledge bases and text document collections, are quite effective for factoid question answering.
-However, these data sources are quite different in nature and in many cases can compliment each other.
-Two major issues with KBQA is knowledge base incompleteness and complexity of translating natural language question into a structured query.
-Text documents on the other hand are easier to match against the question, contain more information than a typical knowledge base, but aggregating information across multiple statements and documents is complicated.
-
-One way to improve the situation with knowledge base incompleteness is to extract missing information from other data sources, \eg \cite{Cafarella:2008:WEP:1453856.1453916,Cafarella:2009:WES:1519103.1519112,Dong:2014:KVW:2623330.2623623,Etzioni:2008:OIE:1409360.1409378,Gupta:2014:BOS:2732286.2732288,kushmerick1997wrapper}.
-In my prior research I proposed to get use of one additional data source, that wasn't used for relation extraction before, namely question-answer pairs.
-Section~\ref{section:factoid:approaches:cqarelextract} described the experiments and results in utilizing this data to improve knowledge base coverage.
-
-Unfortunately, relation extraction isn't perfect either and there are both precision and recall losses.
-Therefore, in my thesis I propose to explore semantic annotation of entity mentions as a way to bridge the gap between KB entity graph and text documents.
+I propose to explore semantic annotation of entity mentions as a way to bridge the gap between KB entity graph and text documents.
 Such representation will allow us to do simple string matching on text documents and at the same time explore the knowledge about the mentioned entities in KB and vice versa.
 The idea of the proposed approach is based on extending a set of links in a knowledge base with edges connecting entities to their mentions in text documents.
 Therefore, text fragments, that mention two or more entities, essentially create additional edges in the knowledge base connecting these entities, and these edges are ``labelled'' with textual representation of the fragment (e.g. bag of words or embedding).
@@ -71,8 +61,6 @@ This research could be useful for future work on integrating different unstructu
 \subsection{Answer Summarization for Non-factoid Question Answering (Chapter~\ref{chapter:non-factoid})}
 \label{section:proposal:plan:non-factoid}
 
-A typical approach for non-factoid question answering is to retrieve passages from either answers to existing questions in CQA archives or from regular web documents.
-Quite often such passages contain some redundant information, that the user didn't ask for in her question, or on the contrary a single passage cannot completely satisfy user information needs.
 In Section~\ref{section:non-factoid:proposal} I proposed to develop answer summarization techniques, inspired by the recent advances in deep learning for text summarization \cite{rush-chopra-weston:2015:EMNLP,chopraabstractive16} and generation \cite{karpathy2015deep}.
 More particularly, I'm planning to test both extractive and abstractive text summarization approaches on the task of generating responses to non-factoid questions.
 
@@ -100,18 +88,9 @@ This model will be useful as a first step towards more sophisticated answer dist
 \subsection{Crowdsourcing for near Real-time Question Answering (Chapter~\ref{chapter:crowdsourcing})}
 \label{section:proposal:plan:crowdsourcing}
 
-In Section~\ref{section:crowdsourcing:approach} I described the approach we took to integrate question answering into a real-time non-factoid question answering system.
-The results of our studies demonstrated that crowd workers can easily rate the quality of candidates and even provide their own answers to questions in under 1 minute time limit.
-We integrated the crowdsourcing module into our TREC LiveQA system to participate in the 2016 run of the shared task.
-To make the hybrid system real-time we used the retention model~\cite{bernstein2011crowds} to have a set of workers waiting for a new question to arrive.
-When our QA system receives a question, it posts it to the workers, who can now read the question and decide if they can provide the answer themselves.
-In the meantime, the automatic system works to retrieve a set of candidate answers from various resources and rank them.
-Next, top 7 candidates are send for labeling to workers, who can now judge the relevance of each of the presented answers.
-The system waits for the response until the maximum response time of one minute for a question is near, retrieves all the crowdsourcing feedback and performs the final answer reranking.
-The results of our preliminary analysis of data we gathered during TREC LiveQA 2016 revealed that with worker feedback, the system was able to significantly improve its performance.
-
-The focus of the follow up research I proposed to do for my thesis is on optimizing the costs of the proposed approach.
-To make our system more scalable and cut the costs associated with the crowdsourcing module, I propose to incorporate a model to predict the expected performance of the answer, generated by the automated system.
+The developed near real-time question answering system showed significant improvements in performance compared to a system without crowdsourcing.
+As a future research I propose to optimize the costs of this approach.
+To make our system more scalable and cut expenses associated with the crowdsourcing module, I propose to incorporate a model to predict the expected performance of the answer, generated by the automated system.
 This score can be used to prioritize tasks when the load is high, and even skip some tasks altogether, if the expected quality of automatically generated answer is high.
 
 \subsubsection{Expected contributions}
@@ -140,12 +119,7 @@ The proposed research targets the problem of reducing these costs by applying cr
 \subsection{User Interactions with Question Answering Systems (Chapter~\ref{chapter:users})}
 \label{section:proposal:plan:users}
 
-In my thesis I'm going to focus to a tiny part of all possibilities, that are opened up by a full power dialog between a user and a question answering system.
-In my prior research I considered search hints, as a means to give user some suggestions on how to proceed with complex informational tasks.
-Well-designed hints turned out to be quite helpful, and improved user success rate.
-However, one needs to be careful with such a tool, as hints that are too general and hard to implement can be detrimental to user experience.
-
-To take some hard work off the user, I'm also proposing to develop methods for positive and negative relevance feedback in a question answering dialog scenario.
+As one of the first steps towards a more intelligent question answering dialog I propose to develop methods for positive and negative relevance feedback.
 After a system returns an answer, a user might respond with certain feedback, whether positive (\eg ``give me more information on the topic'') or negative (\eg ``this answer is bad'').
 The system needs to take this feedback into account and come up with a better answer.
 To implement this functionality I propose to extend a set of features representing each answer candidates with features, measuring similarities and dissimilarities between the candidate and provided positive and negative feedback answers.
@@ -181,7 +155,7 @@ Therefore, if in our scenario bad questions turns out to be quite diverse, negat
 A tentative timeline for the work that needs to be done is shown below:
 
 \begin{itemize}
-\item Joint model for question answering over KB and text (Section~\ref{section:factoid:problem}): \textit{8/2016}
+\item Joint model for question answering over KB and text (Section~\ref{section:factoid:problem}): \textit{8/2016 - 9/2016}
 	\begin{enumerate}
 	\item collect and index textual data about entity mentions from ClueWeb12 dataset
 	\item derive a factoid question answering dataset from Yahoo!Answers WebScope collection
@@ -189,14 +163,7 @@ A tentative timeline for the work that needs to be done is shown below:
 	\item test it on existing (TREC QA) as well is derived datasets and compare the results with the baselines
 	\end{enumerate}
 	
-\item Optimizing crowdsourcing for near real-time question answering (Section~\ref{section:crowdsourcing:proposal}): \textit{9/2016}
-	\begin{enumerate}
-	\item build a model to predict the expected quality of automatically generated answer candidate
-	\item develop a task scheduling system based on priorities estimated in step 1, number of workers available and the current load of the system.
-	\item test the system by simulating arrivals of the question using different models
-	\end{enumerate}
-
-\item Answer summarization for non-factoid question answering (Section~\ref{section:non-factoid:proposal}): \textit{10/2016}
+\item Answer summarization for non-factoid question answering (Section~\ref{section:non-factoid:proposal}): \textit{9/2016 - 10/2016}
 	\begin{enumerate}
 	\item build a model for extractive summarization for non-factoid question answering
 	\item if time permits, build a model for abstractive summarization for non-factoid question answering
@@ -204,13 +171,21 @@ A tentative timeline for the work that needs to be done is shown below:
 	\item integrate the model into my TREC LiveQA system, test it on a set of questions and manually judge the quality compared to a single returned answer.
 	\end{enumerate}
 
-\item Relevance feedback for dialog-based question answering (Section~\ref{section:users:proposal}): \textit{11/2016}
+\item Relevance feedback for dialog-based question answering (Section~\ref{section:users:proposal}): \textit{9/2016 - 11/2016}
 	\begin{itemize}
 	\item implement features to measure similarity between an answer candidate and negative and positive feedback answers
 	\item train candidate answer ranking model, that incorporates relevance feedback if available
 	\item test the model on the data from TREC LiveQA 2016
 	\item conduct a small user study to see how the system behaves in a real scenario and whether or not it improves the user experience
 	\end{itemize}
+
+\item If time permits, optimizing crowdsourcing for near real-time question answering (Section~\ref{section:crowdsourcing:proposal}): \textit{11/2016}
+\begin{enumerate}
+	\item build a model to predict the expected quality of automatically generated answer candidate
+	\item develop a task scheduling system based on priorities estimated in step 1, number of workers available and the current load of the system.
+	\item test the system by simulating arrivals of the question using different models
+\end{enumerate}
+
 
 \item Thesis writing: \textit{10/2016 - 11/2016}
 \item Thesis defense: \textit{12/2016}

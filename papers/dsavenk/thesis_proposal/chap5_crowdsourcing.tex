@@ -9,7 +9,7 @@
 \section{Problem}
 \label{section:crowdsourcing:problem}
 
-Despite the huge progress in automatic question answering, existing systems are still far from being able to handle every human question.
+Despite the progress in automatic question answering, existing systems are still far from being able to handle every human question.
 For example, the winning system in TREC LiveQA 2015 shared task were able to return a good or excellent answer to less than 40\% of the questions.
 And overall, according to the TREC LiveQA 2015 assessor scores, for 12.6\% of the questions none of the 21 participating systems produced even moderately useful answer, and for 30\% a good or better response.
 This can happens for multiple different reasons, \eg a question is ill formulated, available data sources doesn't contain any relevant information, a system fails to retrieve or rank good answer candidates, \etc
@@ -594,6 +594,8 @@ This paper provides a flexible and powerful framework for combining the powers o
 \section{Proposed Research}
 \label{section:crowdsourcing:proposal}
 
+\todo{Should rename it to emphasize, that I might not have time to do it}
+
 The results described above demonstrate how effective can crowdsourcing be for real-time question answering.
 However, it can also be quite expensive, which is one of the most critical problems for scalability of hybrid system.
 Such a system needs to have a good strategy to deal with increasing volume and velocity of the input data, \ie user questions.
@@ -641,7 +643,7 @@ To train the models and conduct the analysis of the work proposed in the previou
 The dataset includes 1088 questions, top 7 automatically and worker generated answers, each of which was judged on a scale from 1 - 4 based on its relevance to the question.
 This setup allows us to apply different reranking and filtering strategies and estimate the final quality of the answer our hybrid system would return.
 
-To train the selecting crowdsourcing model I will split the dataset into the training, development and test sets, and use the training portion to build a regression model to predict the relevance of top answer given the question and other candidates, represented by a set of features described above.
+To train the selective crowdsourcing model I will split the dataset into the training, development and test sets, and use the training portion to build a regression model to predict the relevance of top answer given the question and other candidates, represented by a set of features described above.
 To test this model, I will apply it on a test set and compute Pearson and rank correlation coefficients.
 In addition, by varying the threshold we can save certain percentage of crowdsourcing resources by discarding the corresponding feedback data and draw the performance vs crowdsourcing cost plot.
 

@@ -200,26 +200,25 @@ From the final run of the system, 1087 questions were judged by the organizers o
 \textbf{4: Excellent} - a significant amount of useful information, fully answers the question\\
 \textbf{3: Good} - partially answers the question\\
 \textbf{2: Fair} - marginally useful information\\
-\textbf{1: Bad} 
+\textbf{1: Bad} - contains no useful information for the question\\
+\textbf{-2} - the answer is unreadable (only 15 answers from all runs were judged as unreadable).
 
-
-
-% ----------------------------------------
+The following performance metrics were reported:
 
 \begin{itemize}
-\item : average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions as having score 0
-\item \textbf{succ@i+}: the fraction of answers with score i or greater (i=1..4)
+\item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions as having score 0
+\item \textbf{s@i+}: the fraction of answers with score i or greater (i=1..4)
 \item \textbf{p@i+}: the number of questions with score i or greater (i=2..4) divided by the number of answered questions
 \end{itemize}
+
 Table \ref{table:liveqa-results} provides the results of top 5 teams by average answer score, results for our system and average scores.
 Please refer to the \cite{overviewliveqa15} for more details and results of all systems.
 
 \begin{table}
-	\caption{Results of the TREC LiveQA evaluation of Emory University QA system and average results of all systems. $\uparrow$ means that results of Emory system in this metric are above average, and $\downarrow$ means that results are below average}
-	\label{table:liveqa-results}
-	\begin{tabular}{|p{2.5cm}|p{1.7cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|}
+	\centering
+	\begin{tabular}{|p{3cm}|p{2cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|}
 		\hline
-		& \# answers & avg score (0-3) & succ@2+ & succ@3+ & succ@4+ & p@2+ &  p@3+ & p@4+ \\
+		& \# answers & avg score (0-3) & s@2+ & s@3+ & s@4+ & p@2+ &  p@3+ & p@4+ \\
 		\hline
 		1. CMUOAQA & 1064 & 1.081 & 0.532 & 0.359 & 0.190 & 0.543 & 0.367 & 0.179 \\
 		2. ecnucs & 994 & 0.677 & 0.367 & 0.224 & 0.086 & 0.401 & 0.245 & 0.094\\
@@ -232,6 +231,8 @@ Please refer to the \cite{overviewliveqa15} for more details and results of all 
 		Average results & 1007 & 0.467 & 0.262 & 0.146 & 0.060 & 0.284 & 0.159 & 0.065\\
 		\hline
 	\end{tabular}
+\caption{Results of the TREC LiveQA evaluation of Emory University QA system and average results of all systems. $\uparrow$ means that results of Emory system in this metric are above average, and $\downarrow$ means that results are below average}
+\label{table:liveqa-results}
 \end{table}
 
 The metric succ@1+ shows the fraction of questions for which a readable answer was returned by the system.
@@ -242,7 +243,6 @@ Nevertheless, the overall results look promising and I will make a more thorough
 
 The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23\% of the cases (prec@3+) when the answer was returned.
 And for 60\% of the questions the answer doesn't contain any useful information.
-
 
 \subsection{Analysis}
 \label{section:non-factoid:liveqa:analysis}
@@ -371,8 +371,10 @@ It will be exciting to see the next version of the task next year, and how the p
 \label{section:non-factoid:proposal}
 
 The results of TREC LiveQA 2015 established a baseline performance of automatic non-factoid question answering systems, and shed some light on typical problems and future research directions.
-For my thesis I'm proposing to focus on one of these problems, \ie answer summarization.
-The existing research typically follows an extractive summarization approach, and explores different answer sentences ranking strategy to either shorten the answer, cover multi-intent questions or to improve diversity~\cite{chan2012community,zhaochun_sparsecoding_2016}, and less attention is paid to the overall quality and readability of summarized answer text.
+One particular problem, that I'm proposing to concentrate research in my thesis, is that passages a QA system extract as candidate answers often either contain redundant information, or, on contrary, the answer is split across multiple passages and a single one isn't going to satisfy user information needs.
+One way to tackle these problems is to introduce an answer summarization module, which instead of returning the top ranked answer, will generate the response by summarizing the relevant pieces of information from ranked candidates.
+Existing research on answer summarization usually targets community generated answers on CQA websites, which is different from summarizing automatically generated candidates.
+The developed algorithms typically follow an extractive summarization approach, and explore different answer sentences ranking strategies to either shorten the answer, cover multi-intent questions or to improve diversity~\cite{chan2012community,zhaochun_sparsecoding_2016}, and less attention is paid to the overall quality and readability of summarized answer text.
 
 For my thesis I propose to capitalize on the recent successes of deep learning for natural language processing and apply some of the techniques on the new problem of answer summarization.
 Section~\ref{section:non-factoid:proposal:method} describes the proposed methodology in more details.
@@ -417,23 +419,33 @@ The idea of abstractive summarization model is based on the sequence to sequence
 \label{section:non-factoid:proposal:experiments}
 
 Since the problem of answer summarization isn't new, there are some datasets already available and several benchmark results exists.
-For my experiments I'm planning to use the dataset of M.Tomasoni and M.Huang~\cite{tomasoni2010metadata}, which was constructed based on Yahoo! Answers archive and manually generated gold summaries.
-Another relevant dataset, constructed for the task of novelty-based answer reranking was recently released by Adi Omari et al~\cite{omari2016novelty}.
-In this dataset human annotators extracted nuggets of different aspects for the same question, and therefore its possible to judge the relevance of each of the answer with respect to these nuggets.
-The paper establishes certain baselines for the task of answer reranking using diversity-aware ranking metrics.
-Since each answer might contain a lot of redundant information, summarization should allow us to increase the diversity of the answer text given the same length limit.
+For my experiments I'm planning to use the datasets of M.Tomasoni and M.Huang~\cite{tomasoni2010metadata}, which was constructed based on Yahoo! Answers archive and manually generated gold summaries, and of Adi Omari et al~\cite{omari2016novelty}, constructed for the task of novelty-based answer reranking.
+In the later dataset human annotators extracted nuggets of different aspects for the same question, and therefore its possible to judge the relevance of each of the answer with respect to these nuggets.
+These datasets will be used to test my extractive summarization model.
+The results on the first dataset could be directly compared to other existing answer summarization techniques, \eg \cite{zhaochun_sparsecoding_2016,erkan2004lexrank,tomasoni2010metadata}.
+Thus, this experiment will show if the deep learning based answer summarization model can compete with other approaches as it does for regular document summarization.
+The later dataset was developed for the task of novelty-based answer ranking, \ie arranging answers in such a way that a user is exposed to different aspects and opinions.
+On this dataset I will test if sentence-based answer summarization is better (in terms of diversity of covered aspects) than ranking answers under certain maximum character length limit, \ie whether extracting sentences to form an N char length summary gives a better experience than ranking complete answers under the same limit.
 
-However, in these dataset the answer candidates were taken from community generated answers to each question, and therefore on average they are relevant.
+However, in these datasets the answer candidates were taken from community generated answers to each question, and therefore on average they are relevant.
 To test the model on more realistic scenario of automatic question answering, I'm planning to reuse the candidate answers with relevance labels from TREC LiveQA datasets.
-The available answer labels can automatically be used to estimate the relevance of individual sentences, extracted from the dataset, and the overall quality of the answers will be judged manually using crowdsourcing.
+I will conduct two experiments: 
+\begin{itemize}
+\item use the extractive summarization model trained on the previously mentioned datasets to summarize answer candidates
+\item train extractive and abstractive answer summarization model using community generated answers without human labeling.
+\end{itemize}
+
+The first experiment will help me answer the question if summarizing automatically generated candidates is more difficult than community answers, and whether a model trained for one task can be used for another.
+The later experiment will test the hypothesis that community generated answer can be used as a ground truth for model training, which would allow one to get millions of examples from CQA archives.
+The quality of summaries will be judged manually using crowdsourcing for both relevance and coherence/readability.
 
 \section{Summary}
 \label{section:non-factoid:summary}
 
 This chapter focus on the problem of improving the performance of non-factoid question answering system.
 The system I developed participated in both TREC LiveQA 2015 and 2016 shared tasks, which allowed me to test certain ideas and discover directions for future improvements.
-For my thesis I decided to focus on the problem of answer summarization, and proposed extractive and abstractive summarization models, based on recent developments in the field of neural networks.
+The thesis will focus on the problem of answer summarization, and proposed extractive and abstractive summarization models, based on recent developments in the field of neural networks.
 
 However, no matter how well an automatic system performs, there will be cases, when it is unable to generate a good response to a user question.
 In such cases, computers can ask for help, which would lead to a hybrid human-computer question answering systems.
-Chapter~\ref{chapter:crowdsourcing} focuses on the idea of crowdsourcing for realtime question answering.
+Chapter~\ref{chapter:crowdsourcing} focuses on the idea of crowdsourcing for real-time question answering.

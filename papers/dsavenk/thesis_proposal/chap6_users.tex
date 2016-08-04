@@ -78,9 +78,9 @@ At the end of the game a questionnaire was presented asking for feedback on user
 \begin{tabular}{|p{1cm}|p{4.5cm}|p{4.2cm}|p{6.0cm}|} \hline
  & Question & Correct Answer & Specific hints \\ \hline
 Task 1 & I can grow body back in about two days if cut in half. Many scientists think I don't undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{6cm}{
-1. Find what is senescence\\
-2. Find who does not undergo senescence\\
-3. Find who can also regenerate body and choose the one that satisfies both conditions} \\ \hline
+1. Find what is senescence \\
+2. Find who does not undergo senescence \\
+3. Find who can also regenerate body and choose the one that satisfies both conditions} \\\hline
 Task 2 & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart. &
 \parbox[t]{6cm}{
 1. Find the names of the gods from the Archaic triad\\
@@ -260,11 +260,14 @@ In my thesis I propose to focus on both positive and negative relevance feedback
 A user might give a system a positive feedback if the provided answer was relevant, but either alternative view or additional information is needed.
 Alternatively, if an answer is not helpful, a system can take negative feedback to try to generate a good answer.
 
-As a baseline for the experiments I'm planning to take the system I developed for TREC LiveQA shares task, described in Section~\ref{section:non-factoid:liveqa}, and extend it to be able to return an alternative answer given either positive or negative feedback.
-I'm planning to implement the relevance feedback module into the system's candidate answer ranking model.
-More specifically, a set of features representing a candidate answer will be extended with various scores, measures similarities between the candidates and answers received positive or negative feedback.
-I'm planning to incorporate various vector space and language model similarity scores~\cite{wang2008study}, as well as some more simple statistics, such as n-gram overlaps, common substrings and n-grams of the question, that weren't covered by the feedback answers.
+As a baseline for the experiments I'm planning to take the system I developed for TREC LiveQA shares task, described in Section~\ref{section:non-factoid:liveqa}, and extend it with the relevance feedback module.
+This module will allows the system to adjust and return an alternative answer given either positive or negative feedback.
+I'm going to integrate relevance feedback into the system's candidate ranking model.
+More specifically, a set of features representing a candidate answer will be extended with various scores, that measure syntactic and semantic similarities between a candidate and positive and negative feedback examples.
+This additional set of features will include various vector space, distributed semantics~\cite{kusner2015word} and language model similarity scores~\cite{wang2008study}, as well as some more simple statistics, such as common and missing n-grams, longest common substrings, \etc.
 The overall architecture of the proposed system is sketched on Figure~\ref{figure:users:proposal:model}.
+
+There are other alternative stages in the QA pipeline, where we could incorporate the relevance feedback, \eg a system can adjust a set of search queries used to retrieve a set of candidates as done for ad-hoc information retrieval~\cite{rocchio1971relevance}, but I will have to leave this for future work.
 
 \begin{figure}
 \centering
@@ -276,20 +279,30 @@ The overall architecture of the proposed system is sketched on Figure~\ref{figur
 \subsection{Experimentation}
 \label{section:users:proposal:experiments}
 
-To test the system experimentally I propose to reuse the data from TREC LiveQA 2016 again.
+To test the system experimentally I propose to reuse the data from TREC LiveQA 2016, which we collected for the crowdsourcing experiment (see Section~\ref{section:crowdsourcing:approach:crqa:experiments}).
 As a remainder, during the official run of TREC LiveQA 2016 we collected 1087 questions, issued to our system.
 For each question, top 7 generated candidate answers were rated by crowd workers on a scale from 1 (bad) to 4 (excellent).
-To simulate the interaction with the user we can collect cases, when the top scoring candidate received a rating of 1 (bad) and give it as negative feedback to the system.
-Alternatively, cases, when the top answer was rated as moderate (2) or good (3), but there was a better candidate, can be treated as examples of positive relevance feedback.
-The goal for these questions will be to return a better answer from the second attempt.
-As a simple baseline we can use the answer that was ranked second in the original ranking, and given the feedback our system is expected to do better.
+
+To test the proposed relevance feedback model I'm proposing to conduct the following simulation experiment.
+For each question, top 7 answers will be arranged according to their model score.
+Assuming the model returns the top candidate, we collect cases when the top candidate has a low relevance score (\eg $score < 2$), and use these answers as negative feedback.
+The goal of the model will be to re-rank the rest of the candidates and return a better answer.
+A baseline in this experiment will be a system, that doesn't use the feedback and simply returns the next best answer according to the model score.
+Positive relevance feedback experiment will be conducted in a similar way: all answers with good relevance score (\eg from 2 to 3) will be given back to the system as positive feedback with the goal to return another good answer.
+This experiment will help us confirm or reject the hypothesis, that it's possible to incorporate relevance feedback for question answering.
 
 To train our ranking model to accept additional answer candidates I will split the original dataset into training and test parts again.
 Using the original model I will collect cases with negative and positive feedback as described above, and train the model to retrieve the best possible candidate from the rest of the answers.
 
-Finally, simulation study won't allow us to look into the real user behavior, and learn whether such scenario is beneficial for them or not.
-For that, we are building a chatbot for Facebook messanger, that will serve as a front end to our question answering system.
-I'm planning to conduct a user study in which workers will be given certain questions to ask to the chatbot, and after the tasks are completed, they will complete the survey and rate different aspects of the question answering dialog experience.
+However, such simulation experiment won't allow us to test if relevance feedback improves the user experience.
+To answer this question we will conduct a user study using either Mechanical Turk or hire some student workers.
+We are building a chatbot for Facebook messenger, that will serve as a front-end to our question answering system.
+The users will receive a set of questions, e.g. sampled from Yahoo! Answers, and will need to get a satisfactory answer using our chatbot.
+All the users will be split into two groups: with and without an option to leave relevance feedback.
+The relevance feedback group will be asked to mark each answer as good or bad, after which a new candidate will be provided until the user will decide to stop and declare either fail or success.
+The group without relevance feedback will be given an option to receive another answer, which will simply be the next candidate in the original ranked list.
+Upon completion of all tasks, the users will complete the questionnaire, where I will ask questions about their experience and satisfaction with the chatbot.
+Task success rate and the feedback will help me answer the question if relevance feedback for question answering improves user experience.
 
 \section{Summary}
 \label{section:users:summary}
