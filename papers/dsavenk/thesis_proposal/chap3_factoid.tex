@@ -584,8 +584,8 @@ Subgraph Embeddings \cite{BordesCW14:emnlp} & - & - & 0.432 & 0.392\\
 ParaSemPre \cite{BerantL14:parasempre} & 0.466 & 0.405 & 0.433 & 0.399\\
 Kitt AI \cite{yao-scratch-qa-naacl2015} & 0.545 & 0.526 & 0.535 & 0.443\\
 AgendaIL \cite{berant2015imitation} & 0.557 & 0.505 & 0.530 & 0.497\\
-STAGG \cite{yih2014semantic} & 0.607 & \textbf{0.528} & \textbf{0.565} & \textbf{0.525}\\
-% STAGG (no duplicates\footnote{An answer of the STAGG system may contain duplicate entities, which are double counted by the evaluation script}) \cite{yih2015semantic} & 0.6067 & 0.5263 & 0.5634 & 0.5234 \\
+STAGG \cite{yih2014semantic} & 0.607 & 0.528 & 0.565 & 0.525\\
+FMN \cite{jain2016question} & \textbf{0.649} & \textbf{0.552} & \textbf{0.597} & \textbf{0.557}\\
 \hline
 Aqqu (baseline) \cite{bastmore:cikm:2015:aquu} & 0.604 & 0.498 & 0.546 & 0.494\\
 Text2KB (Wikipedia search) & \textbf{0.632}$^*$ \tiny{(+4.6\%)} & 0.498 & 0.557$^*$ \tiny{(+2.0\%)} & 0.514$^*$ \tiny{(+4.0\%)} \\
@@ -604,7 +604,7 @@ We compare our system, Text2KB, to state-of-the-art approaches, notably:
 \item{\textbf{Aqqu}}: the state-of-the-art baseline KBQA system~\cite{bastmore:cikm:2015:aquu}, described in Section 2.
 \item{\textbf{Text2KB(Web search)}}: Our Text2KB system, using the Bing search engine API over the Web. 
 \item{\textbf{Text2KB(Wikipedia search)}}: Our Text2KB system, using the standard Lucene search engine over the February 2016 snapshot of the English Wikipedia, in order to validate our system without the potential ``black-box'' effects of relying on a commercial Web search engine (Bing) and changing corpus (Web).
-\item{\textbf{STAGG}}: The current highest performing KBQA system~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
+\item{\textbf{STAGG}}: The current\footnote{At the moment of our paper publication, FMN system of \cite{jain2016question} later improved the state-of-the-art} highest performing KBQA system~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
 \end{itemize}
 Additionally, other previously published results on WebQuestions are included to provide context for the improvements introduced by our Text2KB system.
 

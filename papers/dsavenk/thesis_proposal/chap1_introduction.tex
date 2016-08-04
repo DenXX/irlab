@@ -2,7 +2,7 @@
 %
 % First chapter file is different from others
 %
-\mychapter{Introduction}
+\mychapter{Introduction and Motivation}
 \label{chapter:intro}
 
 \pagenumbering{arabic}
@@ -108,7 +108,16 @@ Traditionally research in question answering focused on a one-way conversation, 
 However, having a dialog between an asker and a QA system opens up many opportunities to improve the user satisfaction.
 In my thesis I'm planning to focus on two specific kinds of interactions: strategic search hints, that a system might give the user in case she isn't satisfied with the answer, and using user feedback to improve the answer candidate ranking.
 
+In summary, this thesis will address 4 complementary aspects of question answering.
+Chapter~\ref{chapter:factoid} presents some results and proposed research to improve factoid question answering using both structured knowledge bases, semi-structured question-answer pairs and unstructured text data sources.
+Next, in Chapter~\ref{chapter:non-factoid} I will focus on non-factoid question answering, \ie user information needs, that cannot be answered with an entity, number or date.
+In this chapter I will describe a question answering system I developed to participate in TREC LiveQA shared task, and propose research for improving its performance by answer summarization.
+Chapter~\ref{chapter:crowdsourcing} shows that crowdsourcing can be used in near real-time scenario to improve performance of a QA system, and provides some directions for future work.
+Finally, in Chapter~\ref{chatper:users} I touch the topic of user interactions with question answering system.
+More specifically, this chapter describes my prior results on using hits to improve user search success, and proposes some ideas on incorporating user feedback for answer reranking in a dialog QA scenario.
+Existing research on the above mentioned topics is summarized in Chapter~\ref{chapter:related}, and Chapter~\ref{chapter:proposal} summarizes the proposed research and gives the details on the research timeline and risks.
+
 Modern personal assistants are still far from being intelligent.
-I believe, that the research I propose to do in my PhD thesis will narrow this gap for question answering use cases.
+The research questions I propose to answer in my PhD thesis focus on improving this situation for question answering use cases.
 Better utilization of structured and unstructured data sources for factoid and non-factoid question answering will improve the core QA capabilities, and in cases when a system is still unable to produce a reasonable answer, we can use crowdsourcing or learn from the user feedback.
 The results of my thesis will hopefully be useful for future research in developing more intelligent personal assistants.
