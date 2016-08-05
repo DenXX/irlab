@@ -11,18 +11,19 @@
 
 Most of the research has considered question answering as a one side communication process: a user issues a question and a computer system provides an answer.
 Thus, the only input a system receives is the text of the question and the only output is the text of the answer.
-This setup is quite limited, because it doesn't provide any means for the user to affect the behavior of a question answering system except by issuing new questions.
-Similarly, it doesn't allow QA systems to request any additional information from the user.
+This setup is quite limited, because it does not provide any means for the user to affect the behavior of a question answering system except by issuing new questions.
+Similarly, it does not allow QA systems to request any additional information from the user.
 However, with the growth of mobile personal assistants and conversational agents the popularity of dialog-based interface increases, which opens up new opportunities for question answering.
 
 TREC complex interactive question answering (ciQA) track, which were run in 2006 and 2007, was designed specifically to motivate research in this area.
 In this task participant system could request some input from assessors before submitting the final answer.
-However, the setup of the task wasn't exactly based on a dialog between systems and their users.
+However, the setup of the task was not exactly based on a dialog between systems and their users.
 The most typical approach to the task was to give assessors a set of sentences or passages to judge as relevant/irrelevant and use this feedback to improve the quality of the final answer.
 Such scenario is quite problematic to implement in todays personal assistants and chat bots, as they require relatively significant effort and time from users.
 
-In my thesis I'm going to focus on improving the user success solving complex informational tasks in a question answering dialog scenario.
+In my thesis I am going to focus on improving the user success solving complex informational tasks in a question answering dialog scenario.
 Section~\ref{section:users:approach} describes my prior research on assisting users by providing strategic search hints, designed to help split a complex task into smaller ones that an automatic system will likely handle much better.
+This work was published as a short paper titled ``To Hint or Not: Exploring the Effectiveness of Search Hints for Complex Informational Tasks'' at SIGIR 2014~\cite{savenkov2014hint}.
 And section~\ref{section:users:proposal} proposes additional research to incorporate user feedback into a question answering system in a chat bot scenario.
 
 \section{Approach}
@@ -38,7 +39,7 @@ Unfortunately, not all searches are successful.
 Bilal and Kirby \cite{Bilal:2002:DSI:637512.637516} reported that about half of the participants of their user study felt frustration when searching.
 Xie and Cool \cite{xie2009understanding} demonstrated that most of the time users have problems with formulating and refining search queries.
 Besides good retrieval performance, a successful search requires users to possess certain skills.
-Search skills can be trained, e.g. Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
+Search skills can be trained, \eg Google offers a course\footnote{http://www.powersearchingwithgoogle.com} on improving search efficiency.
 Although very useful, such courses are time consuming and detached from real search problems of these particular users.
 Displaying search hints is another technique that has both learning effect, and offers immediate assistance to the user in solving her current search task.
 Moraveji et al. \cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that hints, suggesting certain search engine functionality, help people find answers more quickly, and the effect is retained after a week without hints.
@@ -77,11 +78,11 @@ At the end of the game a questionnaire was presented asking for feedback on user
 \centering
 \begin{tabular}{|p{1cm}|p{4.5cm}|p{4.2cm}|p{6.0cm}|} \hline
  & Question & Correct Answer & Specific hints \\ \hline
-Task 1 & I can grow body back in about two days if cut in half. Many scientists think I don't undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{6cm}{
+Task 1 & I can grow body back in about two days if cut in half. Many scientists think I do not undergo senescence. What am I? & Senescence means ``biological aging''. Hydra is considered biologically immortal and regenerates fast. & \parbox[t]{6cm}{
 1. Find what is senescence \\
 2. Find who does not undergo senescence \\
 3. Find who can also regenerate body and choose the one that satisfies both conditions} \\\hline
-Task 2 & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus didn't have a Greek counterpart. &
+Task 2 & Of the Romans "group of three" gods in the Archaic Triad, which one did not have a Greek counterpart? & Archaic Triad includes Jupiter, Mars and Quirinus. Among those Quirinus did not have a Greek counterpart. &
 \parbox[t]{6cm}{
 1. Find the names of the gods from the Archaic triad\\
 2. For each of the gods find a Greek counterpart
@@ -106,7 +107,7 @@ To keep users focused throughout the whole game we limited the number of questio
 The tasks are described in Table \ref{table:users:hints:tasks} and were presented to all participants in the same order to ensure comparable learning effects.
 
 The questions have multiple parts and to solve them it is helpful to search for answers to parts of the questions and then combine them.
-In one of the previous studies we observed, that most of the users didn't adopt the divide-and-conquer strategy, but kept trying to find the ``right'' query.
+In one of the previous studies we observed, that most of the users did not adopt the divide-and-conquer strategy, but kept trying to find the ``right'' query.
 We decided to estimate the effect of strategic search hints, suggesting users to adopt the new strategy.
 
 We built 2 sets of strategic hints: \textit{task specific} and \textit{generic}.
@@ -128,7 +129,7 @@ For example, the question: ``The second wife of King Henry VIII is said to haunt
 
 To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:2009916.2009966}, each user was assigned to one of the three groups:
 \begin{enumerate}
-\item users who didn't get any hints
+\item users who did not get any hints
 \item users who got task-specific hints
 \item users who got the generic hints
 \end{enumerate}
@@ -138,16 +139,16 @@ To control for the learning effect demonstrated in \cite{Moraveji:2011:MIU:20099
 \label{section:users:hints:results}
 
 From 199 unique participants, who clicked the HIT on Amazon Mechanical Turk only 90 players finished the game.
-We further examined all games manually and filtered out 9 submissions for one of the following reasons: lack of effort (e.g. skipped several tasks after none or a single query) or usage of external resources (e.g. the answer was obtained without submitting any queries or results explored didn't contain the answer).
-Furthermore, 10 players from the group which received hints indicated in the survey that they didn't see them, so we filtered out those submissions and finally we had 71 completed games (29 for no hints, 20 for task-specific hints and 22 for generic hints groups).
+We further examined all games manually and filtered out 9 submissions for one of the following reasons: lack of effort (\eg skipped several tasks after none or a single query) or usage of external resources (\eg the answer was obtained without submitting any queries or results explored did not contain the answer).
+Furthermore, 10 players from the group which received hints indicated in the survey that they did not see them, so we filtered out those submissions and finally we had 71 completed games (29 for no hints, 20 for task-specific hints and 22 for generic hints groups).
 
 \textbf{Effects of Search Tips on Performance}.
 In order to measure search success rate we looked at the number of questions answered correctly by different groups of users\footnote{Since users were allowed to skip a question we are counting the number of questions that were eventually solved correctly even if a player made some incorrect attempts}.
-Figure \ref{figure:users:hints:task_success} shows that success rate is higher for users who saw task-specific hints compared to users who didn't get such assistance.
-Surprisingly, having the generic hint decreased the success rate, although users could easily ignore a hint they didn't like.
-A possible explanation is: generic hints were harder to follow and users who tried and failed became frustrated and didn't restart their searches.
+Figure \ref{figure:users:hints:task_success} shows that success rate is higher for users who saw task-specific hints compared to users who did not get such assistance.
+Surprisingly, having the generic hint decreased the success rate, although users could easily ignore a hint they did not like.
+A possible explanation is: generic hints were harder to follow and users who tried and failed became frustrated and did not restart their searches.
 
-The plot of average time to answer a question on Figure \ref{figure:users:hints:task_time} doesn't show an improvement for the task-specific hints group, except for the question 1.
+The plot of average time to answer a question on Figure \ref{figure:users:hints:task_time} does not show an improvement for the task-specific hints group, except for the question 1.
 Our task-specific hints represent a possible way to solve a problem and there is no guarantee, that it is the fastest one.
 It is worth noting, that users from the generic search hint group had slightly higher variance in success time, which can probably be explained by the fact that some users were successful in finding the right way to follow the hint and some other users struggled with it much longer.
 Another insight comes from the number of incorrect attempts users made.
@@ -207,7 +208,7 @@ We also looked at other search behavior characteristics: number of queries submi
 \textbf{Effects of Search Tips on User Experience}.
 Finally, we looked at the surveys filled out by each group of users.
 Figure \ref{figure:users:hints:survey} presents proportions of different answers to three of the questions: ``How did you like the game?'', ``How difficult was the game?'' and ``Were search hints useful to you?''.
-Surprisingly, user satisfaction with the game was lower for users who saw hints during the game and users who didn't get any assistance enjoyed it more.
+Surprisingly, user satisfaction with the game was lower for users who saw hints during the game and users who did not get any assistance enjoyed it more.
 The replies to the question about game difficulty are in agreement with the success rate: users who saw task-specific hints rated difficulty lower than participants who struggled to find the correct answers.
 The game was very difficult on average, however, some participants from the group who received task-specific hints surprisingly rated it as very easy, which suggests that our hints do help users.
 This is supported by the answers to the last question on whether hints were helpful (Figure \ref{figure:users:hints:survey:useful}).
@@ -224,7 +225,7 @@ However, to be useful, they should be designed carefully.
 Search hints that are too general can be detrimental to search success.
 We also find that even searchers who are more effective using specific search hints, feel subjectively less satisfied and engaged than the control group, indicating that search assistance has to be specific and timely if it is to improve the searcher experience.
 
-Even though strategic search hints can improve success rate for complex informational tasks, they represent a rather one-way form of communication, where a system doesn't accept any feedback from the user and doesn't adapt to it.
+Even though strategic search hints can improve success rate for complex informational tasks, they represent a rather one-way form of communication, where a system does not accept any feedback from the user and does not adapt to it.
 Hints essentially outsource all the heavy-lifting of decision making to the user, which often makes the experience less enjoyable, as demonstrated by the post-study survey results.
 An alternative strategy is to let the system adapt based on the implicit and explicit feedback from the user.
 Such a scenario looks even more compelling given a proliferation of personal assistants and chat bots, which makes it easy for users to respond to the user answer with either positive or negative feedback message.
@@ -238,10 +239,10 @@ Question answering is one of the major components of modern personal assistants 
 However, these systems still operate in one sided communication mode, where a user formulates queries and assistant responds with an answer or search results.
 In my thesis I propose to incorporate feedback from the user to improve the performance of the question answering system.
 To make it more concrete, consider an Example on Figure~\ref{figure:users:proposal:example}.
-It's not uncommon for a question answering system to be incorrect.
+It is not uncommon for a question answering system to be incorrect.
 Web search engines typically decide whether to show direct answers or not based on the confidence in the answer~\cite{yang2015wikiqa}.
 However, in a dialog a system needs to provide some kind of response, and why not take a chance and return the top candidate answer.
-If the user doesn't like the answer, she can respond accordingly, and this feedback needs to be taken into account by the question answering system, which can then re-rank the candidate answers and provide an alternative response, that will hopefully satisfy the user.
+If the user does not like the answer, she can respond accordingly, and this feedback needs to be taken into account by the question answering system, which can then re-rank the candidate answers and provide an alternative response, that will hopefully satisfy the user.
 
 \begin{figure}
 \centering
@@ -260,9 +261,9 @@ In my thesis I propose to focus on both positive and negative relevance feedback
 A user might give a system a positive feedback if the provided answer was relevant, but either alternative view or additional information is needed.
 Alternatively, if an answer is not helpful, a system can take negative feedback to try to generate a good answer.
 
-As a baseline for the experiments I'm planning to take the system I developed for TREC LiveQA shared task, described in Section~\ref{section:non-factoid:liveqa:architecture}, and extend it with the relevance feedback module.
+As a baseline for the experiments I am planning to take the system I developed for TREC LiveQA shared task, described in Section~\ref{section:non-factoid:liveqa:architecture}, and extend it with the relevance feedback module.
 This module will allows the system to adjust and return an alternative answer given either positive or negative feedback.
-I'm going to integrate relevance feedback into the system's candidate ranking model.
+I am going to integrate relevance feedback into the system's candidate ranking model.
 More specifically, a set of features representing a candidate answer will be extended with various scores, that measure syntactic and semantic similarities between a candidate and positive and negative feedback examples.
 This additional set of features will include various vector space, distributed semantics~\cite{kusner2015word} and language model similarity scores~\cite{wang2008study}, as well as some more simple statistics, such as common and missing n-grams, longest common substrings, \etc.
 The overall architecture of the proposed system is sketched on Figure~\ref{figure:users:proposal:model}.
@@ -283,33 +284,33 @@ To test the system experimentally I propose to reuse the data from TREC LiveQA 2
 As a remainder, during the official run of TREC LiveQA 2016 we collected 1087 questions, issued to our system.
 For each question, top 7 generated candidate answers were rated by crowd workers on a scale from 1 (bad) to 4 (excellent).
 
-To test the proposed relevance feedback model I'm proposing to conduct the following simulation experiment.
+To test the proposed relevance feedback model I am proposing to conduct the following simulation experiment.
 For each question, top 7 answers will be arranged according to their model score.
 Assuming the model returns the top candidate, we collect cases when the top candidate has a low relevance score (\eg $score < 2$), and use these answers as negative feedback.
 The goal of the model will be to re-rank the rest of the candidates and return a better answer.
-A baseline in this experiment will be a system, that doesn't use the feedback and simply returns the next best answer according to the model score.
+A baseline in this experiment will be a system, that does not use the feedback and simply returns the next best answer according to the model score.
 Positive relevance feedback experiment will be conducted in a similar way: all answers with good relevance score (\eg from 2 to 3) will be given back to the system as positive feedback with the goal to return another good answer.
-This experiment will help us confirm or reject the hypothesis, that it's possible to incorporate relevance feedback for question answering.
+This experiment will help us confirm or reject the hypothesis, that it is possible to incorporate relevance feedback for question answering.
 
 To train our ranking model to accept additional answer candidates I will split the original dataset into training and test parts again.
 Using the original model I will collect cases with negative and positive feedback as described above, and train the model to retrieve the best possible candidate from the rest of the answers.
 
-However, such simulation experiment won't allow us to test if relevance feedback improves the user experience.
-To answer this question we will conduct a user study using either Mechanical Turk or hire some student workers.
+However, such simulation experiment will not allow us to test if relevance feedback improves the user experience.
+To answer this question we will conduct a user study using either Mechanical Turk or hire $\sim 20$ student workers.
 We are building a chatbot for Facebook messenger, that will serve as a front-end to our question answering system.
-The users will receive a set of questions, e.g. sampled from Yahoo! Answers, and will need to get a satisfactory answer using our chatbot.
+The users will receive a set of questions, \eg sampled from Yahoo! Answers, and will need to get a satisfactory answer using our chatbot.
 All the users will be split into two groups: with and without an option to leave relevance feedback.
 The relevance feedback group will be asked to mark each answer as good or bad, after which a new candidate will be provided until the user will decide to stop and declare either fail or success.
 The group without relevance feedback will be given an option to receive another answer, which will simply be the next candidate in the original ranked list.
 Upon completion of all tasks, the users will complete the questionnaire, where I will ask questions about their experience and satisfaction with the chatbot.
-Task success rate and the feedback will help me answer the question if relevance feedback for question answering improves user experience.
+Task success rate, completion time and the feedback will help me answer the question if relevance feedback for question answering improves user experience using evaluation procedure of J.Kiseleva \etal~\cite{kiseleva2016understanding}.
 
 \section{Summary}
 \label{section:users:summary}
 
 In this chapter I described my prior and proposed research in improving user experience with question answering systems.
 Strategic hints, that a system might display to help the user better split the original problem, were shown to be able to improve the success rate, however they need to be designed carefully.
-Hints, that are too generic and hard to follow can be distracting and detrimental to the user experience.
+Hints that are too generic and hard to follow can be distracting and detrimental to the user experience.
 However, such hints put all the hard work on the user, who will go through the trial and error process until a system is able to retrieve a good answer.
 The second part of the section described the proposed research in engaging in a dialog with the user, and using these interactions to receive relevance feedback, which can be used to refine the answer.
-I believe that this feedback is one of the first step, that can lead to deeper understanding of user information needs through dialog.
+I believe that this research into user feedback can lead to deeper understanding of user information needs through a dialog.

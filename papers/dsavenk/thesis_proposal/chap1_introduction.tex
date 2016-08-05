@@ -23,7 +23,7 @@ In order to make a shift towards more intelligent personal assistants this gap n
 Therefore, in my thesis I focus on helping users get answers to their questions by improving question answering methods and the ways a system interact with its users.
 
 User questions vary in many different aspects, each of which has its own set of challenges.
-It's common to divide questions into \textit{factoid} and \textit{non-factoid}.
+It is common to divide questions into \textit{factoid} and \textit{non-factoid}.
 Factoid questions are inquiring about certain facts and can be answered by a short phrase (or list), \ie entity name, date or number.
 An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
 Of course, there is a variety of questions, that do not fall into this group, \eg how-to and why questions, recommendation and opinion questions, \etc.
@@ -75,37 +75,37 @@ The focus of the proposed research in factoid question answering lies on the ide
 %However, knowledge bases have their own disadvantages:
 %\begin{itemize}
 %\item knowledge bases are inherently incomplete \cite{Dong:2014:KVW:2623330.2623623}, even the largest existing resources miss a lot of entities, facts and properties, that might be of interest to some users.
-%\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
+%\item it is quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
 %\end{itemize}
 
 One of the main challenges in non-factoid question answering is the diversity of question and answer types.
 Reusing answers from previously posted similar questions, which could be found, for example, in CQA archives, was demonstrated to be quite effective to answer new questions \cite{carmel2000eresponder,Shtok:2012:LPA:2187836.2187939}.
-Unfortunately, it's not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
+Unfortunately, it is not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
 Alternative strategies include ranking text passages extracted from retrieved web documents.
 One of the main challenges of this approach is estimating semantic similarity between the question and an answer candidate \cite{soricut2006automatic}.
 Therefore, one would benefit from knowing what kind of questions could a paragraph of text answer.
 This information can often be inferred from the structure of a web page, e.g. forums, FAQ pages, or estimated using title, subtitle and other page elements.
-Therefore, in my thesis I'm planning to build a state-of-the-art system for answering complex informational questions using both QnA archives and passages extracted from regular web pages, and combine them in a single model.
+Therefore, in my thesis I am planning to build a state-of-the-art system for answering complex informational questions using both QnA archives and passages extracted from regular web pages, and combine them in a single model.
 
 While in some cases a single paragraph of text can perfectly answer the question, there are situations when one would need to combine multiple information pieces together in order to cover all aspects of the question, or provide alternative ideas and evidence.
 These information nuggets are often scattered across different documents, and need to be combined together to form a single answer, that would satisfy the user.
 In such cases returning a single passage is suboptimal.
 Therefore, to overcome this challenge in my thesis I propose to apply extractive and abstractive text summarization methods to the problem of answer summarization.
 
-%However, ranking isn't the only important part of the question answering pipeline.
+%However, ranking is not the only important part of the question answering pipeline.
 %A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
 %Non-factoid questions, especially those that people post on CQA websites are often long, which makes it problematic to use directly as search queries.
 %Previous research has studied certain question transformation strategies \cite{AgichteinLG01,brill_askmsr,lin2003question}, however the focus was on shorter factoid questions.
 %In my thesis I would like to focus on the problem of query generation for non-factoid questions using some recent advances in deep learning.
-%Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
+%Another promising direction of research, which I am going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
 %Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
 
-Unfortunately, no matter how good a QA system is, there likely to be cases, when it's unable to return a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or a system might fail to rank a good answer on top of others.
+Unfortunately, no matter how good a QA system is, there likely to be cases, when it is unable to return a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or a system might fail to rank a good answer on top of others.
 Such failures can be very detrimental to the overall user experience with a QA system.
 One way to mitigate this challenging situation is to put a human in the loop, \eg let a system consult a group of workers, who can provide some kind of feedback and help return a more satisfactory answer.
 In the third part of my thesis I propose to explore the effectiveness of crowdsourcing for question answering, especially in the real-time scenario, when the user is unlikely to wait for the response for more than a couple of minutes.
 
-Finally, in the last part of my thesis I'm planning to look into some ways to enrich the interactions between a QA system and its users with the goal of improving the search success rate.
+Finally, in the last part of my thesis I am planning to look into some ways to enrich the interactions between a QA system and its users with the goal of improving the search success rate.
 Proliferation of mobile personal assistants and conversational agents provide a very natural dialog-based interface between a human and a computer system.
 Traditionally research in question answering focused on a one-way conversation, where a user only asks questions and the system responds with the answer.
 However, having a dialog between an asker and a QA system opens up many opportunities to improve the user satisfaction.
@@ -113,10 +113,10 @@ I propose to focus on two specific kinds of interactions: strategic search hints
 
 In summary, this thesis will address 4 complementary aspects of question answering.
 Chapter~\ref{chapter:factoid} presents some results and proposed research to improve factoid question answering using both structured knowledge bases, semi-structured question-answer pairs and unstructured text data sources.
-Next, in Chapter~\ref{chapter:non-factoid} I will focus on non-factoid question answering, \ie user information needs, that cannot be answered with an entity, number or date.
+Next, in Chapter~\ref{chapter:non-factoid}, I will focus on non-factoid question answering, \ie user information needs, that cannot be answered with an entity, number or date.
 In this chapter I will describe a question answering system I developed to participate in TREC LiveQA shared task, and propose research for improving its performance by answer summarization.
 Chapter~\ref{chapter:crowdsourcing} shows that crowdsourcing can be used in near real-time scenario to improve performance of a QA system, and provides some directions for future work.
-Finally, in Chapter~\ref{chapter:users} I touch the topic of user interactions with question answering system.
+Finally, in Chapter~\ref{chapter:users}, I touch the topic of user interactions with question answering system.
 More specifically, this chapter describes my prior results on using strategic hints to improve user search success, and proposes some ideas on incorporating user feedback for answer re-ranking in a dialog QA scenario.
 The overview of the existing research on the above mentioned topics is given in Chapter~\ref{chapter:related}, and Chapter~\ref{chapter:proposal} summarizes the proposed research and gives the details on the research timeline and risks.
 

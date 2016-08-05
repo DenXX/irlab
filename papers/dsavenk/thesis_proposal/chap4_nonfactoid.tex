@@ -29,9 +29,10 @@ The problem of selecting best answer sentence received a lot of attention in rec
 The candidate ranking module of my system builds on some of these results.
 However, individual passages, and even answers to similar questions, often provide just a portion of relevant information a user might want to get.
 Therefore, a problem of answer summarization becomes quite important~\cite{liu2008understanding,pande2013summarizing,tomasoni2010metadata}.
-In my thesis I'm planning to work on this problem and the proposed research is described later in this chapter.
+In my thesis I am planning to work on this problem and the proposed research is described later in this chapter.
 
 In section~\ref{section:non-factoid:approach} I will describe a system I developed to participate in TREC LiveQA shared task, which establishes a baseline for future experiments.
+The overview of the system was published in the proceedings of TREC 2015 conference~\cite{savenkov_liveqa15}.
 Section~\ref{section:non-factoid:proposal} describes the proposed research to improve the performance of non-factoid question answering.
 
 \section{Approach}
@@ -46,10 +47,10 @@ However, for simplicity the model I built treats all questions in the same way.
 My system is based on a single trained model, that ranks a set of extracted answer candidates and returns the top one as the response.
 Preliminary analysis of questions and potential answer sources gave an insight that the best data source is answers to similar questions in case they exist and we can find them.
 People often have similar tasks and situations which pose same questions.
-Therefore, it's frequently the case that a similar question was already asked by someone and potentially even received a good reply and can be reused to answer new questions \cite{Shtok:2012:LPA:2187836.2187939}.
+Therefore, it is frequently the case that a similar question was already asked by someone and potentially even received a good reply and can be reused to answer new questions \cite{Shtok:2012:LPA:2187836.2187939}.
 Of course, many questions or their details are unique, which makes it impossible to find a good match from the existing answers.
 Therefore I also use web search to generate additional answer candidates.
-For non-factoid questions it's harder to use the redundancy of the information on the web, which is exploited very effectively in factoid QA \cite{lin2007exploration}.
+For non-factoid questions it is harder to use the redundancy of the information on the web, which is exploited very effectively in factoid QA \cite{lin2007exploration}.
 The system I developed extracts passages containing question terms from all retrieved web documents independently.
 For training I used the publicly available collection of QnA pairs from Yahoo! Answers.
 The assumption made was that for each question the answer selected as the ``best answer'' on Yahoo! Answers is indeed the best and should be ranked higher than answers to other questions.
@@ -80,8 +81,8 @@ For example:
 \begin{tabular}{|p{15cm}|}
 \hline
 \textbf{Question category}: Astronomy \& Space\\
-\textbf{Question title}: Why do people claim the Earth isn't the center of the universe?\\
-\textbf{Question body}: Clearly the sun and moon are moving around the Earth otherwise we wouldn't have night and day.\\
+\textbf{Question title}: Why do people claim the Earth is not the center of the universe?\\
+\textbf{Question body}: Clearly the sun and moon are moving around the Earth otherwise we would not have night and day.\\
 \hline
 \end{tabular}
 \vspace{3mm}
@@ -91,7 +92,7 @@ To generate a set of candidates the system produces several search queries and i
 
 To find similar questions and extract the corresponding answers from Yahoo! Answers we use the search functionality already available on the website.
 Some questions are very concise while other provide many useful as well as redundant details.
-Ideally we want to match as many of them as possible, however, there is a chance that search won't return any results if there are no good matches.
+Ideally we want to match as many of them as possible, however, there is a chance that search will not return any results if there are no good matches.
 Therefore the system generates a set of search queries of different granularity, issues them all to Yahoo! Answers search and collects top 10 responses from all of them.
 Here is the list of queries that our system generates:
 \begin{itemize}
@@ -140,7 +141,7 @@ where $f(q_i, A)$ is frequency of term $q_i$ in the answer text, $k_1=1.2$, $B=0
 \end{itemize}
 
 The candidate with the highest score is returned as the answer to the question.
-If something goes wrong and no candidates were generated or some problem occurred the system returns ``I don't know'' as the default answer.
+If something goes wrong and no candidates were generated or some problem occurred the system returns ``I do not know'' as the default answer.
 
 \subsubsection{Model Training}
 \label{section:non-factoid:liveqa:architecture:training}
@@ -163,7 +164,7 @@ Figure~\ref{figure:non-factoid:liveqa:lstm_model} shows the structure of the mod
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{img/liveqa_qa_lstm}
-	\caption{LSTM model for answer scoring. The example shows a QnA pair where the question is ``Best way to reply to trolls on youtube?'' and the answer is ``Don't reply, just ignore''.}
+	\caption{LSTM model for answer scoring. The example shows a QnA pair where the question is ``Best way to reply to trolls on youtube?'' and the answer is ``Do not reply, just ignore''.}
 	\label{figure:non-factoid:liveqa:lstm_model}
 \end{figure}
 
@@ -175,7 +176,7 @@ To train the model QnA pairs from Yahoo! Answers WebScope dataset were used (we 
 Each question and the corresponding best answer was used as a positive training example.
 Random negative examples would be too unrelated to the current question, therefore I chose to use answers to similar questions only.
 All QnA pairs were indexed with Lucene\footnote{https://lucene.apache.org/} and similar questions were retrieved using the built-in BM25 retrieval model.
-For each question and correct answer pair from the dataset 10 similar questions were retrieved and the corresponding answers were used as negative examples for training\footnote{It's true, that some of them can indeed be relevant to the original question}.
+For each question and correct answer pair from the dataset 10 similar questions were retrieved and the corresponding answers were used as negative examples for training\footnote{It is true, that some of them can indeed be relevant to the original question}.
 
 The model was implemented using Keras\footnote{http://keras.io} library.
 I used an embedding and hidden layers of dimension 128 and the vocabulary size of 1M words.
@@ -236,12 +237,12 @@ Please refer to the \cite{overviewliveqa15} for more details and results of all 
 \end{table}
 
 The metric s@1+ shows the fraction of questions for which a readable answer was returned by the system.
-A lower score in this metic means that my system didn't return an answer in time in almost 20 \% of the cases.
+A lower score in this metic means that my system did not return an answer in time in almost 20 \% of the cases.
 A part of the problem is caused by several technical issues, that appeared on the day of the evaluation run.
-Due to one of them LSTM model didn't provide any score for a significant fraction of submitted questions, and the other problem made the whole system unresponsive for a couple of hours.
+Due to one of them LSTM model did not provide any score for a significant fraction of submitted questions, and the other problem made the whole system unresponsive for a couple of hours.
 
 The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23\% of the cases (p@3+) when the answer was returned.
-And for 60\% of the questions the answer doesn't contain any useful information.
+And for 60\% of the questions the answer does not contain any useful information.
 
 \subsection{Analysis}
 \label{section:non-factoid:liveqa:analysis}
@@ -257,7 +258,7 @@ In this section we will answer some of the questions about the performance of di
 
 The first question, that we are going to study is the relative effectiveness of web passages and answers to previously posted questions for answering new questions.
 As Figure~\ref{figure:non-factoid:liveqa:answer_source_pie} shows, almost half of all answers returned by my system were generated from Yahoo! Answers.
-In $\sim$21\% of the cases our system didn't return any results\footnote{This happened mainly due to a couple of technical issues that made our system unresponsive for quite some time}, and in the rest $\sim$31\% of the cases a passage from a web page was returned as the answer.
+In $\sim$21\% of the cases our system did not return any results\footnote{This happened mainly due to a couple of technical issues that made our system unresponsive for quite some time}, and in the rest $\sim$31\% of the cases a passage from a web page was returned as the answer.
 I further looked into the domains of the web pages used to generate the answer and noticed, that many more were extracted from other community question answering websites and forums.
 
 The quality of answers generated from passages built from web search results are lower on average compared to Yahoo! Answers candidates.
@@ -318,14 +319,14 @@ The next most useful feature is the cosine similarity between the page title (or
 
 I also looked through a small sample of our answers manually.
 There are a number of typical problems, and one of them is the lack of good question semantic similarity measure.
-E.g. the question \textit{``Is there a section fro the subject of writing''} in the \texttt{Books \& Authors} category retrieved a question \textit{``I can't write in the To: Cc: Subject: section''} from the \texttt{Yahoo Mail} category.
+E.g. the question \textit{``Is there a section fro the subject of writing''} in the \texttt{Books \& Authors} category retrieved a question \textit{``I ca not write in the To: Cc: Subject: section''} from the \texttt{Yahoo Mail} category.
 Even though the questions have many terms in common, they are obviously semantically unrelated.
 Therefore, in future we need to focus more on better question similarity measures.
 
-Answer doesn't have to have many words in common with the question.
+Answer does not have to have many words in common with the question.
 On the contrary, the maximum possible term overlap will be if a candidate is just a copy of the answer.
 This was one of the problems for answers, retrieved from the web search results.
-The way we used to generate the training data didn't include such ``artificial'' cases, however, they are pretty common in practice.
+The way we used to generate the training data did not include such ``artificial'' cases, however, they are pretty common in practice.
 For example, in a number of cases the answer our system chose came from a forum post and instead of selecting the answer posts, the system ranked the question post higher as it had more term matches.
 The winning CMU team addressed this issue by considering answer-clue pairs, where the clue is supposed to match the question text and the former answers the question.
 We plan to explore a similar strategy.
@@ -338,7 +339,7 @@ One of the major quality loss in my previous system was due to random crashes, w
 This year I changed the architecture of the system to make it more reliable and make sure the answer is returned in time.
 
 Next, as analysis of the previous year track has revealed, many of answers generated using regular web search still came from different community question answering websites.
-However, the system didn't treat such pages differently from regular documents and didn't extract additional meta-data, such as the question text, \etc.
+However, the system did not treat such pages differently from regular documents and did not extract additional meta-data, such as the question text, \etc.
 Therefore, for LiveQA 2016 I decided to extend a set of data sources and in addition to Yahoo! Answers I added separate candidate generation pipelines for Answers.com and WikiHow.com.
 For these verticals the system uses the search engine built into the platforms, and extracts answers along with the corresponding question meta-data.
 
@@ -350,8 +351,8 @@ I've extended a set of features representing each candidate answer to include th
 	\item All term match features were computed for related question and body. More specifically, additionally to taking the answer text itself, we added features that compute similarity scores between the current question and retrieved question (title and body). For candidates, generated from regular web documents we tool the title of the page as question title, and the previous paragraph in text as body.
 \end{itemize}
 
-Additionally, I replaced the logistic regression ranking model with LambdaMART~\cite{burges2010ranknet}, as implemented in RankLib library\footnote{https://people.cs.umass.edu/~vdang/ranklib.html}.
-Unlike the previous year, when training data in a usual sense didn't exist, in 2016 we had relevance judgments from previous campaign.
+Additionally, I replaced the logistic regression ranking model with LambdaMART~\cite{burges2010ranknet}, as implemented in RankLib library\footnote{https://people.cs.umass.edu/$\sim$vdang/ranklib.html}.
+Unlike the previous year, when training data in a usual sense did not exist, in 2016 we had relevance judgments from previous campaign.
 To train the LambdaMART model I took this data and scraped the original web pages to get meta-information and generate all the features for the candidates.
 Using this data I trained the model to optimize NDCG metric.
 The results of the evaluation are not available at the moment.
@@ -370,7 +371,7 @@ It will be exciting to see the next version of the task next year, and how the p
 \label{section:non-factoid:proposal}
 
 The results of TREC LiveQA 2015 established a baseline performance of automatic non-factoid question answering systems, and shed some light on typical problems and future research directions.
-One particular problem, that I'm proposing to concentrate research in my thesis, is that passages a QA system extract as candidate answers often either contain redundant information, or, on contrary, the answer is split across multiple passages and a single one isn't going to satisfy user information needs.
+One particular problem, that I am proposing to concentrate research in my thesis, is that passages a QA system extract as candidate answers often either contain redundant information, or, on contrary, the answer is split across multiple passages and a single one is not going to satisfy user information needs.
 One way to tackle these problems is to introduce an answer summarization module, which instead of returning the top ranked answer, will generate the response by summarizing the relevant pieces of information from ranked candidates.
 Existing research on answer summarization usually targets community generated answers on CQA websites, which is different from summarizing automatically generated candidates.
 The developed algorithms typically follow an extractive summarization approach, and explore different answer sentences ranking strategies to either shorten the answer, cover multi-intent questions or to improve diversity~\cite{chan2012community,zhaochun_sparsecoding_2016}, and less attention is paid to the overall quality and readability of summarized answer text.
@@ -385,8 +386,8 @@ Distributed representations for words~\cite{mikolov2013distributed,pennington201
 Using distributed representations or embeddings one can simply calculate the similarity between words or sentences using various distance metrics in the embeddings space.
 Such representations made it possible to train end-to-end models for various NLP tasks, which reach or outperform existing state-of-the-art models~\cite{collobert2011natural}.
 
-Text summarization isn't an exception, and recently a number of different architectures were proposed for both more traditional extractive~\cite{kaageback2014extractive} as well as abstractive summarization~\cite{rush-chopra-weston:2015:EMNLP,chopraabstractive16}.
-In answer summarization we are dealing with multiple different piece of text, therefore it's more related to the problem of multi-document summarization~\cite{cao2015ranking}.
+Text summarization is not an exception, and recently a number of different architectures were proposed for both more traditional extractive~\cite{kaageback2014extractive} as well as abstractive summarization~\cite{rush-chopra-weston:2015:EMNLP,chopraabstractive16}.
+In answer summarization we are dealing with multiple different piece of text, therefore it is more related to the problem of multi-document summarization~\cite{cao2015ranking}.
 However, unlike document summarization, here we have a notion of the question and some answer candidates (if not the majority) might be totally irrelevant to the question and not worth including overall.
 
 \begin{figure}
@@ -417,8 +418,8 @@ The idea of abstractive summarization model is based on the sequence to sequence
 \subsection{Experimentation}
 \label{section:non-factoid:proposal:experiments}
 
-Since the problem of answer summarization isn't new, there are some datasets already available and several benchmark results exists.
-For my experiments I'm planning to use the datasets of M.Tomasoni and M.Huang~\cite{tomasoni2010metadata}, which was constructed based on Yahoo! Answers archive and manually generated gold summaries, and of Adi Omari et al~\cite{omari2016novelty}, constructed for the task of novelty-based answer reranking.
+Since the problem of answer summarization is not new, there are some datasets already available and several benchmark results exists.
+For my experiments I am planning to use the datasets of M.Tomasoni and M.Huang~\cite{tomasoni2010metadata}, which was constructed based on Yahoo! Answers archive and manually generated gold summaries, and of Adi Omari et al~\cite{omari2016novelty}, constructed for the task of novelty-based answer reranking.
 In the later dataset human annotators extracted nuggets of different aspects for the same question, and therefore its possible to judge the relevance of each of the answer with respect to these nuggets.
 These datasets will be used to test my extractive summarization model.
 The results on the first dataset could be directly compared to other existing answer summarization techniques, \eg \cite{zhaochun_sparsecoding_2016,erkan2004lexrank,tomasoni2010metadata}.
@@ -427,7 +428,7 @@ The later dataset was developed for the task of novelty-based answer ranking, \i
 On this dataset I will test if sentence-based answer summarization is better (in terms of diversity of covered aspects) than ranking answers under certain maximum character length limit, \ie whether extracting sentences to form an N char length summary gives a better experience than ranking complete answers under the same limit.
 
 However, in these datasets the answer candidates were taken from community generated answers to each question, and therefore on average they are relevant.
-To test the model on more realistic scenario of automatic question answering, I'm planning to reuse the candidate answers with relevance labels from TREC LiveQA datasets.
+To test the model on more realistic scenario of automatic question answering, I am planning to reuse the candidate answers with relevance labels from TREC LiveQA datasets.
 I will conduct two experiments: 
 \begin{itemize}
 \item use the extractive summarization model trained on the previously mentioned datasets to summarize answer candidates
@@ -436,7 +437,7 @@ I will conduct two experiments:
 
 The first experiment will help me answer the question if summarizing automatically generated candidates is more difficult than community answers, and whether a model trained for one task can be used for another.
 The later experiment will test the hypothesis that community generated answer can be used as a ground truth for model training, which would allow one to get millions of examples from CQA archives.
-The quality of summaries will be judged manually using crowdsourcing for both relevance and coherence/readability.
+The quality of summaries will be judged manually using crowdsourcing for relevance, coherence and readability.
 
 \section{Summary}
 \label{section:non-factoid:summary}

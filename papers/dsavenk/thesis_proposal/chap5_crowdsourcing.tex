@@ -12,11 +12,12 @@
 Despite the progress in automatic question answering, existing systems are still far from being able to handle every human question.
 For example, the winning system in TREC LiveQA 2015 shared task were able to return a good or excellent answer to less than 40\% of the questions.
 And overall, according to the TREC LiveQA 2015 assessor scores, for 12.6\% of the questions none of the 21 participating systems produced even moderately useful answer, and for 30\% a good or better response.
-This can happens for multiple different reasons, \eg a question is ill formulated, available data sources doesn't contain any relevant information, a system fails to retrieve or rank good answer candidates, \etc
+This can happens for multiple different reasons, \eg a question is ill formulated, available data sources does not contain any relevant information, a system fails to retrieve or rank good answer candidates, \etc
 As conversational agents become more popular, QA systems are increasingly expected to handle such complex questions, and to do so in (nearly) real-time, as the searcher is unlikely to wait longer than a minute or two for an answer.
 
 One way to overcome the above mentioned challenges in complex question answering is to develop a hybrid human-computer question answering system, which could consult a crowd of workers in order to generate a good response to the user question.
 This section provides some preliminary results and proposed research in crowdsourcing for real-time question answering.
+Part of the described results was published at Human-Computer Question Answering workshop at NAACL 2016 conference~\cite{savenkov_crowdsourcing2016a}, and another will appear as a full paper titled ``CRQA: Crowd-powered Real-time Automated Question Answering System'' on HCOMP 2016 conference~\cite{savenkov_crqa2016}.
 
 \section{Approach}
 \label{section:crowdsourcing:approach}
@@ -143,9 +144,9 @@ Since we have answers from different sources, let's introduce the following nota
 \end{itemize}
 
 Table \ref{table:crowdsourcing:answer_stats} summarizes some statistics on the answers.
-The first thing to notice is that, unlike CQA websites, where some questions are left unanswered, by paying the crowd workers we were able to get at least one answer for all LiveQA questions (after filtering ``No answer'' and ``I don't know'' kind of responses).
+The first thing to notice is that, unlike CQA websites, where some questions are left unanswered, by paying the crowd workers we were able to get at least one answer for all LiveQA questions (after filtering ``No answer'' and ``I do not know'' kind of responses).
 The length of the answers, provided by Mechanical turk users is lower, and time pressure forces users to be even more concise.
-The majority of workers ($\sim90 \%$) didn't use the web search and provided answers based on their experience, opinions and common knowledge.
+The majority of workers ($\sim90 \%$) did not use the web search and provided answers based on their experience, opinions and common knowledge.
 
 \begin{table*}[ht]
 \centering
@@ -248,10 +249,10 @@ Therefore, we include a web search component, that can retrieve regular web docu
 More specifically, CRQA queries the web using Bing Web Search API\footnote{https://datamarket.azure.com/dataset/bing/searchweb}, Yahoo! Answers, Answers.com and WikiHow.com using their respective search interfaces.
 For each query we retrieve top-10 relevant documents and question-answer pairs from CQA archives.
 As candidate answers CRQA extracts answers to the questions retrieved from CQA results and paragraphs of text from the main content of regular web documents, as detected by a method based on \cite{Kohlschutter_2010}.
-Quite often, it's hard to estimate the quality of a candidate answers from its text only.
-The task becomes much easier if a system has access to additional data, \textit{e.g.} for the candidates generated from the CQA archives, it is useful to know the text of the original question the candidate answers.
-For candidates, generated from regular web pages, it's useful to know the topic of the page (\textit{e.g.} from its title), additionally the context of the candidate, such as text that immediately precedes it in the document was shown to provide a useful information for QA.
-Therefore, besides the text of a candidate answer, we keep some potentially useful metadata, \textit{e.g.,} for QnA candidates we include text and category of the retrieved question, and web page title and text block preceding the answer passage in the document for web-search based candidates.
+Quite often, it is hard to estimate the quality of a candidate answers from its text only.
+The task becomes much easier if a system has access to additional data, \eg for the candidates generated from the CQA archives, it is useful to know the text of the original question the candidate answers.
+For candidates, generated from regular web pages, it is useful to know the topic of the page (\eg from its title), additionally the context of the candidate, such as text that immediately precedes it in the document was shown to provide a useful information for QA.
+Therefore, besides the text of a candidate answer, we keep some potentially useful metadata, \eg for QnA candidates we include text and category of the retrieved question, and web page title and text block preceding the answer passage in the document for web-search based candidates.
 For convenience, we will call the title of a retrieved question or web page \textit{``the answer topic''}, and the body of the retrieved question or the preceding text block the \textit{``the answer context''}.
 
 Next, for each candidate answer we compute a set of features, described in Table \ref{table:crowdsourcing:crqa:features}.
@@ -311,7 +312,7 @@ Figure~\ref{figure:crowdsourcing:crowd_ui} presents the user interface of our cr
 The overall algorithm for obtaining crowd input for real-time question answering is the following:
 \begin{enumerate}
 \item When a system receives a question, it is posted to the workers, who will have 50 seconds to provide their input
-\item Workers are asked to write an answer if they can provide one (it's optional)
+\item Workers are asked to write an answer if they can provide one (it is optional)
 \item Otherwise they are waiting for the answer candidates to arrive
 \item When a system is done with generating and ranking candidates it posts top-7 scoring answers to the workers for the rating (which usually leaves $\sim$ 35 seconds for rating)
 \item Workers receive a list of answers\footnote{Answers submitted by workers are also sent for ratings to all workers except the author} and rate them until the timer runs off. Each answer is rated on a scale from 1 to 4, using the official TREC LiveQA rating scale:
@@ -467,9 +468,9 @@ As we can see, the average score and precision of answers generated by CRQA syst
 However, Yahoo! Answers community answers have higher percentage of \textit{``4 (excellent)''} scores.
 Figure \ref{figure:crowdsourcing:crqa:score_histogram} shows the distribution of scores for the original system ranking, our crowdsourcing system and Yahoo! Answers.
 Two peaks on the distribution of scores from Yahoo! Answers community suggest, that there are essentially two kinds of responses: non-useful (\eg spam) or excellent that fully answers the question.
-In addition, around 20\% of the questions didn't get any answer from the community.
-Automatically generated answers, on the contrary, are rarely empty, but on average provide only marginally relevant information, which often doesn't answer the questions, and therefore rated \textit{``2 (fair)''}.
-The introduction of the crowdsourcing module allowed CRQA to cover a couple of percent of the questions, for which the automated system wasn't able to generate any candidates, as well as select better candidates when it was possible using crowd ratings.
+In addition, around 20\% of the questions did not get any answer from the community.
+Automatically generated answers, on the contrary, are rarely empty, but on average provide only marginally relevant information, which often does not answer the questions, and therefore rated \textit{``2 (fair)''}.
+The introduction of the crowdsourcing module allowed CRQA to cover a couple of percent of the questions, for which the automated system was not able to generate any candidates, as well as select better candidates when it was possible using crowd ratings.
 
 \begin{figure}[h]
 	\centering
@@ -491,9 +492,9 @@ These two types of contributions are complimentary to each other and attempts to
 Table \ref{table:crowdsourcing:crqa:performance} shows the performance of our question answering system using each of these types of feedback independently.
 The results demonstrate that both answers and ratings have positive effect on the performance.
 Even with limited time, workers were able to reliably rate candidate answers, which helped the system to select a better final answer and improve the model precision.
-However, this method doesn't help the system in cases, when it wasn't able to generate a good candidate in the first place, therefore using ratings only has lower average answer score than using worker generated answers.
+However, this method does not help the system in cases, when it was not able to generate a good candidate in the first place, therefore using ratings only has lower average answer score than using worker generated answers.
 By asking the crowd to provide a response if they can answer the question, CRQA covers this gap, which is important as in a real scenario even a fair answer would probably be better for the user than no answer at all.
-Of course, given limited time and the fact that a random worker might not possess an expertise required to answer the question, such answers don't always perfectly answer the question.
+Of course, given limited time and the fact that a random worker might not possess an expertise required to answer the question, such answers do not always perfectly answer the question.
 Table \ref{table:crowdsourcing:crqa:answer_examples} gives some examples of worker generated answers with low and high quality scores.
 
 To summarize, ratings of answer candidates and worker generated answers both have similar positive effect on the performance of our question answering system.
@@ -512,11 +513,11 @@ Can I write any number on line number 5 of a W2?  would like to set up my W2 wer
 I need help with my mum? Something traumatic happened to me about 4 years ago i randomly asked my mother why when I lived with you in your home country a man that was our neighbour used to call me his daughter and the younger kids that lived there called me there cousins and one boy called me his sister? & yes & 1.0\\
 \hline
 \hline
- Is it bad not wanting to visit your family? & It's nt bad. Just be honest with them. They may be upset but they should understand & 3.0 \\
+ Is it bad not wanting to visit your family? & It is nt bad. Just be honest with them. They may be upset but they should understand & 3.0 \\
  \hline
 Any health concerns with whey protein? So I workout 3-5 days a week and i drink a whey protein isolate after each workout. Since I workout almost everyday, is it ok for me to just drink a shake everyday?.. & As long as you use it as directed, there should not be any major problems.  You may want to consult your doctor just in case, but I would not be too concerned. & 3.0\\
 \hline
-Foot pain unable to walk? Hi so today woke with some pain, I'm able to put weight on my heel with no problem or pain.  But  the area between my heel and toes hurts really bad when I try to go with the motion of taking a step. Its not swollen and I don't remember hurting it at all & Possible gout in your foot, also possible you may have strained it during the previous day. & 3.0\\
+Foot pain unable to walk? Hi so today woke with some pain, I am able to put weight on my heel with no problem or pain.  But  the area between my heel and toes hurts really bad when I try to go with the motion of taking a step. Its not swollen and I do not remember hurting it at all & Possible gout in your foot, also possible you may have strained it during the previous day. & 3.0\\
 \hline
 What is a good remedy/medicine for stomach aches? Specifically ones caused by stress or anxiety? & Chamomile tea should help & 3.66\\
 \hline
@@ -536,8 +537,8 @@ Our system included two strategies for answer ordering: random or according to t
 The former strategy provides a uniform coverage for all the answers selected for rating, while the later puts more emphasis on the currently top scoring candidates.
 We randomly selected one of the strategies for each user and question.
 To analyze the performance of each of the strategies we compute the average score of answers, generated using the corresponding ratings.
-The average score for answers generating when candidates are shuffled is 2.508, and it's 2.539 when the candidates are sorted according to their model ranking score.
-This suggests, that it's beneficial to allocate more of the workers attention on the top scoring candidate answers.
+The average score for answers generating when candidates are shuffled is 2.508, and it is 2.539 when the candidates are sorted according to their model ranking score.
+This suggests, that it is beneficial to allocate more of the workers attention on the top scoring candidate answers.
 
 \textbf{Cost analysis}.
 The results of our experiments clearly demonstrated that crowdsourcing can improve the performance of near real-time question answering system.
@@ -572,8 +573,8 @@ Half of the overall performance improvement could be achieved with only 3 worker
 
 An alternative cost-reduction strategy is selective triggering of crowdsourcing, which would only ask for workers feedback for some of the questions.
 Such a strategy would be necessary to scale a crowd-powered question answering system to a higher volume of questions.
-There are multiple different approaches for such selective crowdsourcing: \textit{e.g.} a system can only ask for crowd contributions if it didn't generate enough candidate answers or the predicted quality of the top scoring candidates is low \cite{carmel2010estimating,he2006query}.
-We leave this questions for the future work, as here we focused on the scenario, proposed by the organizers of the TREC LiveQA shared tasks, where questions arrive one by one and it's possible to utilize crowd input for every questions.
+There are multiple different approaches for such selective crowdsourcing: \eg a system can only ask for crowd contributions if it did not generate enough candidate answers or the predicted quality of the top scoring candidates is low \cite{carmel2010estimating,he2006query}.
+We leave this questions for the future work, as here we focused on the scenario, proposed by the organizers of the TREC LiveQA shared tasks, where questions arrive one by one and it is possible to utilize crowd input for every questions.
 
 To summarize, in the explored real-time QA scenario it is possible to reduce the costs of crowdsourcing by reducing the number of workers, although with some performance losses.
 Our analysis suggests that paying 30\% of the original cost would give 50\% of the performance improvement.
@@ -598,7 +599,7 @@ The results described above demonstrate how effective can crowdsourcing be for r
 However, it can also be quite expensive, which is one of the most critical problems for scalability of hybrid system.
 Such a system needs to have a good strategy to deal with increasing volume and velocity of the input data, \ie user questions.
 CRQA system, developed to participate in TREC LiveQA cost us \$0.81 per question, which is quite expensive, and according to our analysis in Section~\ref{section:crowdsourcing:approach:crqa:analysis} it is possible to get half of the performance gain for 30\% of the costs by hiring less workers.
-However, in general such a strategy isn't agile enough, as some questions might be very easy and system don't actually need any worker input, while some others are very hard and would benefit from more human feedback.
+However, in general such a strategy is not agile enough, as some questions might be very easy and system do not actually need any worker input, while some others are very hard and would benefit from more human feedback.
 In addition, in different situations our hybrid system might need different types of feedback, \eg for some questions some help with answer ranking is more important than additional candidates, and sometimes the opposite.
 
 The research proposed below targets the problem of designing an optimal crowdsourcing plan, \ie allocation of crowdsourcing resources across different tasks.
@@ -646,10 +647,10 @@ To test this model, we can apply it on a test set and compute Pearson and rank c
 In addition, by varying the threshold we can save certain percentage of crowdsourcing resources by discarding the corresponding feedback data and draw the performance vs crowdsourcing cost plot.
 
 Finally, to model a real scenario of questions arriving non-uniformly in time, we can modify the dataset and set question posting times based on some random process, \eg Poisson point process.
-A couple of different datasets can be generating to have different properties (\eg peak load) and we can conduct the experiments on all of them.
+To simulate various situations, I will generate three different datasets with different parameters to test the behavior in low, moderate and high load situations.
 Each dataset will be split by time into training and test, and I will train the resource allocation model (predicting how many workers to allocate to the task) on the training set and use it on training set.
 The output of the model will be used to subsample the feedback of the users we already have, \eg if the model suggests to use 4 workers, we can sample them from a total pool of 10 workers we already had for this task.
-Unfortunately, this experiment does not allow us to go beyond 10 workers per question, but this scenario is quite expensive anyway, therefore it seems more reasonable to explore only plans where we don't need to go beyond 10 workers.
+Unfortunately, this experiment does not allow us to go beyond 10 workers per question, but this scenario is quite expensive anyway, therefore it seems more reasonable to explore only plans where we do not need to go beyond 10 workers.
 In addition, in the original experiment there was no need to share workers between tasks, as all of the tasks arrived sequentially, while in real scenario we will have more than one question requiring worker feedback.
 
 \section{Summary}

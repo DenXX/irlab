@@ -8,7 +8,7 @@
 
 The majority of user web searches are entity-centric, \ie looking for some information or wanting to transact (\eg buy, download) on entities~\cite{pound2010ad}.
 Questions that are asking about certain entities (\eg person, movie, product \etc) or their attributes (\eg date or number) are usually referred to as factoid questions.
-This section describes the problem I'm going to focus on in my thesis, some existing results and proposals for future research.
+This section describes the problem I am going to focus on in my thesis, some existing results and proposals for future research.
 
 \section{Problem}
 \label{section:factoid:problem}
@@ -29,13 +29,15 @@ enrich text with some knowledge about the mentioned entities~\cite{Sun:2015:ODQ:
 Unfortunately, such approaches usually sacrifices some potentially useful information available in the data sources.
 For example, relation extraction methods extract only a small fraction of information encoded in text documents~\cite{Dong:2014:KVW:2623330.2623623}, and existing models of semantic enrichment of text data only uses a subset of KB~\cite{Sun:2015:ODQ:2736277.2741651}.
 
-In summary, in my thesis I'm focusing on the problem of combining information available in textual data sources and structured knowledge bases to improve factoid question answering.
+In summary, in my thesis I am focusing on the problem of combining information available in textual data sources and structured knowledge bases to improve factoid question answering.
 The focus of the proposed research is on utilizing all the available information of different data sources for joint reasoning.
 
 \section{Approaches}
 \label{section:factoid:approaches}
 
 This section describes my previous research on the problem, \ie relation extraction from question-answer pairs (Section~\ref{section:factoid:approaches:cqarelextract}) and using external textual data to improve knowledge base question answering (Section~\ref{section:factoid:approaches:text2kb}).
+These works were published in NAACL 2015 Student Research Workshop paper titled ``Relation extraction from community generated question-answer pairs''~\cite{savenkov2015relation} and SIGIR 2016 full paper ``
+When a Knowledge Base Is Not Enough: Question Answering over Knowledge Bases with External Text Data''~\cite{Savenkov:2016:KBE:2911451.2911536} correspondingly.
 
 % =-=-=-=-=-=-=-=-=-=-Cqa Relation Extraction: Begin-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -55,7 +57,7 @@ This idea makes CQA data attractive for knowledge base population.
 Although some of the facts mentioned in QnA pairs can also be found in some other text documents, another part might be unique (\eg in Clueweb\footnote{http://www.lemurproject.org/clueweb12/} about 10\% of entity pairs with existing Freebase relations mentioned in Yahoo! Answers documents cannot be found in other documents \cite{savenkov2015relation}).
 Existing relation extraction techniques face some challenges when applied to CQA data, \ie they typically consider sentences independently and ignore the discourse of a QnA pair text.
 However, frequently, it is impossible to understand the answer without knowing the question.
-For example, sometimes users simply give the answer to the question without stating it in a narrative sentence (\eg ``\emph{What does "xoxo" stand for? Hugs and kisses.}``), or the provided answer might contain ellipsis, \ie some important information is omitted (\eg ``\emph{What's the capital city of Bolivia? Sucre is the legal capital, though the government sits in La Paz}``).
+For example, sometimes users simply give the answer to the question without stating it in a narrative sentence (\eg ``\emph{What does "xoxo" stand for? Hugs and kisses.}``), or the provided answer might contain ellipsis, \ie some important information is omitted (\eg ``\emph{What is the capital city of Bolivia? Sucre is the legal capital, though the government sits in La Paz}``).
 
 In my thesis I propose a novel model for relation extraction from CQA data, that uses discourse of a QnA pair to extract facts between entities mentioned in question and answer sentences.
 The conducted experiments confirm that many of such facts cannot be extracted by existing sentence-based techniques and thus it is beneficial to combine their outputs with the output of our model.
@@ -195,7 +197,7 @@ Our cascade entity linking approach is similar to \cite{chang2011stanford} and c
 First, all named entity mentions are looked up in Freebase names and aliases dictionary.
 The next two stages attempt to match mention text with dictionary of English Wikipedia concepts \cite{spitkovsky2012cross} and its normalized version.
 Finally for named entity mentions we try spelling correction using Freebase entity names dictionary.
-We didn't disambiguate entities and instead took top-5 ids for each coreference cluster (using the $p(entity|phrase)$ score from the dictionary or number of existing Freebase triples).
+We did not disambiguate entities and instead took top-5 ids for each coreference cluster (using the $p(entity|phrase)$ score from the dictionary or number of existing Freebase triples).
 All pairs of entities (or entity and date) in a QnA pair that are directly related\footnote{We also consider some paths that come through a mediator node, \eg  /people/person/spouse\_s./people/marriage/spouse} in Freebase were annotated with the corresponding relations.
 
 Table \ref{table:qna_relextract:cqastats} gives some statistics on the datasets used in this work.
@@ -259,7 +261,7 @@ Correct triples not extracted by other model & 20.5\% & 56.5\% & - & 39.4\% & 25
 \end{table*}
 
 Results demonstrate that from 20.5\% to 39.4\% of correct triples extracted by the QnA-based model are not extracted by the baseline model, and the combination of both models is able to achieve higher precision and recall.
-Unfortunately, comparison of sentence-based model with and without question-based features (Figure \ref{figure:qna_relextract:pr_curve}) didn't show a significant difference.
+Unfortunately, comparison of sentence-based model with and without question-based features (Figure \ref{figure:qna_relextract:pr_curve}) did not show a significant difference.
 
 \subsubsection{Analysis}
 
@@ -291,8 +293,8 @@ A promising direction for future work is automatic extraction of new predicates,
 \subsubsection{Summary}
 \label{section:factoid:approaches:cqarelextract:summary}
 
-In this section we described a model for relation extraction from QnA data, which is capable of predicting relations between entities mentioned in question and answer sentences.
-We conducted experiments on 2 publicly available CQA datasets and showed that our model can extract triples not available to existing sentence-based techniques and can be effectively combined with them for better coverage of a knowledge base population system.
+In this section I described a model for relation extraction from QnA data, which is capable of predicting relations between entities mentioned in question and answer sentences.
+The experiments, conducted on 2 publicly available CQA datasets, showed that our model can extract triples not available to existing sentence-based techniques and can be effectively combined with them for better coverage of a knowledge base population system.
 
 % =-=-=-=-=-=-=-=-=-=-Cqa Relation Extraction: End-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -302,7 +304,7 @@ We conducted experiments on 2 publicly available CQA datasets and showed that ou
 \label{section:factoid:approaches:text2kb}
 
 Converting unstructured information into structured form by extracting knowledge from text suffers from certain quality losses.
-Existing relation extraction tools aren't perfect, in particular due to recall losses a lot of information is left behind.
+Existing relation extraction tools are not perfect, in particular due to recall losses a lot of information is left behind.
 Moreover, extractions contain certain level of incorrect information due to precision losses.
 These errors cap the upper bound on the question answering system performance.
 In this section, I describe a novel factoid question answering system, that utilizes available textual resources to improve different stages of knowledge base question answering (KBQA).
@@ -313,7 +315,7 @@ Entity identification seeds the answer search process, and therefore the perform
 Question text is often quite short, may contain typos and other problems, that complicate entity linking.
 Existing approaches are usually based on dictionaries that contain entity names, aliases and some other phrases, used to refer to the entities \cite{SPITKOVSKY12.266}.
 These dictionaries are noisy and incomplete, \eg to answer the question \textit{``what year did tut became king?''} a system needs to detect a mention \textit{``tut''}, which refers to the entity \texttt{Tutankhamun}.
-If a dictionary doesn't contain a mapping \textit{``tut''} $\rightarrow$ \texttt{Tutankhamun}, as happens for one of the state of the art systems, it will not be able to answer the question correctly.
+If a dictionary does not contain a mapping \textit{``tut''} $\rightarrow$ \texttt{Tutankhamun}, as happens for one of the state of the art systems, it will not be able to answer the question correctly.
 Such less popular name variations are often used along with full names inside text documents, for example, to avoid repetitions.
 Therefore, we propose to look into web search results to find variations of question entity names, which can be easier to link to a KB (Figure \ref{figure:text2kb:web_search_entitylink}).
 This idea has been shown effective in entity linking for web search queries\footnote{http://web-ngram.research.microsoft.com/ERD2014/} \cite{SMAPH_ERD:2014}.
@@ -397,7 +399,7 @@ For each pair of candidate answers Aqqu creates an instance, which contains 3 gr
 A pair where the first candidate is better than the second belongs to class +1, and -1 otherwise.
 To reduce the number of pairs for the final ranking, Aqqu includes a simplified linear filtering model, which is trained to detect incorrect answers with high precision. 
 
-In Text2KB we also introduced a couple of extensions to the original Aqqu system, which doesn't involve external text data.
+In Text2KB we also introduced a couple of extensions to the original Aqqu system, which does not involve external text data.
 We noticed that since Aqqu does not use information about the answer entity Freebase types, in many cases it returns an answer that is incompatible with the question: \eg state instead of county \etc
 Therefore, we trained a model to return a score that measures compatibility between the question and answer entities, based on the entity notable types and question uni- and bi-grams as features, similar to Aqqu's relations score model.
 A second extension introduced a new date range query template, which helps solve cases like \textit{``what team did david beckham play for in 2011?''}, where we need to look at the ranges of dates to determine whether an answer candidate satisfies the question.
@@ -514,7 +516,7 @@ win & \texttt{sports.sports\_team.championships} & 4.11\\
 \label{table:text2kb:cqa_npmi}
 \end{table}
 
-In Text2KB we evaluate candidate answer predicates by using the association (e.g., PMI) scores between predicates and the question terms (missing pairs are given a score of 0).
+In Text2KB we evaluate candidate answer predicates by using the association (\eg, PMI) scores between predicates and the question terms (missing pairs are given a score of 0).
 The minimum, average and maximum of these values are used as features to represent a candidate answer.
 Such associations data can be sparse, we also use pretrained word2vec word embeddings\footnote{https://code.google.com/p/word2vec/}.
 We compute predicate embeddings by taking a weighted average of term vectors from predicate's PMI table.
@@ -532,7 +534,7 @@ This data can be viewed as additional edges in a KB, which connect pairs of enti
 Such edges do not have to coincide with the existing KB edges, and can connect arbitrary pairs of entities, that are mentioned together in text, therefore extending the KB.
 
 We use the ClueWeb12 corpus with existing Freebase entity annotations and count different terms that occur in the context of a mention of a pair of different entities (we only consider mentions within 200 characters of each other).
-To compute this unigram language model we use the terms separating the entities, as well as the terms within a small window (e.g., 100 characters) before and after the entity mentions.
+To compute this unigram language model we use the terms separating the entities, as well as the terms within a small window (\eg, 100 characters) before and after the entity mentions.
 A small sample of this data is presented in Table \ref{table:text2kb:clueweb_entitypairs_langmodel}.
 
 \begin{table}
@@ -588,7 +590,7 @@ ParaSemPre \cite{BerantL14:parasempre} & 0.466 & 0.405 & 0.433 & 0.399\\
 Kitt AI \cite{yao-scratch-qa-naacl2015} & 0.545 & 0.526 & 0.535 & 0.443\\
 AgendaIL \cite{berant2015imitation} & 0.557 & 0.505 & 0.530 & 0.497\\
 STAGG \cite{yih2014semantic} & 0.607 & 0.528 & 0.565 & 0.525\\
-FMN\footnote{The model was published after the camera-ready version of our paper} \cite{jain2016question} & \textbf{0.649} & \textbf{0.552} & \textbf{0.597} & \textbf{0.557}\\
+FMN \cite{jain2016question} & \textbf{0.649} & \textbf{0.552} & \textbf{0.597} & \textbf{0.557}\\
 \hline
 Aqqu (baseline) \cite{bastmore:cikm:2015:aquu} & 0.604 & 0.498 & 0.546 & 0.494\\
 Text2KB (Wikipedia search) & \textbf{0.632}$^*$ \tiny{(+4.6\%)} & 0.498 & 0.557$^*$ \tiny{(+2.0\%)} & 0.514$^*$ \tiny{(+4.0\%)} \\
@@ -607,7 +609,7 @@ We compare our system, Text2KB, to state-of-the-art approaches, notably:
 \item{\textbf{Aqqu}}: a state-of-the-art baseline KBQA system~\cite{bastmore:cikm:2015:aquu}, described in Section~\ref{section:factoid:approaches:text2kb:baseline}.
 \item{\textbf{Text2KB(Web search)}}: Our Text2KB system, using the Bing search engine API over the Web. 
 \item{\textbf{Text2KB(Wikipedia search)}}: Our Text2KB system, using the standard Lucene search engine over the February 2016 snapshot of the English Wikipedia, in order to validate our system without the potential ``black-box'' effects of relying on a commercial Web search engine (Bing) and changing corpus (Web).
-\item{\textbf{STAGG}}: One of the best current KBQA systems~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
+\item{\textbf{STAGG}}: One of the best\footnote{It was the best result published before the camera-ready version of my paper, describing Text2KB system} current KBQA systems~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
 \end{itemize}
 Additionally, other previously published results on WebQuestions are included to provide context for the improvements introduced by our Text2KB system.
 
@@ -654,7 +656,7 @@ As we can see, additional date range filters and notable types model (\texttt{Aq
 Features generated from Wikipedia search results, CQA data and ClueWeb entity pair language models (\texttt{+Wiki+CQA+CL}) improve average F1 by 0.007 (+1.4\%) compared to the base model, adding entity linking using Wikipedia search results improves results even more (+3\%).
 
 Web search results (\texttt{+Web+CQA+CL}) turned out to be more helpful than Wikipedia results (\texttt{+Wiki+CQA+CL}), which is natural since Wikipedia is a subset of the web.
-This was one of the reasons we didn't combine Wikipedia and Web search together.
+This was one of the reasons we did not combine Wikipedia and Web search together.
 Finally, entity linking and all text-based features combined achieves an even higher score, proving that their contributions are independent.
 
 We now anylize the contribution of the different data sources.
@@ -760,7 +762,7 @@ Text2KB + STAGG (Oracle) & 0.606 (+15.4 \%) \\
 \label{table:text2kb:combine_stagg}
 \end{table}
 
-As we mentioned earlier, answers to 112 of the test questions in the WebQuestions dataset involve predicates that weren't observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
+As we mentioned earlier, answers to 112 of the test questions in the WebQuestions dataset involve predicates that were not observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
 We evaluated both systems on these questions, and indeed the performance is very low, \ie the average F1 score of Text2KB is 0.1640 compared to 0.1199 for STAGG\footnote{Unfortunately, the number of questions is too low to show statistical significance (p-value=0.16) of the difference}.
 
 \begin{figure}
@@ -770,7 +772,7 @@ We evaluated both systems on these questions, and indeed the performance is very
 \label{figure:text2kb:error_analysis}
 \end{figure}
 
-To get a better insights into the problems that remain, we collected 1219 questions for which Text2KB didn't return completely correct answer, \ie F1 score $<$ 1.
+To get a better insights into the problems that remain, we collected 1219 questions for which Text2KB did not return completely correct answer, \ie F1 score $<$ 1.
 We manually looked through a couple of hundreds of these examples and grouped the problems into several clusters (Figure \ref{figure:text2kb:error_analysis}).
 
 As we can see candidate ranking is still the major problem, and it accounts for $\sim31\%$ of the cases.
@@ -782,7 +784,7 @@ This seems to be an artifact of the labeling process, where the answer was selec
 About 20\% of the questions are ambiguous, \ie questions have no strict 1-1 correspondence with any of the predicates and can be answered by multiple ones without any obvious preferences.
 For example, the question \textit{``what did hayes do?''} can be answered by profession, occupied position or some other achievements.
 Another problem is when there is no predicate that answers the question.
-For example, the question \textit{``what do people in france like to do for fun?''} doesn't have a good match among the facts stored in Freebase.
+For example, the question \textit{``what do people in france like to do for fun?''} does not have a good match among the facts stored in Freebase.
 The ground truth entity \texttt{Cycling} comes from the list Olympic sport competitions country participated\footnote{\texttt{olympics.olympic\_participating\_country.athletes}}.
 
 Text2KB components were quite effective in resolving some of the problems.
@@ -794,13 +796,13 @@ A portion of these problems can be fixed by a better entity linking strategy, \e
 An interesting example, when external text resources improved the performance is the question \textit{``what ship did darwin sail around the world?''}.
 This is actually a hard question, because the ship entity is connected to the \texttt{Charles Darwin} entity through the ``knownFor'' predicate along with some other entities like \texttt{Natural selection}.
 % \footnote{\texttt{user.lindenb.default\_domain.scientist.known\_for}
-Thus, the predicate itself isn't related to the question, but nevertheless, the name of the ship \texttt{HMS Beagle} is mentioned multiple times in the web search results, and entity pair model computed from ClueWeb also has high scores for the terms ``ship'' and ``world''.
+Thus, the predicate itself is not related to the question, but nevertheless, the name of the ship \texttt{HMS Beagle} is mentioned multiple times in the web search results, and entity pair model computed from ClueWeb also has high scores for the terms ``ship'' and ``world''.
 
 There are several major reasons for the loses, introduced by features based on external text resources.
 Some entities often mentioned together and therefore one of them gets high values of cooccurrence features.
 For example, the baseline system answered the question \textit{``when did tony romo got drafted?''} correctly, but since \texttt{Tony Romo} is often followed by \texttt{Dallas Cowboys}, Text2KB ranked the team name higher.
 Another common problem with our features is an artifact of entity linking, which works better for names and often skips abstract entities, like professions.
-For example, the correct answer to the question \textit{``what did jesse owens won?''} is an entity with the name \texttt{Associated Press Male Athlete of the Year}, which is rarely mentioned or it's hard to find such mentions.
+For example, the correct answer to the question \textit{``what did jesse owens won?''} is an entity with the name \texttt{Associated Press Male Athlete of the Year}, which is rarely mentioned or it is hard to find such mentions.
 Some problems were introduced by a combination of components.
 For example, for \textit{``where buddha come from?''} a topical entity \texttt{Buddhism} was introduced from search results, and it generated \texttt{Gautama Buddha} as one of the answer candidates.
 This answer was ranked the highest due to large number of mentions in the search results.
@@ -808,15 +810,15 @@ This answer was ranked the highest due to large number of mentions in the search
 \subsubsection{Summary}
 \label{section:factoid:approaches:text2kb:summary}
 
-In summary, in this section we demonstrated that unstructured text resources can be effectively utilized for knowledge base question answering to improve query understanding, candidate answer generation and ranking.
+In summary, in this section I demonstrated that unstructured text resources can be effectively utilized for knowledge base question answering to improve query understanding, candidate answer generation and ranking.
 Textual resources can help KBQA system mitigate the problems of matching between knowledge base entities and predicates and textual representation of the question.
 
-Unfortunately, Text2KB doesn't help with the problem of knowledge base incompleteness, \ie our system won't be able to respond to the question, which refers to an entity, a predicate or a fact, which is missing in a KB.
+Unfortunately, Text2KB does not help with the problem of knowledge base incompleteness, \ie my system will not be able to respond to the question, which refers to an entity, a predicate or a fact, which is missing in a KB.
 Section~\ref{section:factoid:proposal} describes research I propose to overcome this problem.
 
 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-Text2KB: End=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-\section{Proposed Research: Hybrid Question Answering using Text and Knowledge Base Data}
+\section{Proposed Research: Joint Model for Question Answering using Text and Knowledge Base Data}
 \label{section:factoid:proposal}
 
 Experiments from Section~\ref{section:factoid:approaches:text2kb} demonstrated the effectiveness of unstructured data, such as natural language text, to bridge the lexical chasm between KB concepts and natural language questions.
@@ -836,14 +838,14 @@ In reality, a big fraction of real user questions cannot be answered using KB da
 \end{figure}
 
 In this section I propose a novel hybrid QA architecture, that combines unstructured text and structured knowledge base data for joint inference.
-Figure \ref{figure:factoid:text_kb} gives a general overview of the proposed system.
-The idea is to extend the documents representation with annotations of KB entity mentions, which essentially creates additional edges in the knowledge graph.
+Figure \ref{figure:factoid:text_kb} gives a general overview of the proposed system. The idea is to extend the documents representation with annotations of KB entity mentions, which essentially creates additional edges in the knowledge graph.
 These edges connecting KB entities with text fragments can be traversed by a QA system in both directions in order to get more syntactic (from entity to text) or semantic (from text to entity) information.
 In addition, text fragments, that mention 2 different entities close to each other can serve as an addition knowledge triple.
-Unlike information extraction approaches, however, we don't try to extract the predicate and get rid of all the other information stated in a sentence.
+Unlike information extraction approaches, however, we do not try to extract the predicate and get rid of all the other information stated in a sentence.
 In the proposed approach we are going to use text similarity metrics to retrieve such triples.
 
 The main stages of the proposed QA pipeline are the following (Figure~\ref{figure:factoid:text_kb}):
+
 \begin{enumerate}
 \item \textbf{Question analysis}
 	\begin{itemize}
@@ -853,7 +855,7 @@ The main stages of the proposed QA pipeline are the following (Figure~\ref{figur
   
 \item \textbf{Candidate generation}
 	\begin{itemize}
-	  \item \textbf{Candidate generation from text}: extract candidate answer (or intermediate answer) entities with evidence from the retrieved text documents using existing techniques, e.g. \cite{tsai2015web}.
+	  \item \textbf{Candidate generation from text}: extract candidate answer (or intermediate answer) entities with evidence from the retrieved text documents using existing techniques, \eg \cite{tsai2015web}.
   	  \item \textbf{Candidate generation from KB}: explore the KB neighborhood of question topical entities and entities extracted from text documents on the previous step
 	  \item \textbf{Candidate generation from KB \& Text}: use entity and text index to find entities mentioned near question topical entity and question terms in the document collection
 	\end{itemize}
@@ -869,14 +871,14 @@ The main stages of the proposed QA pipeline are the following (Figure~\ref{figur
 \end{enumerate}
 
 As a motivating example, let's consider the following question from the QALD dataset: ``\textit{Who composed the music for the film that depicted the early life of Jane Austen?}''.
-Even though it's quite easy to identify the ``\texttt{Jane Austen}'' entity in the question, the knowledge base (dbPedia in this example) cannot help us to determine which movie is being referred to.
+Even though it is quite easy to identify the ``\texttt{Jane Austen}'' entity in the question, the knowledge base (dbPedia in this example) cannot help us to determine which movie is being referred to.
 However, there are plentiful of documents on the web, that describe the plot of the \texttt{Becoming Jane} movie, and a system can use the proximity of terms from the question \textit{``... depicted early life of Jane Austen''} to the movie entity.
 Unfortunately, extracting the name of the composer from these documents is quite challenging, but this task can be easily accomplished by checking the value of the \texttt{musicComposer} property in the knowledge base.
 At the end, for each candidate answer entity, we have all the KB information and passages that mention this entity as evidence to help with the correct answer selection.
 
 Essentially, the proposed model is a search based approach, similar to existing information extraction methods for knowledge base question answering~\cite{YaoD14,bastmore:cikm:2015:aquu}, but over the knowledge graph extended with the links to entity mentions in text collections.
 In traditional KBQA a special lexicon is used to match terms and phrases in the question to predicates, which essentially represent KB edges.
-For text edges I'm planning to use the following two approaches: IR-based methods, in particular recent advances in entity search~\cite{zhiltsov2015fielded,nikolaev2016parameterized}, and neural network joint embeddings of predicates and text fragments~\cite{BordesCW14:emnlp,miller2016key}.
+For text edges I am planning to use the following two approaches: IR-based methods, in particular recent advances in entity search~\cite{zhiltsov2015fielded,nikolaev2016parameterized}, and neural network joint embeddings of predicates and text fragments~\cite{BordesCW14:emnlp,miller2016key}.
 
 \subsection{Experimentation}
 \label{section:factoid:proposal:experiments}
@@ -885,8 +887,8 @@ To evaluate the performance of the proposed approach I will compare it against s
 The baselines I will compare against include knowledge base question answering system Aqqu~\cite{bastmore:cikm:2015:aquu}, a semantically enriched text-based system QuASE~\cite{Sun:2015:ODQ:2736277.2741651}, a hybrid YodaQA system, designed to be an open source analogue to IBM Watson~\cite{baudivs2015yodaqa} and open question answering approach of A.Fader et al~\cite{Fader:2014:OQA:2623330.2623677}.
 
 Most of the recent works in knowledge base question answering were evaluated on the WebQuestions dataset~\cite{BerantCFL13:sempre}.
-This dataset was recently updated to include ground truth semantic parses and many wrong labels were fixed~\cite{yih2016webquestionssp}.
-I'm planning to evaluate the system I'm going to built on these datasets.
+This dataset was recently updated (and released as WebQuestionsSP\footnote{https://www.microsoft.com/en-us/download/details.aspx?id=52763}) to include ground truth semantic parses and many wrong labels were fixed~\cite{yih2016webquestionssp}.
+I am planning to evaluate the system I am going to built on these datasets.
 Since the answers to these questions can be lists, the official evaluation metric is average F1 score over all questions.
 However, WebQuestions dataset has its limitations, \eg all the questions are selected so that they could be answered from Freebase.
 Furthermore, answers to the question were labeled using entities' Freebase profile pages, which only displays relations in the close proximity to the target entity.
@@ -894,31 +896,31 @@ This makes it possible to exploit a small set of templates to generate candidate
 
 Traditionally, most of the works in question answering have been evaluated on the TREC QA datasets.
 These datasets come with a set of regular expression patterns that can judge an answer as correct or incorrect.
-Unfortunately, these patterns aren't complete and researchers often end up re-validating the answers of their systems manually~\cite{Sun:2015:ODQ:2736277.2741651,tsai2015web}.
+Unfortunately, these patterns are not complete and researchers often end up re-validating the answers of their systems manually~\cite{Sun:2015:ODQ:2736277.2741651,tsai2015web}.
 Unlike most of the previous approaches, however, the proposed system aims at retrieving KB entities as answers of the questions.
 Therefore, I will annotate TREC QA datasets with KB entity identifiers of the correct answers.
-The baseline systems I mentioned were evaluated of some parts of TREC QA dataset, and I'm going to use reported results instead of reimplementing them.
+The baseline systems I mentioned were evaluated of some parts of TREC QA dataset, and I am going to use reported results instead of reimplementing them.
 For my system, I will use ClueWeb12 collection, which was annotated with Freebase entity mentions~\cite{gabrilovich2013facc1}.
 The text around mentions will be indexed with Lucene\footnote{https://lucene.apache.org/} open source search engine.
 The metrics used for evaluation typically include accuracy and mean reciprocal rank (MRR).
 
-However, TREC QA dataset contains only a couple of thousands of examples, which is relatively small.
-As an alternative, I'm designing a new factoid QA dataset, derived from questions posted to Yahoo! Answers CQA website.
+However, TREC QA dataset contains only a two thousand examples, which is relatively small.
+As an alternative, I am designing a new factoid QA dataset, derived from questions posted to Yahoo! Answers CQA website, which is described next.
 
 
 \subsubsection{New factoid question answering dataset}
 \label{section:factoid:proposal:experiments:dataset}
 
-% \todo{Note to myself: I guess we won't be allowed to make this dataset public as is, because it's derived from Yahoo WebScope dataset.}
+% \todo{Note to myself: I guess we will not be allowed to make this dataset public as is, because it is derived from Yahoo WebScope dataset.}
 
 Community question answering websites contains hundreds of millions of different questions and corresponding answers, posted by real users.
 A fraction of these questions represent factoid information needs.
-I'm going to filter a subset of these questions using a set of heuristics or rules.
+I am going to filter a subset of these questions using a set of heuristics or rules.
 For example, we can select a subset of QnA pairs with at least one entity in the question and answer, without personal pronouns, words like ``\textit{recommend}'', ``\textit{suggest}'', superlative adjectives like ``\textit{best}'', \etc.
 Next this QnA pairs will be further labeled by Mechanical Turk users, who will determine if the questions are indeed factoid and non-subjective and select the actual answer entity from the list of entities, mentioned in the answer text.
 The preliminary analysis showed, that from 3.8M QnA pairs from Yahoo! Answers WebScope collection, 80K passed the heuristics filters described above and about 30\% of them are actually good factoid questions.
 Examples of questions are: ``\textit{What was James Bond's wife's name?}'', ``\textit{What is the name of the second US astronaut to land on the moon?}'', ``\textit{When was the first "cartoon human" movie?}'', ``\textit{What movie did Joe Pesci describe kids as "YUTS"?}''.
-I expect this dataset to contain ~10K real user questions annotated with answer entities, which can be used for future research in question answering in both knowledge base and general factoid question answering.
+I expect this dataset to contain $\sim$10'000 real user questions annotated with answer entities, which can be used for future research in question answering in both knowledge base and general factoid question answering.
 
 In my thesis this dataset will be used to further compare performances of the proposed approach versus existing KBQA, text and hybrid systems with open code.
 
