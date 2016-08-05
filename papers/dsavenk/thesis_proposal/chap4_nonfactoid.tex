@@ -206,7 +206,7 @@ From the final run of the system, 1087 questions were judged by the organizers o
 The following performance metrics were reported:
 
 \begin{itemize}
-\item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions as having score 0
+\item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range. This metric considers ``Bad'', unreadable answers and unanswered questions, as scored 0.
 \item \textbf{s@i+}: the fraction of answers with score i or greater (i=1..4)
 \item \textbf{p@i+}: the number of questions with score i or greater (i=2..4) divided by the number of answered questions
 \end{itemize}
@@ -235,17 +235,23 @@ Please refer to the \cite{overviewliveqa15} for more details and results of all 
 \label{table:liveqa-results}
 \end{table}
 
-The metric succ@1+ shows the fraction of questions for which a readable answer was returned by the system.
+The metric s@1+ shows the fraction of questions for which a readable answer was returned by the system.
 A lower score in this metic means that my system didn't return an answer in time in almost 20 \% of the cases.
 A part of the problem is caused by several technical issues, that appeared on the day of the evaluation run.
 Due to one of them LSTM model didn't provide any score for a significant fraction of submitted questions, and the other problem made the whole system unresponsive for a couple of hours.
-Nevertheless, the overall results look promising and I will make a more thorough analysis of the system performance for the final version of the paper.
 
-The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23\% of the cases (prec@3+) when the answer was returned.
+The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23\% of the cases (p@3+) when the answer was returned.
 And for 60\% of the questions the answer doesn't contain any useful information.
 
 \subsection{Analysis}
 \label{section:non-factoid:liveqa:analysis}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{img/liveqa_answer_source}
+	\caption{Distribution of sources for answers returned by our system}
+	\label{figure:non-factoid:liveqa:answer_source_pie}
+\end{figure}
 
 In this section we will answer some of the questions about the performance of different system components and their relative importance.
 
@@ -254,12 +260,9 @@ As Figure~\ref{figure:non-factoid:liveqa:answer_source_pie} shows, almost half o
 In $\sim$21\% of the cases our system didn't return any results\footnote{This happened mainly due to a couple of technical issues that made our system unresponsive for quite some time}, and in the rest $\sim$31\% of the cases a passage from a web page was returned as the answer.
 I further looked into the domains of the web pages used to generate the answer and noticed, that many more were extracted from other community question answering websites and forums.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.5\textwidth]{img/liveqa_answer_source}
-	\caption{Distribution of sources for answers returned by our system}
-	\label{figure:non-factoid:liveqa:answer_source_pie}
-\end{figure}
+The quality of answers generated from passages built from web search results are lower on average compared to Yahoo! Answers candidates.
+Figure~\ref{figure:non-factoid:liveqa:answer_source} shows the distribution of scores for each of our data sources.
+Some categories were harder than the other \cite{overviewliveqa15} and as we see on Figure~\ref{figure:non-factoid:liveqa:answer_source:category} in some cases web passages were actually more effective than answers to previously posted questions.
 
 \begin{figure}
 	\centering
@@ -276,10 +279,6 @@ I further looked into the domains of the web pages used to generate the answer a
 	\caption{Comparison of web passages and Yahoo! Answers as candidate sources}
 	\label{figure:non-factoid:liveqa:answer_source}
 \end{figure}
-
-The quality of answers generated from passages built from web search results are lower on average compared to Yahoo! Answers candidates.
-Figure~\ref{figure:non-factoid:liveqa:answer_source} shows the distribution of scores for each of our data sources.
-Some categories were harder than the other \cite{Agichtein15:liveqa} and as we see on Figure~\ref{figure:non-factoid:liveqa:answer_source:category} in some cases web passages were actually more effective than answers to previously posted questions.
 
 \begin{figure}
 	\centering

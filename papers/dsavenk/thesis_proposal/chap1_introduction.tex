@@ -33,10 +33,10 @@ These types of questions provide quite distinct set of challenges and methods ap
 
 Automated question answering systems use various data sources to generate answers to user questions.
 By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables) and \textit{structured} (\eg knowledge bases).
-Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}), which often compliment each other.
+Each of these types of data has certain advantages and limitations (Table \ref{table:data_procons}), which often complement each other.
 There are a number of methods designed for question answering using text collections, knowledge bases or archives of question-answer (QnA) pairs.
 Most of the developed systems use either a single source of data, or combine multiple independent pipelines, each of which operates over a separate data source.
-Motivated by the fact that different types of data sources compliment each other weaknesses and advantages, in my thesis I propose to study methods of combining different data sources for question answering.
+Motivated by this fact, in my thesis I propose to study methods of integrating different data sources for joint question answering.
 
 \begin{table}
 \centering
@@ -78,7 +78,7 @@ The focus of the proposed research in factoid question answering lies on the ide
 %\item it's quite challenging to translate a natural language question into a structured language, such as SPARQL, to query a knowledge base \cite{BerantCFL13:sempre}.
 %\end{itemize}
 
-The main challenge in non-factoid question answering lies in the diversity of question and answer types.
+One of the main challenges in non-factoid question answering is the diversity of question and answer types.
 Reusing answers from previously posted similar questions, which could be found, for example, in CQA archives, was demonstrated to be quite effective to answer new questions \cite{carmel2000eresponder,Shtok:2012:LPA:2187836.2187939}.
 Unfortunately, it's not always possible to find a similar question, that has already been answered, because many information needs are unique in general or in details.
 Alternative strategies include ranking text passages extracted from retrieved web documents.
@@ -89,7 +89,8 @@ Therefore, in my thesis I'm planning to build a state-of-the-art system for answ
 
 While in some cases a single paragraph of text can perfectly answer the question, there are situations when one would need to combine multiple information pieces together in order to cover all aspects of the question, or provide alternative ideas and evidence.
 These information nuggets are often scattered across different documents, and need to be combined together to form a single answer, that would satisfy the user.
-In my thesis I propose to apply extractive and abstractive text summarization methods to the problem of answer summarization.
+In such cases returning a single passage is suboptimal.
+Therefore, to overcome this challenge in my thesis I propose to apply extractive and abstractive text summarization methods to the problem of answer summarization.
 
 %However, ranking isn't the only important part of the question answering pipeline.
 %A system can only rank and return a good answer if it was able to retrieve relevant information from a collection.
@@ -99,25 +100,27 @@ In my thesis I propose to apply extractive and abstractive text summarization me
 %Another promising direction of research, which I'm going to explore in my thesis, is answer generation, \ie by summarizing the information a system could retrieve.
 %Different answer candidates might by complimentary to each other, answer different parts of the question or provide complimentary opinions on the subject.
 
-Unfortunately, no matter how good a QA system is, there likely to be cases, when it's unable to generate a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or the the question may simply be ambiguous or poorly worded.
-One approach to overcome these challenging situation is to put a human in the loop, who can be either an external crowd worker or the author of the question itself.
-For the former case, in my thesis I propose to explore the effectiveness of crowdsourcing for question answering, especially in the real-time scenario, when the user is unlikely to wait for the response for more than a couple of minutes.
+Unfortunately, no matter how good a QA system is, there likely to be cases, when it's unable to return a satisfactory response to the user question, \eg existing data sources might not contain the necessary information, or a system might fail to rank a good answer on top of others.
+Such failures can be very detrimental to the overall user experience with a QA system.
+One way to mitigate this challenging situation is to put a human in the loop, \eg let a system consult a group of workers, who can provide some kind of feedback and help return a more satisfactory answer.
+In the third part of my thesis I propose to explore the effectiveness of crowdsourcing for question answering, especially in the real-time scenario, when the user is unlikely to wait for the response for more than a couple of minutes.
 
-Proliferation of mobile personal assistants and conversational agents provide a very natural dialog-based interface between a human and a computer system, and question answering is arguably one of the most important applications of such technologies.
+Finally, in the last part of my thesis I'm planning to look into some ways to enrich the interactions between a QA system and its users with the goal of improving the search success rate.
+Proliferation of mobile personal assistants and conversational agents provide a very natural dialog-based interface between a human and a computer system.
 Traditionally research in question answering focused on a one-way conversation, where a user only asks questions and the system responds with the answer.
 However, having a dialog between an asker and a QA system opens up many opportunities to improve the user satisfaction.
-In my thesis I'm planning to focus on two specific kinds of interactions: strategic search hints, that a system might give the user in case she isn't satisfied with the answer, and using user feedback to improve the answer candidate ranking.
+I propose to focus on two specific kinds of interactions: strategic search hints, that a system might give the user in case she is not satisfied with the answer, and using user feedback to improve the answer candidate ranking.
 
 In summary, this thesis will address 4 complementary aspects of question answering.
 Chapter~\ref{chapter:factoid} presents some results and proposed research to improve factoid question answering using both structured knowledge bases, semi-structured question-answer pairs and unstructured text data sources.
 Next, in Chapter~\ref{chapter:non-factoid} I will focus on non-factoid question answering, \ie user information needs, that cannot be answered with an entity, number or date.
 In this chapter I will describe a question answering system I developed to participate in TREC LiveQA shared task, and propose research for improving its performance by answer summarization.
 Chapter~\ref{chapter:crowdsourcing} shows that crowdsourcing can be used in near real-time scenario to improve performance of a QA system, and provides some directions for future work.
-Finally, in Chapter~\ref{chatper:users} I touch the topic of user interactions with question answering system.
-More specifically, this chapter describes my prior results on using hits to improve user search success, and proposes some ideas on incorporating user feedback for answer reranking in a dialog QA scenario.
-Existing research on the above mentioned topics is summarized in Chapter~\ref{chapter:related}, and Chapter~\ref{chapter:proposal} summarizes the proposed research and gives the details on the research timeline and risks.
+Finally, in Chapter~\ref{chapter:users} I touch the topic of user interactions with question answering system.
+More specifically, this chapter describes my prior results on using strategic hints to improve user search success, and proposes some ideas on incorporating user feedback for answer re-ranking in a dialog QA scenario.
+The overview of the existing research on the above mentioned topics is given in Chapter~\ref{chapter:related}, and Chapter~\ref{chapter:proposal} summarizes the proposed research and gives the details on the research timeline and risks.
 
 Modern personal assistants are still far from being intelligent.
 The research questions I propose to answer in my PhD thesis focus on improving this situation for question answering use cases.
 Better utilization of structured and unstructured data sources for factoid and non-factoid question answering will improve the core QA capabilities, and in cases when a system is still unable to produce a reasonable answer, we can use crowdsourcing or learn from the user feedback.
-The results of my thesis will hopefully be useful for future research in developing more intelligent personal assistants.
+The results of my thesis will hopefully be useful for future research in developing better intelligent assistants.

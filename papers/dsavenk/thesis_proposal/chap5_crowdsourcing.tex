@@ -589,12 +589,10 @@ Importantly, CRQA significantly improved question quality and coverage compared 
 
 The described CRQA implementation is a promising step towards efficient and close integration of crowd work and automated analysis for real-time question answering.
 It raises many promising issues and opens directions for future work, such as selective crowdsourcing for only the questions deemed ``difficult'' for the automated system; more efficient online learning for obtaining ratings from the crowd and integrating them into the ranking model; and investigating additional features and sources of evidence for improving the joint ranking of the system and crowd input.
-This paper provides a flexible and powerful framework for combining the powers of crowdsourcing with automated question answering techniques, for building the next generation of real-time question answering systems.
+This section describes a flexible and powerful framework for combining the powers of crowdsourcing with automated question answering techniques, for building the next generation of real-time question answering systems.
 
-\section{Proposed Research}
+\section{Proposed Directions for Future Research}
 \label{section:crowdsourcing:proposal}
-
-\todo{Should rename it to emphasize, that I might not have time to do it}
 
 The results described above demonstrate how effective can crowdsourcing be for real-time question answering.
 However, it can also be quite expensive, which is one of the most critical problems for scalability of hybrid system.
@@ -614,12 +612,12 @@ Next, if a system decides to request feedback from crowdsourcing, we need to dec
 \label{section:crowdsourcing:method}
 
 First, we need to formulate the conditions and objectives of the problem we are trying to solve, \ie resource and quality conditions, etc.
-In my thesis I'm going to focus on the problem of optimizing the quality of hybrid question answering under the fixed crowdsourcing budget.
-We will stick with the real-time scenario, proposed in TREC LiveQA challenge, and set the maximum response time to 1 minute after the question is posted.
+An important problem to focus on in the future research is optimizing the quality of hybrid question answering under the fixed crowdsourcing budget.
 
-In such scenario, for the selective crowdsourcing problem I propose to train a machine learning model to predict the expected performance of the answer, given all the current candidates.
-This problem is very similar to search query performance prediction~\cite{carmel2010estimating,he2006query,zhou2007query}, and therefore I'm proposing to adapt the ideas developed in this line of research.
-More specifically, I'm planning to train a machine learning model (\eg random forest or gradient boosted regression trees) to predict the expected relevance score of the answer a system is about to return, given the following set of features:
+A possible approach on the problem is to stick with the real-time scenario, proposed in TREC LiveQA challenge, and set the maximum response time to 1 minute after the question is posted.
+In such scenario, for the selective crowdsourcing problem one can train a machine learning model to predict the expected performance of the answer, given all the current candidates.
+This problem is very similar to search query performance prediction~\cite{carmel2010estimating,he2006query,zhou2007query}, and therefore we can adapt the ideas developed in this line of research.
+More specifically, a machine learning model (\eg random forest or gradient boosted regression trees) can be trained to predict the expected relevance score of the answer a system is about to return, given the following set of features:
 \begin{itemize}
 \item single answer features: answer length, information retrieval score given the question text and other features used for answer ranking
 \item results list features: syntactic and semantic similarity of the top answer to other retrieved candidates
@@ -627,31 +625,31 @@ More specifically, I'm planning to train a machine learning model (\eg random fo
 \end{itemize}
 
 In the simplest case, the score, returned by this model, can be thresholded to determine if the answers is expected to be good and no crowd feedback is needed, or if the system would benefit from worker contributions.
-Alternatively, I will experiment with adaptive thresholding, which can be implemented by putting all the questions into a single priority queue, based on their expected quality from lowest to highest.
+Alternatively, it is possible to experiment with adaptive thresholding, which can be implemented by putting all the questions into a single priority queue, based on their expected quality from lowest to highest.
 The workers will be assigned to the tasks from the top of the queue, \ie starting from the lowest expected performance.
 Decision on how many workers assign to which tasks depends on many factors, such as total number of workers available, number and expected performance of other questions expecting crowdsourcing feedback in the queue.
 Therefore, to design a resource allocation strategy I will train another machine learning model, that will predict how much workers to assign to each question, given the total number of workers and information about the other questions waiting in the queue, \ie expected performances of 2nd, 3rd, ... questions in the queue, waiting time for the other questions in the queue, \etc.
 Such a model will allow a system to adapt not only to varying number of workers available, but also to changing velocity of the arriving questions.
 
 Finally, another important aspect of crowdsourcing for real-time question answering is how much time do we need to give to workers in order to receive enough feedback.
-To answer it, I will analyze the data we already collected and determine the dependency of performance gain vs time workers spend on the task, which can be done by filtering out feedback items received after certain time threshold.
+To answer it, we can analyze the data we already collected and determine the dependency of performance gain vs time workers spend on the task, which can be done by filtering out feedback items received after certain time threshold.
 
 \subsection{Experimentation}
 \label{section:crowdsourcing:experiments}
 
-To train the models and conduct the analysis of the work proposed in the previous section I'll use the crowdsourcing data we already collected during TREC LiveQA 2016.
+To train the models and conduct the analysis of the work proposed in the previous section we can use the crowdsourcing data we already collected during TREC LiveQA 2016.
 The dataset includes 1088 questions, top 7 automatically and worker generated answers, each of which was judged on a scale from 1 - 4 based on its relevance to the question.
 This setup allows us to apply different reranking and filtering strategies and estimate the final quality of the answer our hybrid system would return.
 
-To train the selective crowdsourcing model I will split the dataset into the training, development and test sets, and use the training portion to build a regression model to predict the relevance of top answer given the question and other candidates, represented by a set of features described above.
-To test this model, I will apply it on a test set and compute Pearson and rank correlation coefficients.
+To train the selective crowdsourcing model the dataset can be split into training, development and test sets, and the training portion can be used to build a regression model to predict the relevance of top answer given the question and other candidates, represented by a set of features described above.
+To test this model, we can apply it on a test set and compute Pearson and rank correlation coefficients.
 In addition, by varying the threshold we can save certain percentage of crowdsourcing resources by discarding the corresponding feedback data and draw the performance vs crowdsourcing cost plot.
 
-Finally, to model a real scenario of questions arriving non-uniformly in time, I'm planning to modify the dataset and set question posting times based on some random process, \eg Poisson point process.
-I will generate a couple of different datasets with different properties (\eg peak load) and conduct the experiments on all of them.
+Finally, to model a real scenario of questions arriving non-uniformly in time, we can modify the dataset and set question posting times based on some random process, \eg Poisson point process.
+A couple of different datasets can be generating to have different properties (\eg peak load) and we can conduct the experiments on all of them.
 Each dataset will be split by time into training and test, and I will train the resource allocation model (predicting how many workers to allocate to the task) on the training set and use it on training set.
 The output of the model will be used to subsample the feedback of the users we already have, \eg if the model suggests to use 4 workers, we can sample them from a total pool of 10 workers we already had for this task.
-Unfortunately, this experiment doesn't allow us to go beyond 10 workers per question, but this scenario is quite expensive anyway, therefore it seems more reasonable to explore only plans where we don't need to go beyond 10 workers.
+Unfortunately, this experiment does not allow us to go beyond 10 workers per question, but this scenario is quite expensive anyway, therefore it seems more reasonable to explore only plans where we don't need to go beyond 10 workers.
 In addition, in the original experiment there was no need to share workers between tasks, as all of the tasks arrived sequentially, while in real scenario we will have more than one question requiring worker feedback.
 
 \section{Summary}
@@ -660,8 +658,9 @@ In addition, in the original experiment there was no need to share workers betwe
 This section described my prior research and proposed some additional work in developing a crowdsourcing module for real-time question answering.
 I developed a crowd-powered automated question answering system, called CRQA, that participated in TREC LiveQA 2016 shared task and by preliminary results significantly improved the performance compared to fully automated scenario.
 Additional research I proposed targets mostly the scalability of the system, \ie reducing total costs by applying crowdsourcing selectively to questions that would benefit from it the most and allocating the number of workers according to the total available resources and the volume of the incoming questions.
+This work will be included into my thesis if time permits.
 
 The next section will look into another important aspect of question answering, namely interactions with the user.
 Despite our best effort to cater to the user information needs, they may be expressed in an ambiguous way or miss some important details, which makes it simply impossible to answer.
-In other cases, complex informational tasks may be reduced a number of easier questions, which a system can handle automatically.
+In other cases, complex informational tasks may be reduced a number of easier questions, which a system can solve automatically.
 To handle all these situations we need to study and improve the ways a question answering system communicates with the user.

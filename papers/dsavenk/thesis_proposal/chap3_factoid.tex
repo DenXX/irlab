@@ -6,7 +6,7 @@
 
 \noindent
 
-The majority of user web searches are entity-centric, \ie looking for some information or want to transact (\eg buy, download) on entities~\cite{pound2010ad}.
+The majority of user web searches are entity-centric, \ie looking for some information or wanting to transact (\eg buy, download) on entities~\cite{pound2010ad}.
 Questions that are asking about certain entities (\eg person, movie, product \etc) or their attributes (\eg date or number) are usually referred to as factoid questions.
 This section describes the problem I'm going to focus on in my thesis, some existing results and proposals for future research.
 
@@ -18,12 +18,12 @@ Information stored in these data sources can be very useful to solve diverse use
 Moreover, due to different nature of the data sources, their pros and cons are often complimentary, and therefore their combination would have a synergistic effect.
 In particular, text document collections~\cite{Kolomiyets:2011:SQA:2046840.2047162} and structured knowledge bases~\cite{unger2014introduction} are very useful for automatic factoid question answering.
 For example, natural language text is relatively easy to match against user questions, especially given the redundancy of the information in large text collections, such as the web~\cite{lin2007exploration}.
-On the contrary for knowledge bases, translating a question into one of the structured query languages can be very challenging~\cite{BerantCFL13:sempre}.
+On the contrary, for knowledge bases, translating a question into one of the structured query languages can be very challenging~\cite{BerantCFL13:sempre}.
 Moreover, text encodes all kinds of factual knowledge, whereas knowledge base schemes are often very limited, and a set of objects, predicates and facts are often far from being complete~\cite{Dong:2014:KVW:2623330.2623623}.
 According to D.Wimalasuriya and D.Dou~\cite{wimalasuriya2010ontology}, about 80\% of information contained in business documents is stated in natural language, \ie unstructured format.
 However, text fragments include very limited amount of information about the mentioned entities, which complicates the reasoning and often require certain prediction models to be built~\cite{LiRoth02}.
 Knowledge bases on the other hand aggregate all the information around entities and allow very complicated queries using special languages such as SPARQL.
-Therefore, an idea to combine unstructured text and structured knowledge bases for joint question answering is very appealing and some existing research demonstrated the potential of this idea~\cite{elbassuoni2009language,fader2013paraphrase,ferrucci2010building,Sun:2015:ODQ:2736277.2741651,baudivs2015yodaqa}.
+Therefore, an idea to combine unstructured text and structured knowledge bases for joint question answering is very appealing and some existing research demonstrated its potential~\cite{elbassuoni2009language,fader2013paraphrase,ferrucci2010building,Sun:2015:ODQ:2736277.2741651,baudivs2015yodaqa}.
 Prior approaches to the problem of combining textual and structured knowledge base data either process data sources using separate pipelines and merge the results~\cite{ferrucci2010building,baudivs2015yodaqa}, extract structured knowledge from text~\cite{Agichtein:2000:SER:336597.336644,MintzBSJ09,Dong:2014:KVW:2623330.2623623}, convert both data sources into a semi-structured format~\cite{Fader:2014:OQA:2623330.2623677}, extend knowledge bases with information extracted from text~\cite{elbassuoni2009language,yahya2016question} or 
 enrich text with some knowledge about the mentioned entities~\cite{Sun:2015:ODQ:2736277.2741651}.
 Unfortunately, such approaches usually sacrifices some potentially useful information available in the data sources.
@@ -47,7 +47,7 @@ However, KBs are inherently incomplete, \ie a lot of information is simply missi
 According to Dong et al~\cite{Dong:2014:KVW:2623330.2623623}, 71\% of people in
 Freebase have no known place of birth, and 75\% have no known nationality.
 One approach to bridge this knowledge gap is automatic knowledge extraction from other data sources, \eg natural language sentence \cite{Agichtein:2000:SER:336597.336644,Gupta:2014:BOS:2732286.2732288,jijkoun2004information,MintzBSJ09}, tables \cite{Cafarella:2008:WEP:1453856.1453916}, \etc
-In this work I focus on yet another source of information: question-answer pairs.
+In this section I focus on yet another source of information: question-answer pairs.
 
 CQA websites, such as Yahoo! Answers\footnote{http://answers.yahoo.com/}, Answers.com\footnote{http://www.answers.com}, Quora\footnote{http://quora.com} \etc, has gained a lot of popularity in the recent years, and their archives store hundreds of millions of user questions along with answers provided by the community.
 Many users' information needs are not unique and arise again and again, which makes it possible to reuse the information to answers new questions \cite{Shtok:2012:LPA:2187836.2187939}.
@@ -402,6 +402,7 @@ We noticed that since Aqqu does not use information about the answer entity Free
 Therefore, we trained a model to return a score that measures compatibility between the question and answer entities, based on the entity notable types and question uni- and bi-grams as features, similar to Aqqu's relations score model.
 A second extension introduced a new date range query template, which helps solve cases like \textit{``what team did david beckham play for in 2011?''}, where we need to look at the ranges of dates to determine whether an answer candidate satisfies the question.
 
+\begin{minipage}{16cm}
 \begin{lstlisting}[frame=single,basicstyle=\small]
 SELECT DISTINCT ?a_entity {
    <q_entity_1> <predicate_1> ?cvt_node .
@@ -412,6 +413,8 @@ SELECT DISTINCT ?a_entity {
             <question_date> <= ?date_to )
 }
 \end{lstlisting}
+\end{minipage}
+
 
 \subsubsection{Text2KB model}
 \label{section:factoid:approaches:text2kb:model}
@@ -585,7 +588,7 @@ ParaSemPre \cite{BerantL14:parasempre} & 0.466 & 0.405 & 0.433 & 0.399\\
 Kitt AI \cite{yao-scratch-qa-naacl2015} & 0.545 & 0.526 & 0.535 & 0.443\\
 AgendaIL \cite{berant2015imitation} & 0.557 & 0.505 & 0.530 & 0.497\\
 STAGG \cite{yih2014semantic} & 0.607 & 0.528 & 0.565 & 0.525\\
-FMN \cite{jain2016question} & \textbf{0.649} & \textbf{0.552} & \textbf{0.597} & \textbf{0.557}\\
+FMN\footnote{The model was published after the camera-ready version of our paper} \cite{jain2016question} & \textbf{0.649} & \textbf{0.552} & \textbf{0.597} & \textbf{0.557}\\
 \hline
 Aqqu (baseline) \cite{bastmore:cikm:2015:aquu} & 0.604 & 0.498 & 0.546 & 0.494\\
 Text2KB (Wikipedia search) & \textbf{0.632}$^*$ \tiny{(+4.6\%)} & 0.498 & 0.557$^*$ \tiny{(+2.0\%)} & 0.514$^*$ \tiny{(+4.0\%)} \\
@@ -601,10 +604,10 @@ This section reports the experimental setup, including the dataset and metrics, 
 textbf{Methods Compared}.
 We compare our system, Text2KB, to state-of-the-art approaches, notably:
 \begin{itemize}
-\item{\textbf{Aqqu}}: the state-of-the-art baseline KBQA system~\cite{bastmore:cikm:2015:aquu}, described in Section 2.
+\item{\textbf{Aqqu}}: a state-of-the-art baseline KBQA system~\cite{bastmore:cikm:2015:aquu}, described in Section~\ref{section:factoid:approaches:text2kb:baseline}.
 \item{\textbf{Text2KB(Web search)}}: Our Text2KB system, using the Bing search engine API over the Web. 
 \item{\textbf{Text2KB(Wikipedia search)}}: Our Text2KB system, using the standard Lucene search engine over the February 2016 snapshot of the English Wikipedia, in order to validate our system without the potential ``black-box'' effects of relying on a commercial Web search engine (Bing) and changing corpus (Web).
-\item{\textbf{STAGG}}: The current\footnote{At the moment of our paper publication, FMN system of \cite{jain2016question} later improved the state-of-the-art} highest performing KBQA system~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
+\item{\textbf{STAGG}}: One of the best current KBQA systems~\cite{yih:ACL:2015:STAGG} as measured on the WebQuestions dataset.
 \end{itemize}
 Additionally, other previously published results on WebQuestions are included to provide context for the improvements introduced by our Text2KB system.
 
@@ -881,7 +884,7 @@ For text edges I'm planning to use the following two approaches: IR-based method
 To evaluate the performance of the proposed approach I will compare it against several alternatives on multiple datasets.
 The baselines I will compare against include knowledge base question answering system Aqqu~\cite{bastmore:cikm:2015:aquu}, a semantically enriched text-based system QuASE~\cite{Sun:2015:ODQ:2736277.2741651}, a hybrid YodaQA system, designed to be an open source analogue to IBM Watson~\cite{baudivs2015yodaqa} and open question answering approach of A.Fader et al~\cite{Fader:2014:OQA:2623330.2623677}.
 
-Most of the recent work in knowledge base question answering were evaluated on the WebQuestions dataset~\cite{BerantCFL13:sempre}.
+Most of the recent works in knowledge base question answering were evaluated on the WebQuestions dataset~\cite{BerantCFL13:sempre}.
 This dataset was recently updated to include ground truth semantic parses and many wrong labels were fixed~\cite{yih2016webquestionssp}.
 I'm planning to evaluate the system I'm going to built on these datasets.
 Since the answers to these questions can be lists, the official evaluation metric is average F1 score over all questions.
