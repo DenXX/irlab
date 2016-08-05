@@ -260,7 +260,7 @@ In my thesis I propose to focus on both positive and negative relevance feedback
 A user might give a system a positive feedback if the provided answer was relevant, but either alternative view or additional information is needed.
 Alternatively, if an answer is not helpful, a system can take negative feedback to try to generate a good answer.
 
-As a baseline for the experiments I'm planning to take the system I developed for TREC LiveQA shares task, described in Section~\ref{section:non-factoid:liveqa}, and extend it with the relevance feedback module.
+As a baseline for the experiments I'm planning to take the system I developed for TREC LiveQA shared task, described in Section~\ref{section:non-factoid:liveqa:architecture}, and extend it with the relevance feedback module.
 This module will allows the system to adjust and return an alternative answer given either positive or negative feedback.
 I'm going to integrate relevance feedback into the system's candidate ranking model.
 More specifically, a set of features representing a candidate answer will be extended with various scores, that measure syntactic and semantic similarities between a candidate and positive and negative feedback examples.

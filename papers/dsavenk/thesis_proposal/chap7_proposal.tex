@@ -6,18 +6,18 @@
 
 \noindent
 
-This chapter summarized the research I propose to do in my thesis to improve different aspects of question answering.
+This chapter summarizes my PhD thesis research proposal, aiming to improve different aspects of question answering.
 
 \section{Research Objectives}
 \label{section:proposal:objectives}
 
-The main research objectives I plan to target in my thesis are the following:
+The main research objectives of my thesis are the following:
 
 \begin{enumerate}
 \item RQ1. How to effectively combine unstructured text and structured knowledge base data to improve factoid question answering?
 \item RQ2. How to improve candidate retrieval and answer generation for non-factoid question answering?
-\item RQ4. How to use crowdsourcing to improve question answering performance in near real-time scenario?
-\item RQ3. How to utilize the dialog between the user and question answering system to improve users success rate in solving informational tasks?
+\item RQ4. How to use crowdsourcing to improve performance of question answering systems, operating in near real-time?
+\item RQ3. How to utilize the dialog between users and a question answering system to improve success rate in solving informational tasks?
 \end{enumerate}
 
 \section{Research Plan}
@@ -26,10 +26,15 @@ The main research objectives I plan to target in my thesis are the following:
 \subsection{Combining KB and Text Data for Factoid Question Answering (Chapter \ref{chapter:factoid})}
 \label{section:proposal:plan:factoid}
 
-I propose to explore semantic annotation of entity mentions as a way to bridge the gap between KB entity graph and text documents.
-Such representation will allow us to do simple string matching on text documents and at the same time explore the knowledge about the mentioned entities in KB and vice versa.
-The idea of the proposed approach is based on extending a set of links in a knowledge base with edges connecting entities to their mentions in text documents.
-Therefore, text fragments, that mention two or more entities, essentially create additional edges in the knowledge base connecting these entities, and these edges are ``labelled'' with textual representation of the fragment (e.g. bag of words or embedding).
+My prior research on the topic include a model for relation extraction from question-answer pairs, \eg available on community question answering platform, and incorporating textual resources into a knowledge base question answering system.
+The former result allows to increase the amount of factual information one can extract from CQA forums, and therefore help the knowledge base incompleteness problem a little bit more.
+The later result shows that unstructured text data can be very helpful for knowledge base question answering, even for a subset of questions, that were designed to be answerable from a KB.
+
+The model I propose to build is based on semantic annotations of entities mentioned in text documents, which essentially creates KB-Text edges, connecting entities to their mentions and vice versa.
+These edges can be traversed in both directions, \ie from a passage of text to mentioned KB entities, and from an KB entity to the corresponding mentions using text retrieval methods.
+For passages, that mention multiple entities this representation essentially creates an additional edge between these entities.
+Unlike existing Open Information Extraction~\cite{Fader:2014:OQA:2623330.2623677,FaderSE11} methods, the proposed approach does not attempt to recover a simple predicate, expressing the relationship, but rather store the whole passage, which can be retrieved using standard information retrieval methods or more recent embedding-based similarity functions.
+Such an approach will therefore preserve all the information stored in unstructured format.
 Section~\ref{section:factoid:proposal} described the proposed approach in more detail.
 
 \subsubsection{Expected contributions}
@@ -38,13 +43,12 @@ Section~\ref{section:factoid:proposal} described the proposed approach in more d
 \begin{itemize}
 \item A novel model for relation extraction from archives of question-answer pairs.
 
-The developed model allows to extract relational triples for KB completion from a novel data source.
+The developed model allows to extract relational triples for KB completion from a novel data source, \ie archives of question-answer pairs, which are available on various community question answering platforms.
 The experiments demonstrate, that together with existing sentence-based relation extraction techniques it is now possible to get more information, which eventually benefits the performance of knowledge base question answering and other downstream KB applications.
 
-\item New hybrid KB-Text question answering approach, that improves knowledge base question answering by using information from unstructured text data sources, annotated with KB entity mentions, which essentially introduces a new types of edges into a knowledge graph
-% that operates by searching an entity graph, built from both facts from a KB and links between KB entities and text fragments mentioning these entities
+\item New hybrid KB-Text question answering approach, that improves knowledge base question answering by using information from unstructured text data sources, annotated with KB entity mentions, which essentially introduces a new types of edges into a knowledge graph.
 
-The proposed model has a potential to overcome many of the issues of KB and text question answering, and allow to answer complex factual questions, that couldn't be answered before.
+The proposed model has a potential to overcome many of the issues of KB and text question answering, and allow to answer complex factual questions, that could not be answered before.
 This research could be useful for future work on integrating different unstructured, semi-structured and structured data sources for joint reasoning in question answering and other applications.
 
 \end{itemize}
@@ -61,6 +65,8 @@ This research could be useful for future work on integrating different unstructu
 \subsection{Answer Summarization for Non-factoid Question Answering (Chapter~\ref{chapter:non-factoid})}
 \label{section:proposal:plan:non-factoid}
 
+The system I built to participate in TREC LiveQA shared tasks provided a good baseline of todays capabilities of automatic question answering systems for complex user informational needs, which are often solved using community question answering platforms.
+One of the challenges of such QA pipelines is that a single passage, extracted from somewhere on the web, might not be enough to answer a user question.
 In Section~\ref{section:non-factoid:proposal} I proposed to develop answer summarization techniques, inspired by the recent advances in deep learning for text summarization \cite{rush-chopra-weston:2015:EMNLP,chopraabstractive16} and generation \cite{karpathy2015deep}.
 More particularly, I'm planning to test both extractive and abstractive text summarization approaches on the task of generating responses to non-factoid questions.
 
@@ -88,10 +94,11 @@ This model will be useful as a first step towards more sophisticated answer dist
 \subsection{Crowdsourcing for near Real-time Question Answering (Chapter~\ref{chapter:crowdsourcing})}
 \label{section:proposal:plan:crowdsourcing}
 
-The developed near real-time question answering system showed significant improvements in performance compared to a system without crowdsourcing.
+The developed near real-time QA system showed significant answer performance improvements compared to a fully automatic one.
 As a future research I propose to optimize the costs of this approach.
 To make our system more scalable and cut expenses associated with the crowdsourcing module, I propose to incorporate a model to predict the expected performance of the answer, generated by the automated system.
 This score can be used to prioritize tasks when the load is high, and even skip some tasks altogether, if the expected quality of automatically generated answer is high.
+This piece of work will be included in my thesis if time permits.
 
 \subsubsection{Expected contributions}
 \label{section:proposal:plan:crowdsourcing:contributions}
@@ -99,7 +106,7 @@ This score can be used to prioritize tasks when the load is high, and even skip 
 \begin{itemize}
 \item New method for answer collection and rating using crowdsourcing for a near real-time question answering system.
 
-I believe that this piece of work could be very useful for future research on the interaction between automated QA and dialog systems and human experts, which could be essential to modern intelligent assistants.
+I believe that this piece of work could be very useful for future research on the interaction between automatic intelligent systems and human experts, which could be an essential part of modern intelligent assistants.
 Existing systems works great for a subset of user tasks, but encounter certain problems for a different subset.
 To provide a smooth user experience it might be crucial to have a fall back option of human experts, who can help systems to overcome the challenge.
 
@@ -119,7 +126,11 @@ The proposed research targets the problem of reducing these costs by applying cr
 \subsection{User Interactions with Question Answering Systems (Chapter~\ref{chapter:users})}
 \label{section:proposal:plan:users}
 
-As one of the first steps towards a more intelligent question answering dialog I propose to develop methods for positive and negative relevance feedback.
+In my previous research I studied strategic search hints, that a search system can give to the user in response to a complex informational tasks.
+If a user is not satisfied with the retrieved results, she can try to follow the suggestions and split the task into simpler pieces, which should increase the success rate.
+The results showed higher success rates for users who received helpful suggestions, however, more general hints, that are hard to implement could be detrimental.
+However, such an approach put all the heavy lifting of formulating the questions on the user.
+In the future research for my thesis I propose to develop methods for positive and negative relevance feedback for question answering in a dialog scenario.
 After a system returns an answer, a user might respond with certain feedback, whether positive (\eg ``give me more information on the topic'') or negative (\eg ``this answer is bad'').
 The system needs to take this feedback into account and come up with a better answer.
 To implement this functionality I propose to extend a set of features representing each answer candidates with features, measuring similarities and dissimilarities between the candidate and provided positive and negative feedback answers.
