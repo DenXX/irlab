@@ -1,0 +1,142 @@
+\chapter{Conclusions}
+\label{chapter:conclusion}
+
+This chapter concludes the dissertation by providing the summary of the findings, limitations, potential future directions, and the main contributions of my work.
+
+\section{Summary of the Results}
+\label{section:conclusion:summary}
+
+In the era of information overload, we have to rely on intelligent systems to help us organize and search the knowledge about the world.
+The research described in this dissertation aims to improve the technology behind question answering systems, which can sift through the constantly growing piles of information and give the user the needed response.
+In the next sections, I will describe the main results of my research, and how it helps to get closer to the above-mentioned goal.
+
+\subsection{Combining KB and Text Data for Factoid Question Answering}
+\label{section:conclusion:summary:factoid}
+
+When we type a question like ``\textit{What is the capital of Peru?}'' into a favorite search engine, we can expect to see a direct answer shown on top of search results.
+However, for the majority of more complex tail questions users still have to browse through retrieved web documents and search for the answer themselves.
+My Ph.D. research targets the problem of improving both precision and recall of factoid question answering by combining available data sources.
+Chapter~\ref{chapter:factoid} described 3 different approaches to this problem.
+
+Relation extraction became a common tool for transforming knowledge from one format to another, \eg from natural language text into structured knowledge base triples.
+Existing approaches target some particular subsets of data, \eg facts expressed in statements, such as ``\textit{The capital of Peru is Lima}''.
+The proposed model for relation extraction from community generated question-answer pairs (Section~\ref{section:factoid:cqarelextract}) provides an extension of existing techniques to a new domain and helps to extract additional factual triples, therefore increasing the coverage of knowledge bases.
+Our experiments on Yahoo!~Answers and WikiAnswers datasets suggest, that by adding the proposed model, which focuses on entity pairs mentioned in the question and answer texts, we can extract $\approx 30\%$ more triples, compared to existing sentence-based techniques.
+Extracted triples can be further injected into a knowledge base, \eg using approaches like Google Knowledge Vault~\cite{Dong:2014:KVW:2623330.2623623}, eventually leading to a better coverage, and more answered user questions.
+
+Besides increasing the coverage of underlying data, the dissertation proposes a set of techniques to improve the performance of the core question answering pipeline.
+\textit{Text2KB} model, described in Section~\ref{section:factoid:text2kb}, brings the power of text-based question answering to KBQA to improve question interpretation, candidate generation and ranking.
+By identifying mentions of knowledge base concepts in text documents it is possible to use text matching techniques to understand the question topic, relate question terms to KB predicates and better rank the generated answer candidates.
+The experiments conducted on the WebQuestions benchmark dataset demonstrated, that the proposed techniques can improve the performance of a state-of-the-art KBQA system by $\approx 8\%$.
+
+Finally, the dissertation proposes the \textit{EviNets} neural network framework, which can aggregate answers supporting evidence from different sources, including text and knowledge base data.
+By embedding text and KB triples into the same space, the model can estimate the relevance of each statement to the question, and score candidate answers based on their all available evidence.
+The experiments performed on TREC QA, WikiMovies and new developed Yahoo!~Answers datasets confirm these expectations and demonstrate that the model indeed can combine KB and text data in a unified framework, improving the performance over existing baseline approaches.
+
+Combined, the techniques proposed in the dissertation allow us to achieve both higher precision and recall in factoid question answering.
+
+\subsection{Ranking Answer Passages for Non-factoid Question Answering}
+\label{section:conclusion:summary:non-factoid}
+
+The challenges in non-factoid question answering are due to a diverse nature and types of these questions and answers.
+During my Ph.D. studies, I developed a system, that combines vertical search in CQA archives and general web search to retrieve similar question-answer pairs and text passages from relevant documents.
+The system achieves state-of-the-art performance in TREC LiveQA 2015 and 2016 shared tasks and can be used as a baseline for future experiments.
+According to the results of TREC LiveQA 2016, for more than half of the questions the system was able to return a relevant response, and for $\approx 20\%$ of the questions it gave a perfect answer.
+
+The crowdsourcing module, integrated into \textit{EmoryCRQA} system for obtaining additional answer candidates, and ranking of existing ones, allowed us to significantly boost the performance of the fully automatic QA system.
+This hybrid system achieved the highest score among participants of the TREC LiveQA 2016 shared task, with the average answer score of 1.260 on the 1-4 Likert scale.
+This score is only within $\approx 20\%$ of this of community-generated response, which was obtained a week after.
+The experiment demonstrates, that it is possible to use a crowd of non-expert workers to obtain additional feedback and relevance judgments in real-time, and these signals can significantly improve the performance of an automatic QA system.
+Even without special domain expertise random workers were able to contribute additional and judge the relevance of existing answer candidates, and both of these contributions have an equally positive impact on the overall performance.
+With crowdsourcing, our system was able to generate a reasonable response to more than $60\%$ of the questions, compared to only $50\%$ for the fully automatic setup.
+The crowdsourcing expenses can be reduced by limiting the number of workers per single task and selectively requesting feedback for more complex questions only.
+These findings can be useful for building hybrid question answering systems, that would rely on human feedback to improve performance on difficult tasks.
+
+
+\subsection{Question Answering in Conversational Setting}
+\label{section:conclusion:summary:conversation}
+
+While gaining some popularity, personal assistants like Amazon Alexa, Google Home, Microsoft Cortana and Apple Siri, are still mostly used for simple routine tasks, like playing music and checking the news and weather.
+In Section~\ref{section:conversation:user-study} we described a user study, designed to learn what is missing from commercial products to be the major tool for informational tasks.
+The findings of the study suggest, that users still often prefer search engines because they can offer a variety of data with sources, and give more control over what information a user consumes.
+The abilities of existing personal assistants often do not allow natural ways of forming questions, like a person would do in a conversation with an expert.
+For example, the commercial chatbot we tested could not properly maintain the context of the conversation, \eg resolve pronouns to the previously mentioned topics.
+However, the participants of the user study expressed their interest in such systems, as they allow to shortcut some social rules and get straight into the information finding while providing concise responses.
+These findings highlight directions for future research in conversational question answering.
+
+In Sections~\ref{section:conversation:hints} and~\ref{section:conversation:clarq} the dissertation describes some of the first steps in the discovered directions.
+For complex search tasks, it is quite important to learn to formulate good search queries, as confirmed by the popularity of query suggestion and other assistance techniques.
+The user study we conducted tested how users would react and benefit from strategic search hints, which propose a way to split the original difficult search task into simpler intermediate goals.
+When dealing with a complex multi-step question, a conversational system can report a failure to answer and use such hints to suggest next steps to resolve the issue to the user.
+The results of the user study reveal, that such hints can be helpful if designed carefully.
+However, such assistance takes away some satisfaction from the search process.
+
+As some of the user questions are ambiguous, a conversational system should be able to ask clarifications.
+By analyzing the data from StackExchange CQA platform we can conclude that clarifications are a common phenomenon in human information seeking dialogs.
+Clarification questions vary by type and form, however, there are some frequent patterns, which can be used to automatically generate questions to resolve ambiguities about objects, mentioned in the question.
+As a proof of concept, we built a model to predict objects of ``what kind of ...'' clarification questions.
+The performance of this model proves the feasibility of such an approach for template-based clarification question generation.
+
+\section{Limitations and Future Work}
+\label{section:conclusion:future_work}
+
+In this Section, I summarize some of the limitations of the describe approaches and results and propose directions for future research.
+
+Community question answering websites became quite popular and accumulate millions of question and answers, that people are interested in.
+Therefore, they are quite valuable as a knowledge source, which can be reused to answer future user questions.
+Relation extraction approach, proposed in this dissertation, was designed to extract subject-predicate-object triples for a schema-based knowledge base, such as Freebase.
+However, many of the user questions do not align well with an existing schema, which restricts the scope of the model.
+To resolve this issue, the future work can include developing methods for open information extraction from question-answer pairs, and extracting new predicates for schema-based KB, \eg using approaches similar to~\cite{Gupta:2014:BOS:2732286.2732288}.
+
+Text2KB model, proposed in this dissertation to improve knowledge base question answering by employing techniques from text-based question answering, demonstrated its effectiveness on the WebQuestions benchmark.
+However, for candidate generation, it mainly relies on KB data, which, as we saw, often does not contain predicates or entities, that user is asking about.
+The EviNets model was designed to resolve this issue by considering both KB and Text data equally, and score answer candidates based on the support extracted from the various pieces of evidence.
+One of the limitations of EviNets is that a set of candidate answers and pieces of evidence are ``pre-computed'' and cannot be extended during the model evaluation.
+A possible future direction is to extend the evidence pool at run-time and turn to the reinforcement learning techniques for training.
+In this case, the problem could be cast as a graph search problem, where entity nodes are connected with either retrieved textual evidence, or KB predicates, or both.
+Another limitation of EviNets is the focus on single entities, whereas answers to many real user questions might be lists, and contain attributes, such as dates, numbers, \etc
+To cover these answer types we can look into existing research on answer extraction, such as the research conducted on the SQuAD dataset~\cite{rajpurkar2016squad}, where the goal is to extract an answer span from a passage of a Wikipedia article.
+It is possible to adopt these techniques to generate candidates, and aggregate all the evidence for each of them using EviNets.
+
+Most of the existing approaches to non-factoid question answering, including the system presented in this dissertation, also rely on ranking existing passages, extracted from somewhere on the web.
+The limitation of such an approach is that it does not give a big picture of all the relevant information available out there, suggests an answer, which might not be trustworthy, and/or gives a one-sided opinion on the issue.
+In the user study on conversational search, we found out that users care about the source of the information, and want to get a diverse set of opinion.
+While some approaches for answer summarization have recently been proposed~\cite{song2017summarizing,tomasoni2010metadata,wang2016query}, the problem is still far from being solved and might require a generative summarization approach~\cite{gambhir2017recent,mitra2016distillation}.
+
+The effectiveness of the crowdsourcing approach for real-time question answering, proposed in this dissertation, is shadowed by its cost.
+EmoryCRQA involved crowdsourcing for every question, which requires maintaining a pool of workers constantly ready to assist.
+While we presented an analysis to reduce the costs by using less human resources, the future research should look into how to optimally plan question answering and optimize the cost/quality trade-off.
+A question answering system or personal assistant should turn to crowdsourcing selectively when it was not able to come up with a good response itself.
+On the other hand, some of the user questions might not be urgent, which allows the system to engage slower, but more reliable community of experts on one of the domain-specific CQA websites.
+I believe, that future personal assistants should be able to plan and route questions more effectively given the type of question, their time and cost requirements.
+
+The research on chatbots and conversational question answering are at its beginning, and the findings of the presented user study sheds some light into the areas we all should focus on, \eg methods for maintaining context in a conversation, generating clarification questions, taking positive and negative feedback \etc
+The limitation of our user study is that we did not consider the voice interface, which adds certain specifics to how a system should present its results~\cite{trippas2015results}.
+Some of the participants of our user study also raised an interesting point, that web search offers a possibility to browse related information and stumble upon something unexpected.
+For example, when doing a research into the economics behind hydropower, a typical web page will cover multiple related topics, which would require a user to ask multiple questions, and actually assumes you are aware of all these aspects beforehand.
+Research into ways to discover and present such related information in a conversational search setting might change the user experience significantly, and bring serendipity to the chat and voice interfaces.
+
+
+\section{Contributions and Potential Impact}
+\label{section:conclusion:contributions}
+
+My Ph.D. dissertation covers a spectrum of aspects related to answering user information needs.
+The key element of the proposed techniques and methods is an idea of combining and aggregating information from various unstructured (text), semi-structured (question-answer pairs) and structured (knowledge base) data sources.
+This allowed us to exploit advantages of one source to overcome the disadvantages of the other sources, and improve precision and recall of automatic non-factoid question answering.
+I believe, that this idea of information aggregation will be a key component of future intelligent systems, which should be able to reason with all the available knowledge, rather than simply returning the best matching item.
+The models I developed in my dissertation demonstrate the potential of this approach and provide some insights for future research in this direction.
+
+In addition to improving the core question answering techniques, it is important to optimize the channel, used to communicate with users.
+The dialog is a natural activity, that human perform on a daily basis, and proliferation of mobile personal assistants suggest, that conversations might be the next step for information seeking scenarios.
+In my dissertation, I presented the results of the user study, which provide the insights on how people use conversations for information seeking tasks, what are the expectations from the personal assistants, and what is currently missing from the commercial systems.
+I believe, that this user study is an important step for future research in conversational search, and the suggested directions will help us develop next generations of the systems, that will gain wider adoption and will be quite helpful in everyday life.
+Additionally, we explored two particular dialog scenarios for complex informational tasks.
+Search hints and clarification questions are two possible response types a question answering system can return for complex or ambiguous questions, instead of returning empty or irrelevant answers.
+Both of these types of interactions integrate nicely into a dialog scenario and enrich the arsenal of tools a conversational system possess in order to help user satisfy her goals.
+
+Overall, this dissertation describes methods and techniques for improving the performance of question answering systems by combining various user-generated content, including those created on the fly with crowdsourcing.
+These techniques can be integrated into a conversational personal assistant, and the dissertation gives some insights on the expectations and desiderata from such a system, obtained via user studies.
+The contributions of this dissertation should help develop the next generation of the systems, that will help serve more than 1.2 trillion information searches per year\footnote{\href{url}{http://www.internetlivestats.com/google-search-statistics/}} for more than 3.5 billion internet users.
+
+%that will help all of us orient in yearly zettabytes\footnote{1 ZB = $1000^7$bytes = $10^{21}$bytes = 1,000,000,000,000,000,000,000 bytes} of data traffic.
+

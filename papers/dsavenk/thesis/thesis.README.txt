@@ -1,0 +1,148 @@
+These thesis/dissertation template files were created by Andre Berger,
+as was the original version of this README file.
+
+Updated to meet Graduate School requirements as of 2009 and address
+various LaTeX quirks by Fred Helenius.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(0) The Quick Tour:
+
+	** copy all files, including those in the Preamble
+	   subdirectory, to your own directory
+	** change the contents of mythesis.tex, introduction.tex
+	   chapterXX.tex, appendix.tex, thesis.bib
+	** compile thesis.tex with pdflatex in your LaTeX system,
+	   or run 'make' in a UNIX shell
+	** the body of your thesis is done
+
+	** go to the directory Preamble
+	** change mydata.tex
+	** compile preamble.tex with pdflatex in your LaTeX system,
+	   or run 'make' in a UNIX shell
+	** the preamble of your thesis is done
+
+	** for printed copies, print both PDF files
+	** for the final PDF file, use Adobe Acrobat to combine
+	   the two PDF files
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(1) Copy the template files.
+
+    You should have the following files:
+
+	thesis.tex
+	thesis.bib
+	mythesis.tex
+	introduction.tex
+	chapter2.tex
+	chapter3.tex
+	appendix.tex
+	Makefile
+	algorithm.sty
+	algorithmic.sty
+
+	Preamble/preamble.tex
+	Preamble/mydata.tex
+	Preamble/Makefile
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(2) The file thesis.tex contains all the necessary formatting.
+    It may not need to be changed at all.
+    If you use packages not included in the template,
+    add them in thesis.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(3) In mythesis.tex include the names of the files you want
+    to include.  Also comment/uncomment the commands for generating
+    the list of tables, list of figures, list of algorithms
+    accordingly.  Moreover, you should define your own commands
+    here.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(4) Add your thesis contents to the files introduction.tex,
+    chapterXX.tex and appendix.tex
+
+    Add your references to the file thesis.bib
+
+    Known problem:  The \label command does not work as it
+    should with the \mychapter command (it gives a section
+    number from the preceding chapter).  If you want to refer
+    to chapters, enter the number directly.  Be sure to check
+    all such references if you renumber your chapters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(5) Compilation:
+    If you use TeXnicCenter or a similar TeX/LaTeX environment,
+    use the "Build Output" command or equivalent.  Keep in mind
+    that you need to compile twice for changes that affect the
+    Table of Contents or List of Figures to propagate through
+    the auxiliary files; bibliography changes may require you
+    compile three times.
+
+    Under UNIX, run 'make' in a shell and it will produce a
+    Postscript and a PDF file of your thesis/dissertation.
+    It will only run if any of the source files (including
+    possibly figure files) have changed.
+    All unnecessary files (.aux, .log, etc.) will be deleted
+    after the compilation.
+    Note: By default 'latex' is used, which accepts .eps files
+    as images. If your images are .pdf or .jpg, you have
+    to use pdflatex and change the Makefile accordingly.
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(6) Math environments:
+    The following environments are defined already:
+
+    theorem, definition, proposition, fact, corollary, lemma,
+    statement, claim, example, problem, question, conjecture
+
+    The proof environment is also defined and it will put
+    a square at the end of each proof by default. 
+    The environment has one optional argument to replace
+    the word proof with something else, e.g.
+
+    \begin{proof}[Proof of the theorem from Section blablabla]
+    ...
+    \end{proof}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(7) The algorithm package:
+    is very useful to typeset algorithms.
+    See the template of chapter3.tex for a short example.
+    Search the web for more documentation.  Be sure to
+    turn on/turn off the list of algorithms in mythesis.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(8) The preamble:
+    In the directory Preamble, change your data in mydata.tex
+    and run 'make' in a shell.
+    This works if you have one advisor and two committee members.
+    Otherwise you have to change preamble.tex in the appropriate
+    places.
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(9) Preparing the final version:
+    The ETD program insists that the PDF file you submit be
+    created by Adobe Acrobat rather than pdflatex.  Adobe Acrobat
+    is available for use at ECIT in the Woodruff Library and in
+    the Cox Hall Computer Lab.
+
+    After starting Adobe Acrobat, there are menu commands to
+    import your two PDF files.  Make sure to import the preamble
+    first.  Adobe Acrobat will then merge them into your final PDF.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+(10) Submit your thesis to ETD and the Graduate School.
+    As of May 2009, instructions are located at
+
+    https://etd.library.emory.edu/docs/instructions
+
+    and
+
+    http://www.graduateschool.emory.edu/uploads/Academic%20Affairs/Submit%20Instructions.pdf
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DISCLAIMER: There is no guarantee whatsoever that the produced
+output will conform to the current thesis guidelines of the
+Graduate School.  Check the current graduate school handbook
+for current formatting guidelines.

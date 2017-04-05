@@ -1,0 +1,126 @@
+\documentclass[12pt,oneside]{book}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include packages here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{subcaption}
+\usepackage{todonotes}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{xspace}
+\usepackage{tikz}
+\usetikzlibrary{fit,positioning}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Settings -- DO NOT CHANGE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\baselinestretch}{1.3}
+\hsize=5in
+\vsize=7.5in
+\hoffset=.25in
+\voffset=.25in
+
+\newcommand{\mychapter}[1]{\newpage \vspace*{0.01mm} \stepcounter{chapter}
+    \begin{center}
+    {\huge \bf Chapter \space  \thechapter \vspace*{1em}  \par
+        #1\baselineskip=1.0\normalbaselineskip\par}
+         \end{center}
+            \vspace*{3ex} \par
+\addcontentsline{toc}{chapter}{\protect \numberline{\thechapter}{#1}}}
+
+\newcommand{\myappendix}{\newpage \vspace*{0.01mm} \stepcounter{chapter}
+        \begin{center}
+        {\LARGE \bf Appendix \space   \par
+                \baselineskip=1.0\normalbaselineskip\par}
+                 \end{center}
+                        \vspace*{3ex} \par
+\addcontentsline{toc}{chapter}{Appendix}}
+
+\newcommand{\eg}{\emph{e.g.,}\@\xspace}
+\newcommand{\ie}{\emph{i.e.,}\@\xspace}
+\newcommand\clarQ{\textsc{clarQ}\@\xspace}
+
+\makeatletter
+\newcommand{\etc}{%
+    \@ifnextchar{.}%
+        {\emph{etc}}%
+        {\emph{etc.}\@\xspace}%
+}
+\newcommand{\etal}{%
+    \@ifnextchar{.}%
+        {\emph{et al}}%
+        {\emph{et al.}\@\xspace}%
+}
+\makeatother
+
+
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+\newcommand{\argmax}[1]{\underset{#1}{arg\,max}\,\,}
+\newcommand{\argmin}[1]{\underset{#1}{arg\,min}\,\,}
+\newcommand{\expect}[1]{\langle #1 \rangle}
+\newcommand{\normone}[1]{\| #1 \|_1}
+\newcommand{\meanvar}[2]{#1\,{\scriptsize (#2)}}
+\newcommand{\bigspace}[0]{\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\;\,}
+\newcommand{\naive}{na\"ive }
+\newcommand{\refeq}[1]{Eq.~(\ref{#1})}
+\newcommand{\reffig}[1]{Figure \ref{#1}}
+\newcommand{\what}[1]{\widehat{#1}}
+
+% This fixes the page numbering in the bibliography
+\makeatletter
+\let\ps@plain\ps@myheadings
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definitions of new theorem environments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newtheorem{theorem}{Theorem}[chapter]
+%% To number theorems, etc., in the same sequence as equations, use this instead:
+%%    \newtheorem{theorem}[equation]{Theorem}
+%% and replace [theorem] with [equation] in each of the following commands. 
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{state}[theorem]{Statement}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\setlength{\parindent}{0.3cm}
+\setlength{\headsep}{1.15in}
+\setlength{\topmargin}{-.5in}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Let's go !
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\input{mythesis}
+
+\clearpage
+\addcontentsline{toc}{chapter}{Bibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliography{thesis}
+\bibliographystyle{plain}
+
+\end{document}

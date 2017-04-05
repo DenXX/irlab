@@ -1,0 +1,35 @@
+\clearpage
+\pagestyle{empty}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comment/uncomment the list you wish to include
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% this prevents page numbers on table of contents pages
+% if there's more than one of them
+\addtocontents{toc}{\protect\thispagestyle{empty}}
+
+\tableofcontents  \thispagestyle{empty}
+\listoffigures    \thispagestyle{empty}
+\listoftables     \thispagestyle{empty}
+%\listofalgorithms \thispagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define other commands here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\Rset}{\ensuremath{\mathbb{R}}}
+\newcommand{\Nset}{\ensuremath{\mathbb{N}}}
+\newcommand{\Qset}{\ensuremath{\mathbb{Q}}}
+\newcommand{\Zset}{\ensuremath{\mathbb{Z}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include your .tex sources here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{myheadings}
+\input{chapter1_introduction.inc}		\clearpage
+\input{chapter2_related.inc}		\clearpage
+\input{chapter3_factoid.inc}		\clearpage
+\input{chapter4_nonfactoid.inc}		\clearpage
+\input{chapter5_conversation.inc}		\clearpage
+\input{chapter6_conclusion.inc}		\clearpage
+% \input{appendix}
