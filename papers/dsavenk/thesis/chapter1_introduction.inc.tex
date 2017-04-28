@@ -1,25 +1,26 @@
 \chapter{Introduction}
 \setcounter{page}{1}
 
-It has long been a dream to communicate with a computer as one might with another human being using natural language.
+It has long been a dream to communicate with a computer using natural language, as one might with another human being.
 We are now closer to this dream, as natural language interfaces become increasingly popular.
 Our phones are already reasonably good at recognizing speech, and personal assistants, such as Apple Siri, Google Assistant, Microsoft Cortana, Amazon Alexa, \etc, help us with everyday tasks and answer some of our questions.
-Chat bots are arguably considered ``the next big thing'', and a number of startups developing this kind of technology have emerged in Silicon Valley and around the world\footnote{\href{url}{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}}.
+Chatbots are arguably considered ``the next big thing'', and a number of startups developing this kind of technology have emerged in Silicon Valley and around the world\footnote{\href{url}{http://time.com/4194063/chatbots-facebook-messenger-kik-wechat/}}.
 
 Question answering is one of the major components of such personal assistants.
 Existing techniques already allow users to get direct answers to some of their questions.
-However, by some estimates\footnote{\href{url}{https://www.stonetemple.com/the-growth-of-rich-answers-in-googles-search-results/}} for $\sim 70\%$ of more complex questions users still have to dig into the ``10 blue links'' from search engine results page and extract or synthesize answers from information buried within the retrieved documents.
+However, by some estimates\footnote{\href{url}{https://www.stonetemple.com/the-growth-of-rich-answers-in-googles-search-results/}}, for $\sim 70\%$ of the more complex questions, users still have to dig into the ``10 blue links'' from search engine results pages, and extract or synthesize answers from information buried within the retrieved documents.
 In order to make a shift towards more intelligent personal assistants, this gap needs to be closed.
-Therefore, in my dissertation, I focus on helping users solve their informational needs by improving question answering methods and techniques.
 
-User questions vary in many different aspects, and each type has its own set of challenges~\cite{voorhees2001trec,yang2016beyond}.
+The \textbf{research goal} of my Ph.D. dissertation is to develop methods and techniques for improving the performance of question answering systems for different information needs, using various types of user generated content, such as text documents, knowledge bases, community question answering archives, and direct human contributions.
+
+Questions come in many varieties, and each type has its own set of challenges~\cite{voorhees2001trec,yang2016beyond}.
 It is common to divide questions into \textit{factoid} and \textit{non-factoid}.
 Factoid questions are inquiring about certain facts and can be answered with entity names or attributes, such as dates or numbers.
 An example of a factoid question is ``\textit{What book did John Steinbeck wrote about the people in the dust bowl?}'' (answer: ``\textit{The Grapes of Wrath}'').
 Of course, there is a variety of questions, that do not fall into this category, \eg how-to, ``why'' questions, recommendation and opinion questions, \etc
 The literature usually refers to all such questions as ``\textit{non-factoid}''.
-An example of such question is ``\textit{Why did John Steinbeck name his book the Grapes of Wrath?}''.
-Most of the research in automatic question answering focused on factoid questions \cite{BerantCFL13:sempre,Cafarella:2008:WEP:1453856.1453916,voorhees2001trec,lin2007exploration}, but relatively recently more and more works have started targeting the category of non-factoid questions~\cite{overviewliveqa15,cohen2016end,fried2015higher,surdeanu2011learning,sharp2015spinning,tymoshenko2016learning,yang2016beyond}.
+An example of a non-factoid question is ``\textit{Why did John Steinbeck name his book the Grapes of Wrath?}''.
+Most of the research in automatic question answering focused on factoid questions \cite{BerantCFL13:sempre,Cafarella:2008:WEP:1453856.1453916,voorhees2001trec,lin2007exploration}, but relatively recently more and more works have started targeting the category of non-factoid questions~\cite{overviewliveqa15,cohen2016end,fried2015higher,sharp2015spinning,surdeanu2011learning,tymoshenko2016learning,yang2016beyond}.
 
 \begin{table}[h!t]
 	\centering
@@ -41,10 +42,11 @@ Most of the research in automatic question answering focused on factoid question
 	\label{table:intro:data_procons}
 \end{table}
 
-More than 3.5 billion people in the world have access to the internet, and this number has increased tenfold from 1999 to 2013~\footnote{http://www.internetlivestats.com/}.
-Over the years, people have contributed a vast amount of data, and created many highly valuable resources, such as encyclopedias (Wikipedia, WedMD, Britannica), community question answering websites (Quora, Yahoo!~Answers, Answers.com), social media (Twitter, Facebook, Snapchat), curated knowledge bases (Freebase, WikiData, DBpedia, YAGO), and others.
-With more than a billion websites, the internet stores a huge volume of information, which could be useful to answer user questions.
-By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables or question-answer pairs) and \textit{structured} (\eg knowledge bases).
+My approach is to leverage the knowledge contributed by Internet users. More than 3.5 billion people in the world have access to the Internet, and this number has increased tenfold from 1999 to 2013~\footnote{\href{url}{http://www.internetlivestats.com/}}.
+Over the years, Internet users have contributed a vast amount of data, and created many highly valuable resources, such as encyclopedias (Wikipedia, WedMD, Britannica), community question answering websites (Quora, Yahoo!~Answers, Answers.com), social media (Twitter, Facebook, Snapchat), knowledge bases (Freebase, WikiData, DBpedia, YAGO), and others.
+With more than a billion websites, the Internet stores a huge volume of information, which could be useful to answer user questions.
+
+By their nature, data sources can be classified into \textit{unstructured} (\eg raw natural language text), \textit{semi-structured} (\eg tables, question-answer pairs) and \textit{structured} (\eg knowledge bases).
 Each of the formats offers a unique set of features, which have their advantages and limitations for question answering, and can often complement each other (Table~\ref{table:intro:data_procons}).
 %Structured data is usually easier to query and reason with, but most of the business data is stored in the unstructured format, such as raw text~\cite{grimes2005structure}.
 %However, structuring the data adds limitations, which often reduce the coverage of such data sources.
@@ -55,7 +57,7 @@ Two major paradigms for factoid question answering are knowledge base question a
 The information contained in a huge volume of text data can be relatively easily queried using terms and phrases from the original question in order to retrieve sentences that might contain the answer.
 However, each sentence encodes only limited amount of information about mentioned entities and aggregating it over unstructured data is quite problematic.
 
-On the other hand, modern large scale knowledge bases, such as Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, dbPedia \cite{auer2007dbpedia}, YAGO \cite{yago3}, WikiData \cite{vrandevcic2014wikidata}, accumulate information about millions of entities into a graph of \texttt{[subject, predicate, object]} RDF triples.
+On the other hand, modern large scale knowledge bases, such as Freebase \cite{Bollacker:2008:FCC:1376616.1376746}, DBpedia \cite{auer2007dbpedia}, YAGO \cite{yago3}, WikiData \cite{vrandevcic2014wikidata}, accumulate information about millions of entities into a graph of \texttt{[subject, predicate, object]} RDF triples.
 One of the issues with KBs is that they are inherently incomplete and miss a lot of entities, facts, and predicates~\cite{Dong:2014:KVW:2623330.2623623}.
 Some of these issues are addressed by relation extraction techniques, which can derive factual knowledge from raw text data~\cite{MintzBSJ09}, web tables~\cite{Cafarella:2008:WEP:1453856.1453916} or pages~\cite{Cafarella:2009:WES:1519103.1519112}.
 In my dissertation, I develop a method to further extend this set of sources to question-answer pairs, available in abundance on community question answering platforms.
@@ -64,7 +66,7 @@ This technique allows us to extract additional information, which may not be eas
 While extremely useful, relation extraction techniques are not perfect and introduce both precision and recall errors.
 An alternative approach is to use raw text and knowledge base data together for joint reasoning.
 However, mapping between natural languages phrases and knowledge base concepts is not trivial, and is traditionally done by building huge lexicons~\cite{BerantCFL13:sempre,BerantL14:parasempre}.
-The \textit{Text2KB} model, which I developed in my Ph.D. work, takes a different approach, and exploits techniques from text-based question answering to improve different stages of the KBQA process at run-time, \ie by retrieving relevant pieces of information from unstructured and semi-structured data sources, and using them to help KBQA system to score candidate answers.
+The \textit{Text2KB} model, which I developed in my Ph.D. work, takes a different approach, and exploits techniques from text-based question answering to improve different stages of the KBQA process at run-time, \ie by retrieving relevant pieces of information from unstructured and semi-structured data sources, and using them to help KBQA system to generate and score candidate answers.
 
 Unfortunately, not all user questions align well with a knowledge base schema, even with large ones, such as Freebase~\cite{Fader:2014:OQA:2623330.2623677}.
 The \textit{EviNets} model I developed in my dissertation, is a memory-augmented neural network architecture, which aggregates evidence in support for answer candidates from multiple different data sources, such as RDF triples and text sentences.
@@ -87,17 +89,16 @@ Alternative strategies include ranking text passages extracted from retrieved we
 TREC LiveQA shared task\footnote{\href{url}{http://trec-liveqa.org}}, started in 2015 to advance research in complex question answering, asks participants to build a system to answer real user questions in real-time using any information available.
 In this dissertation, I developed an open source state-of-the-art system, which utilizes both CQA archives and web search data sources, and combines them in a single model.
 
-Unfortunately, no matter how good a QA system is, there likely to be cases when it is unable to return a satisfactory response to a user question, \eg existing data sources might not contain the necessary information, or a system might fail to rank a good answer on top of others.
+No matter how good a QA system is, there likely to be cases when it is unable to return a satisfactory response to a user question, \eg existing data sources might not contain the necessary information, or a system might fail to rank a good answer on top of others.
 Such failures can be detrimental to the overall user experience with a QA system.
 One way to mitigate this challenging situation is to put a human in the loop, \eg let a system consult a group of workers, who can provide some kind of feedback and help return a more satisfactory answer.
 \textit{EmoryCRQA} extends my automatic non-factoid question answering system with a real-time crowdsourcing module.
 Crowdsourcing serves as an additional source of answer candidates and their quality ratings, which are used for re-ranking to return a better final response.
 This system achieved the top performance on TREC LiveQA 2016 shared task.
 
-The scenarios described above follow a traditional one-way interaction scenario, where a user issues a single query and a system needs to come up with a response.
-However, modern conversational interfaces open many opportunities to enrich this scenario, and transition to information seeking dialogs, where a system may ask additional clarification questions, take feedback, \etc.
-In Chapter~\ref{chapter:conversation} of my dissertation I focus on conversational question answering.
-First, we conducted a user study with the goal to learn more about how users use dialogs, either with humans or chatbots, to solve informational needs.
+The scenarios described above follow a traditional one-way interaction setting, where a user issues a single query and a system needs to come up with a response.
+However, modern conversational interfaces open many opportunities to enrich this scenario, and transition to information seeking dialogs, where a system may ask additional clarification questions, accept user feedback, \etc.
+In Chapter~\ref{chapter:conversation} of my dissertation I focus on conversational question answering. I describe a formative user study, conducted to learn how users use dialogue-based information seeking, either with humans or chatbots, to solve informational needs.
 The results of the user study suggest directions for future research in the area.
 Next, we turn to two particular types of interactions, which a system can exploit to help users: search hints, designed to assist a user with complex multi-step tasks, and clarification questions, which may be asked to resolve certain ambiguities in user questions.
 Together, our results and findings about conversational search provide a number of insights and ideas, which can be helpful for future research.
@@ -116,7 +117,7 @@ The main contributions of the dissertation are summarized as follows:
 	To show the efficiency of the proposed architecture over a variety of user questions, I developed a new entity-centric factoid QA dataset, derived from the Yahoo!~Answers archive (Section~\ref{section:factoid:evinets}).
 	\item \textbf{Non-factoid question answering system:} The dissertation develops a state-of-the-art system for non-factoid question answering, which showed very competitive results on both TREC LiveQA 2015 and 2016 shared tasks.
 	The system combines vertical CQA and general web searches to build candidates from both retrieved question-answer pairs and web documents, which are then ranked with a trained learning-to-rank model (Section~\ref{section:non-factoid:system}).
-	\item \textbf{Techniques for real-time crowdsourcing for question answering:} The dissertation proposed a method to incorporate crowdsourcing into a real-time question answering system. EmoryCRQA system, which extends our LiveQA approach with the crowdsourcing module to obtain additional and rate existing answer candidates, shows significant improvements over the baseline performance and achieves the top result on TREC LiveQA 2016 task (Section~\ref{section:non-factoid:crowdsourcing}).
+	\item \textbf{Techniques for real-time crowdsourcing for question answering:} The dissertation proposes a method to incorporate crowdsourcing into a real-time question answering system. EmoryCRQA system, which extends our LiveQA approach with the crowdsourcing module to obtain additional and rate existing answer candidates, shows significant improvements over the baseline performance and achieves the top result on TREC LiveQA 2016 task (Section~\ref{section:non-factoid:crowdsourcing}).
 	\item \textbf{Exploration of conversational question answering:} The dissertation investigates user perception and behavior patterns in dialog-based information seeking.
 	We further study search hints and clarification questions, as particular examples of actions available to a QA system in dialog settings, and provide the results and implications of the analysis we conducted on the topics (Chapter~\ref{chapter:conversation}).
 \end{itemize}

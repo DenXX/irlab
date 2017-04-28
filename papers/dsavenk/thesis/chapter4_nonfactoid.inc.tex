@@ -9,7 +9,7 @@ In this Chapter, I focus on improving question answering for such generic inform
 
 Previous research on non-factoid question answering either focused on a small subset of questions (\eg definition questions~\cite{hildebrandt2004answering}), or considered this as a problem of ranking existing answers in CQA archives, which can be reused to answer new questions~\cite{carmel2000eresponder,Shtok:2012:LPA:2187836.2187939}.
 To advance the research in the area of automatic question answering for a general class of user information needs in 2015 TREC started a series of LiveQA evaluation campaigns\footnote{\href{url}{http://trec-liveqa.org}}.
-The TREC LiveQA track task is to develop a real-time system to answer real user questions, that are posted live to Yahoo!~Answers\footnote{\href{url}{http://answers.yahoo.com/}} community question answering platform.
+The task of TREC LiveQA track is to develop a real-time system to answer real user questions, that are posted live to Yahoo!~Answers\footnote{\href{url}{http://answers.yahoo.com/}} community question answering platform.
 
 This chapter describes the methods and ideas I implemented in a system, that participated in 2015 and 2016 versions of the track.
 The system uses a combination of semi-structured information, \ie question-answer pairs from different CQA platforms, with unstructured information, which can be extracted from regular web documents.
@@ -27,7 +27,7 @@ Section~\ref{section:non-factoid:crowdsourcing} describes the design of the crow
 In summary, the main contributions of this chapter include:
 \begin{itemize}
 \item An open-source state-of-the-art automatic question answering system for a general class of user information needs, evaluated at TREC LiveQA 2015 and 2016 tracks.
-The architecture of the system and evaluation results were published in TREC conference proceedings~\cite{savenkov2015trec,savenkov2016trec}.
+The architecture of the system and evaluation results were published in TREC conference proceedings~\cite{savenkov_liveqa15,savenkov2016trec}.
 \item A novel hybrid question answering system, that incorporates a crowdsourcing module, but still operates in near real-time, and significantly improves performance over the pure automatic approach.
 This work was presented as a full paper at HCOMP 2016~\cite{savenkov_crqa2016}.
 \end{itemize}
@@ -66,15 +66,15 @@ Besides some frequent questions, there is always a long tail of requests, which 
 To help a user with such questions, \textit{EmoryQA} includes a general web search module, which extracts passages from regular web pages to extend the pool of candidate answers.
 
 All candidate answers, extracted from either CQA verticals or regular web documents, are ranked together by a trained answer ranking model, and \textit{EmoryQA} returns the top scoring passage as the final answer to the question.
-Next, we will describe candidate generation and ranking modules in more detail.
+Next, I will describe candidate generation and ranking modules in more detail.
 
 % ===========================================
 \subsection{Candidate Answer Generation}
 \label{section:non-factoid:system:candidates}
 
 When the \textit{EmoryQA} system receives a user question, it first generates a set of candidate answers from CQA vertical and regular web search data sources.
-User questions vary in language~\cite{AgichteinLG01} and the level of details, therefore to increase the recall and retrieve as many relevant results as possible, for each question we generate multiple search queries:
-\begin{itemize}[itemsep=0em]
+User questions vary in language~\cite{AgichteinLG01} and the level of details, therefore, to increase the recall and retrieve as many relevant results as possible, for each question we generate multiple search queries:
+\begin{itemize}[noitemsep]
 \item Question title, which most often captures the gist of the question
 \item Two longest question sentences (detected by the presence of the question word at the beginning or question mark at the end of a sentence) from the title and body of the question. In some cases, the real user question is hidden inside the body, while the title just provides the overall topic of the question.
 \item Concatenation of the question word, verbs and top-5 terms from the question title by inverse document frequency\footnote{IDF of terms are estimated using Google N-gram corpus: \href{url}{https://catalog.ldc.upenn.edu/LDC2006T13}}.
@@ -172,7 +172,7 @@ The model was trained using the Adam optimization technique~\cite{kingma2014adam
 
 \textbf{Logistic regression model}.
 The final model that ranks all answer candidates is a linear L2-regularized logistic regression model.
-To train the model we used a different from LSTM model split of QnA pairs from Yahoo! Answers WebScope dataset.
+To train the model I used a different from LSTM model split of QnA pairs from Yahoo! Answers WebScope dataset.
 For each question, the corresponding ``best answer'' is taken as the correct one.
 To get a sample of negative examples Lucene index is used again and answers to 10 most similar questions are retrieved.
 Different from LSTM model training, here I took a pairwise approach for learning-to-rank and generated training examples from pairs of different answers to the same question, where one answer is the correct one.
@@ -188,7 +188,7 @@ The trained model is linear, therefore if $w(f(Q, A^*) - f(Q, A_i)) > 0$ then $w
 
 The approach described in the previous section works well, but the automatic labeling introduces a certain level of noise.
 When we have a set of candidate answers with specified graded relevance, as was the case for TREC LiveQA 2016, it is possible to utilize this cleaner data to train an answer ranking model.
-Therefore, in TREC LiveQA 2016 for \textit{EmoryQA} we used the listwise approach to learning-to-rank and trained the LambdaMART model~\cite{burges2010ranknet}, which gave the best results on the development set.
+Therefore, in TREC LiveQA 2016 for \textit{EmoryQA} we used the listwise approach to learning-to-rank and trained a LambdaMART model~\cite{burges2010ranknet}, which gave the best results on the development set.
 This model was trained using the RankLib library\footnote{\href{url}{https://sourceforge.net/p/lemur/wiki/RankLib/}} on the data from the previous year TREC LiveQA task\footnote{\href{url}{https://sites.google.com/site/trecliveqa2016/liveqa-qrels-2015}}.
 This data includes 1087 questions with answers provided by the participants, each of which was rated on a scale from 1(bad) to 4(excellent) by professional NIST assessors.
 
@@ -212,7 +212,7 @@ The answers to the questions were judged by the organizers on a scale:\\
 \textbf{-2} - the answer is unreadable (only 15 answers from all runs were judged as unreadable).
 
 The official performance metrics used for the tasks are:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item \textbf{avg-score(0-3)}: average score over all questions, where scores are translated to 0-3 range (1 is subtracted from each judgment). This metric considers ``Bad'', unreadable answers and unanswered questions, as scored 0.
 \item \textbf{succ@i+}: success at i+ metrics measures the fraction of answers with score i or greater (i=1..4).
 \item \textbf{prec@i+}: precision at i+ measures the number of questions with score i or greater (i=2..4) divided by the number of answered questions.
@@ -290,10 +290,10 @@ As we have seen in the previous section, existing question answering systems are
 Answers, submitted by the community users for TREC LiveQA 2016 questions, are $\approx 35\%$ better than the answers from the best performing fully automatic system: CMU OAQA (Figure~\ref{table:non-factoid:system:results}).
 One way to overcome the above-mentioned challenges in complex question answering is to develop a hybrid human-computer question answering system, which could consult a crowd of workers in order to generate a good response to the user question.
 This section first describes the initial analysis of the feasibility of obtaining different types of feedback from a crowd in real-time.
-Then, we present \textit{EmoryCRQA}, a crowd-powered, near real-time automated question answering system for complex informational tasks, that incorporates a crowdsourcing module for augmenting and validating the candidate answers.
+Then, I present \textit{EmoryCRQA}, a crowd-powered, near real-time automated question answering system for complex informational tasks, that incorporates a crowdsourcing module for augmenting and validating the candidate answers.
 
 More specifically, in this section we answer the following questions:
-\begin{enumerate}[itemsep=0em]
+\begin{enumerate}[noitemsep]
 \item Can crowdsourcing be used to judge the quality of answers to non-factoid questions under a time limit?
 \item Is it possible to use crowdsourcing to collect answers to real user questions under a time limit?
 \item How does the quality of crowdsourced answers to non-factoid questions compare to original CQA answers, and to automatic answers from TREC LiveQA systems?
@@ -309,22 +309,26 @@ Part of the described results was published at Human-Computer Question Answering
 
 In this section I explore two ways crowdsourcing can assist a question answering system that operates in (near) real-time: by providing answer \textit{validation}, which could be used to filter or re-rank the candidate answers, and by \textit{creating} the answer candidates directly.
 To test the hypothesis that crowd workers can quickly provide reliable feedback we conducted a series of crowdsourcing experiments using the Amazon Mechanical Turk platform\footnote{\href{url}{http://mturk.com}}.
-We used questions from the TREC LiveQA 2015 shared task, along with the systems answers, rated by the NIST assessors\footnote{\href{url}{https://sites.google.com/site/trecliveqa2016/liveqa-qrels-2015}}.
+I used questions from the TREC LiveQA 2015 shared task, along with the systems answers, rated by the NIST assessors\footnote{\href{url}{https://sites.google.com/site/trecliveqa2016/liveqa-qrels-2015}}.
 The questions for the task were selected by the organizers from the live stream of questions posted to the Yahoo! Answers CQA platform on the day of the challenge (August 31, 2015).
 For these questions, we also crawled their community answers, that were eventually posted on Yahoo!~Answers\footnote{As the answer we took the one selected as the ``Best answer'' by the author of the question or by the community.}.
 
 \subsubsection{Answer validation experiment}
 \label{section:non-factoid:crowdsourcing:approach:validation}
 
-To check if crowdsourcing can be used to judge the quality of answers under a time limit, we asked workers to rate answers to a sample of 100 questions using the official TREC rating scale:
-\begin{enumerate}[itemsep=0em]
+To check if crowdsourcing can be used to judge the quality of answers under a time limit, I asked workers to rate answers to a sample of 100 questions using the official TREC rating scale:
+\begin{enumerate}[noitemsep]
 \item Bad --- contains no useful information
 \item Fair --- marginally useful information
 \item Good --- partially answers the question
 \item Excellent --- fully answers the question
 \end{enumerate}
 
-\begin{figure}
+We chose to display 3 answers for a question, which were generated by three of the top-10 automatic systems from TREC LiveQA 2015 evaluation \cite{overviewliveqa15}.
+To study the effect of time pressure on the quality of judgments we split participants into two groups. One group made their assessments with a 1-minute countdown timer shown to them, while the other could complete the task without worrying about a time limit.
+Within each group, we assigned three different workers per question, and the workers were compensated at a rate of \$0.05 per question for this task.
+
+\begin{figure}[h!]
 \centering
 \begin{subfigure}[b]{0.49\textwidth}
 \centering
@@ -343,12 +347,8 @@ To check if crowdsourcing can be used to judge the quality of answers under a ti
 \label{figure:non-factoid:crowdsourcing:interfaces}
 \end{figure}
 
-We chose to display 3 answers for a question, which were generated by three of the top-10 automatic systems from TREC LiveQA 2015 evaluation \cite{overviewliveqa15}.
-To study the effect of time pressure on the quality of judgments we split participants into two groups. One group made their assessments with a 1-minute countdown timer shown to them, while the other could complete the task without worrying about a time limit.
-Within each group, we assigned three different workers per question, and the workers were compensated at a rate of \$0.05 per question for this task.
-
 The interface for collecting answer ratings is illustrated in Figure \ref{figure:non-factoid:crowdsourcing:interfaces:validation}\footnote{The screenshots show the final state of the form, as we describe later in this sections fields were unhidden step-by-step for proper timing of reading, answering and validation.}.
-On top of the interface, workers were shown the instructions on the task, and question and answers were hidden at this time.
+On top of the screen, workers were shown the instructions on the task, and question and answers were hidden at this time.
 They were instructed to read the question, read the answers, and rate each answer's quality on a scale from 1 (Bad) to 4 (Excellent), and finally, choose a subset of candidates that best answer the question.
 Upon clicking a button to indicate that they were done reading the instructions, the question, a 60-second countdown timer and 3 answers to the question appeared on the screen.
 At the 15 second mark, the timer color changed from green to red.
@@ -356,7 +356,7 @@ In the experiments without time pressure, the timer was hidden, but we still tra
 
 At the end, we collected 6 ratings (3 with and 3 without time pressure) for each of three answers for a sample of 100 questions, which makes it a total of 1800 judgments.
 Each answer also has an official NIST assessor rating on the same scale.
-Figure \ref{figure:non-factoid:crowdsourcing:score_correlation} shows the correlation between official NIST assessor relevance judgments and ratings provided by our workers.
+Figure \ref{figure:non-factoid:crowdsourcing:score_correlation} shows the correlation between the official NIST assessor relevance judgments and the ratings provided by our workers.
 The Pearson correlation between the scores is $\rho=0.52$.
 The distribution of scores shows that official assessors were very strict and assigned many extreme scores of 1 or 4, whereas mechanical turk workers preferred intermediate 2s and 3s.
 The results did not show any significant differences between experiments with and without time pressure.
@@ -382,7 +382,7 @@ Therefore, we conclude that in general we can trust crowdsourced ratings, and on
 \label{section:non-factoid:crowdsourcing:approach:experiments:generation}
 
 In another experiment, designed to check whether crowd workers can provide an answer to a given question within a limited amount of time, we asked different workers to answer the questions from TREC LiveQA 2015.
-We split the workers into two groups and displayed a one-minute countdown timer for one of them.
+I split the workers into two groups and displayed a one-minute countdown timer for one of them.
 We left a grace period and let the workers submit their answers after the timer had run out.
 The workers received a \$0.10 compensation for each answer.
 The form for answer crowdsourcing is shown in Figure \ref{figure:non-factoid:crowdsourcing:interfaces:answer}, and similar to the answer rating form, it starts with a set of instructions for the task.
@@ -392,7 +392,7 @@ Using this link, workers could search the web as it was on 8/30/2015, before TRE
 Initially, the question was hidden for proper accounting of question-reading and answering times.
 Upon clicking a button to indicate that they were done reading the instructions, a question appeared along with a button, which needed to be clicked to indicate that they were done reading the question.
 After that, the answering form appears, it contained four fields:
-\begin{enumerate}[itemsep=0em]
+\begin{enumerate}[noitemsep]
 \item Does the question make sense: ``yes'' or ``no'' to see if the question was comprehensible
 \item Are you familiar with the topic: A yes or no question to evaluate whether the worker has had prior knowledge regarding the question topic
 \item Answer: the field to be used for the user's answer to the given question
@@ -401,7 +401,7 @@ After that, the answering form appears, it contained four fields:
 
 At the end, we collected 6 answers (3 with and without time pressure) for each of the 1087 LiveQA'15 questions.
 Since we have answers from different sources, let's introduce the following notations:
-\begin{itemize}[itemsep=0em]
+\begin{itemize}[noitemsep]
     \item \textit{Yahoo! Answers} - answers eventually posted by users on Yahoo! Answers for the original questions
     \item \textit{Crowd} - answers collected from Mechanical Turk workers without time pressure
     \item \textit{Crowd-time} - answers collected from Mechanical Turk workers with one minute time pressure
@@ -475,7 +475,7 @@ For example, in our experiment, we let workers use a web search to find answers 
 
 The findings described in the previous section were used to implement our \textit{EmoryCRQA} system (or simply CRQA), which stands for Crowd-powered Real-time Question Answering.
 CRQA integrates a crowdsourcing module into an automated question answering system within an overall learning-to-rank framework for selecting answers to complex questions.
-We report extensive experiments of stress-testing the CRQA system, by participating in the TREC LiveQA 2016 evaluation challenge, which provided us with a realistic evaluation setup.
+I report extensive experiments of stress-testing the CRQA system, by participating in the TREC LiveQA 2016 evaluation challenge, which provided a realistic evaluation setup.
 
 \begin{figure}
     \centering
@@ -489,7 +489,7 @@ The automated part of the CRQA system is based on EmoryQA system, described in S
 The crowdsourcing module is designed to overcome two of the most common problems of the automated QA approaches: lack of good candidate answers and ranking errors.
 More particularly, CRQA asks crowd workers to provide answers to the given questions if they can, and additionally rate the quality of candidate answers, generated by the automated system.
 After the candidate answers are generated, instead of returning the final answer, as EmoryQA does, in CRQA we send the question and top-7 ranked candidates to the crowd workers and wait for the responses.
-We chose to give 7 answers based on the average number of rated answers per minute in our preliminary studies.
+I chose to give 7 answers based on the average number of rated answers per minute in the preliminary studies.
 Figure~\ref{figure:non-factoid:crowdsourcing:crowd_ui} presents the user interface of our crowdsourcing module.
 
 \begin{figure}
@@ -500,13 +500,13 @@ Figure~\ref{figure:non-factoid:crowdsourcing:crowd_ui} presents the user interfa
 \end{figure}
 
 The overall algorithm for obtaining crowd input for real-time question answering is the following:
-\begin{enumerate}[itemsep=0em]
+\begin{enumerate}[noitemsep]
 \item When the system receives a question, it is posted to the workers, who will have 50 seconds to provide their input
 \item Workers are asked to write an answer if they can provide one (it is optional)
 \item Otherwise they are waiting for the answer candidates to arrive
 \item When the system is done with generating and ranking candidates it posts top-7 scoring answers to the workers for the rating (which usually leaves $\sim$ 35 seconds for rating)
 \item Workers receive a list of answers\footnote{Answers submitted by workers are also sent for ratings to all workers except the author} and rate them until the timer runs off. Each answer is rated on a scale from 1 to 4, using the official TREC LiveQA rating scale:
-    \begin{itemize}[itemsep=0em]
+    \begin{itemize}[noitemsep]
     \item 1 --- Bad: contains no useful information
     \item 2 --- Fair: marginally useful information
     \item 3 --- Good: partially answers the question
@@ -517,15 +517,9 @@ Full answer can be revealed upon clicking the ``show all'' link.
 \item When the timer runs off, the question and all the answers disappear, and workers wait for the next question
 \end{enumerate}
 
-To hire the workers we used Amazon Mechanical Turk platform\footnote{\href{url}{http://mturk.com}}.
-Since the question answering system needs to provide a near real-time response whenever it receives a question, we adapted the ``retainer'' model for real-time crowdsourcing, inspired by the success of this model reported in previous works~\cite{bernstein2011crowds,bigham2010vizwiz}.
-Specifically for TREC LiveQA 2016 task, to obtain an even distribution of workers over the 24-hour period, we posted 10 tasks every 15 minutes, and they expired after the next set of tasks became available.
-Since not all assignments were accepted by some worker right away, the number of workers for each question varied and could be greater than 10.
-When a worker first gets to our crowdsourcing interface, she is shown task instructions (Table~\ref{table:non-factoid:crowdsourcing:crqa:crowd_instructions}) and asked to wait for the questions to arrive.
-The workers were paid \$1.00 for the whole 15 minutes task, no matter how many questions they got\footnote{In TREC LiveQA task questions are sent to the systems one by one, therefore there is no concurrency, however, the delays between the questions are possible.}.
-
-\begin{table}[ht]
+\begin{table}[h]
 \centering
+\small
 \begin{tabular}{p{13cm}}
 \textbf{Instructions} \\
 \hline
@@ -542,15 +536,14 @@ The workers were paid \$1.00 for the whole 15 minutes task, no matter how many q
 \label{table:non-factoid:crowdsourcing:crqa:crowd_instructions}
 \end{table}
 
-The last stage in CRQA is answer re-ranking, which aggregates all the information received from the crowdsourcing and produces the final answer to the question.
-The input of the re-ranking module is a set of candidate answers with quality ratings provided by the crowd workers.
-Candidates can include the answers posted by the workers, which might also be rated if workers had enough time to do that.
-To re-rank the answers we trained a gradient boosting regression trees (GBRT) model~\cite{friedman2002stochastic}.
-To build this model we used a training set of questions with answers generated by our system.
-The quality of each answer was manually assessed using the official LiveQA scale from 1 (bad) to 4 (excellent).
-The features, used for answer re-ranking are listed in Table~\ref{table:non-factoid:crowdsourcing:crqa:reranking_features}.
+To hire the workers we used Amazon Mechanical Turk platform\footnote{\href{url}{http://mturk.com}}.
+Since the question answering system needs to provide a near real-time response whenever it receives a question, we adapted the ``retainer'' model for real-time crowdsourcing, inspired by the success of this model reported in previous works~\cite{bernstein2011crowds,bigham2010vizwiz}.
+Specifically for TREC LiveQA 2016 task, to obtain an even distribution of workers over the 24-hour period, we posted 10 tasks every 15 minutes, and they expired after the next set of tasks became available.
+Since not all assignments were accepted right away, the number of workers for each question varied and could be greater than 10.
+When a worker first gets to our crowdsourcing interface, she is shown task instructions (Table~\ref{table:non-factoid:crowdsourcing:crqa:crowd_instructions}) and asked to wait for the questions to arrive.
+The workers were paid \$1.00 for the whole 15 minutes task, no matter how many questions they got\footnote{In TREC LiveQA task questions are sent to the systems one by one, therefore there is no concurrency, however, the delays between the questions are possible.}.
 
-\begin{table}[ht]
+\begin{table}[h]
 \centering
 \begin{tabular}{p{13cm}}
 \textbf{Answer-based} \\
@@ -568,7 +561,14 @@ The features, used for answer re-ranking are listed in Table~\ref{table:non-fact
 \label{table:non-factoid:crowdsourcing:crqa:reranking_features}
 \end{table}
 
-CRQA sorts the candidates by the quality score predicted by the model, as returns the top candidate as the final answer.
+The last stage in CRQA is answer re-ranking, which aggregates all the information received from the crowdsourcing and produces the final answer to the question.
+The input of the re-ranking module is a set of candidate answers with quality ratings provided by the crowd workers.
+Candidates can include the answers posted by the workers, which might also be rated if workers had enough time to do that.
+To re-rank the answers we trained a gradient boosting regression trees (GBRT) model~\cite{friedman2002stochastic}.
+To build this model we used a training set of questions with answers generated by our system.
+The quality of each answer was manually assessed using the official LiveQA scale from 1 (bad) to 4 (excellent).
+The features, used for answer re-ranking are listed in Table~\ref{table:non-factoid:crowdsourcing:crqa:reranking_features}.
+CRQA sorts the candidates by the quality score predicted by the model, and returns the top candidate as the final answer.
 
 
 \subsection{Experiments}
@@ -580,7 +580,7 @@ The experimental evaluation of our CRQA system was done on the official run of T
 All participating systems were running for 24 hours and received questions sampled from the live (real-time) stream of questions, posted by real users to Yahoo! Answers platform.
 In total, each system received 1,088 questions, and system responses were recorded by the organizers.
 
-\begin{table}[ht]
+\begin{table}[h]
 \centering
 \begin{tabular}{r|l}
 Name & Value \\
@@ -597,25 +597,51 @@ Average number of ratings per answer & 6.25 \\
 \end{table}
 
 Overall statistics are provided in Table~\ref{table:non-factoid:crowdsourcing:crqa:task_stats}.
-As we can see, on average workers were able to provide at least one answer for each question, and each of the provided answers got 6 ratings.
+As we can see, on average workers were able to provide at least one answer for each question, and the provided answers got about 6 ratings.
+
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}[t]
+{l|p{0.8cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}p{1cm}}
+& avg score (0-3) & succ@2+ & succ@3+ & succ@4+ & prec@2+ &  prec@3+ & prec@4+ \\
+\hline
+\multicolumn{8}{c}{Results from TREC LiveQA 2016} \\
+\hline
+$HUMAN_{qual}$ & 1.561 & 0.655 & 0.530 & 0.375 & 0.855 & 0.692 & 0.490\\
+$HUMAN_{speed}$ & 1.440 & 0.656 & 0.482 & 0.302 & 0.784 & 0.576 & 0.362\\
+\hline
+1. \textbf{EmoryCRQA} & 1.260 & 0.620 & 0.421 & 0.220 & 0.644 & 0.438 & 0.228 \\
+   - crowd-answers only & 1.298* & 0.206 & 0.128 & 0.072 & 0.659 & 0.410 & 0.230 \\
+2. CMU OAQA & 1.155 & 0.561 & 0.395 & 0.199 & 0.596 & 0.420 & 0.212 \\
+3. EmoryQA & 1.054 & 0.519 & 0.355 & 0.180 & 0.530 & 0.362 & 0.184 \\
+\hline
+Avg results & 0.643 & 0.329 & 0.212 & 0.104 & 0.422 & 0.271 & 0.131 \\
+\end{tabular}
+\caption{Official evaluation results of Emory CRQA system from TREC LiveQA 2016 shared task. Full results table is available in~\cite{overviewliveqa16}. *Unlike other systems, average score for ``crowd-answers only'' experiment was normalized by the number of answers rather than questions.}
+\label{table:non-factoid:crowdsoudcing:officialresults}
+\end{table}
+
+The official TREC LiveQA 2016 evaluation results for our system are presented in Table~\ref{table:non-factoid:crowdsoudcing:officialresults}.
+EmoryCRQA achieved the highest scores of all participating systems, and improved results of fully automatic setup (EmoryQA) by 20\%.
+Unfortunately, there is a noticeable gap in performance between community responses and answers of our system.
 
 To perform a full analysis of the system, we used traditional (batch-mode) crowdsourcing to obtain the quality labels for all answer candidates that were given to the workers during the task, as well as the answers provided by the workers.
-In addition, on June 2, two days after the TREC LiveQA challenge has completed, we crawled the current answers provided by the community for the questions, used for the task.
+In addition, on June 2, two days after the TREC LiveQA challenge has completed, I crawled the current answers provided by the community for the questions, used for the task.
 All the answers for each question were randomly shuffled and rated on a scale from 1 (bad) to 4 (excellent) by workers hired on Amazon Mechanical Turk.
 As we have shown in the previous section, crowdsourced labels correlate well with the official ratings, provided by the professional NIST assessors.
 Each answer was labeled by 3 different workers, and we averaged the scores to get the final quality labels for the candidates.
 
 We compared CRQA system against several baselines:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item \textit{EmoryQA}: automated QA system described in Section~\ref{section:non-factoid:system}.
 \item \textit{Re-ranking by score}: a simplified version of the EmoryCRQA re-ranking model, which select the answer with the highest average ratings, provided by the crowd workers.
 \item \textit{Yahoo Answers}: traditional, non-real-time community question answering site (Yahoo!~Answers), from which the challenge question originated. The answers were collected two days after the challenge, thus allowing the Yahoo Answers community extra two days to collect the answers through traditional (community-based) crowdsourcing.
 \end{itemize}
 
-To evaluate the methods we used the metrics proposed by the organizers of the LiveQA task (Section~\ref{section:non-factoid:system:evaluation}).
-
-\begin{table}[ht]
+\begin{table}[h]
 \centering
+\small
 \begin{tabular}{p{4.2cm}|rrrrrr}
 Method & $\overline{score}$ & $\overline{prec}$ & s@2+ & s@3+ & p@2+ & p@3+ \\
 \hline
@@ -623,13 +649,14 @@ EmoryQA & 2.321 & 2.357 & 0.697 & 0.297 &  0.708 & 0.302 \\
 Re-ranking by score & 2.416 & 2.421 & 0.745 & 0.319 & 0.747 & 0.320  \\
 Yahoo! Answers & 2.229 & 2.503 & 0.656 & 0.375 & 0.737 & \textbf{0.421} \\
 EmoryCRQA & \textbf{2.550} & \textbf{2.556} & \textbf{0.799} & \textbf{0.402} & \textbf{0.800} & 0.402 \\
-\hspace{5mm}worker ratings only & 2.432 & 2.470 & 0.750 & 0.348 & 0.762 & 0.354 \\
-\hspace{5mm}worker answers only & 2.459 & 2.463 & 0.759 & 0.354 & 0.760 & 0.355 \\
+\hspace{3mm}without worker answers & 2.432 & 2.470 & 0.750 & 0.348 & 0.762 & 0.354 \\
+\hspace{3mm}without worker ratings & 2.459 & 2.463 & 0.759 & 0.354 & 0.760 & 0.355 \\
 \end{tabular}
 \caption{Evaluation of the baselines and system answers quality based on the ratings of answers obtained via crowdsourcing. The scores are averaged over 100 different 50:50 splits of 1088 questions into the training and test set. The differences between average score and precision of CRQA and the original ranking are significant at p-value $<$ 0.01.}
 \label{table:non-factoid:crowdsourcing:crqa:performance}
 \end{table}
 
+To evaluate the methods we used the metrics proposed by the organizers of the LiveQA task (Section~\ref{section:non-factoid:system:evaluation}).
 Table~\ref{table:non-factoid:crowdsourcing:crqa:performance} summarizes the performance of the baselines and our system.
 As we can see, the average score and precision of answers generated by CRQA system are higher than the baseline ranking and even community answers on the Yahoo! Answers platform.
 However, Yahoo! Answers community answers have a higher percentage of \textit{``4 (excellent)''} scores.
@@ -646,9 +673,6 @@ The introduction of the crowdsourcing module allowed CRQA to cover an additional
     \label{figure:non-factoid:crowdsourcing:crqa:score_histogram}
 \end{figure}
 
-Even though according to the described results our system was able to achieve answer quality comparable to that of the community answers, the official results ~\cite{overviewliveqa16} give slightly different metric values, and demonstrate that there is still a big gap (Table~\ref{section:non-factoid:system:evaluation}).
-However, the official scores confirm the effectiveness of crowdsourcing on top of a fully automated QA system.
-
 \subsection{Analysis and Discussion}
 \label{section:non-factoid:crowdsourcing:analysis}
 
@@ -663,8 +687,10 @@ Even with limited time, workers were able to reliably rate candidate answers, wh
 However, this method does not help the system in cases, when it was not able to generate a good candidate in the first place, therefore using ratings only has lower average answer score than using worker generated answers.
 By asking the crowd to provide a response if they can answer the question, CRQA covers this gap, which is important as in a real scenario even a fair answer would probably be better for the user than no answer at all.
 Of course, given limited time and the fact that a random worker might not possess an expertise required to answer the question, such answers do not always perfectly answer the question.
-Table~\ref{table:non-factoid:crowdsourcing:crqa:answer_examples} gives some examples of worker-generated answers with low and high-quality scores.
+We also looked at official evaluation results for answers, produced by the crowd and returned as the final response by CRQA (Table~\ref{table:non-factoid:crowdsoudcing:officialresults}).
+Crowd-generated answers accounted for $\sim 30\%$ of all system responses, and their average quality was $1.298$, which is better than the quality of fully automatic EmoryQA system, but significantly lower than scores of community generated responses.
 
+Table~\ref{table:non-factoid:crowdsourcing:crqa:answer_examples} gives some examples of worker-generated answers with low and high-quality scores.
 % To summarize, ratings of answer candidates and worker generated answers both have a similar positive effect on the performance of our question answering system.
 % What is more important, the contributions are independent and therefore it is beneficial to use both of them in the final system.
 
@@ -727,7 +753,7 @@ Figure~\ref{figure:non-factoid:crowdsourcing:crqa:nworkers_vs_quality} plots the
     \caption{avg-prec: Average score per answer (ignoring non-answered questions)}
     \label{figure:crqa:nworkers_vs_precision}
   \end{subfigure}
-    \caption{Plot showing how the quality of the final answer depends on the number of workers per question}
+    \caption{Plot showing how the quality of the final answer depends on the number of workers per question.}
     \label{figure:non-factoid:crowdsourcing:crqa:nworkers_vs_quality}
 \end{figure}
 

@@ -22,7 +22,7 @@ The contributions of the research described in this chapter are:
 This work will be presented at CHI 2017 conference~\cite{vtyurina2017convsearch}.
 \item A study of the effect of strategic hints, that a system might provide to the user, on search experience and success rate for complex informational tasks.
 This work has been published as a short paper at SIGIR 2014~\cite{savenkov2014hint}.
-\item An extensive analysis of clarification questions on community question answering platforms, and a model to predict the subject of a popular type of clarification questions, which shows the potential of such an approach for future research.
+\item An extensive analysis of clarification questions on community question answering platforms, and a model to predict the subject of a popular type of clarification questions, which shows the potential of such an approach.
 This results were published in CHIIR 2017 conference proceedings~\cite{braslavski2017clarq}.
 \end{itemize}
 
@@ -48,7 +48,7 @@ Alas, for information seeking scenarios, existing chatbots and intelligent assis
 Furthermore, conversation provides additional opportunities to improve search quality. For example, a conversational system should be able to ask clarification questions~\cite{braslavski2017clarq} to better identify searcher's intent, and incorporate explicit user feedback~\cite{radlinski2017} -- something that is not normally available in a traditional web search scenario.
 However, before jumping into implementing additional features for conversational search systems, it is important to gain a better understanding what the users' expectations are when interacting with a truly intelligent conversational search agent. It is equally important to anticipate how users might behave when faced with a conversational search system since behavioral feedback is critical for system evaluation and improvements. To this end, we explore the following research questions:
 
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item \textbf{RQ1}: What are the main expectations from a conversational search system?
 \item \textbf{RQ2}: What are the differences between human-to-human and human-to-computer conversations?
 \item \textbf{RQ3}: What characteristics prevent existing conversational agents from becoming effective tools for complex information seeking?
@@ -89,10 +89,10 @@ Message history was cleared prior to every experiment.
 \label{section:conversation:user-study:design:wizard}
 Our first research question explores human behavior in human-computer communication.
 There are currently no general purpose intelligent conversational search systems, that we could use for our purposes.
-Therefore we ``faked'' one by substituting the backend with a person (two of the authors interchangeably).
+Therefore we ``faked'' one by substituting the backend with a person.
 However, the participants were told that it was an experimental \textit{automatic} system, thus following a general Wizard-of-Oz setup.
 We will be further referring to this system as the Wizard agent, and the person in the backend as the Wizard.
-The Wizard had previously done the research about the topics of the 3 tasks prior to the experiment and compiled a broad set of passages covering most of the aspects of each topic.
+The Wizard had done the research about the topics of the 3 tasks prior to the experiment and compiled a broad set of passages covering most of the aspects of each topic.
 At the time of the experiment, the Wizard tried to find the best passage to reply to the participant's question/comment.
 However, in cases where such passage could not be found, the Wizard would reply with a passage retrieved from web search, or write a new passage.
 In case the participant's question or comment was ambiguous, the Wizard was allowed to ask a clarification question to better identify the information need of the participant.
@@ -104,7 +104,7 @@ By analyzing the ways the participants communicated with the Wizard agent, we co
 \label{section:conversation:user-study:design:human}
 To answer our second research question, about the differences between human-to-human and human-to-computer communication, we devised our second conversational agent -- the Human agent.
 In this case, the Wizard from the previous setup was still serving as a backend, but the participants were explicitly informed that they were talking to a live person.
-Another difference was that the Human agent was not restricted to the pre-retrieved set of passages but was free to slightly reformulate or revise the passages to better respond to the question.
+Another difference was that the Human agent was restricted to the pre-retrieved set of passages, but was free to slightly reformulate or revise the passages to better respond to the question.
 By including both the Human and Wizard agents in the study, we were able to maintain a constant level of intelligence for both agents, thus comparing not the accuracy of each agent, but rather the participants' attitude and expectations towards a perceived automatic agent compared to a known human.
 
 \subsubsection{Automatic agent}
@@ -239,7 +239,7 @@ Displaying search hints is another technique that has both learning effect and o
 Moraveji et al.~\cite{Moraveji:2011:MIU:2009916.2009966} demonstrated that hints, suggesting certain search engine functionality, help people find answers more quickly, and the effect is retained after a week without hints.
 
 In this section, I explore \textit{strategic} search hints, that are designed to guide a user in solving her search problem.
-More specifically, we chose the divide-and-conquer strategy, \ie splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
+More specifically, for complex search tasks users might find it helpful to choose the divide-and-conquer strategy, \ie splitting an original difficult question into smaller problems, searching answers to the subtasks and combining them together.
 Two sets of strategic hints were manually designed: \textit{generic} hints describing the divide-and-conquer strategy in general and \textit{task-specific} hints providing a concrete strategy to solve the current search task.
 To evaluate the effect of the hints on behavior and search success we conducted a user study with 90 participants.
 The results of the user study demonstrate that well-designed task-specific hints can improve search success rate.
@@ -312,14 +312,14 @@ Task-specific hints described steps of one of the possible solutions to each que
 The second set contained a single hint, which was shown for all tasks. Generic hint described the divide-and-conquer strategy:\\
 
 \hrule
-\begin{enumerate}
+\begin{enumerate}[noitemsep]
 \item Split the question into 2 or more logical parts
 \item Find answers to the parts of the question
 \item Use answers to the parts of the question to find answer to the full question
 \end{enumerate}
 
 For example, the question: ``The second wife of King Henry VIII is said to haunt the grounds where she was executed. What does she supposedly have tucked under her arm?''
-\begin{enumerate}
+\begin{enumerate}[noitemsep]
 \item Search [second wife King Henry VIII] to find Anne Boleyn.
 \item Search [Anne Boleyn under arm] to find that her ghost is in the London Tower where she is said to carry her head tucked underneath her arm.
 \end{enumerate}
@@ -436,7 +436,7 @@ With this in mind, we make the first attempt to examine the clarification questi
 We analyze Stack Exchange data in two domains
 corresponding to about 300K questions and comments.
 The contributions of this study are threefold:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item To learn about user behavior associated with \clarQ and about their role in CQA communications. We find that \clarQ~are quite common on Stack Exchange, and therefore represent a good source of data for analysis.
 \item To study the types of \clarQ~users ask in different situations. We classify clarification questions into several categories according to their target as well as syntactic patterns, which help define the space of \clarQ~for future research;
 \item To make the first step towards automatic generation of \clarQ: 
@@ -531,7 +531,7 @@ Selection & 9.9 & Are you using latex or oil based Kilz?\\
 Experience & 10.2 &  Have you tried to update video card drivers?\\
 Not a \clarQ & 13.9 & Out of curiosity what elo are you? \\
 \end{tabular}
-\caption{Questions in comments by type. Some comments contain several \clarQ of different types, so the sum is more the 100\%.}
+\caption{The distribution of questions in StackExchange comments by type. Some comments contain several \clarQ of different types, so the sum is more the 100\%.}
 \label{table:conversation:clarq:qtypes}
 \end{table}
 
@@ -582,7 +582,7 @@ We collected questions, which received at least one \textit{what (kind|type) of}
 From these comments and questions, we extracted noun phrases using Stanford CoreNLP parser~\cite{manning-EtAl:2014:P14-5}, and kept only those questions that have a common pair of noun phrases in the question and comment.
 We formulated the task as the noun phrase ranking problem, where the noun phrase from the comment should be placed higher on the list than other noun phrases from the question.
 Each candidate phrase was represented by the following set of features:
-\begin{itemize}[itemsep=0em]
+\begin{itemize}[noitemsep]
 \item \textbf{prior}: number of times the noun phrase was used in comments (separate from the training and test sets)
 \item \textbf{topicality}: number of occurrences of the phrase in the current question (in title and body together)
 \item \textbf{position}: position of the first occurrence of the noun phrase relative to the beginning of the question
@@ -593,7 +593,7 @@ Each candidate phrase was represented by the following set of features:
 To train the ranking model we used a random forest algorithm implemented in the RankLib library\footnote{\href{url}{https://sourceforge.net/p/lemur/wiki/RankLib}}.
 We optimized DCG@10 and Table~\ref{table:conversation:clarq:np_rank_performance} summarizes the performance metrics on 10-fold cross validation.
 As we can see, even with a limited set of features our model was able to place the true subject of a clarification question above other candidates in 35\% of the cases.
-To study the contributions of different feature groups we conducted a series of experiments to train the model with each group of features individually.
+To study the contributions of different feature groups we conducted a series of experiments to train the model with each group individually.
 The results in Table~\ref{table:conversation:clarq:np_rank_performance} suggest, that the number of occurrences of a phrase and the position of the first occurrence are strong features, and confirms our intuition that \clarQ~are usually asked about the main topic of the question.
 However, some noun phrases are more ambiguous in general, therefore the prior feature also contributed significantly to the quality of the model.
 
@@ -656,7 +656,7 @@ This Chapter described the research I have done on conversational question answe
 First, I described the design and implications of the user study we conducted to investigate the current state in conversational search, and looked into what users expect from a dialog agent compared to a human interlocutor, and what is missing from an existing state-of-the-art commercial system.
 We learned, that users do not have any prejudice towards automatic question answering agents, and for some people they are actually preferable, avoiding certain social norm issues.
 We identified some directions for future research in order to move existing systems towards user expectations, by providing a diverse set of opinions as well as information sources, improving context maintenance techniques, and learning from user feedback.
-As the first steps in these directions, we discussed search hints and clarification questions, which can be provided by the system to either help users structure their search process or clarify some of the ambiguities.
+As the first steps in these directions, I discussed search hints and clarification questions, which can be provided by the system to either help users structure their search process or clarify some of the ambiguities.
 The results of the conducted research showed that hints tailored to a specific search problem can effectively guide the user through the search process.
 However, generic hints might actually take away the feeling of control from the user and lower both satisfaction and success rate.
 To study the phenomenon of clarification questions, we analyzed the data from one of the community question answering platforms and identified different types of clarifications, \eg ``what type of ...'' questions, that aim at requesting information on a particular type of an object mentioned in the question.

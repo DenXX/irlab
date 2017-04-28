@@ -13,7 +13,7 @@ Factual information exists in many various formats: natural language statements,
 These information can be helpful for answering various user questions.
 Moreover, due to the differences in nature of these data sources, their pros and cons are often complimentary, and therefore their combination would have a synergistic effect.
 In particular, text document collections~\cite{Kolomiyets:2011:SQA:2046840.2047162} and structured knowledge bases~\cite{unger2014introduction} are very useful for automatic factoid question answering.
-For example, natural language text is relatively easy to match against user questions, especially given the redundancy of the information in large text collections, such as the web~\cite{lin2007exploration}.
+Natural language text is relatively easy to match against user questions, especially given the redundancy of the information in large text collections, such as the web~\cite{lin2007exploration}.
 On the contrary, for knowledge bases, translating a question into one of the structured query languages can be very challenging~\cite{BerantCFL13:sempre}.
 Moreover, text encodes all kinds of factual knowledge, whereas knowledge base schemes are often very limited, and a set of objects, predicates and facts are far from being complete~\cite{Dong:2014:KVW:2623330.2623623}.
 According to D.Wimalasuriya and D.Dou~\cite{wimalasuriya2010ontology}, about 80\% of the information contained in business documents is stated in natural language, \ie unstructured format.
@@ -26,16 +26,16 @@ First, Section~\ref{section:factoid:cqarelextract} details an approach for relat
 Unlike existing techniques, which operate either on individual sentences or on structured data like infoboxes or tables, our method exploits the relationship between question and answer sentences, and increases the volume of extracted information, eventually helping with the KB incompleteness problem.
 Next, Section~\ref{section:factoid:text2kb} describes the \textit{Text2KB} model for improving knowledge base question answering using a variety of available unstructured and semi-structured data, such as document search results, question-answer archives, and semantically annotated document collections.
 Finally, in Section~\ref{section:factoid:evinets}, I propose \textit{EviNets}: a unified framework for factoid question answering, which jointly processes and aggregates evidence from various structured and unstructured data sources.
-\textit{EviNets} is a memory-based neural-network architecture, which embeds unstructured text and structured knowledge base triples into a low-dimensional space, which is used to perform relevance matching and aggregation to improve answer selection.
+\textit{EviNets} is a memory-based neural network architecture, which embeds unstructured text and structured knowledge base triples into a low-dimensional space, which is used to perform relevance matching and aggregation to improve answer selection.
 
 In summary, the contributions of this chapter are:
 \begin{itemize}
-\item A novel approach for information extraction from question-answer pairs, which exploits the known relation between the question and answer sentences to infer the relations between entities, mentioned in different sentences.
+\item A novel approach for information extraction from question-answer pairs, which exploits the known relation between the question and answer sentences to infer the relations between entities, mentioned in them.
 This work was published in NAACL 2015 Student Research Workshop paper titled ``Relation extraction from community generated question-answer pairs''~\cite{savenkov2015relation}.
-\item \textit{Text2KB}: an approach for using different unstructured text data to improve precision and recall of knowledge base question answering.
+\item \textit{Text2KB}: an approach for using various text data to improve precision and recall of knowledge base question answering.
 It was presented as SIGIR 2016 full paper ``When a Knowledge Base Is Not Enough: Question Answering over Knowledge Bases with External Text Data''~\cite{Savenkov:2016:KBE:2911451.2911536}.
-\item \textit{EviNets}: Neural-network framework for scoring and aggregating evidence from structured and unstructured data sources in support for answer candidates.
-The paper describing EviNets will be presented as a short paper at ACL 2017.
+\item \textit{EviNets}: Neural network framework for scoring and aggregating evidence from structured and unstructured data sources in support for answer candidates.
+The paper describing EviNets was presented as an ACL 2017 short paper titled ``EviNets: Neural Networks for Combining Evidence Signals for Factoid Question Answering''~\cite{savenkov_evinets17}.
 \end{itemize}
 
 
@@ -192,7 +192,7 @@ Percent of relations between entity pairs in answer sentences only & 38.6\%& 12.
 \label{table:factoid:cqarelextract:cqastats}
 \end{table}
 
-For each QnA pair we applied tokenization, sentence detection, named entity tagger, parsing and coreference resolution from Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}.
+For each QnA pair we applied tokenization, sentence detection, named entity tagging, parsing and coreference resolution from Stanford CoreNLP \cite{manning-EtAl:2014:P14-5}.
 Our cascade entity linking approach is similar to \cite{chang2011stanford} and considered all noun phrase and named entity mentions as candidates.
 First, all named entity mentions are looked up in Freebase names and aliases dictionary.
 The next two stages attempt to match mention text with the dictionary of English Wikipedia concepts~\cite{SPITKOVSKY12.266} and its normalized version.
@@ -222,7 +222,6 @@ It is important to note, that since some entity pairs occur exclusively inside t
 
 \begin{figure}[h!]
 \centering
-\vspace{-2mm}
 \begin{subfigure}[h]{0.45\textwidth}
     \includegraphics[width=0.99\textwidth]{img/cqarelextract_qa_vs_sent_ya}
     \label{figure:factoid:cqarelextract:pr_curve:ya}
@@ -250,7 +249,7 @@ F-1 score & 0.219 & 0.276 & 0.310 & 0.277 & 0.297 & 0.332\\
 Number of correct extractions & 3229 & 5900 & 7428 & 2804 & 2288 & 3779 \\
 Correct triples not extracted by other model & 20.5\% & 56.5\% & - & 39.4\% & 25.8\% & - \\
 \end{tabular}
-\caption{Results for relation extraction of QnA-, sentence-based and combined models on Yahoo!~Answers and WikiAnswers datasets}
+\caption{Results for relation extraction of QnA-, sentence-based and combined models on Yahoo!~Answers and WikiAnswers datasets.}
 \label{table:factoid:cqarelextract:results}
 \end{table}
 
@@ -328,18 +327,18 @@ A candidate query includes one or multiple triple patterns with predicates, corr
 Existing knowledge base question answering approaches~\cite{bastmore:cikm:2015:aquu,BerantCFL13:sempre,BerantL14:parasempre,berant2015imitation,BordesCW14:emnlp,yao2014freebase} rely on a lexicon, learned from manually labeled training data, and supported by additional resources, such as question paraphrases \cite{BerantL14:parasempre} and weakly labeled sentences from a large text collection \cite{YaoD14}.
 Such training data tends to be small compared to the number of different predicates in a KB, and therefore the coverage of these lexicons is limited.
 By our estimate, in a popular WebQuestions KBQA dataset~\cite{BerantCFL13:sempre}, the answers to $\sim$5.5\% of test questions (112 out of 2032) involve a predicate that does not appear as a ground truth in the training set.
-For example, an RDF triple \texttt{[Bigos, food.dish.type\_of\_dish1, Stew]} answers the question \textit{``what are bigos?''}, but no other examples in the training set involve this predicate.
+For example, the RDF triple \texttt{[Bigos, food.dish.type\_of\_dish1, Stew]} answers the question \textit{``what are bigos?''}, but no other examples in the training set involve this predicate.
 In addition, a lexicon needs to cover all different ways a predicate can be asked about.
 For example, questions \textit{``who did jon gosselin cheat with?''} and \textit{``who is the woman that john edwards had an affair with?''} are answered by the same KB predicate but use different language.
 Therefore, the presence of the first question in a training set may not help to answer the second question.
 On the other hand, traditional Text-QA systems benefit from the redundancy of the information on the Web, where the same facts are stated multiple times in many different ways~\cite{lin2007exploration}.
 This increases the chances of a good lexical match between a question and answer statements, which makes even some relatively simple counting-based techniques quite effective~\cite{brill2002analysis}.
-We propose to adapt these ideas from text-based question answering for KBQA.
+The model I developed adapts these ideas from text-based question answering for KBQA.
 
 The general architecture and an example use case of Text2KB is presented on Figure~\ref{figure:factoid:text2kb:model}.
 Text2KB is based on the information extraction approach to knowledge base question answering~\cite{YaoD14}, in particular, it extends the Aqqu system of H.Bast et al.~\cite{bastmore:cikm:2015:aquu}, which is one of the best performing open source KBQA system on the WebQuestions dataset.
 The left part of the Figure~\ref{figure:factoid:text2kb:model} describes a typical architecture of IE-based KBQA systems, and the right part introduces additional external text data sources, namely Web search results, community question answering (CQA) data, and a collection of documents with detected KB entity mentions.
-First, we describe the main stages of the information extraction approach to knowledge base question answering using Aqqu, our baseline system, as an example.
+First, I describe the main stages of the information extraction approach to knowledge base question answering using Aqqu, the baseline system, as an example.
 
 \begin{figure}[t]
 \centering
@@ -432,7 +431,7 @@ Finally, a text collection annotated with KB entity mentions is used to build a 
 \textbf{Web search results for question understanding and answer ranking.}
 Traditional TextQA systems rely on search results to retrieve relevant documents, which are then used to extract answers to users' questions.
 Relevant search results mention question entities multiple times and in various forms, which can be helpful for entity linking \cite{SMAPH_ERD:2014}.
-Furthermore, retrieved document set often contains multiple statements of the answer, which can be a strong signal for candidate ranking~\cite{lin2007exploration}.
+Furthermore, retrieved document set often contains multiple occurrences of the answer, which can be a strong signal for candidate ranking~\cite{lin2007exploration}.
 
 To obtain related web search results, Text2KB issues the question as a query to a search engine\footnote{In our experiments, we use the Bing Web Search API \href{url}{https://www.microsoft.com/cognitive-services/en-us/bing-web-search-api} and local Wikipedia search using Lucene}, extracts top 10 result snippets and the corresponding documents.
 Next, Text2KB uses Aqqu entity linking module to detect KB entity mentions in both snippets and documents.
@@ -455,7 +454,7 @@ On the other hand, KBQA systems can utilize all the available KB knowledge about
 More specifically, Text2KB proceeds as follows (full list of features is given in Table~\ref{table:factoid:text2kb:features}):
 
 \begin{enumerate}
-\item Precompute term and entity IDFs. We used Google n-grams corpus to approximate terms IDF by collection frequencies and available ClueWeb Freebase entity annotations\footnote{http://lemurproject.org/clueweb09/FACC1/} to compute entity IDF scores.
+\item Precompute term and entity IDFs. We used Google n-grams corpus to approximate terms IDF by collection frequencies and available ClueWeb Freebase entity annotations\footnote{\href{url}{http://lemurproject.org/clueweb09/FACC1/}} to compute entity IDF scores.
 \item Each snippet $s_i$ and document $d_i$ are represented by two TF-IDF vectors of lowercased tokens ($t_{s_i}$ and $t_{d_i}$) and mentioned entities ($e_{s_i}$ and $e_{d_i}$).
 \item In addition, vectors of all snippets and all documents are merged together to form combined token and entity vectors: $t_{\cup s_i}$, $t_{\cup d_i}$, $e_{\cup s_i}$ and $e_{\cup d_i}$.
 \item Each answer candidate $a_j$ is also represented as TF-IDF vector of terms (from entity names), and entities: $t_{a_j}$ and $e_{a_j}$
@@ -596,7 +595,7 @@ This section reports the experimental setup, including the dataset and metrics, 
 
 \textbf{Methods Compared}.
 We compare our system, Text2KB, to state-of-the-art approaches, notably:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 \item{\textbf{Aqqu}}: a state-of-the-art baseline KBQA system~\cite{bastmore:cikm:2015:aquu}, described in Section~\ref{section:factoid:text2kb:baseline}.
 \item{\textbf{Text2KB(Web search)}}: Our Text2KB system, using the Bing search engine API over the Web. 
 \item{\textbf{Text2KB(Wikipedia search)}}: Our Text2KB system, using the standard Lucene search engine over the February 2016 snapshot of the English Wikipedia, in order to validate our system without the potential ``black-box'' effects of relying on a commercial Web search engine (Bing) and changing corpus (Web).
@@ -605,19 +604,19 @@ We compare our system, Text2KB, to state-of-the-art approaches, notably:
 Additionally, other previously published results on WebQuestions are included to provide context for the improvements introduced by our Text2KB system.
 
 \textbf{Datasets}.
-We followed the standard evaluation procedure for the WebQuestions dataset and used the original 70-30\% train-test split (3,778 training and 2,032 test instances). Within the training split, 10\% was set aside for validation to tune the model parameters and only the best-performing set of parameters selected on the validation data was used to report the results on the official test split.
+I followed the standard evaluation procedure for the WebQuestions dataset and used the original 70-30\% train-test split (3,778 training and 2,032 test instances). Within the training split, 10\% was set aside for validation to tune the model parameters and only the best-performing set of parameters selected on the validation data was used to report the results on the official test split.
 
 \textbf{Evaluation Metrics}. 
 Recent papers using the WebQuestions dataset have primarily used the average F1-score as the main evaluation metric, defined as:
 $avg\ F1 = \frac{1}{|Q|} \sum_{q \in Q} f1(a^*_q, a_q)$
 $$f1(a^*_q, a_q) = 2\frac{precision(a^*_q,a_q) recall(a^*_q,a_q)}{precision(a^*_q,a_q) + recall(a^*_q,a_q)}$$
 $precision(a^*_q, a_q)=\frac{|a^*_q \cap a_q|}{|a_q|}$ and $recall(a^*_q, a_q) = \frac{|a^*_q \cap a_q|}{|a^*_q|}$, $a^*_q$ and $a_q$ are correct and given answers to the question q, which can be lists of entities.
-Additionally, we report average precision and recall, to gain a better understanding of the trade-offs achieved by different methods.
+Additionally, I report average precision and recall, to gain a better understanding of the trade-offs achieved by different methods.
 
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{rllll }
+\begin{tabular}{rp{1.9cm}p{1.7cm}p{1.9cm}p{1.2cm} }
 System & $\overline{Recall}$ & $\overline{Precision}$ & F1 of $\overline{P}$ \& $\overline{R}$ & $\overline{F1}$ \\
 \hline
 OpenQA \cite{Fader:2014:OQA:2623330.2623677} & - & - & - & 0.35 \\
@@ -649,7 +648,7 @@ The result reported for YodaQA system is the F1 score at position 1.
 As we can see, Text2KB significantly improves over the baseline system.
 
 \textbf{Data Source and Features Contribution}.
-To analyze the contribution of the features and data sources we introduced, we report results from a series of ablation studies. For convenience, we introduce the following short-hand notations for different components of our system:
+To analyze the contribution of the features and data sources I introduced, I report results from a series of ablation studies. For convenience, I introduce the following short-hand notations for different components of our system:
 
 \begin{itemize}[noitemsep]
 \item \texttt{T} - notable type score model as a ranking feature
@@ -663,12 +662,12 @@ To analyze the contribution of the features and data sources we introduced, we r
 \item \texttt{CW} - features, computed from entity pairs language model, estimated on ClueWeb
 \end{itemize}
 
-In our results table we will use the notation \texttt{+$<$comp$>$} for a system with a certain component added, and \texttt{-$<$comp$>$} when it is removed.
+In the results table I will use the notation \texttt{+$<$comp$>$} for a system with a certain component added, and \texttt{-$<$comp$>$} when it is removed.
 For example, the baseline system will be denoted as ``\texttt{Aqqu}''.
 The same system with additional date range filter query templates and notable types score model is denoted as ``\texttt{Aqqu +DF+T}'', which represents the same system as ``\texttt{Text2KB -WebEnt-Web-CQA-CL}'' (we will call it Text2KB (base)).
 Our full system ``\texttt{Text2KB}'' can be also denoted as ``\texttt{Aqqu +DF+T+WebEnt+Web+CQA+CL}''.
 
-First, we analyze the improvements introduced by different components of our system (Table~\ref{table:factoid:text2kb:ablation:entities_vs_features}).
+First, I analyze the improvements introduced by different components of the system (Table~\ref{table:factoid:text2kb:ablation:entities_vs_features}).
 As we can see, additional date range filters and notable types model (\texttt{Aqqu+DF+T}) are responsible for an increased recall and a drop in precision compared to the baseline model.
 Features generated from Wikipedia search results, CQA data and ClueWeb entity pair language models (\texttt{+Wiki+CQA+CL}) improve average F1 by 0.007 (+1.4\%) compared to the base model, adding entity linking using Wikipedia search results improves results even more (+3\%).
 
@@ -676,8 +675,8 @@ Web search results (\texttt{+Web+CQA+CL}) turned out to be more helpful than Wik
 This was one of the reasons we did not combine Wikipedia and Web search together.
 Finally, entity linking and all text-based features combined achieves an even higher score, proving that their contributions are independent.
 
-We now analyze the contribution of the different data sources.
-We will remove a group of web search, CQA or Clueweb-based features and see how the performance of the whole system changes (Table~\ref{table:factoid:text2kb:ablation:features}).
+I now analyze the contribution of the different data sources.
+I will remove a group of web search, CQA or Clueweb-based features and see how the performance of the whole system changes (Table~\ref{table:factoid:text2kb:ablation:features}).
 As we can see, all data sources have an impact on the system performance, and web search results based features provide the most useful signal for answer ranking.
 
 Figure~\ref{figure:factoid:text2kb:ablation:feature_importances} plots a subset of features ranked by their Gini index-based importance scores.
@@ -734,26 +733,26 @@ System & Recall & Prec &  F1 \\
 \begin{figure*}
 \centering
 \includegraphics[width=\textwidth]{img/feature_importances}
-\caption{A plot of Gini importances of different features of our answer ranking random forest model (features marked * are not text-based and are provided for comparison)}
+\caption{A plot of Gini importances of different features of our answer ranking random forest model (features marked * are not text-based and are provided for comparison).}
 \label{figure:factoid:text2kb:ablation:feature_importances}
 \end{figure*}
 
 In summary, Text2KB significantly outperforms the baseline system, and each of the introduced components contributes to this improvement.
 Web search results data turned out to be the most useful resource, and it significantly improves the quality by helping with question entity identification and candidate ranking.
-Next, we analyze the system performance in more detail and investigate factors for future extension.
+Next, I analyze the system performance in more detail and investigate factors for future extension.
 
 \subsection{Analysis}
 \label{section:factoid:approaches:text2kb:analysis}
 
-We now investigate how Text2KB compares to other systems on the same benchmark; then, we investigate in depth the different error modes, which helps identify the areas of most substantial future improvements.
+I now investigate how Text2KB compares to other systems on the same benchmark; then, I investigate in depth the different error modes, which helps identify the areas of most substantial future improvements.
 
-We took an existing KBQA systems and demonstrated that by combining evidence from a knowledge base and external text resources we can boost the performance.
+I took an existing KBQA system and demonstrated that by combining evidence from a knowledge base and external text resources we can boost the performance.
 A reasonable question is whether the same approach will be helpful for other systems, \eg the best system at the moment of our paper publication -- STAGG~\cite{yih:ACL:2015:STAGG}.
-STAGG differs from our baseline system Aqqu in the components: entity linking algorithm, a set of query templates and ranking methods.
-Therefore, our approach is complementary and should be helpful for STAGG as well.
-To support this claim, we made an experiment to combine answers of STAGG and Text2KB.
+STAGG differs from the baseline system Aqqu in the components: entity linking algorithm, a set of query templates and ranking methods.
+Therefore, my approach is ``orthogonal'' to these improvements and should be helpful for STAGG as well.
+To support this claim, I made an experiment to combine answers of STAGG and Text2KB.
 One of the advantages of the former is its set of filters, that restricts list results to entities of certain type, gender, \etc
-Therefore, we combined answers of STAGG and Text2KB using a simple heuristic: we chose to use the answer returned by STAGG if the number of answer entities is less than in the Text2KB answer, otherwise, we use the answer of our approach.
+Therefore, I combined answers of STAGG and Text2KB using a simple heuristic: I chose to use the answer returned by STAGG if the number of answer entities is less than in the Text2KB answer, otherwise, I used the answer of Text2KB.
 Table~\ref{table:factoid:text2kb:combine_stagg} gives the results of the experiment, and as we can see the combination achieves a slightly better average F1 score.
 Alternatively, we can look at the Oracle combination of the systems, which always selects the answer with the higher F1.
 As we can see such a combination results in a performance of 0.606, which is much higher than either of the systems.
@@ -772,8 +771,8 @@ Text2KB + STAGG (Oracle) & 0.606 (+15.4 \%) \\
 \label{table:factoid:text2kb:combine_stagg}
 \end{table}
 
-As we mentioned earlier, answers to 112 of the test questions in the WebQuestions dataset involve predicates that were not observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
-We evaluated both systems on these questions, and indeed the performance is very low, \ie the average F1 score of Text2KB is 0.1640 compared to 0.1199 for STAGG\footnote{Unfortunately, the number of questions is too low to show statistical significance (p-value=0.16) of the difference.}.
+As I mentioned earlier, answers to 112 of the test questions in the WebQuestions dataset involve predicates that were not observed in the training set, which may be a problem for approaches that rely on a trained lexicon.
+I evaluated both systems on these questions, and indeed the performance is very low, \ie the average F1 score of Text2KB is 0.1640 compared to 0.1199 for STAGG\footnote{Unfortunately, the number of questions is too low to show statistical significance (p-value=0.16) of the difference.}.
 
 \begin{figure}
 \centering
@@ -782,8 +781,8 @@ We evaluated both systems on these questions, and indeed the performance is very
 \label{figure:factoid:text2kb:error_analysis}
 \end{figure}
 
-To get better insights into the problems that remain, we collected 1219 questions for which Text2KB did not return a completely correct answer, \ie F1 score $<$ 1.
-We manually looked through a couple of hundreds of these examples and grouped the problems into several clusters (Figure~\ref{figure:factoid:text2kb:error_analysis}).
+To get better insights into the problems that remain, I collected 1219 questions for which Text2KB did not return a completely correct answer, \ie F1 score $<$ 1.
+I manually looked through a couple of hundreds of these examples and grouped the problems into several clusters (Figure~\ref{figure:factoid:text2kb:error_analysis}).
 
 As we can see candidate ranking is still the major problem, and it accounts for $\sim31\%$ of the cases.
 The second problem is incorrect ground truth labels (almost 25\% of reported errors).
@@ -833,17 +832,15 @@ Section~\ref{section:factoid:evinets} describes a neural network framework, that
 \section{EviNets: Joint Model for Text and Knowledge Base Question Answering}
 \label{section:factoid:evinets}
 
-Unstructured textual and structured KB resources have their own advantages and disadvantages, that could compensate each other.
-Prior approaches to the problem of combining textual and structured knowledge base data either process data sources using separate pipelines and merge the results~\cite{baudivs2015yodaqa,ferrucci2010building}, extract structured knowledge from text~\cite{Agichtein:2000:SER:336597.336644,Dong:2014:KVW:2623330.2623623,MintzBSJ09}, convert both data sources into a semi-structured format~\cite{Fader:2014:OQA:2623330.2623677}, extend knowledge bases with information extracted from text~\cite{elbassuoni2009language,yahya2016question} or 
-enrich text with some knowledge about the mentioned entities~\cite{Sun:2015:ODQ:2736277.2741651}.
-Unfortunately, such approaches usually sacrifice some potentially useful information available in the data sources.
+%Unstructured textual and structured KB resources have their own advantages and disadvantages, that could compensate each other.
+%Prior approaches to the problem of combining textual and structured knowledge base data either process data sources using separate pipelines and merge the results~\cite{baudivs2015yodaqa,ferrucci2010building}, extract structured knowledge from text~\cite{Agichtein:2000:SER:336597.336644,Dong:2014:KVW:2623330.2623623,MintzBSJ09}, convert both data sources into a semi-structured format~\cite{Fader:2014:OQA:2623330.2623677}, extend knowledge bases with information extracted from text~\cite{elbassuoni2009language,yahya2016question} or  enrich text with some knowledge about the mentioned entities~\cite{Sun:2015:ODQ:2736277.2741651}.
+%Unfortunately, such approaches usually sacrifice some potentially useful information available in the data sources.
 
-Question Answering from raw text data has been quite successful, as demonstrated by years of the TREC QA evaluations.
-As collections get larger, \eg web scale, we have more chances to meet relevant information expressed many times and in different ways~\cite{clarke2001exploiting}.
-The key issue in this scenario is how to retrieve and match pieces of information, that could contain the answer to a user question, and how to aggregate all this information.
-Many recent works in question answering have focused on the problem of semantic matching between a question and candidate answer sentences~\cite{he2016pairwise,rao2016noise,yang2016anmm}.
-The datasets used in these works, such as QA Answer Sentence Selection Dataset~\cite{wang2007jeopardy} and WikiQA~\cite{yang2015wikiqa}, typically contain a relatively small set of sentences, and the task is to select those that state the answer to the question.
-However, for many questions, a single sentence does not provide sufficient information to select the correct answer, and additional evidence is needed.
+A critical task for question answering is the final answer selection stage, which has to combine multiple signals available about each answer candidate.
+Most of the recent works in QA have focused on the problem of semantic matching between a question and candidate answer sentences~\cite{he2016pairwise,rao2016noise,yang2016anmm}.
+The datasets used in these works, such as Answer Sentence Selection Dataset~\cite{wang2007jeopardy} and WikiQA~\cite{yang2015wikiqa}, typically contain a relatively small set of sentences, and the task is to select those that state the answer to the question.
+However, for many questions, a single sentence does not provide sufficient information, and it may not be reliable in isolation. At the same time,
+the redundancy of information in large corpora, such as the Web, has been shown useful to improve information retrieval approaches to QA~\cite{clarke2001exploiting}.
 
 % An alternative approach for factoid question answering uses knowledge bases, which are collections of \texttt{[subject, predicate, object]} triples.
 % Recent development of large scale open domain knowledge bases, such as dbPedia~\cite{auer2007dbpedia}, Freebase~\cite{Bollacker:2008:FCC:1376616.1376746} and WikiData~\cite{vrandevcic2014wikidata}, motivated research in knowledge base question answering, \eg ~\cite{BerantCFL13:sempre,yih:ACL:2015:STAGG,bastmore:cikm:2015:aquu} and many others.
@@ -851,15 +848,14 @@ However, for many questions, a single sentence does not provide sufficient infor
 
 
 One approach for joint representation of diverse information is embedding into a low-dimensional space, \ie as achieved by various neural network architectures.
-In particular, Memory Networks~\cite{sukhbaatar2015end} and their extensions~\cite{miller2016key} use embeddings to represent the textual context for a particular question or scenario as memories.
-However, these memories are then summarized into a single vector, which leads to losses of information derived from answer provenance, and other evidence signals.
+In particular, Memory Networks~\cite{sukhbaatar2015end} and their extensions~\cite{miller2016key} use embeddings to represent relevant data as memories, and summarize them into a single vector, therefore losing information about answers provenances.
 
-In this section, I describe \textit{EviNets}, a novel neural network architecture for factoid question answering, which provides a unified framework for aggregating various evidence, which support different answer candidates.
-Given a question, we retrieve a set of relevant pieces of information, \eg sentences from a corpora or knowledge base triples, and extract mentioned entities as candidate answers.
-All evidence signals are then embedded into the same vector space, scored, aggregated using multiple signals, and used to rank the answers.
-Experiments on the recent TREC QA and WikiMovies benchmark datasets demonstrate the effectiveness of the proposed approach, and its ability to handle both unstructured text and structured KB triples as evidence.
-Additionally, we build another dataset for factoid question answering, derived from the archive of questions posted to Yahoo!~Answers community question answering platform.
-This work will appear as a short paper in ACL 2017.
+In this section, I describe \textit{EviNets}, a novel neural network architecture for factoid question answering, which provides a unified framework for aggregating evidence, supporting answer candidates.
+Given a question, \textit{EviNets} retrieves a set of relevant pieces of information, \eg sentences from a corpora or knowledge base triples, and extracts mentioned entities as candidate answers.
+All the evidence signals are then embedded into the same vector space, scored and aggregated using multiple strategies for each answer candidate.
+Experiments on the TREC QA, WikiMovies and new Yahoo!~Answers datasets demonstrate the effectiveness of the proposed approach, and its ability to handle both unstructured text and structured KB triples as evidence.
+This work was published as a short paper at the Annual Meeting of the
+Association for Computational Linguistics 2017~\cite{savenkov_evinets17}.
 
 \subsection{Model and Architecture}
 \label{section:factoid:evinets:model}
@@ -871,11 +867,10 @@ This work will appear as a short paper in ACL 2017.
 \label{figure:factoid:evinet:model}
 \end{figure}
 
-The high level architecture of our \textit{EviNets} framework is displayed on Figure~\ref{figure:factoid:evinet:model}.
-When a question is received, the model starts by extracting relevant information, \eg sentences from text corpora, RDF triples from a knowledge base, \etc
-These data hopefully contains the true answer to the question, and to identify candidates we use an entity linking system, such as TagMe~\cite{ferragina2010tagme}.
-It is also possible to extract additional information about extracted candidate answers and append it to the supporting evidence.
-For example, entity types and descriptions from a KB were previously found quite helpful in QA~\cite{Sun:2015:ODQ:2736277.2741651}.
+The high level architecture of \textit{EviNets} is illustrated in Figure~\ref{figure:factoid:evinet:model}.
+For a given question, we extract potentially relevant information, \eg sentences from documents retrieved from text corpora using a search system.
+Next, we can use an entity linking system, such as TagMe~\cite{ferragina2010tagme}, to identify entities mentioned in the extracted information, which become candidate answers.
+\textit{EviNets} can further incorporate additional supporting evidence, \eg textual description of candidate answer entities, and potentially useful KB triples, such as types~\cite{Sun:2015:ODQ:2736277.2741651}.
 Finally, question, answer candidates and supporting evidence are given as input to the \textit{EviNets} neural network.
 
 \begin{figure}[t]
@@ -885,13 +880,13 @@ Finally, question, answer candidates and supporting evidence are given as input 
 \label{figure:factoid:evinet:layers}
 \end{figure}
 
-Let us denote a question by $q$ and $\{q_t\in~R^{|V|}\}$ is a one-hot encoding of its tokens from a fixed vocabulary $V$.
-$a_i$ is a candidate answer from the set A, and we will assume, that each answer is represented as a single entity token.
-For each question, we have a fixed set $E$ of evidence statements $e^{(i)}, i=1..M$, and their tokens $e_t^{(i)}$.
-A boolean function $mention:~A\times~E~\rightarrow~\{0, 1\}$ provides the information about which answer candidates are mentioned in which evidence.
+Let us denote a question by $q$, and $\{q_t\in~R^{|V|}\}$, as a one-hot encoding of its tokens from a fixed vocabulary $V$.
+$a_i$ is a candidate answer from the set $A$, and we will assume, that each answer is represented as a single entity.
+For each question, we have a fixed set $E=E_{text} \cup E_{KB}$ of evidence statements $e^{(i)}, i=1..M$, and their tokens $e_t^{(i)}$.
+A boolean function $mention:~A\times E\rightarrow\{0, 1\}$ provides the information about which answer candidates are mentioned in which evidences.
 Individual tokens $q_t, a_i, e_t^{(i)}$ are translated into the embedding space using a matrix $W_{D\times~|V|}$, where $D$ is the dimension of the embeddings, \ie $q_{emb,t}~=~Wq_t$, $a_{emb,i}~=~Wa_t$ and $e^{(i)}_{emb,t}~=~We^{(i)}_t$.
-In our experiments, we use the same matrix for questions, evidence, and answers.
-KB entities are considered to be individual tokens, while predicates and type names are tokenized into constituent words, \eg by splitting on underscore and dot characters for Freebase predicates.
+In the experiments, I use the same matrix for questions, evidence, and answers.
+KB entities are considered to be individual tokens, while predicates and type names are tokenized into constituent words, \ie by splitting on underscore and dot characters for Freebase predicates.
 A layer-wise architecture of \textit{EviNets} is displayed on Figure~\ref{figure:factoid:evinet:layers}.
 The evidence matching module ((a) on Figures~\ref{figure:factoid:evinet:model} and \ref{figure:factoid:evinet:layers}) estimates the relevance of each statement in the memory, and computes their weights using the softmax function.
 The evidence aggregation module (b) uses multiple ways to compute the aggregated statistics of evidences, mentioning each answer candidate.
@@ -901,7 +896,6 @@ EviNets selects the answer with the highest score as the final response.
 \subsubsection{Evidence Matching Module}
 
 Evidence matching is responsible for estimating the relevance of each of the pieces of evidence to the question, i.e., $w_e~=~softmax(match(q, e))$.
-
 The function \textit{match(q, e)} can be implemented using any of the recently proposed semantic similarity estimation architectures\footnote{e.g., see the ACL Wiki on Question\_Answering\_(State\_of\_the\_art).}.
 One of the simplest approaches is to average question and each evidence token embeddings and score the similarity using the dot product: $q_{emb} = \frac{1}{L_q}\sum_t q_{emb,t}$ and $e^{(i)}_{emb} = \frac{1}{L_e}\sum_t e^{(i)}_{emb,t}$ and $match(q, e^{(i)}) = q^T_{emb} \cdot e^{(i)}_{emb}$.
 
@@ -910,13 +904,13 @@ One of the simplest approaches is to average question and each evidence token em
 \begin{table}[h!]
 \centering
 \small
-\begin{tabular}{p{6cm}|p{7cm}}
+\begin{tabular}{p{5.2cm}|p{7.8cm}}
 Evidence Feature & Description \\
 \hline
-Maximum evidence score mentioning the answer & $\max_e \{w_e | mention(a, e)\}$ \\
-Average evidence score mentioning the answer & $avg_e \{w_e | mention(a, e)\}$ \\
-Sum of evidence scores mentioning the answer & $\sum_e \{w_e | mention(a, e)\}$ \\
-Number of mentions & $\sum_e \{1 | mention(a, e)\}$ \\
+Maximum evidence score mentioning the answer & $\max_e \{w_e | mention(a, e)\}, e\in E,E_{text}~or~E_{KB}$ \\
+Average evidence score mentioning the answer & $avg_e \{w_e | mention(a, e)\}, e\in E,E_{text}~or~E_{KB}$ \\
+Sum of evidence scores mentioning the answer & $\sum_e \{w_e | mention(a, e)\}, e\in E,E_{text}~or~E_{KB}$ \\
+Number of mentions & $\sum_e \{1 | mention(a, e)\}, e\in E_{text}$ \\
 Weighted memory similarity to the question & $(\frac{1}{M}\sum_i w_e e^{(i)}_{emb})\cdot q_{emb}$\\
 Weighted memory similarity to the answer~\cite{sukhbaatar2015end} & $(\frac{1}{M}\sum_i w_e e^{(i)}_{emb})\cdot a_{emb}$ or $R^T(\frac{1}{M}\sum_i w_e e^{(i)}_{emb} + q_{emb}) \cdot a_{emb}$, where $R_{D\times~D}$ is a rotation matrix \\
 Weighted memory answer mentions similarity to the answer~\cite{miller2016key} & $(\frac{1}{M}\sum_e w_e [\sum_a~a_{emb}~|~mention(e, a)]) \cdot a_{emb}$ \\
@@ -927,14 +921,12 @@ Weighted memory answer mentions similarity to the answer~\cite{miller2016key} & 
 
 After all the evidence signals have been scored, \textit{EviNets} aggregate the support for each answer candidate.
 Table~\ref{table:factoid:evinet:aggregation} summarizes the aggregation features used.
-With these features, \textit{EviNets} capture different information about the candidate answers, \ie how well the individual sentences match the question, how frequently the candidate is mentioned and how well a set of evidence for an answer covers the information requested in the question.
+With these features, \textit{EviNets} captures different aspects, \ie how well individual sentences match the question, how frequently the candidate is mentioned and how well a set of answer evidences covers the information requested in the question.
 
 \subsubsection{Answer Scoring Module}
 
-Finally, \textit{EviNets} uses signals from the aggregation stage to predict answer scores, rank them and return the best candidate as the final answer to the question.
-For this purpose, we use 2 fully-connected neural network layers with the rectified linear activation function, which had 32 and 8 hidden units correspondingly in all our experiments.
-Embeddings were initialized using 300-dimensional pre-trained Glove vectors~\cite{pennington2014glove}.
-Embeddings for multi-word entity names were obtained by averaging the corresponding word embeddings.
+Finally, \textit{EviNets} uses the aggregated signals to predict the answer scores, to rank them, and to return the best candidate as the final answer to the question.
+For this purpose, we use two fully-connected neural network layers with the ReLU activation function, with 32 and 8 hidden units respectively.
 The model was trained end-to-end by optimizing the cross entropy loss function using the Adam algorithm~\cite{kingma2014adam}.
 
 \subsection{Experimental Evaluation}
@@ -965,41 +957,50 @@ Dataset & Example Questions \\
 \end{table}
 
 
-To test our framework we used the TREC QA and WikiMovies benchmark datasets (Table~\ref{table:factoid:evinet:datasets}).
-To extend our experiments, we created an additional dataset, derived from the archive of questions posted to Yahoo!~Answers community question answering website.
-We will describe the dataset and its construction and properties later this Section.
-TREC QA is a relatively small dataset, which was introduced a decade ago, and sometimes requires certain updates in order to ensure the correctness of ground-truth answers~\cite{tsai2015web}.
-WikiMovies, on the other hand, is a much larger dataset, with template generated questions, which does not offer enough variability.
+To test our framework we used TREC QA~\cite{Sun:2015:ODQ:2736277.2741651}, WikiMovies~\cite{miller2016key} benchmarks and the new Yahoo!~Answers dataset\footnote{available for research purposes at \href{url}{http://ir.mathcs.emory.edu/software-data/}} derived from factoid questions posted on the CQA website (Table~\ref{table:factoid:evinet:datasets}).
+In all experiments, embeddings were initialized with 300-dimensional vectors pre-trained with Glove~\cite{pennington2014glove}.
+Embeddings for multi-word entity names were obtained by averaging the word vectors of constituent words.
+
+\subsubsection{Baselines}
+\label{section:factoid:evinet:eval:baselines}
+
+As baselines for different experiments depending on availability and specifics of a dataset we considered the following methods: 
+\begin{itemize}[noitemsep,nolistsep]
+\item IR-based QA systems: \textit{AskMSR}~\cite{brill2002analysis} and \textit{AskMSR+}~\cite{tsai2015web}, which select the best answer based on the frequency of entity mentions in retrieved text snippets. 
+\item KBQA systems: \textit{SemPre}~\cite{BerantCFL13:sempre} and \textit{Aqqu}~\cite{bastmore:cikm:2015:aquu}, which identify possible topic entities of the question, and select the answer from the candidates in the neighborhood of these entities in a KB.
+\item Hybrid system \textit{QuASE}~\cite{Sun:2015:ODQ:2736277.2741651} detects mentions of knowledge base entities in text passages, and uses the types and description information from the KB to support answer selection.
+\item Hybrid system \textit{Text2KB}~\cite{Savenkov:2016:KBE:2911451.2911536}, which uses textual resources to improve different stages of the KBQA pipeline, described in Section~\ref{section:factoid:text2kb}.
+\item Memory Networks: \textit{MemN2N}~\cite{sukhbaatar2015end} and \textit{KV MemN2N}~\cite{miller2016key} represent relevant information with embeddings, and summarize the memories into a single vector using the soft attention mechanism. Additionally, KV MemN2N splits memories into key-value pairs, where keys are used for matching against the question, and values are used to summarize the memories.
+\end{itemize}
+
 
 \subsubsection{TREC QA dataset}
 \label{section:factoid:evinet:eval:trecqa}
 
-The TREC QA~\cite{Sun:2015:ODQ:2736277.2741651} dataset is composed of factoid questions, which can be answered with an entity, and were used in TREC 8-12 question answering tracks.
-Similarly to~\cite{Sun:2015:ODQ:2736277.2741651} we use web search (using the Microsoft Bing Web Search API) to retrieve top 50 documents, parse them, extract sentences and rank them using tf-idf similarity to the question.
-To compare our results with the previous research we used the same set of candidate entities as used in the QuASE experiments~\cite{Sun:2015:ODQ:2736277.2741651}.
+The TREC QA dataset is composed of factoid questions, which can be answered with an entity, and were used in TREC 8-12 question answering tracks.
+Similarly to~\cite{Sun:2015:ODQ:2736277.2741651} we used web search (using the Microsoft Bing Web Search API) to retrieve top 50 documents, parsed them, extracted sentences and ranked them using tf-idf similarity to the question.
+To compare our results with the existing state-of-the-art, we used the same set of candidate entities as used by the QuASE model.
 We note that the extracted evidence differs between the models, and we were unable to match some of the candidates to our sentences.
-For Text+KB experiment, just as QuASE, we used entity descriptions and types from Freebase knowledge base.
-We compare our results to SemPre KBQA system~\cite{BerantCFL13:sempre}, IR-based AskMSR+~\cite{tsai2015web}, QuASE, MemN2N memory networks~\cite{sukhbaatar2015end} and KV MemN2N~\cite{miller2016key} models.
-Table~\ref{table:factoid:evinet:eval:trecqa} summarizes the results of our runs.
-\textit{EviNets} achieve competitive results on the dataset.
-The advantage of the proposed approach is that it does not depend on extensive feature engineering and does not rely on external data for training.
+For text+kb experiment, just as QuASE, we used entity descriptions and types from Freebase knowledge base.
+
+Table~\ref{table:factoid:evinet:eval:trecqa} summarizes the results.
+\textit{EviNets} achieves competitive results on the dataset, beating KV MemN2N by $13\%$ in F1 score, and, unlike QuASE, does not rely on expensive feature engineering and does not require any external resources to train.
 
 \begin{table}
 \centering
-\begin{tabular}{p{6cm}rrr}
-Method & Precision & Recall & F1 \\
+\begin{tabular}{lrrr}
+Method & P & R & F1 \\
 \hline
 SemPre & 0.157 & 0.104 & 0.125 \\
 Text2KB & 0.287 & 0.287 & 0.288 \\
 AskMSR+ & 0.493 & 0.490 & 0.491 \\
 QuASE (text) & 0.550 & 0.550 & 0.550 \\
-QuASE (text + KB) & 0.579 & \textbf{0.579} & \textbf{0.579} \\
+QuASE (text+kb) & 0.579 & \textbf{0.579} & \textbf{0.579} \\
 \hline
 MemN2N & 0.333 & 0.328 & 0.330 \\
 KV MemN2N & 0.517 & 0.500 & 0.508 \\
-\hline
-EviNets (text) & \textbf{0.580} & 0.560 & 0.569 \\
-EviNets (text+KB) & \textbf{0.585} & 0.564 & 0.574 \\
+EviNets (text) & 0.580 & 0.560 & 0.569 \\
+EviNets (text+kb) & \textbf{0.585} & 0.564 & 0.574 \\
 \end{tabular}
 \caption{Precision, Recall and F1 of KB- and Text-based question answering methods on the TREC QA dataset. The improvements over the Key-Value memory networks are statistically significant at p-value $<$ 0.01.}
 \label{table:factoid:evinet:eval:trecqa}
@@ -1008,84 +1009,100 @@ EviNets (text+KB) & \textbf{0.585} & 0.564 & 0.574 \\
 \subsubsection{WikiMovies dataset}
 \label{section:factoid:evinet:eval:wikimovies}
 
-The WikiMovies dataset~\cite{miller2016key} contains questions in the movies domain along with relevant Wikipedia passages and OMDb knowledge base.
-Since end-to-end key-value memory networks already achieve an almost perfect result answering the questions using the KB, we focus on using the provided movie articles from Wikipedia.
-We followed the preprocessing procedures described in A.Miller~\etal~\cite{miller2016key}.
-Unlike TREC QA, where there are usually multiple relevant supporting pieces of evidence, the WikiMovies dataset usually contains a single relevant sentence, which, however, mentions multiple entities.
-To help the model detect the correct answer, and explore its abilities to encode structured and unstructured data, we generate additional entity type triples.
-For example, if an entity $E$ appears as an object of the predicate \texttt{directed\_by} in OMDb, we add a triple \texttt{[E, type, director]}.
+The WikiMovies dataset contains questions in the movies domain along with relevant Wikipedia passages and the OMDb knowledge base.
+Since KVMemN2N already achieves an almost perfect result answering the questions using the KB, we focus on using the provided movie articles from Wikipedia.
+We followed the preprocessing procedures described in~\cite{miller2016key}.
+Unlike TREC QA, where there are often multiple relevant supporting pieces of evidence, answers in the WikiMovies dataset usually have a single relevant sentence, which, however, mentions multiple entities.
+To help the model distinguish the correct answer, and explore its abilities to encode structured and unstructured data, we generated additional \textit{entity type} triples.
+For example, if an entity $e$ appears as an object of the predicate \texttt{directed\_by} in OMDb, we added the \texttt{[e, type, director]} triple.
 As baselines, we used MemN2N and KV MemN2N models, and the results are presented in Table~\ref{section:factoid:evinet:eval:wikimovies}.
-It is important to emphasize that the best-reported results of memory networks have two major differences with our setting.
-The memories in these approaches were obtained using \textit{entity-centered windows}, which require special pre-processing and generally increases the number of memories, which might be problematic for open domain settings, where we have thousands of relevant memories in the first place.
-Additionally, these models used all of the KB entities as candidate answers, whereas \textit{EviNets} relies only on the mentioned ones, which is the more realistic and scalable scenario for open domain, where we cannot score millions of candidate answers in real time.
-
-As we can see, on the same setup using individual sentences as evidence/memories \textit{EviNets} outperforms the key-value memory network model.
+As we can see, with the same setup using individual sentences as evidence/memories \textit{EviNets} significantly outperforms the KV MemN2N model by $27\%$.
 Moreover, the proposed approach can effectively incorporate additional entity type RDF triples, and significantly improve the performance over the text-only version.
+It is important to emphasize that the best-reported results of memory networks were obtained using \textit{entity-centered windows} as memories, which requires special pre-processing and increases the number of memories.
+Additionally, these models used \textit{all} of the KB entities as candidate answers, whereas \textit{EviNets} relies only on the mentioned ones, which is a more scalable scenario for open-domain question answering, where it is not realistic to score millions of candidate answers in real-time.
 
 \begin{table}
 \centering
-\begin{tabular}{p{6cm}r}
+\begin{tabular}{lr}
 Method & Accuracy \\
 \hline
 MemN2N (wiki windows) & 0.699* \\
 KV MemN2N (wiki windows) & 0.762* \\
 \hline
-KV MemN2N (wiki sentences) & 0.524 \\
-EviNets (wiki) & 0.616  \\
-EviNets (wiki + entity types) & \textbf{0.667} \\
+AskMSR (entities) & 0.314 \\
+KV MemN2N (wiki sent) & 0.524 \\
+EviNets (wiki sent) & 0.616  \\
+EviNets (wiki sent + entity types) & \textbf{0.667} \\
 \end{tabular}
-\caption{Accuracy of EviNets and memory network models on the WikiMovies dataset. The results marked * are obtained using a different setup, \ie they use pre-processed entity window memories, and the whole set of entities as candidates, which is very expensive in an open domain scenario.}
+\caption{Accuracy of EviNets and baseline models on the WikiMovies dataset. The results marked * are obtained using a different setup, \ie they use pre-processed entity window memories, and the whole set of entities as candidates.}
 \label{section:factoid:evinet:eval:wikimovies}
 \end{table}
 
 \subsubsection{New Yahoo! Answers factoid questions dataset}
 \label{section:factoid:evinet:eval:yahoo}
 
-Community question answering websites contains hundreds of millions of different questions and corresponding answers, posted by real users.
-A fraction of these questions represents factoid information needs, which can be filtered using multiple different approaches.
-Yahoo! recently provided a dataset with search queries, which lead to clicks on factoid Yahoo!~Answers questions, identified as questions with the best answer containing less than 3 words and a Wikipedia page as the specified source of information\footnote{L27 from \href{url}{https://webscope.sandbox.yahoo.com/catalog.php?datatype=l}}.
-This dataset contains 15K queries, which correspond to 4725 unique Yahoo!~Answers questions.
-Examples of the questions are given in Table~\ref{table:factoid:evinet:datasets}.
-To map answers to entities we used the TagMe entity linking library~\cite{ferragina2010tagme} and provided a question and answer texts for disambiguation.
-I further filtered out questions, for which no answer entities with a good confidence\footnote{I used a threshold of 0.2 on the $\rho$ score from TagMe.} were identified, \eg date answers, and randomly split the rest into training, development and test sets, with 2711 questions in total.
-
-Similarly to the TREC QA experiments, we extracted textual evidence using Bing Web Search API, by retrieving top 50 relevant documents, extracting the main content blocks, and splitting it into sentences.
-These sentences are ranked by tf-idf cosine similarity to the question, and we only select top 100 sentences as the final set of evidences.
-We apply TagMe entity linker to detect entity mentions in these sentences, and consider all mentions with the confidence score above the 0.2 threshold as candidate answer entities.
-For candidate entities we extract relevant KB triples, such as entity types and descriptions, which extend the original pool of evidences.
+Yahoo! recently released a dataset with search queries, which lead to clicks on factoid Yahoo!~Answers questions, identified as questions with the best answer containing less than 3 words and a Wikipedia page as the specified source of information\footnote{L27 dataset \href{url}{https://webscope.sandbox.yahoo.com}}.
+This dataset contains 15K queries, which correspond to 4725 unique Yahoo!~Answers questions (Table~\ref{table:factoid:evinet:datasets}).
+We took these questions, and mapped answers to KB entities using the TagMe entity linking library~\cite{ferragina2010tagme}.
+We filtered out questions, for which no answer entities with a good confidence\footnote{A minimum  $\rho$ score of 0.2 from TagMe was required.} were identified, \eg date answers, and randomly split the rest into training, development and test sets, with 2711 questions in total.
+Similarly to the TREC QA experiments, we extracted textual evidence using Bing Web Search API, by retrieving top 50 relevant documents, extracting the main content blocks, and splitting them into sentences.
+We applied the TagMe entity linker to the extracted sentences, and considered all entities of mentions with the confidence score above the 0.2 threshold as candidate answers.
+For candidate entities we also retrieved relevant KB triples, such as entity types and descriptions, which extended the original pool of evidences.
 
 \begin{table}
 \centering
 \begin{tabular}{p{6cm}rrr}
-Method & Precision & Recall & F-1 \\
+Method & P & R & F1 \\
 \hline
 Aqqu & 0.116 & 0.117 & 0.116 \\
 Text2KB & 0.170 & 0.170 & 0.170 \\
-AskMSR (using entities) & 0.175 & 0.319 & 0.226 \\
-% AskMSR (0.5 rho) & 0.205 & 0.375 & ... \\
+AskMSR (entities) & 0.175 & 0.319 & 0.226 \\
 \hline
-% EviNets (text) & 0.189 & 0.303 & 0.264 \\
-EviNets (text-only) & 0.210 & 0.383 & 0.271 \\
-% EviNets (text+KB) & 0.1962 & 0.3190 & 0.243 \\
-EviNets (text+KB) & \textbf{0.226} & \textbf{0.409} & \textbf{0.291} \\
+MemN2N & 0.072	& 0.131 & 0.092 \\
+KV MemN2N & 0.126 & 0.228 & 0.162 \\
+\hline
+% EviNets (text) & 0.210 & 0.383 & 0.271\small{$_{+67\%}$} \\
+% EviNets (text+kb) & \textbf{0.226} & \textbf{0.409} & \textbf{0.291}\small{$_{+79\%}$} \\
+EviNets (text) & 0.210 & 0.383 & 0.271 \\
+EviNets (text+kb) & \textbf{0.226} & \textbf{0.409} & \textbf{0.291} \\
 \hline
 Oracle & 0.622 & 1.0 & 0.767 \\
 \end{tabular}
-\caption{Precision and Recall of different methods on Yahoo! Answers factoid QA dataset. The Oracle performance assumes candidate answers are ranked perfectly and is bound by the performance of the initial retrieval step.}
+\caption{Precision, Recall and F1 of different methods on Yahoo! Answers factoid QA dataset. The Oracle performance assumes candidate answers are ranked perfectly and is bound by the performance of the initial retrieval step.}
 \label{table:factoid:evinet:eval:yahoo}
 \end{table}
 
 Table~\ref{table:factoid:evinet:eval:yahoo} summarizes the results of \textit{EviNets} and some baseline methods on the created Yahoo!~Answers dataset.
 As we can see, knowledge base data is not enough to answer most of these questions, and a state-of-the-art KBQA system Aqqu gets only 0.116 precision.
-Adding textual data helps significantly, and Text2KB improves the precision to 0.17, which roughly matches the results of the AskMSR+ system, that ranks candidate entities by their popularity in the retrieved documents.
-Finally, EviNets with textual data shows better performance metrics than baseline approaches, and adding KB data further improves the results.
+Adding textual data helps significantly, and Text2KB improves the precision to 0.17, which roughly matches the results of the AskMSR system, that ranks candidate entities by their popularity in the retrieved documents.
+EviNets significantly improves over the baseline approaches, beating AskMSR by $28\%$ and KV MemN2N by almost $80\%$ in F1 score.
+Using text along with KB evidence gave higher performance metrics, boosting F1 from 0.271 to 0.291.
+
+In the above-mentioned experiments we used bag-of-words representation for questions and evidence, and a reasonable question is whether more complicated methods could achieve higher results.
+Table~\ref{table:factoid:evinet:eval:yahoo_bilstm} compares bag-of-words representation with bidirectional LSTM~\cite{WangN15}.
+On Yahoo!~Answers dataset BOW representation showed better performance, which is most likely due to a relatively low size of the dataset for the variety of questions present there.
+
+\begin{table}
+\centering
+\begin{tabular}{lrrr}
+Method & P & R & F1 \\
+\hline
+EviNets (text+kb): BOW & 0.226 & 0.409 & 0.291 \\
+EviNets (text+kb): biLSTM & 0.196 & 0.356 & 0.252 \\
+\end{tabular}
+\caption{Precision, Recall and F1 of EviNets with bag-of-words and bidirectional LSTM representations of questions and evidence.}
+\label{table:factoid:evinet:eval:yahoo_bilstm}
+\end{table}
+
 
 \subsection{Discussion}
 \label{section:factoid:evinet:discussion}
 
-\textit{EviNets}, described in this section, is a neural network framework for question answering, which encodes and aggregates multiple evidence signals to select answer candidates.
-Extensive experiments TREC QA, WikiMovies and Yahoo! Answers benchmark datasets demonstrate that it can be trained end-to-end to use both sources of information for factoid question answering.
-As a limitation of the approach and a direction for future research, \textit{EviNets} could naturally support dynamic evidence retrieval, which would allow to request and retrieve additional evidence based on the current state of the question answering process.
+\textit{EviNets}, described in this section, is a neural network for question answering, which encodes and aggregates multiple evidence signals to select answers.
+Experiments on TREC QA, WikiMovies and Yahoo!~Answers datasets demonstrate that \textit{EviNets} can be trained end-to-end to use both the available textual and knowledge base information.
+EviNets improves over the baselines, both in cases when there are many or just a few relevant pieces of evidence, by helping build an aggregate picture and distinguish between candidates, mentioned together in a relevant memory, as is the case for WikiMovies dataset.
+The results of the experiments also demonstrate that EviNets can incorporate signals from different data sources, \eg adding KB triples helps to improve the performance over text-only setup.
+As a limitation of the approach and a direction for future research, \textit{EviNets} could be extended to support dynamic evidence retrieval, which would allow retrieving additional answer candidates and evidence as needed.
 
 % =-=-=-=-=-=-=-=-=-=-=-=-=-=-EviNets: End=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -1094,14 +1111,14 @@ As a limitation of the approach and a direction for future research, \textit{Evi
 
 This Chapter introduced several approaches for combining unstructured, semi-structured and structured data sources to improve factoid question answering.
 Relation extraction from question-answer pairs aims at filling some gaps in KB fact coverage.
-The experiments show, that we can use distant supervision to extract factual knowledge from community question answering archives and increase the coverage of other existing relation extraction techniques.
+The experiments show, that we can use distant supervision to extract factual knowledge from community question answering archives and increase the recall of the existing sentence-based relation extraction techniques.
 However, extraction techniques are not perfect and suffer from both precision and recall losses.
 As an alternative strategy, we can use semantic annotations of entity mentions in a text to connect knowledge base and textual data.
 Such annotation allows to quickly find relevant textual resources and improve KBQA methods, as demonstrated by Text2KB model, or use both data sources together, as pieces of supporting evidence for generated answer candidates.
-Diverse information can be mapped into the embedding space and aggregated together in a neural network architecture, such as \textit{EviNets}.
+Diverse information can be mapped into the embedding space and aggregated together with a neural network architecture, such as \textit{EviNets}.
 
 Factoid questions represent just a part of user information needs. Many problems require a more elaborate response, such as a sentence, list of instructions or, in general, a passage of text.
-Such questions are usually referred to as non-factoid questions and they will be the focus of the Chapter~\ref{chapter:non-factoid}.
+Such questions are usually referred to as non-factoid questions and they will be the focus of Chapter~\ref{chapter:non-factoid}.
 
 
 
